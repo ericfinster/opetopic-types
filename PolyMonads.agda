@@ -6,17 +6,6 @@ open import Inspect
 
 module PolyMonads where
 
-  -- Okay, here's an idea for a hack:
-  -- you add a kind of constructor to
-  -- the places and, in the code below,
-  -- every time you recursively call with a place,
-  -- you wrap in that constructor.  The idea, then
-
-  -- But maybe instead of a function, you want a
-  -- *type constructor*.  The idea would be that you
-  -- have a trivial type constructor, isomorphic to
-  -- ρ itself.  Hmmm.  Let's think about it.
-
   data Mnd : Type₀ → Type₁
 
   γ : {I : Type₀} (M : Mnd I) → I → Type₀
@@ -27,7 +16,6 @@ module PolyMonads where
   μ : {I : Type₀} (M : Mnd I) (i : I) (c : γ M i) (δ : (p : ρ M i c) → γ M (τ M i c p)) → γ M i
 
   ηρ : {I : Type₀} (M : Mnd I) (i : I) → ρ M i (η M i)
-  ηρ-expand : {I : Type₀} (M : Mnd I) (i : I) → ρ M i (η M i) → ρ M i (η M i)
   ηρ-η : {I : Type₀} (M : Mnd I) (i : I) (p : ρ M i (η M i)) → ηρ M i == p
 
   μρ : {I : Type₀} (M : Mnd I) (i : I) (c : γ M i)
@@ -51,11 +39,6 @@ module PolyMonads where
   module _ {I : Type₀} (M : Mnd I) where
   
     postulate
-
-      ηρ-expand-rw : (i : I) (p : ρ M i (η M i))
-        → ηρ-expand M i p ↦ ηρ M i
-
-      {-# REWRITE ηρ-expand-rw #-}
 
       ηp-τ : (i : I) (p : ρ M i (η M i))
         → τ M i (η M i) p ↦ i
