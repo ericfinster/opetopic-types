@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --strict-poly-monads #-}
+{-# OPTIONS --show-implicit --without-K --rewriting --strict-poly-monads --verbose=plymnd:30 #-}
 
 open import HoTT
 
@@ -34,6 +34,21 @@ module StrictPoly where
   ⟪_⟫ : ∀ {ℓ} (M : Mnd ℓ) (X : Idx M → Set ℓ) → Idx M → Set ℓ
   ⟪ M ⟫ X i = Σ (γ M i) (λ c → (p : ρ M i c) → X (τ M i c p))
 
+  record ηρ-rec {ℓ} (M : Mnd ℓ) (i : Idx M) : Set ℓ where
+    constructor ηρ-unit
+
+  {-# BUILTIN UNITPLC ηρ-rec #-}
+  
+  record μρ-rec {ℓ} (M : Mnd ℓ) (i : Idx M) (c : γ M i) (δ : (p : ρ M i c) → γ M (τ M i c p)) : Set ℓ where
+    constructor μρ-pair
+    field
+      μρ-f : ρ M i c
+      μρ-s : ρ M (τ M i c μρ-f) (δ μρ-f)
+
+  {-# BUILTIN MULTPLC μρ-rec #-}
+
+  open μρ-rec public
+  
   postulate
 
     pb : ∀ {ℓ} (M : Mnd ℓ) (X : Idx M → Set ℓ) → Mnd ℓ
