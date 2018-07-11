@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --type-in-type #-}
 
 open import HoTT
 open import Poly 
@@ -6,30 +6,38 @@ open import Inspect
 
 module PolyMonads where
 
-  data Mnd : Type₁ 
+  data Mnd : Type₀
 
   Idx : Mnd → Type₀
 
-  postulate
+  γ : (M : Mnd) → Idx M → Type₀
+  ρ : (M : Mnd) (i : Idx M) → γ M i → Type₀
+  τ : (M : Mnd) (i : Idx M) (c : γ M i) → ρ M i c → Idx M
 
-    γ : (M : Mnd) → Idx M → Type₀
-    ρ : (M : Mnd) (i : Idx M) → γ M i → Type₀
-    τ : (M : Mnd) (i : Idx M) (c : γ M i) → ρ M i c → Idx M
+  η : (M : Mnd) (i : Idx M) → γ M i
+  μ : (M : Mnd) (i : Idx M) (c : γ M i) (δ : (p : ρ M i c) → γ M (τ M i c p)) → γ M i
 
-    η : (M : Mnd) (i : Idx M) → γ M i
-    μ : (M : Mnd) (i : Idx M) (c : γ M i) (δ : (p : ρ M i c) → γ M (τ M i c p)) → γ M i
-
-  record ηρ-rec (M : Mnd) (i : Idx M) : Type₀ where
+  record ηρ (M : Mnd) (i : Idx M) : Type₀ where
     constructor ηρ-unit
 
-  record μρ-rec (M : Mnd) (i : Idx M) (c : γ M i) (δ : (p : ρ M i c) → γ M (τ M i c p)) : Type₀ where
-    constructor μρ-pair
-    field
-      μρ-proj₀ : ρ M i c
-      μρ-proj₁ : ρ M (τ M i c μρ-proj₀) (δ μρ-proj₀)
+  data μρ : (M : Mnd) (i : Idx M) (c : γ M i) (δ : (p : ρ M i c) → γ M (τ M i c p)) → Type₀ where
+    μρ-pair : (M : Mnd) (i : Idx M) (c : γ M i)
+      → (δ : (p : ρ M i c) → γ M (τ M i c p))
+      → (p : ρ M i c) (q : ρ M (τ M i c p) (δ p))
+      → μρ M i c δ
 
-  open μρ-rec public
-  
+  μρ-fst : (M : Mnd) (i : Idx M) (c : γ M i)
+    → (δ : (p : ρ M i c) → γ M (τ M i c p))
+    → μρ M i c δ
+    → ρ M i c
+  μρ-fst M i c δ (μρ-pair _ _ _ _ p q) = p
+
+  μρ-snd : (M : Mnd) (i : Idx M) (c : γ M i)
+    → (δ : (p : ρ M i c) → γ M (τ M i c p))
+    → (p : μρ M i c δ)
+    → ρ M (τ M i c (μρ-fst M i c δ p)) (δ (μρ-fst M i c δ p))
+  μρ-snd M i c δ (μρ-pair _ _ _ _ p q) = q
+
   ⟪_⟫ : (M : Mnd) → (Idx M → Type₀) → Idx M → Type₀
   ⟪ M ⟫ X i = Σ (γ M i) (λ c → (p : ρ M i c) → X (τ M i c p))
 
@@ -37,26 +45,35 @@ module PolyMonads where
   
     postulate
 
-      ηρ-to-rec : (i : Idx M) →
-        ρ M i (η M i) ↦ ηρ-rec M i
+      ηρ-rw : (i : Idx M) →
+        ρ M i (η M i) ↦ ηρ M i
 
-      {-# REWRITE ηρ-to-rec #-}
+      {-# REWRITE ηρ-rw #-}
 
-      μρ-to-rec : (i : Idx M) (c : γ M i)
-        → (δ : (p : ρ M i c) → γ M (τ M i c p))
-        → ρ M i (μ M i c δ) ↦ μρ-rec M i c δ
-
-      {-# REWRITE μρ-to-rec #-}
-      
-      ηp-τ : (i : Idx M) 
-        → τ M i (η M i) ηρ-unit ↦ i
+      ηp-τ : (i : Idx M) (p : ηρ M i)
+        → τ M i (η M i) p ↦ i
 
       {-# REWRITE ηp-τ #-}
 
+      μρ-rw : (i : Idx M) (c : γ M i)
+        → (δ : (p : ρ M i c) → γ M (τ M i c p))
+        → ρ M i (μ M i c δ) ↦ μρ M i c δ
+
+      {-# REWRITE μρ-rw #-}
+
+      μρ-contract : (i : Idx M) (c : γ M i)
+        → (δ : (p : ρ M i c) → γ M (τ M i c p))
+        → (p : μρ M i c δ)
+        → μρ-pair M i c δ (μρ-fst M i c δ p) (μρ-snd M i c δ p) ↦ p
+
+      {-# REWRITE μρ-contract #-}
+      
       μρ-τ : (i : Idx M) (c : γ M i)
         → (δ : (p : ρ M i c) → γ M (τ M i c p))
-        → (p₀ : ρ M i c) (p₁ : ρ M (τ M i c p₀) (δ p₀))
-        → τ M i (μ M i c δ) (μρ-pair p₀ p₁) ↦ τ M (τ M i c p₀) (δ p₀) p₁
+        → (p : μρ M i c δ)
+        → τ M i (μ M i c δ) p ↦ τ M (τ M i c (μρ-fst M i c δ p)) (δ (μρ-fst M i c δ p)) (μρ-snd M i c δ p)
+        -- → (p₀ : ρ M i c) (p₁ : ρ M (τ M i c p₀) (δ p₀))
+        -- → τ M i (μ M i c δ) (μρ-pair p₀ p₁) ↦ τ M (τ M i c p₀) (δ p₀) p₁
 
       {-# REWRITE μρ-τ #-}
       
@@ -74,7 +91,7 @@ module PolyMonads where
       assoc : (i : Idx M) (c : γ M i)
               (δ : (p : ρ M i c) → γ M (τ M i c p))
               (ε : (q : ρ M i (μ M i c δ)) → γ M (τ M i (μ M i c δ) q)) →
-              μ M i (μ M i c δ) ε ↦ μ M i c (λ p → μ M (τ M i c p) (δ p) (λ q → ε (μρ-pair p q)))
+              μ M i (μ M i c δ) ε ↦ μ M i c (λ p → μ M (τ M i c p) (δ p) (λ q → ε (μρ-pair M i c δ p q)))
 
       {-# REWRITE assoc #-}
 
@@ -116,25 +133,7 @@ module PolyMonads where
     ηρ-pb (i , x) = ηρ-unit
 
     μ-pb : (i : I-pb) (c : γ-pb i) (ε : (p : ρ-pb i c) → γ-pb (τ-pb i c p)) → γ-pb i
-    μ-pb (i , x) (c , δ) ε = μ M i c (fst ∘ ε) , λ p → snd (ε (μρ-proj₀ p)) (μρ-proj₁ p) 
-
-    μρ-pb : (i : I-pb) (c : γ-pb i)
-      → (ε : (p : ρ-pb i c) → γ-pb (τ-pb i c p))
-      → (p₀ : ρ-pb i c) (p₁ : ρ-pb (τ-pb i c p₀) (ε p₀))
-      → ρ-pb i (μ-pb i c ε)
-    μρ-pb (i , x) (c , δ) ε p₀ p₁ = μρ-pair p₀ p₁ 
-
-    μρ-fst-pb : (i : I-pb) (c : γ-pb i)
-      → (ε : (p : ρ-pb i c) → γ-pb (τ-pb i c p))
-      → (p : ρ-pb i (μ-pb i c ε))
-      → ρ-pb i c
-    μρ-fst-pb (i , x) (c , δ) ε p = μρ-proj₀ p 
-
-    μρ-snd-pb : (i : I-pb) (c : γ-pb i)
-      → (ε : (p : ρ-pb i c) → γ-pb (τ-pb i c p))
-      → (p : ρ-pb i (μ-pb i c ε))
-      → ρ-pb (τ-pb i c (μρ-fst-pb i c ε p)) (ε (μρ-fst-pb i c ε p))
-    μρ-snd-pb (i , x) (c , δ) ε p = μρ-proj₁ p
+    μ-pb (i , x) (c , δ) ε = μ M i c (fst ∘ ε) , λ p → snd (ε (μρ-fst M i c (fst ∘ ε) p)) (μρ-snd M i c (fst ∘ ε) p) 
 
   --
   -- The slice monad
@@ -194,10 +193,10 @@ module PolyMonads where
       → (δ₁ : (p : ρ M i c) → γ M (τ M i c p))
       → (ε₁ : (p : ρ M i c) → Nst (τ M i c p) (δ₁ p)) 
       → Nst i (μ M i c δ₁)
-    graft-slc i .(η M i) (dot .i) δ₁ ε₁ = ε₁ ηρ-unit 
+    graft-slc i .(η M i) (dot .i) δ₁ ε₁ = ε₁ ηρ-unit
     graft-slc i .(μ M i c δ) (box .i c δ ε) δ₁ ε₁ =
-      let  δ₁' p q = δ₁ (μρ-pair p q)
-           ε₁' p q = ε₁ (μρ-pair p q)
+      let  δ₁' p q = δ₁ (μρ-pair M i c δ p q)
+           ε₁' p q = ε₁ (μρ-pair M i c δ p q)
            δ' p = μ M (τ M i c p) (δ p) (δ₁' p)
       in box i c δ' (λ p → graft-slc (τ M i c p) (δ p) (ε p) (δ₁' p) (ε₁' p))
 
@@ -223,19 +222,19 @@ module PolyMonads where
       → ρ-slc (i , c) n ⊔ Σ (ρ M i c) (λ p → ρ-slc (τ M i c p , δ₁ p) (ε₁ p))
       → ρ-slc (i , μ M i c δ₁) (graft-slc i c n δ₁ ε₁)
     graft-slc-ρ-to i .(η _ i) (dot .i) δ₁ ε₁ (inl ())
-    graft-slc-ρ-to i .(η _ i) (dot .i) δ₁ ε₁ (inr (p , q)) = q
+    graft-slc-ρ-to i .(η _ i) (dot .i) δ₁ ε₁ (inr (ηρ-unit , q)) = q
     graft-slc-ρ-to i .(μ _ i c δ) (box .i c δ ε) δ₁ ε₁ (inl (inl unit)) = inl unit
     graft-slc-ρ-to i .(μ _ i c δ) (box .i c δ ε) δ₁ ε₁ (inl (inr (p , q))) = 
-      let  δ₁' p q = δ₁ (μρ-pair p q) -- (μρ M i c δ p q)
-           ε₁' p q = ε₁ (μρ-pair p q) -- (μρ M i c δ p q)
+      let  δ₁' p q = δ₁ (μρ-pair M i c δ p q) 
+           ε₁' p q = ε₁ (μρ-pair M i c δ p q) 
            δ' p = μ M (τ M i c p) (δ p) (δ₁' p)
       in inr (p , graft-slc-ρ-to (τ M i c p) (δ p) (ε p) (δ₁' p) (ε₁' p) (inl q))
     graft-slc-ρ-to i .(μ _ i c δ) (box .i c δ ε) δ₁ ε₁ (inr (p , q)) = 
-      let  δ₁' p q = δ₁ (μρ-pair p q) -- (μρ M i c δ p q)
-           ε₁' p q = ε₁ (μρ-pair p q) -- (μρ M i c δ p q)
+      let  δ₁' p q = δ₁ (μρ-pair M i c δ p q) 
+           ε₁' p q = ε₁ (μρ-pair M i c δ p q) 
            δ' p = μ M (τ M i c p) (δ p) (δ₁' p)
-           p₀ = μρ-proj₀ p -- μρ-fst M i c δ p
-           p₁ = μρ-proj₁ p -- μρ-snd M i c δ p
+           p₀ = μρ-fst M i c δ p
+           p₁ = μρ-snd M i c δ p
       in inr (p₀ , graft-slc-ρ-to (τ M i c p₀) (δ p₀) (ε p₀) (δ₁' p₀) (ε₁' p₀) (inr (p₁ , q)))
 
     graft-slc-ρ-from : (i : Idx M) (c : γ M i) (n : Nst i c)
@@ -251,20 +250,20 @@ module PolyMonads where
       → (ε₁ : (p : ρ M i (μ M i c δ)) → Nst (τ M i (μ M i c δ) p) (δ₁ p))
       → (p : ρ M i c)
       → ρ-slc (τ M i c p , δ p) (ε p) ⊔
-          Σ (ρ M (τ M i c p) (δ p)) (λ p₁ → ρ-slc (τ M (τ M i c p) (δ p) p₁ , δ₁ (μρ-pair p p₁)) (ε₁ (μρ-pair p p₁)))
+          Σ (ρ M (τ M i c p) (δ p)) (λ p₁ → ρ-slc (τ M (τ M i c p) (δ p) p₁ , δ₁ (μρ-pair M i c δ p p₁)) (ε₁ (μρ-pair M i c δ p p₁)))
       → (⊤ ⊔ Σ (ρ M i c) (λ p₁ → ρ-slc (τ M i c p₁ , δ p₁) (ε p₁))) ⊔
           Σ (ρ M i (μ M i c δ)) (λ p₁ → ρ-slc (τ M i (μ M i c δ) p₁ , δ₁ p₁) (ε₁ p₁))
 
     graft-slc-ρ-from i .(η M i) (dot .i) δ₁ ε₁ q = inr (ηρ-unit , q)
     graft-slc-ρ-from i .(μ M i c δ) (box .i c δ ε) δ₁ ε₁ (inl unit) = inl (inl unit)
     graft-slc-ρ-from i .(μ M i c δ) (box .i c δ ε) δ₁ ε₁ (inr (p , q)) = 
-      let  δ₁' p q = δ₁ (μρ-pair p q)
-           ε₁' p q = ε₁ (μρ-pair p q)
+      let  δ₁' p q = δ₁ (μρ-pair M i c δ p q)
+           ε₁' p q = ε₁ (μρ-pair M i c δ p q)
            δ' p = μ M (τ M i c p) (δ p) (δ₁' p)
       in graft-slc-ρ-from-lcl i c δ ε δ₁ ε₁ p (graft-slc-ρ-from (τ M i c p) (δ p) (ε p) (δ₁' p) (ε₁' p) q) 
 
     graft-slc-ρ-from-lcl i c δ ε δ₁ ε₁ p (inl q₀) = inl (inr (p , q₀))
-    graft-slc-ρ-from-lcl i c δ ε δ₁ ε₁ p (inr (p₀ , q₀)) = inr (μρ-pair p p₀ , q₀)
+    graft-slc-ρ-from-lcl i c δ ε δ₁ ε₁ p (inr (p₀ , q₀)) = inr (μρ-pair M i c δ p p₀ , q₀)
     
     --
     --  Joining
@@ -322,30 +321,43 @@ module PolyMonads where
           ih = μρ-slc-from (τ M i c p₀ , δ p₀) (ε p₀) κ' q₀
       in inr (p₀ , fst ih) , snd ih
 
+  --
+  --  Decoding functions
+  --
+  
+  γ (id I) i = ⊤
+  -- γ (fr P) = γ-fr P
+  γ (slc M) = γ-slc M
+  γ (pb M X) = γ-pb M X
+
+  ρ (id I) i unit = ⊤
+  -- ρ (fr P) = ρ-fr P
+  ρ (slc M) = ρ-slc M
+  ρ (pb M X) = ρ-pb M X 
+
+  τ (id I) i unit unit = i
+  -- τ (fr P) = τ-fr P
+  τ (slc M) = τ-slc M
+  τ (pb M X) = τ-pb M X 
+
+  η (id I) _ = unit
+  -- η (fr P) = η-fr P
+  η (slc M) = η-slc M
+  η (pb M X) = η-pb M X
+
+  μ (id I) i unit δ = unit
+  -- μ (fr P) = μ-fr P
+  μ (slc M) = μ-slc M
+  μ (pb M X) = μ-pb M X 
+
+  --
+  --  Place compatibility rewrites
+  --
+
   postulate
 
-    γ-slc-rw : (M : Mnd) → γ (slc M) ↦ γ-slc M 
-
-    {-# REWRITE γ-slc-rw #-}
-    
-    ρ-slc-rw : (M : Mnd) → ρ (slc M) ↦ ρ-slc M
-
-    {-# REWRITE ρ-slc-rw #-}
-
-    τ-slc-rw : (M : Mnd) → τ (slc M) ↦ τ-slc M
-
-    {-# REWRITE τ-slc-rw #-}
-
-    η-slc-rw : (M : Mnd) → η (slc M) ↦ η-slc M
-
-    {-# REWRITE η-slc-rw #-}
-
-    μ-slc-rw : (M : Mnd) → μ (slc M) ↦ μ-slc M
-
-    {-# REWRITE μ-slc-rw #-}
-
     ρ-slc-η-compat : (M : Mnd) (i : Idx (slc M))
-      → ηρ-rec (slc M) i ↦ ρ-slc M i (η-slc M i)
+      → ηρ (slc M) i ↦ ρ-slc M i (η-slc M i)
 
     {-# REWRITE ρ-slc-η-compat #-}
 
@@ -356,68 +368,17 @@ module PolyMonads where
 
     ρ-slc-μ-compat : (M : Mnd) (i : Idx (slc M)) (c : γ (slc M) i)
       → (δ : (p : ρ (slc M) i c) → γ (slc M) (τ (slc M) i c p))
-      → μρ-rec (slc M) i c δ ↦ ρ-slc M i (μ-slc M i c δ)
+      → μρ (slc M) i c δ ↦ ρ-slc M i (μ-slc M i c δ)
 
     {-# REWRITE ρ-slc-μ-compat #-}
 
     ρ-slc-μ-pair-compat : (M : Mnd) (i : Idx (slc M)) (c : γ (slc M) i)
       → (δ : (p : ρ (slc M) i c) → γ (slc M) (τ (slc M) i c p))
       → (p : ρ (slc M) i c) (q : ρ (slc M) (τ (slc M) i c p) (δ p))
-      → μρ-pair {M = slc M} {i = i} {c = c} {δ = δ} p q ↦ μρ-slc-to M i c δ (p , q)
+      → μρ-pair (slc M) i c δ p q ↦ μρ-slc-to M i c δ (p , q)
 
-    -- {-# REWRITE ρ-slc-μ-pair-compat #-}
-    
-  --
-  --  Decoding functions
-  --
-  
-  -- γ (id I) i = ⊤
-  -- γ (fr P) = γ-fr P
-  -- γ (slc M) = γ-slc M
-  -- γ (pb M X) = γ-pb M X
+    {-# REWRITE ρ-slc-μ-pair-compat #-}
 
-  -- ρ (id I) i unit = ⊤
-  -- ρ (fr P) = ρ-fr P
-  -- ρ (slc M) = ρ-slc M
-  -- ρ (pb M X) = ρ-pb M X 
 
-  -- τ (id I) i unit unit = i
-  -- τ (fr P) = τ-fr P
-  -- τ (slc M) = τ-slc M
-  -- τ (pb M X) = τ-pb M X 
 
-  -- η (id I) _ = unit
-  -- η (fr P) = η-fr P
-  -- η (slc M) = η-slc M
-  -- η (pb M X) = η-pb M X
-
-  -- μ (id I) i unit δ = unit
-  -- μ (fr P) = μ-fr P
-  -- μ (slc M) = μ-slc M
-  -- μ (pb M X) = μ-pb M X 
-
-  -- ηρ (id I) i = unit
-  -- ηρ (fr P) i = unit
-  -- ηρ (slc M) = ηρ-slc M
-  -- ηρ (pb M X) = ηρ-pb M X
-  
-  -- ηρ-η (id I) i unit = idp
-  -- ηρ-η (fr P) i unit = idp
-  -- ηρ-η (slc M) = ηρ-η-slc M
-  -- ηρ-η (pb M X) = ηρ-η-pb M X
-
-  -- μρ (id I) i unit δ unit unit = unit
-  -- μρ (fr P) i c δ p₀ p₁ = μρ-to-fr P i c δ (p₀ , p₁)
-  -- μρ (slc M) i n κ q₀ q₁ = μρ-slc-to M i n κ (q₀ , q₁)
-  -- μρ (pb M X) = μρ-pb M X
-  
-  -- μρ-fst (id I) i unit δ unit = unit
-  -- μρ-fst (fr P) i c δ p = fst (μρ-from-fr P i c δ p)
-  -- μρ-fst (slc M) i n κ q = fst (μρ-slc-from M i n κ q)
-  -- μρ-fst (pb M X) = μρ-fst-pb M X
-  
-  -- μρ-snd (id I) i unit δ unit = unit
-  -- μρ-snd (fr P) i c δ p = snd (μρ-from-fr P i c δ p)
-  -- μρ-snd (slc M) i n κ q = snd (μρ-slc-from M i n κ q)
-  -- μρ-snd (pb M X) = μρ-snd-pb M X
 
