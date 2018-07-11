@@ -1,4 +1,4 @@
-{-# OPTIONS --show-implicit --without-K --rewriting --strict-poly-monads --verbose=plymnd:30 #-}
+{-# OPTIONS --show-implicit --without-K --rewriting --strict-poly-monads #-}
 
 open import HoTT
 
@@ -34,20 +34,20 @@ module StrictPoly where
   ⟪_⟫ : ∀ {ℓ} (M : Mnd ℓ) (X : Idx M → Set ℓ) → Idx M → Set ℓ
   ⟪ M ⟫ X i = Σ (γ M i) (λ c → (p : ρ M i c) → X (τ M i c p))
 
-  record ηρ-rec {ℓ} (M : Mnd ℓ) (i : Idx M) : Set ℓ where
-    constructor ηρ-unit
+  -- record ηρ-rec {ℓ} (M : Mnd ℓ) (i : Idx M) : Set ℓ where
+  --   constructor ηρ-unit
 
-  {-# BUILTIN UNITPLC ηρ-rec #-}
+  -- {-# BUILTIN UNITPLC ηρ-rec #-}
   
-  record μρ-rec {ℓ} (M : Mnd ℓ) (i : Idx M) (c : γ M i) (δ : (p : ρ M i c) → γ M (τ M i c p)) : Set ℓ where
-    constructor μρ-pair
-    field
-      μρ-f : ρ M i c
-      μρ-s : ρ M (τ M i c μρ-f) (δ μρ-f)
+  -- record μρ-rec {ℓ} (M : Mnd ℓ) (i : Idx M) (c : γ M i) (δ : (p : ρ M i c) → γ M (τ M i c p)) : Set ℓ where
+  --   constructor μρ-pair
+  --   field
+  --     μρ-f : ρ M i c
+  --     μρ-s : ρ M (τ M i c μρ-f) (δ μρ-f)
 
-  {-# BUILTIN MULTPLC μρ-rec #-}
+  -- {-# BUILTIN MULTPLC μρ-rec #-}
 
-  open μρ-rec public
+  -- open μρ-rec public
   
   postulate
 
@@ -100,6 +100,16 @@ module StrictPoly where
   {-# BUILTIN SLCCONS Nst #-}
   {-# BUILTIN SLCCONSDOT dot #-}
   {-# BUILTIN SLCCONSBOX box #-}
+
+  data Nd {ℓ} (M : Mnd ℓ) (i : Idx M) : (c : γ M i) → Nst M i c → Set ℓ where
+
+    here : (c : γ M i) (δ : (p : ρ M i c) → γ M (τ M i c p))
+           (ε : (p : ρ M i c) → Nst M (τ M i c p) (δ p))
+           → Nd M i (μ M i c δ) (box i c δ ε)
+    there : (c : γ M i) (δ : (p : ρ M i c) → γ M (τ M i c p))
+            (ε : (p : ρ M i c) → Nst M (τ M i c p) (δ p)) 
+            (p : ρ M i c) (q : ρ (slc M) (τ M i c p , δ p) (ε p))
+            → Nd M i (μ M i c δ) (box i c δ ε)
 
   postulate
 

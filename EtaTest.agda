@@ -1,18 +1,14 @@
-{-# OPTIONS --without-K --rewriting --verbose=tc.meta.eta:30 --verbose=tc.conv.term:30 --verbose=tc.lhs:80 --verbose=tc.conv.atom:50 --verbose=tc.reduce:100 --verbose=tc.reduce.fast:110 #-}
+{-# OPTIONS --without-K --rewriting --type-in-type #-}
 
 open import HoTT
+open import PolyMonads
 
 module EtaTest where
 
-  module _ (X : Type₀) (x : X) where
+  module _ (M : Mnd) where
 
-    silly : ⊤ → X
-    silly unit = x
+    -- Place calculation
+    slc-from-rec : (i : Idx (slc M))
+      → ηρ (slc M) i == ρ (slc M) i (η (slc M) i)
+    slc-from-rec i = idp
 
-    -- And how does this work?
-    another : (u : ⊤) → u == unit
-    another u = idp
-
-    -- Uh, yeah.  So you have to understand how this works.
-    η-test : (u : ⊤) → x == silly u
-    η-test u = idp

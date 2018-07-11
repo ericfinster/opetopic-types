@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --strict-poly-monads --verbose=plymnd:30 #-} 
+{-# OPTIONS --without-K --rewriting --strict-poly-monads --verbose=plymnd:10 #-} 
 
 open import HoTT
 open import StrictPoly
@@ -7,11 +7,27 @@ module StrictPolyTest where
     
   module _ {ℓ} (M : Mnd ℓ) where
 
-    -- Place calculation
-    slc-from-rec : (i : Idx (slc M))
-      → ηρ-rec (slc M) i == ρ (slc M) i (η (slc M) i)
-    slc-from-rec i = {!idp!}
+    -- id-test : (i : ⊤) (c : γ (id ⊤) i)
+    --   → (δ : (p : ρ (id ⊤) i c) → γ (id ⊤) (τ (id ⊤) i c p))
+    --   → (p : ρ (id ⊤) i (μ (id ⊤) i c δ))
+    --   → μρ-fst (id ⊤) i c δ p == unit
+    -- id-test i c δ p = idp
 
+    module _ (X : Type₀) (x : X) where
+
+      -- my-fun : (i : ⊤) (c : γ (id ⊤) i) (p : ρ (id ⊤) i c) → X
+      -- my-fun i c tt = x 
+      
+      id-test₀ : (i : ⊤) (c : γ (id ⊤) i)
+        → (δ : (p : ρ (id ⊤) i c) → γ (id ⊤) (τ (id ⊤) i c p))
+        → (p : ρ (id ⊤) i (μ (id ⊤) i c δ))
+        → (λ { tt → x }) (μρ-snd (id ⊤) i c δ p) == x
+      id-test₀ i c δ p = idp
+
+    -- Place calculation
+    -- slc-from-rec : (i : Idx (slc M))
+    --   → ηρ-rec (slc M) i == ρ (slc M) i (η (slc M) i)
+    -- slc-from-rec i = {!idp!}
 
     -- ηρ-test₀ : (i : Idx M)
     --   → ρ M i (η M i) == ηρ-rec M i

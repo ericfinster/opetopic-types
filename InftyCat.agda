@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --verbose=plymnd:10 #-}
 
 open import HoTT
 open import StrictPoly
