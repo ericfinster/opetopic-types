@@ -16,6 +16,11 @@ module Poly where
   ⟦_⟧ : {I : Type₀} (P : Poly I) → (I → Set) → I → Set
   ⟦ P ⟧ X i = Σ (γ P i) (λ c → (p : ρ P i c) → X (τ P i c p))
 
+  ⟦_⟧₀ : {I : Type₀} (P : Poly I) {X Y : I → Set}
+    → (f : (i : I) → X i → Y i)
+    → (i : I) → ⟦ P ⟧ X i → ⟦ P ⟧ Y i
+  ⟦ P ⟧₀ f i (c , δ) =  c , (λ p → f (τ P i c p) (δ p))
+
   module _ {I : Type₀} (P : Poly I) where
   
     data W : I → Type₀ where
@@ -110,38 +115,20 @@ module Poly where
             and-so : corolla c' == nd i (c' , δ)
             and-so = ap (λ d → nd i (c' , d)) (λ= (λ p → ! (must-be-leaves p)))
 
-    -- bleep : (i : I) (p : Σ I (γ P)) (w : W i)
-    --   → (is-c : is-contr (node w))
-    --   → (pth : node-type w (contr-center is-c) == p)
-    --   → (q : i == fst p)
-    --   → corolla (snd p) == transport W q w
-    -- bleep i .(node-type (lf i) (fst (has-level-apply is-c))) (lf .i) is-c idp q = {!!}
-    -- bleep i .(node-type (nd i x) (fst (has-level-apply is-c))) (nd .i x) is-c idp q = {!!}
-
-    -- and-then : {i : I} (c : γ P i) (w : W i)
-    --   → (is-c : is-contr (node w))
-    --   → (pth : node-type w (contr-center is-c) == (i , c))
-    --   → corolla c == w
-    -- and-then {i} c w is-c pth = bleep i (i , c) w is-c pth idp
+  Fr : {I : Type₀} (P : Poly I) → Poly I
+  γ (Fr P) = W P
+  ρ (Fr P) i = leaf P {i}
+  τ (Fr P) i = leaf-type P {i}
 
   module _ {I : Type₀} (P : Poly I) where
   
-    γ-fr : I → Type₀
-    γ-fr = W P
-
-    ρ-fr : (i : I) → γ-fr i → Type₀
-    ρ-fr i (lf .i) = ⊤
-    ρ-fr i (nd .i (c , δ)) = Σ (ρ P i c) (λ p → ρ-fr (τ P i c p) (δ p))
-
-    τ-fr : (i : I) (c : γ-fr i) → ρ-fr i c → I
-    τ-fr i (lf .i) unit = i
-    τ-fr i (nd .i (c , δ)) (p₀ , p₁) = τ-fr (τ P i c p₀) (δ p₀) p₁
-
-    η-fr : (i : I) → γ-fr i
-    η-fr = lf
-
-    ηρ-contr-fr : (i : I) → is-contr (ρ-fr i (η-fr i))
-    ηρ-contr-fr i = Unit-level
+    γ-fr = γ (Fr P)
+    ρ-fr = ρ (Fr P)
+    τ-fr = τ (Fr P)
+    
+    graft : (i : I) (w : W P i) (ε : (l : leaf P w) → W P (leaf-type P w l)) → W P i
+    graft i (lf .i) ε = ε tt
+    graft i (nd .i (c , δ)) ε = nd i (c , λ p → graft (τ P i c p) (δ p) (λ l → ε (p , l)))
 
     μ-fr : (i : I) (c : γ-fr i) (δ : (p : ρ-fr i c) → γ-fr (τ-fr i c p)) → γ-fr i
     μ-fr i (lf .i) δ = δ unit
