@@ -40,6 +40,11 @@ module Poly where
       → leaf w ≃ leaf (transport W p w)
     leaf-inv w idp = ide (leaf w)
 
+    leaf-inv-! : {i₀ i₁ : I} (w : W i₁) 
+      → (p : i₀ == i₁) 
+      → leaf w ≃ leaf (transport! W p w)
+    leaf-inv-! w idp = ide (leaf w)
+
     leaf-inv-coh : {i₀ i₁ : I} (w : W i₀) 
       → (p : i₀ == i₁) (l : leaf w)
       → leaf-type w l == leaf-type (transport W p w) (–> (leaf-inv w p) l) 
@@ -54,6 +59,39 @@ module Poly where
     node-type (nd i (c , δ)) (inl unit) = i , c
     node-type (nd i (c , δ)) (inr (p , n)) = node-type (δ p) n
 
+    node-inv : {i₀ i₁ : I} (w : W i₁) 
+      → (p : i₀ == i₁) 
+      → node w ≃ node (transport! W p w)
+    node-inv w idp = ide (node w)
+
+    node-inv-coh : {i₀ i₁ : I} (w : W i₁) 
+      → (p : i₀ == i₁)
+      → (n : node (transport! W p w))
+      → node-type w (<– (node-inv w p) n) == node-type (transport! W p w) n
+    node-inv-coh w idp n = idp
+
+    node-height : {i : I} (w : W i) (n : node w) → ℕ
+    node-height (lf i) ()
+    node-height (nd i (c , δ)) (inl unit) = O
+    node-height (nd i (c , δ)) (inr (p , n)) = S (node-height (δ p) n)
+
+    node-equiv : {i : I} (w₀ w₁ : W i) → Type₀
+    node-equiv w₀ w₁ = Σ (node w₀ ≃ node w₁) (λ e → (n : node w₀) → node-type w₀ n == node-type w₁ (–> e n))
+
+    -- This should be a property!
+    is-height-preserving : {i : I} {w₀ w₁ : W i} (e : node-equiv w₀ w₁) → Type₀
+    is-height-preserving {i} {w₀} {w₁} (e , _) =
+      (n : node w₀) → node-height w₀ n == node-height w₁ (–> e n)
+
+    -- reconstruction-lemma : {i : I} (w₀ w₁ : W i)
+    --   → (e : node-equiv w₀ w₁)
+    --   → (is-hp : is-height-preserving e)
+    --   → w₀ == w₁
+    -- reconstruction-lemma (lf i) (lf .i) (e , coh) is-hp = idp
+    -- reconstruction-lemma (lf i) (nd .i _) (e , coh) is-hp = ⊥-elim (<– e (inl unit))
+    -- reconstruction-lemma (nd i _) (lf .i) (e , coh) is-hp = ⊥-elim (–> e (inl unit))
+    -- reconstruction-lemma (nd i (c₀ , δ₀)) (nd .i (c₁ , δ₁)) (e , coh) is-hp = {!!}
+
     corolla : {i : I} (c : γ P i) → W i
     corolla {i} c = nd i (c , λ p → lf (τ P i c p))
 
@@ -67,24 +105,27 @@ module Poly where
     -- unique-node-lem (lf i) is-c = ⊥-elim {P = λ _ → fst (node-type (lf i) (contr-center is-c)) == i} (contr-center is-c) 
     -- unique-node-lem (nd i (c , δ)) is-c = fst= (ap (λ x → node-type (nd i (c , δ)) x) (contr-path is-c (inl unit)))
 
-    -- -- Right.  It's clear that you can do this.
-    -- -- It's what you've done below.
-    -- reconstruct : {i : I} (w : W i)
+    -- corolla-unique-pth : {i : I} (c : γ P i) (w : W i)
     --   → (is-c : is-contr (node w))
-    --   → w == corolla (snd (node-type w (contr-center is-c))) [ W ↓ ! (unique-node-lem w is-c) ]
-    -- reconstruct w is-c = {!!}
-    
-    -- -- Annoying.  I seem to blow a bubble.  But I don't think
-    -- -- it should be there.  Can you get rid of it?
+    --   → (pth : node-type w (contr-center is-c) == (i , c))
+    --   → i == i
+    -- corolla-unique-pth c (lf i) is-c pth = ⊥-elim (contr-center is-c)
+    -- corolla-unique-pth c (nd i (c' , δ)) is-c pth =
+    --   fst= ((! (ap (λ x → node-type (nd i (c' , δ)) x) (contr-path is-c (inl unit)))) ∙ pth)
+
     -- corolla-unique : {i : I} (c : γ P i) (w : W i)
     --   → (is-c : is-contr (node w))
     --   → (pth : node-type w (contr-center is-c) == (i , c))
-    --   → corolla c == w 
-    -- corolla-unique c (lf i) is-c pth = ⊥-elim (contr-center is-c)
-    -- corolla-unique c (nd i (c' , δ)) is-c pth = ap corolla {!!} ∙ and-so
+    --   → corolla c == w [ W ↓ corolla-unique-pth c w is-c pth ]
+    -- corolla-unique c (lf i) is-c pth =
+    --   ⊥-elim {P = λ _ → corolla c == lf i [ W ↓ ⊥-elim (fst (has-level-apply is-c)) ]} (contr-center is-c) 
+    -- corolla-unique c (nd i (c' , δ)) is-c pth = {!corolla=!} -- corolla= ∙'ᵈ and-so
 
     --   where lem : (i , c') == (i , c)
     --         lem = (! (ap (λ x → node-type (nd i (c' , δ)) x) (contr-path is-c (inl unit)))) ∙ pth
+
+    --         corolla= : corolla c' == corolla c [ W ↓ fst= lem ]
+    --         corolla= = {!apd↓-cst corolla (snd= lem)!}
 
     --         must-be-leaves : (p : ρ P i c') → δ p == lf (τ P i c' p)
     --         must-be-leaves p with δ p | inspect δ p

@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --no-termination-check #-}
 
 open import HoTT
 open import Poly
@@ -62,6 +62,85 @@ module InftyOperad where
 
       where lem : p == (–> (μ-plc-eqv (lf i)) tt)
             lem = contr-has-all-paths ⦃ ηρ-contr i ⦄ p (–> (μ-plc-eqv (lf i)) tt)
+
+    --
+    --  The Baez-Dolan substitution operation, definable in 
+    --  any algebraic polynomial type.
+    --
+    
+    subst : {i : I} (c : γ P i)
+      → (tr : W (FillPoly P (F X)) (i , c))
+      → W P i
+
+    subst-lcl : {i : I} (w : W P i)
+      → (κ : (n : node P w) → W (FillPoly P (F X)) (node-type P w n))
+      → W P i
+
+    subst-lf-eqv : {i : I} (c : γ P i)
+      → (tr : W (FillPoly P (F X)) (i , c))
+      → leaf P (subst c tr) ≃ ρ P i c
+
+    subst-lf-coh : {i : I} (c : γ P i)
+      → (tr : W (FillPoly P (F X)) (i , c))
+      → (l : leaf P (subst c tr))
+      → leaf-type P (subst c tr) l == τ P i c (–> (subst-lf-eqv c tr) l)
+
+    subst-lcl-lf-eqv : {i : I} (w : W P i)
+      → (κ : (n : node P w) → W (FillPoly P (F X)) (node-type P w n))
+      → leaf P (subst-lcl w κ) ≃ leaf P w
+
+    subst-lcl-lf-coh : {i : I} (w : W P i)
+      → (κ : (n : node P w) → W (FillPoly P (F X)) (node-type P w n))
+      → (l : leaf P (subst-lcl w κ))
+      → leaf-type P (subst-lcl w κ) l == leaf-type P w (–> (subst-lcl-lf-eqv w κ) l)
+
+    subst c (lf .(_ , c)) = corolla P c
+    subst c (nd .(_ , c) ((w , _ , _) , ε)) = subst-lcl w ε
+
+    module SubstLcl {i : I} (c : γ P i)
+      (δ : (p : ρ P i c) → W P (τ P i c p))
+      (κ : (n : node P (nd i (c , δ))) → W (FillPoly P (F X)) (node-type P (nd i (c , δ)) n))
+      (l : leaf P (subst c (κ true))) where
+
+      p : ρ P i c
+      p = –> (subst-lf-eqv c (κ true)) l
+
+      w' : W P (leaf-type P (subst c (κ true)) l)
+      w' = transport! (W P) (subst-lf-coh c (κ true) l) (δ p)
+
+      κ' : (n : node P w') → W (FillPoly P (F X)) (node-type P w' n)
+      κ' n = transport (W (FillPoly P (F X))) (node-inv-coh P (δ p) (subst-lf-coh c (κ true) l) n) (κ (inr (p , n'))) 
+
+        where n' : node P (δ p)
+              n' = <– (node-inv P (δ p) (subst-lf-coh c (κ true) l)) n
+
+    subst-lcl (lf i) κ = lf i
+    subst-lcl (nd i (c , δ)) κ = graft P i (subst c (κ (inl unit))) (λ l → subst-lcl (w' l) (κ' l))
+      where open SubstLcl c δ κ 
+
+    subst-lf-eqv c (lf .(_ , c)) = Σ₂-Unit
+    subst-lf-eqv c (nd .(_ , c) ((w , f , x) , κ)) =
+      frm-eqv f ∘e subst-lcl-lf-eqv w κ 
+
+    subst-lf-coh c (lf .(_ , c)) (p , unit) = idp
+    subst-lf-coh c (nd .(_ , c) ((w , f , x) , κ)) l =
+      subst-lcl-lf-coh w κ l ∙ frm-coh f (–> (subst-lcl-lf-eqv w κ) l)
+
+    subst-lcl-lf-eqv (lf i) κ = ide ⊤
+    subst-lcl-lf-eqv (nd i (c , δ)) κ = need ∘e (graft-lf-eqv P i (subst c (κ true)) dec)⁻¹
+      where open SubstLcl c δ κ
+
+            dec : (l : leaf P (subst c (κ true))) →  W P (leaf-type P (subst c (κ true)) l) 
+            dec l = subst-lcl (w' l) (κ' l)
+            
+            need : Σ (leaf P (subst c (κ true))) (λ l → leaf P (dec l))
+                   ≃ Σ (ρ P i c) (λ x → leaf P (δ x))
+            need = Σ-emap-l (leaf P ∘ δ) (subst-lf-eqv c (κ true)) ∘e
+                   Σ-emap-r (λ l → (leaf-inv-! P (δ (p l)) (subst-lf-coh c (κ true) l))⁻¹ ∘e
+                   subst-lcl-lf-eqv (w' l) (κ' l) )
+
+    subst-lcl-lf-coh (lf i) κ unit = idp
+    subst-lcl-lf-coh (nd i (c , δ)) κ l = {!!}
 
   --   unary-op : (i : I) → Type₀
   --   unary-op i = Σ (γ P i) (λ c → is-contr (ρ P i c))
@@ -128,198 +207,42 @@ module InftyOperad where
   --   is-invertible : ∀ {i} (u : unary-op i) → Type₀
   --   is-invertible u = l-inv u × r-inv u
 
-  module _ {I : Type₀} {P : Poly I} (X : PolyType P) (is-alg : is-algebraic X) where
+  -- module _ {I : Type₀} {P : Poly I} (X : PolyType P) (is-alg : is-algebraic X) where
 
-    module PS = PolySig X is-alg
-    module HS = PolySig (H X) (H-is-algebraic is-alg)
+  --   module PS = PolySig X is-alg
+  --   module HS = PolySig (H X) (H-is-algebraic is-alg)
 
-    μₚ = PS.μ
-    μ-frmₚ = PS.μ-frm
-    μ-witₚ = PS.μ-witness
+  --   μₚ = PS.μ
+  --   μ-frmₚ = PS.μ-frm
+  --   μ-witₚ = PS.μ-witness
 
-    μₕ = HS.μ
-    ηₕ = HS.η
-      
-    -- μ : {i : I} (w : W P i) → γ P i
-    -- μ w = fst (contr-center (has-fillers is-alg w))
+  --   μₕ = HS.μ
+  --   ηₕ = HS.η
 
-    -- graft : (i : I) (w : W P i) (ε : (l : leaf P w) → W P (leaf-type P w l)) → W P i
-    -- graft i (lf .i) ε = ε tt
-    -- graft i (nd .i (c , δ)) ε = nd i (c , λ p → graft (τ P i c p) (δ p) (λ l → ε (p , l)))
+  --   μ-hm : {i : I} (w : W P i)
+  --     → (ε : (l : leaf P w) → W P (leaf-type P w l)) 
+  --     → μₚ (graft P i w ε) == μₚ (nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε))
+  --   μ-hm {i} w ε =  {!snd (contr-center (has-fillers (H-is-algebraic is-alg) tr))!}
 
-    -- module _ {i : I} (c : γ P i) (f-tr : W (FillPoly P (F X)) (i , c)) where
-
-    --   join : W P i
-    --   join = fst (fst (contr-center (has-fillers (H-is-algebraic is-alg) f-tr)))
-
-      -- So, the more general statement would be that this operation is necessarily
-      -- given by the join operation as you usually understand it.
-
-    join : {i : I} (w : W P i)
-      → (κ : (n : node P w) → γ (FillPoly P (F X)) (node-type P w n))
-      → W P i
-    join (lf i) κ = lf i
-    join (nd i (c , δ)) κ = graft P i (fst (κ (inl unit))) (dec-to P c (fst (κ true)) (fst (snd (κ (inl unit)))) (W P) δ')
-
-      where δ' : (p : ρ P i c) → W P (τ P i c p)
-            δ' p = join (δ p) (λ n → κ (inr (p , n)))
-
-    -- Right.  So this is how one glues together a bunch of witnesses.
-    -- Now, the point would be to show that the w one gets from multiplying
-    -- necessarily has this form.
-
-    subst : {i : I} (c : γ P i) (w : W (FillPoly P (F X)) (i , c)) → W P i
-    subst c (lf .(_ , c)) = corolla P c
-    subst c (nd .(_ , c) ((w , _ , _) , ε)) = join w (λ n → (subst (snd (node-type P w n)) (ε n)) , {!!})
-    
-    -- Why should this be?
-
-    -- μ-slc : (i : I-slc) (n : γ-slc i) (κ : (p : ρ⁻-slc i n) → γ-slc (τ-slc i n (↑-slc i n p))) → γ-slc i
-    -- μ-slc (i , .(η M i)) (dot .i) κ = dot i
-    -- μ-slc (i , .(μ M i c δ)) (box .i c δ ε) κ = 
-    --   let κ' p q = κ (inr (p , q))
-    --       ε' p = let p' = ν M i c p in μ-slc (τ M i c (↑ M i c p') , δ p') (ε p') (κ' p')
-    --   in graft-slc i c (κ (inl unit)) δ ε'
-
-
-    module _ {i : I} (w : W P i) (ε : (l : leaf P w) → W P (leaf-type P w l)) where
-
-      μw : W P i
-      μw = nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε)
-
-      μw-dec : (n : node P μw) → W (FillPoly P (F X)) (node-type P μw n)
-      μw-dec (inl unit) = nd (i , μₚ w) ((w , μ-frmₚ w , μ-witₚ w) , λ p → corolla (FillPoly P (F X)) (ηₕ (node-type P w p)))
-      μw-dec (inr (p , n)) = corolla (FillPoly P (F X)) (ηₕ (node-type P (dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε p) n))
-
-      filler-tree : W (FillPoly P (F X)) (i , μₚ (nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε)))
-      filler-tree = nd (i , μₚ μw) ((μw , μ-frmₚ μw , μ-witₚ μw) , μw-dec)
-
-      filler-comp : Σ (W P i) (λ w₁ → Σ (Frame P w₁ (μₚ (nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε)))) (F X))
-      filler-comp = fst (contr-center (has-fillers (H-is-algebraic is-alg) filler-tree))
-
-    -- Now, the idea is to prove a lemma which says that, in all cases, we can recover an equality
-    -- between the projected tree and the grafting.
-
-    lemma : {i : I} (w : W P i)
-      → (ε : (l : leaf P w) → W P (leaf-type P w l))
-      → graft P i w ε == fst (filler-comp w ε)
-    lemma (lf i) ε = {!!}
-    lemma (nd i (c , δ)) ε = {!!}
-
-      where ih : (p : ρ P i c) → graft P (τ P i c p) (δ p) (λ l → ε (p , l)) == fst (filler-comp (δ p) (λ l → ε (p , l)))
-            ih p = lemma (δ p) (λ l → ε (p , l))
-
-    -- Okay, and what would be the idea from here?
-    -- Oh, I guess it's a simpler lemma which should just
-    -- be about multiplication. Let's try to sketch it out.
-
-    module _ {i : I} (c : γ P i) (δ : (p : ρ P i c) → W P (τ P i c p)) where
-
-      δ' : (p : ρ P i c) → W P (τ P i c p)
-      δ' p = corolla P (μₚ (δ p))
-
-      cw = nd i (c , δ')
-
-      cw-dec : (n : node P cw) → W (FillPoly P (F X)) (node-type P cw n)
-      cw-dec (inl unit) = corolla (FillPoly P (F X)) (ηₕ (i , c))
-      cw-dec (inr (p , inl unit)) = nd (τ P i c p  , μₚ (δ p)) ((δ p , μ-frmₚ (δ p) , μ-witₚ (δ p)) , {!!})
-      cw-dec (inr (p , inr (q , ())))
-      
-      cw-tr : W (FillPoly P (F X)) (i , μₚ (nd i (c , δ')))
-      cw-tr = nd (i , μₚ (nd i (c , δ'))) ((cw , μ-frmₚ cw , μ-witₚ cw) , cw-dec)
-      
-      -- What do you know about this tree?
-      mystery-tree : W P i
-      mystery-tree = fst (μₕ cw-tr)
-
-      -- By construction, it's nodes are equivalent to the leaves of
-      -- the places of cw-tr, right?  Yes, let's try to construct that.
-      my-eqv : leaf (FillPoly P (F X)) cw-tr ≃ node P mystery-tree 
-      my-eqv = frm-eqv (fst (snd (contr-center (has-fillers (H-is-algebraic is-alg) cw-tr))))
-
-      -- So, we have this identification.
-      -- We need something more.
-
-      -- Oh, oh, oh.  I'm starting to see it.  *If* you give me a node in this tree
-      -- (of which, we have an explicit description) I can pick out a node in the multiplication.
-      -- So the lemma has to be about this identification.
-
-      -- Right.  I think this is exactly the idea.
-      -- But this time, there's no induction to do.
-      -- It has to be a kind of primitive fact.  What is it?
-      lemma₀ : nd i (c , δ) == {!contr-center (has-fillers (H-is-algebraic is-alg) cw-tr)!}
-      lemma₀ = {!!}
-
-      -- filler-comp : Σ (W P i) (λ w₁ → Σ (Frame P w₁ (μₚ (nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε)))) (F X))
-      -- filler-comp = fst (contr-center (has-fillers (H-is-algebraic is-alg) filler-tree))
-
-
-
-    μ-hm : {i : I} (w : W P i)
-      → (ε : (l : leaf P w) → W P (leaf-type P w l)) 
-      → μₚ (graft P i w ε) == μₚ (nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε))
-    μ-hm {i} w ε =  {!snd (contr-center (has-fillers (H-is-algebraic is-alg) tr))!}
-
-      where f : Frame P w (μₚ w)
-            f = μ-frmₚ w
+  --     where f : Frame P w (μₚ w)
+  --           f = μ-frmₚ w
             
-            w' : W P i
-            w' = nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε)
+  --           w' : W P i
+  --           w' = nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε)
 
-            f-dec : (p : ⊤ ⊔ Σ (ρ P i (μₚ w)) (λ x → node P (dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε x)))
-              → W (FillPoly P (F X)) (node-type P w' p)
-            f-dec (inl unit) = nd (i , μₚ w) ((w , μ-frmₚ w , μ-witₚ w) , λ p → corolla (FillPoly P (F X)) (ηₕ (node-type P w p)))
-            f-dec (inr (p , n)) = corolla (FillPoly P (F X)) (ηₕ (node-type P (dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε p) n))
+  --           f-dec : (p : ⊤ ⊔ Σ (ρ P i (μₚ w)) (λ x → node P (dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε x)))
+  --             → W (FillPoly P (F X)) (node-type P w' p)
+  --           f-dec (inl unit) = nd (i , μₚ w) ((w , μ-frmₚ w , μ-witₚ w) , λ p → corolla (FillPoly P (F X)) (ηₕ (node-type P w p)))
+  --           f-dec (inr (p , n)) = corolla (FillPoly P (F X)) (ηₕ (node-type P (dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε p) n))
             
-            tr : W (FillPoly P (F X)) (i , μₚ (nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε)))
-            tr = nd (i , μₚ w') ((w' , μ-frmₚ w' , μ-witₚ w') , f-dec)
+  --           tr : W (FillPoly P (F X)) (i , μₚ (nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε)))
+  --           tr = nd (i , μₚ w') ((w' , μ-frmₚ w' , μ-witₚ w') , f-dec)
 
-            tr-comp : Σ (W P i) (λ w₁ → Σ (Frame P w₁ (μₚ (nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε)))) (F X))
-            tr-comp = fst (contr-center (has-fillers (H-is-algebraic is-alg) tr))
+  --           tr-comp : Σ (W P i) (λ w₁ → Σ (Frame P w₁ (μₚ (nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε)))) (F X))
+  --           tr-comp = fst (contr-center (has-fillers (H-is-algebraic is-alg) tr))
             
-            tr-wit : Σ (Frame (FillPoly P (F X)) tr tr-comp) (F (H X))
-            tr-wit = {!!}
-
-            -- Thing is, I think at this point I could construct the equivalence with the
-            -- leaves of the guy I'm talking about.  But you also need the filler in order
-            -- tho use the contractibility.
-
-            -- So this makes me think that I really do need the *equality* between this
-            -- mysterious tree I've just constructed at the grafted tree.  Right.  And the
-            -- idea must be to transport the frame that I have along the conjectured equality,
-            -- thus giving a new frame.
-
-            -- Okay.  You've got your pasting diagram of witnesses.  Now you compose it.
-            -- And what happens?  Well, it should have a "boundary" which is isomorphic
-            -- in some sense to the graft.  So the idea is to create a frame for the graft
-            -- which uses this information.  From there, you show that you have a filler
-            -- using the previous guy, and voila!
-
-            -- Right.  So what is this "tree" you are talking about.
-            -- Okay, I think I see.  It's the "leaves" of tr thought, which will
-            -- be nodes of these pastings.  Gotcha.
-
-            -- So there should be a frame.  Let's try to make it.
-
-    -- Right.  So the point is to create a H X tree.
-
-    -- Okay.  We have a statement.  Now we have to prove it.
-    -- The first thing to do is set up the composition of fillers witnessing
-    -- the multiplications.  Then you have to compose them.  Then show that
-    -- these fill the same frames.
-
-    -- Hmmm.  Right, but it seems like maybe you made things more complicated that you need to.
-    -- It seems like the combined statement (where you also compose the decorating trees) is a
-    -- consequence of, like, the other unit law and so on.
-
-    -- So let's start with the easy one.  It's, after all, enough to get the unit law, which
-    -- is what you are really after.
-
-    -- Yeah, and actually, you already see the generalization of this: you can define the
-    -- substitution operation on trees, and more generally, apply μ to the substitution
-    -- should be the same as first multiplying, and then multiplying the resulting
-    -- tree.  But anyway ...
-
+  --           tr-wit : Σ (Frame (FillPoly P (F X)) tr tr-comp) (F (H X))
+  --           tr-wit = {!!}
 
   -- module _ {I : Type₀} {P : Poly I} (O : PSet P) (is-alg : is-algebraic O) where
 
