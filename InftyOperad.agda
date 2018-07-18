@@ -6,22 +6,102 @@ open import Frame
 
 module InftyOperad where
 
-  FillPoly : {I : Type₀} (P : Poly I)
+  _//_ : {I : Type₀} (P : Poly I)
     → (F : {i : I} {c : γ P i} {w : W P i} → Frame P w c → Type₀)
     → Poly (Σ I (γ P))
-  γ (FillPoly P F) (i , c) = Σ (W P i) (λ w → Σ (Frame P w c) (λ f → F f))
-  ρ (FillPoly P F) (i , c) (w , f , x) = node P w 
-  τ (FillPoly P F) (i , c) (w , f , x) n = node-type P w n
+  γ (P // F) (i , c) = Σ (W P i) (λ w → Σ (Frame P w c) (λ f → F f))
+  ρ (P // F) (i , c) (w , f , x) = node P w 
+  τ (P // F) (i , c) (w , f , x) n = node-type P w n
 
   record PolyType {I : Type₀} (P : Poly I) : Type₁ where
     coinductive
     field
 
-      F : {i : I} {c : γ P i} {w : W P i} → Frame P w c → Type₀
-      H : PolyType (FillPoly P F)
+      F : {i : I} {w : W P i} {c : γ P i} → Frame P w c → Type₀
+      H : PolyType (P // F)
 
   open PolyType public
-  
+
+  --
+  --  The Baez-Dolan substitution operation
+  --
+
+  module Substitution {I : Type₀} {P : Poly I} (X : PolyType P) where
+      
+    subst : {i : I} (c : γ P i)
+      → (tr : W (P // (F X)) (i , c))
+      → W P i
+
+    subst-lcl : {i : I} (w : W P i)
+      → (κ : (n : node P w) → W (P // (F X)) (node-type P w n))
+      → W P i
+
+    subst-lf-eqv : {i : I} (c : γ P i)
+      → (tr : W (P // (F X)) (i , c))
+      → leaf P (subst c tr) ≃ ρ P i c
+
+    subst-lf-coh : {i : I} (c : γ P i)
+      → (tr : W (P // (F X)) (i , c))
+      → (l : leaf P (subst c tr))
+      → leaf-type P (subst c tr) l == τ P i c (–> (subst-lf-eqv c tr) l)
+
+    subst-lcl-lf-eqv : {i : I} (w : W P i)
+      → (κ : (n : node P w) → W (P // (F X)) (node-type P w n))
+      → leaf P (subst-lcl w κ) ≃ leaf P w
+
+    subst-lcl-lf-coh : {i : I} (w : W P i)
+      → (κ : (n : node P w) → W (P // (F X)) (node-type P w n))
+      → (l : leaf P (subst-lcl w κ))
+      → leaf-type P (subst-lcl w κ) l == leaf-type P w (–> (subst-lcl-lf-eqv w κ) l)
+
+    subst c (lf .(_ , c)) = corolla P c
+    subst c (nd .(_ , c) ((w , _ , _) , ε)) = subst-lcl w ε
+
+    module SubstLcl {i : I} (c : γ P i)
+      (δ : (p : ρ P i c) → W P (τ P i c p))
+      (κ : (n : node P (nd i (c , δ))) → W (P // (F X)) (node-type P (nd i (c , δ)) n))
+      (l : leaf P (subst c (κ true))) where
+
+      p : ρ P i c
+      p = –> (subst-lf-eqv c (κ true)) l
+
+      w' : W P (leaf-type P (subst c (κ true)) l)
+      w' = transport! (W P) (subst-lf-coh c (κ true) l) (δ p)
+
+      κ' : (n : node P w') → W (P // (F X)) (node-type P w' n)
+      κ' n = transport (W (P // (F X))) (node-inv-coh P (δ p) (subst-lf-coh c (κ true) l) n) (κ (inr (p , n'))) 
+
+        where n' : node P (δ p)
+              n' = <– (node-inv P (δ p) (subst-lf-coh c (κ true) l)) n
+
+    subst-lcl (lf i) κ = lf i
+    subst-lcl (nd i (c , δ)) κ = graft P i (subst c (κ (inl unit))) (λ l → subst-lcl (w' l) (κ' l))
+      where open SubstLcl c δ κ 
+
+    subst-lf-eqv c (lf .(_ , c)) = Σ₂-Unit
+    subst-lf-eqv c (nd .(_ , c) ((w , f , x) , κ)) =
+      frm-eqv f ∘e subst-lcl-lf-eqv w κ 
+
+    subst-lf-coh c (lf .(_ , c)) (p , unit) = idp
+    subst-lf-coh c (nd .(_ , c) ((w , f , x) , κ)) l =
+      subst-lcl-lf-coh w κ l ∙ frm-coh f (–> (subst-lcl-lf-eqv w κ) l)
+
+    subst-lcl-lf-eqv (lf i) κ = ide ⊤
+    subst-lcl-lf-eqv (nd i (c , δ)) κ = 
+      Σ-emap-l (leaf P ∘ δ) (subst-lf-eqv c (κ true)) ∘e                         -- Equivalence on base
+      Σ-emap-r (λ l → (leaf-inv-! P (δ (p l)) (subst-lf-coh c (κ true) l))⁻¹ ∘e  -- Equivalence by transport ...
+        subst-lcl-lf-eqv (w' l) (κ' l)) ∘e                                       -- ... and Induction Hypothesis
+      (graft-lf-eqv P i (subst c (κ true)) (λ l → subst-lcl (w' l) (κ' l)))⁻¹    -- Characterization of graft leaves
+      
+      where open SubstLcl c δ κ
+
+    subst-lcl-lf-coh (lf i) κ unit = idp
+    subst-lcl-lf-coh (nd i (c , δ)) κ l = {!!}
+
+  --
+  --  Algebraic Polynomial Types
+  --
+
   record is-algebraic {I : Type₀} {P : Poly I} (X : PolyType P) : Type₁ where
     coinductive
     field
@@ -63,84 +143,6 @@ module InftyOperad where
       where lem : p == (–> (μ-plc-eqv (lf i)) tt)
             lem = contr-has-all-paths ⦃ ηρ-contr i ⦄ p (–> (μ-plc-eqv (lf i)) tt)
 
-    --
-    --  The Baez-Dolan substitution operation, definable in 
-    --  any algebraic polynomial type.
-    --
-    
-    subst : {i : I} (c : γ P i)
-      → (tr : W (FillPoly P (F X)) (i , c))
-      → W P i
-
-    subst-lcl : {i : I} (w : W P i)
-      → (κ : (n : node P w) → W (FillPoly P (F X)) (node-type P w n))
-      → W P i
-
-    subst-lf-eqv : {i : I} (c : γ P i)
-      → (tr : W (FillPoly P (F X)) (i , c))
-      → leaf P (subst c tr) ≃ ρ P i c
-
-    subst-lf-coh : {i : I} (c : γ P i)
-      → (tr : W (FillPoly P (F X)) (i , c))
-      → (l : leaf P (subst c tr))
-      → leaf-type P (subst c tr) l == τ P i c (–> (subst-lf-eqv c tr) l)
-
-    subst-lcl-lf-eqv : {i : I} (w : W P i)
-      → (κ : (n : node P w) → W (FillPoly P (F X)) (node-type P w n))
-      → leaf P (subst-lcl w κ) ≃ leaf P w
-
-    subst-lcl-lf-coh : {i : I} (w : W P i)
-      → (κ : (n : node P w) → W (FillPoly P (F X)) (node-type P w n))
-      → (l : leaf P (subst-lcl w κ))
-      → leaf-type P (subst-lcl w κ) l == leaf-type P w (–> (subst-lcl-lf-eqv w κ) l)
-
-    subst c (lf .(_ , c)) = corolla P c
-    subst c (nd .(_ , c) ((w , _ , _) , ε)) = subst-lcl w ε
-
-    module SubstLcl {i : I} (c : γ P i)
-      (δ : (p : ρ P i c) → W P (τ P i c p))
-      (κ : (n : node P (nd i (c , δ))) → W (FillPoly P (F X)) (node-type P (nd i (c , δ)) n))
-      (l : leaf P (subst c (κ true))) where
-
-      p : ρ P i c
-      p = –> (subst-lf-eqv c (κ true)) l
-
-      w' : W P (leaf-type P (subst c (κ true)) l)
-      w' = transport! (W P) (subst-lf-coh c (κ true) l) (δ p)
-
-      κ' : (n : node P w') → W (FillPoly P (F X)) (node-type P w' n)
-      κ' n = transport (W (FillPoly P (F X))) (node-inv-coh P (δ p) (subst-lf-coh c (κ true) l) n) (κ (inr (p , n'))) 
-
-        where n' : node P (δ p)
-              n' = <– (node-inv P (δ p) (subst-lf-coh c (κ true) l)) n
-
-    subst-lcl (lf i) κ = lf i
-    subst-lcl (nd i (c , δ)) κ = graft P i (subst c (κ (inl unit))) (λ l → subst-lcl (w' l) (κ' l))
-      where open SubstLcl c δ κ 
-
-    subst-lf-eqv c (lf .(_ , c)) = Σ₂-Unit
-    subst-lf-eqv c (nd .(_ , c) ((w , f , x) , κ)) =
-      frm-eqv f ∘e subst-lcl-lf-eqv w κ 
-
-    subst-lf-coh c (lf .(_ , c)) (p , unit) = idp
-    subst-lf-coh c (nd .(_ , c) ((w , f , x) , κ)) l =
-      subst-lcl-lf-coh w κ l ∙ frm-coh f (–> (subst-lcl-lf-eqv w κ) l)
-
-    subst-lcl-lf-eqv (lf i) κ = ide ⊤
-    subst-lcl-lf-eqv (nd i (c , δ)) κ = need ∘e (graft-lf-eqv P i (subst c (κ true)) dec)⁻¹
-      where open SubstLcl c δ κ
-
-            dec : (l : leaf P (subst c (κ true))) →  W P (leaf-type P (subst c (κ true)) l) 
-            dec l = subst-lcl (w' l) (κ' l)
-            
-            need : Σ (leaf P (subst c (κ true))) (λ l → leaf P (dec l))
-                   ≃ Σ (ρ P i c) (λ x → leaf P (δ x))
-            need = Σ-emap-l (leaf P ∘ δ) (subst-lf-eqv c (κ true)) ∘e
-                   Σ-emap-r (λ l → (leaf-inv-! P (δ (p l)) (subst-lf-coh c (κ true) l))⁻¹ ∘e
-                   subst-lcl-lf-eqv (w' l) (κ' l) )
-
-    subst-lcl-lf-coh (lf i) κ unit = idp
-    subst-lcl-lf-coh (nd i (c , δ)) κ l = {!!}
 
   --   unary-op : (i : I) → Type₀
   --   unary-op i = Σ (γ P i) (λ c → is-contr (ρ P i c))
@@ -154,9 +156,6 @@ module InftyOperad where
   --   pre-comp-map : (i : I) (u : unary-op i)
   --     → γ P (u-domain u) → γ P i
   --   pre-comp-map i (u , is-c) c = μ (nd i (u , λ p → transport (W P) (ap (τ P i u) (contr-path is-c p)) (corolla P c)))
-
-  --   -- So what if we say that u is invertible if this map is an equivalence?
-  --   -- I guess it's at least obviously a proposition....
 
   --   η-op : (i : I) → unary-op i
   --   η-op i = η i , has-level-in (–> (μ-plc-eqv (lf i)) tt , <–-inv-r (μ-plc-eqv (lf i)))
@@ -231,17 +230,17 @@ module InftyOperad where
   --           w' = nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε)
 
   --           f-dec : (p : ⊤ ⊔ Σ (ρ P i (μₚ w)) (λ x → node P (dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε x)))
-  --             → W (FillPoly P (F X)) (node-type P w' p)
-  --           f-dec (inl unit) = nd (i , μₚ w) ((w , μ-frmₚ w , μ-witₚ w) , λ p → corolla (FillPoly P (F X)) (ηₕ (node-type P w p)))
-  --           f-dec (inr (p , n)) = corolla (FillPoly P (F X)) (ηₕ (node-type P (dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε p) n))
+  --             → W (P // (F X)) (node-type P w' p)
+  --           f-dec (inl unit) = nd (i , μₚ w) ((w , μ-frmₚ w , μ-witₚ w) , λ p → corolla (P // (F X)) (ηₕ (node-type P w p)))
+  --           f-dec (inr (p , n)) = corolla (P // (F X)) (ηₕ (node-type P (dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε p) n))
             
-  --           tr : W (FillPoly P (F X)) (i , μₚ (nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε)))
+  --           tr : W (P // (F X)) (i , μₚ (nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε)))
   --           tr = nd (i , μₚ w') ((w' , μ-frmₚ w' , μ-witₚ w') , f-dec)
 
   --           tr-comp : Σ (W P i) (λ w₁ → Σ (Frame P w₁ (μₚ (nd i (μₚ w , dec-from P (μₚ w) w (μ-frmₚ w) (W P) ε)))) (F X))
   --           tr-comp = fst (contr-center (has-fillers (H-is-algebraic is-alg) tr))
             
-  --           tr-wit : Σ (Frame (FillPoly P (F X)) tr tr-comp) (F (H X))
+  --           tr-wit : Σ (Frame (P // (F X)) tr tr-comp) (F (H X))
   --           tr-wit = {!!}
 
   -- module _ {I : Type₀} {P : Poly I} (O : PSet P) (is-alg : is-algebraic O) where

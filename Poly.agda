@@ -78,19 +78,50 @@ module Poly where
     node-equiv : {i : I} (w₀ w₁ : W i) → Type₀
     node-equiv w₀ w₁ = Σ (node w₀ ≃ node w₁) (λ e → (n : node w₀) → node-type w₀ n == node-type w₁ (–> e n))
 
-    -- This should be a property!
     is-height-preserving : {i : I} {w₀ w₁ : W i} (e : node-equiv w₀ w₁) → Type₀
     is-height-preserving {i} {w₀} {w₁} (e , _) =
       (n : node w₀) → node-height w₀ n == node-height w₁ (–> e n)
 
+    is-height-preserving-is-prop : {i : I} {w₀ w₁ : W i}
+      → (e : node-equiv w₀ w₁)
+      → is-prop (is-height-preserving e)
+    is-height-preserving-is-prop e =
+      Π-level (λ n → has-level-apply ℕ-is-set (node-height _ n) (node-height _ (fst (fst e) n)))
+
+    node-equiv-pth : {i : I} {w₀ w₁ : W i}
+      → (e : node-equiv w₀ w₁) 
+      → (is-hp : is-height-preserving e)
+      → i == i        
+    node-equiv-pth {i} {lf i} {lf .i} (e , coh) is-hp = idp
+    node-equiv-pth {i} {lf i} {nd .i _} (e , coh) is-hp = ⊥-elim (<– e (inl unit))
+    node-equiv-pth {i} {nd i _} {lf .i} (e , coh) is-hp = ⊥-elim (–> e (inl unit))
+    node-equiv-pth {i} {nd i (c₀ , δ₀)} {nd .i (c₁ , δ₁)} (e , coh) is-hp with (–> e (inl unit)) | inspect (–> e) (inl unit)
+    node-equiv-pth {i} {nd i (c₀ , δ₀)} {nd .i (c₁ , δ₁)} (e , coh) is-hp | inr (p , n) | ingraph m = 
+      ⊥-elim (ℕ-O≠S (node-height (δ₁ p) n) (is-hp (inl unit) ∙ ap (node-height (nd i (c₁ , δ₁))) m))
+    node-equiv-pth {i} {nd i (c₀ , δ₀)} {nd .i (c₁ , δ₁)} (e , coh) is-hp | inl unit | ingraph m =
+      fst= (coh (inl unit) ∙ ap (node-type (nd i (c₁ , δ₁))) m)
+
     -- reconstruction-lemma : {i : I} (w₀ w₁ : W i)
     --   → (e : node-equiv w₀ w₁)
     --   → (is-hp : is-height-preserving e)
-    --   → w₀ == w₁
+    --   → w₀ == w₁ [ W ↓ node-equiv-pth e is-hp ]
     -- reconstruction-lemma (lf i) (lf .i) (e , coh) is-hp = idp
-    -- reconstruction-lemma (lf i) (nd .i _) (e , coh) is-hp = ⊥-elim (<– e (inl unit))
-    -- reconstruction-lemma (nd i _) (lf .i) (e , coh) is-hp = ⊥-elim (–> e (inl unit))
-    -- reconstruction-lemma (nd i (c₀ , δ₀)) (nd .i (c₁ , δ₁)) (e , coh) is-hp = {!!}
+    -- reconstruction-lemma (lf i) (nd .i (c₁ , δ₁)) (e , coh) is-hp =
+    --   ⊥-elim {P = λ _ → lf i == nd i (c₁ , δ₁) [ W ↓ ⊥-elim (<– e true) ]} (<– e true) 
+    -- reconstruction-lemma (nd i (c₀ , δ₀)) (lf .i) (e , coh) is-hp = 
+    --   ⊥-elim {P = λ _ → nd i (c₀ , δ₀) == lf i [ W ↓ ⊥-elim (–> e true) ]} (–> e true) 
+    -- reconstruction-lemma (nd i (c₀ , δ₀)) (nd .i (c₁ , δ₁)) (e , coh) is-hp with (–> e (inl unit)) | inspect (–> e) (inl unit)
+    -- reconstruction-lemma (nd i (c₀ , δ₀)) (nd .i (c₁ , δ₁)) (e , coh) is-hp | inr (p , n) | ingraph m =
+    --   let fls = ℕ-O≠S (node-height (δ₁ p) n) (is-hp (inl unit) ∙ ap (node-height (nd i (c₁ , δ₁))) m)
+    --   in ⊥-elim {P = λ _ → nd i (c₀ , δ₀) == nd i (c₁ , δ₁) [ W ↓ ⊥-elim fls ]} fls
+    -- reconstruction-lemma (nd i (c₀ , δ₀)) (nd .i (c₁ , δ₁)) (e , coh) is-hp | inl unit | ingraph m = {!!}
+
+      -- Right, and here we need to prove some lemmas.  What we need is that this height-preserving
+      -- equivalence descends to another one, that we can argue by induction, and that the resulting
+      -- collection of path overs produce a path over of the tree.
+
+      -- It's here where I start to wonder if this extra coherence we have to carry about respecting
+      -- typing is not super annoying.  Would this be easier in the inductive version?
 
     corolla : {i : I} (c : γ P i) → W i
     corolla {i} c = nd i (c , λ p → lf (τ P i c p))
