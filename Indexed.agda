@@ -35,20 +35,29 @@ module Indexed {ℓ} {I : Type ℓ} (P : Poly I) where
   Params O (frm w α) = Node P w 
   Params (S n) (web w) = Node (SPoly n) w 
 
+  -- Hmmm. Nope.  Annoyingly it looks like we need to copies of
+  -- these functions. But the algorithm is identical.  There must
+  -- be a way to abstract the situation ...
+
   subst₀ : {i : I} (w : W P i)
     → (κ : (g : Ops P) → Node P w g → W (SPoly 0) g)
     → W P i
-  subst₀ = {!!}
+  subst₀ (lf i) κ = lf i
+  subst₀ (nd (f , ϕ)) κ = {!μ∞ 0 (κ (_ , f) (inl idp))!}
 
   subst : (n : ℕ) {i : Sort n} (w : W (SPoly n) i)
     → (κ : (g : Sort (S n)) → Node (SPoly n) w g → W (SPoly (S n)) g)
     → W (SPoly n) i
   subst n w = {!!}
 
+  -- Mmmm. So you still want the flattening function to work just
+  -- on trees.
+
+  -- Okay, so that's exactly what you thought ...
   μ∞ O (lf (i , f)) = frm (corolla P f) (corolla-lf-eqv P f)
   μ∞ O (nd (frm w α , κ)) = frm (subst₀ w κ ) {!!}
-  μ∞ (S n) (lf (i , f)) = transport (Oper (S n)) {!!} (web (corolla (SPoly n) f))
-  μ∞ (S n) (nd (web w , κ)) = transport (Oper (S n)) {!!} (web (subst n w κ))
+  μ∞ (S n) (lf (i , f)) = transport (Oper (S n)) (pair= idp {!!}) (web (corolla (SPoly n) f))
+  μ∞ (S n) (nd (web w , κ)) = transport (Oper (S n)) (pair= idp {!!}) (web (subst n w κ))
   
 
 
