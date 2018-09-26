@@ -48,9 +48,9 @@ module Polynomial where
     Leaf (lf i) = Lift ⊤
     Leaf (nd (f , ϕ)) = Σ (Param P f) (λ p → Leaf (ϕ p))
 
-    LeafSrt : {i : I} (w : W i) (l : Leaf w) → I
-    LeafSrt (lf i) (lift tt) = i
-    LeafSrt (nd (f , ϕ)) (p , l) = LeafSrt (ϕ p) l
+    LeafSrt : {i : I} {w : W i} (l : Leaf w) → I
+    LeafSrt {w = lf i} (lift tt) = i
+    LeafSrt {w = nd (f , ϕ)} (p , l) = LeafSrt l
 
     Node : {i : I} (w : W i) → Type ℓ
     Node (lf i)  = Lift ⊥
@@ -63,7 +63,7 @@ module Polynomial where
 
     Frame : {i : I} (w : W i) (f : Op P i) → Type ℓ
     Frame w f = Σ (Leaf w ≃ Param P f) (λ α →
-      (l : Leaf w) → LeafSrt w l == Srt P (–> α l)) 
+      (l : Leaf w) → LeafSrt l == Srt P (–> α l)) 
     
     corolla : {i : I} (f : Op P i) → W i
     corolla {i} f = nd (f , λ p → lf (Srt P p))
@@ -82,7 +82,7 @@ module Polynomial where
             from-to (p , lift tt) = idp
 
     corolla-lf-srt : {i : I} (f : Op P i) (l : Leaf (corolla f))
-      → LeafSrt (corolla f) l == Srt P (–> (corolla-lf-eqv f) l)
+      → LeafSrt l == Srt P (–> (corolla-lf-eqv f) l)
     corolla-lf-srt f (p , lift tt) = idp
 
     corolla-frm : {i : I} (f : Op P i) → Frame (corolla f) f
@@ -94,13 +94,13 @@ module Polynomial where
   
   module _ {ℓ} {I : Type ℓ} (P : Poly I) where
 
-  --   graft : {i : I} (w : W P i) (ψ : ∀ j → Leaf P w j → W P j) → W P i
-  --   graft (lf i) ψ = ψ i idp
-  --   graft (nd (f , ϕ)) ψ = nd (f , λ j p → graft (ϕ j p) (λ k l → ψ k (j , p , l)))
+    graft : {i : I} (w : W P i) (ψ : (l : Leaf P w) → W P (LeafSrt P l)) → W P i
+    graft (lf i) ψ = ψ (lift tt)
+    graft (nd (f , ϕ)) ψ = nd (f , λ p → graft (ϕ p) (λ l → ψ (p , l)))
 
-  --   --
-  --   --  Leaves in a graft
-  --   --
+    --
+    --  Leaves in a graft
+    --
 
   --   graft-leaf-in : {i : I} (w : W P i) (ψ : ∀ j → Leaf P w j → W P j)
   --     → (j : I) (k : I) (l : Leaf P w k) (m : Leaf P (ψ k l) j)
