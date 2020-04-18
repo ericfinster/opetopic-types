@@ -1,83 +1,85 @@
 {-# OPTIONS --without-K --rewriting #-}
 
 open import Base
-open import Opetopes
 
-module SomeIdeas where
+module OpetopicType where
 
-  record OpSig (n : ℕ) : Set₁ where
-    field
-    
-      Frm : (o : 𝕆 n) → Set
-      Cell : (o : 𝕆 n) (f : Frm o) → Set
-      Tree : (o : 𝕆 n) (f : Frm o) (t : 𝕋 o) → Set
+  postulate
 
-      Typ : (o : 𝕆 n) (t : 𝕋 o)
-        → (f : Frm o) (σ : Tree o f t)
-        → (p : Pos t)
-        → Frm (Typₒ t p)
+    𝕄 : Set
 
-      -- Inh : (o : 𝕆 n) (t : 𝕋 o)
-      --   → (f : Frm o) (σ : Tree o f t)
-      --   → (p : Pos t)
-      --   → Cell (Typₒ t p) (Typ o t f σ p)
+    Frm : 𝕄 → Set
+    Cell : (M : 𝕄) (f : Frm M) → Set
+    Tree : (M : 𝕄) (f : Frm M) → Set
 
-      μ-frm : {o : 𝕆 n} (t : 𝕋 o)
-        → (δ : (p : Pos t) → 𝕋 (Typₒ t p))
-        → (f : Frm o)
-        → (∂ : Tree o f (μₒ t δ))
-        → (p : Pos t) → Frm (Typₒ t p)
+    Pos : (M : 𝕄) {f : Frm M}
+      → Tree M f → Set
 
-      μ-tr : {o : 𝕆 n} (t : 𝕋 o)
-        → (δ : (p : Pos t) → 𝕋 (Typₒ t p))
-        → (f : Frm o)
-        → (∂ : Tree o f (μₒ t δ))
-        → (p : Pos t) → Tree (Typₒ t p) (μ-frm t δ f ∂ p) (δ p)
+    Typ : (M : 𝕄) {f : Frm M}
+      → (σ : Tree M f) (p : Pos M σ)
+      → Frm M 
 
-      μ-recons : {o : 𝕆 n} (t : 𝕋 o)
-        → (δ : (p : Pos t) → 𝕋 (Typₒ t p))
-        → (f : Frm o)
-        → (∂ : Tree o f (μₒ t δ))
-        → (ϕ : (p : Pos t) → Cell (Typₒ t p) (μ-frm t δ f ∂ p))
-        → Tree o f t
+    Inh : (M : 𝕄) {f : Frm M}
+      → (σ : Tree M f) (p : Pos M σ)
+      → Cell M (Typ M σ p)
 
-  open OpSig
+    η : (M : 𝕄) {f : Frm M}
+      → Cell M f → Tree M f
 
-  module _ {n : ℕ} (A : OpSig n)
-    (N : (o : 𝕆 n) (t : 𝕋 o) (f : Frm A o) (σ : Tree A o f t) (τ : Cell A o f) → Set) where
+    μ : (M : 𝕄) {f : Frm M} (σ : Tree M f)
+      → (δ : (p : Pos M σ) → Tree M (Typ M σ p))
+      → Tree M f
+
+    --
+    --  Stict laws
+    --
+
+    -- Typ/Inh laws
+    η-pos-typ : (M : 𝕄) (f : Frm M)
+      → (τ : Cell M f) (p : Pos M (η M τ))
+      → Typ M (η M τ) p ↦ f
+    {-# REWRITE η-pos-typ #-}
+
+    η-pos-inh : (M : 𝕄) (f : Frm M)
+      → (τ : Cell M f) (p : Pos M (η M τ))
+      → Inh M (η M τ) p ↦ τ
+    {-# REWRITE η-pos-inh #-}
+
+    -- μ laws
+    μ-unit-right : (M : 𝕄) (f : Frm M)
+      → (σ : Tree M f)
+      → μ M σ (λ p → η M (Inh M σ p)) ↦ σ
+    {-# REWRITE μ-unit-right #-}
+
+  Filler : (M : 𝕄) → Set₁
+  Filler M = {f : Frm M} (σ : Tree M f) (τ : Cell M f) → Set
+
+  Frmₛ : (M : 𝕄) → Set
+  Frmₛ M = Σ (Frm M) (λ f → Tree M f × Cell M f)
   
-    Frmₛ : 𝕆 (S n) → Set
-    Frmₛ (o ∣ t) = Σ (Frm A o) (λ f → Tree A o f t × Cell A o f)
+  data Pd (M : 𝕄) (F : Filler M) : Frmₛ M → Set where
 
-    Cellₛ : (o : 𝕆 (S n)) → Frmₛ o → Set
-    Cellₛ (o ∣ t) (f , σ , τ) = N o t f σ τ
+    lf : {f : Frm M} (τ : Cell M f) → Pd M F (f , η M τ , τ)
 
-    Treeₛ : (o : 𝕆 (S n)) → Frmₛ o → 𝕋 o → Set
-    Treeₛ (o ∣ .(ηₒ o)) (f , ∂ , τ) (lfₒ .o) = {!!}
-    Treeₛ (o ∣ .(μₒ t δ)) (f , ∂ , τ) (ndₒ .o t δ ε) = 
-      Σ ((p : Pos t) → Cell A (Typₒ t p) (μ-frm A t δ f ∂ p)) (λ σ↓ →
-         (p : Pos t) → Treeₛ _ (μ-frm A t δ f ∂ p , μ-tr A t δ f ∂ p , σ↓ p) (ε p))
+    nd : {f : Frm M} (σ : Tree M f) (τ : Cell M f) (θ : F σ τ)
+      → (δ : (p : Pos M σ) → Tree M (Typ M σ p))
+      → (ε : (p : Pos M σ) → Pd M F (Typ M σ p , δ p , Inh M σ p))
+      → Pd M F (f , μ M σ δ , τ)
 
-  -- Now we define the slice.
-  slice : {n : ℕ} (A : OpSig n)
-    → (N : (o : 𝕆 n) (t : 𝕋 o) (f : Frm A o) (σ : Tree A o f t) (τ : Cell A o f) → Set)
-    → OpSig (S n)
-  Frm (slice A N) = Frmₛ A N
-  Cell (slice A N) = Cellₛ A N
-  Tree (slice A N) = Treeₛ A N
-  Typ (slice A N) = {!!}
-  μ-frm (slice A N) = {!!}
-  μ-tr (slice A N) = {!!}
-  μ-recons (slice A N) = {!!}
+  Treeₛ : (M : 𝕄) (F : Filler M) → Frmₛ M → Set
+  Treeₛ M F = Pd M F
 
-  record OpType {n : ℕ} (A : OpSig n) : Set₁ where
-    coinductive
-    field
+  Cellₛ : (M : 𝕄) (F : Filler M) → Frmₛ M → Set
+  Cellₛ M F (f , σ , τ) = F σ τ
+  
+  ηₛ : (M : 𝕄) (F : Filler M) 
+    → {f : Frmₛ M} (τ : Cellₛ M F f)
+    → Treeₛ M F f
+  ηₛ M F {f = f , σ , τ} θ =
+    let η-dec p = η M (Inh M σ p)
+        lf-dec p = lf {F = F} (Inh M σ p)
+    in nd σ τ θ η-dec lf-dec
 
-      Next : (o : 𝕆 n) (t : 𝕋 o)
-        → (f : Frm A o) (σ : Tree A o f t) (τ : Cell A o f)
-        → Set
 
-      Higher : OpType (slice A Next)
 
 
