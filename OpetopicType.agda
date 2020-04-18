@@ -140,7 +140,32 @@ module OpetopicType where
 
   Cellₛ : (M : 𝕄) (F : Filler M) → Frmₛ M → Set
   Cellₛ M F (f , σ , τ) = F σ τ
-  
+
+  γ : (M : 𝕄) (F : Filler M)
+    → {f : Frm M} (σ : Tree M f) (τ : Cell M f)
+    → (ρ : Treeₛ M F (f , σ , τ))
+    → (δ : (p : Pos M σ) → Tree M (Typ M σ p))
+    → (ε : (p : Pos M σ) → Treeₛ M F (Typ M σ p , δ p , Inh M σ p))
+    → Treeₛ M F (f , μ M σ δ , τ)
+
+  Posₛ : (M : 𝕄) (F : Filler M)
+    → {f : Frmₛ M} (σ : Treeₛ M F f)
+    → Set
+  Posₛ M F (lf τ) = ⊥
+  Posₛ M F (nd σ τ θ δ ε) = ⊤ ⊔ (Σ (Pos M σ) (λ p → Posₛ M F (ε p)))
+
+  Typₛ : (M : 𝕄) (F : Filler M)
+    → {f : Frmₛ M} (σ : Treeₛ M F f)
+    → (p : Posₛ M F σ) → Frmₛ M
+  Typₛ M F (nd σ τ θ δ ε) (inl unit) = _ , σ , τ
+  Typₛ M F (nd σ τ θ δ ε) (inr (p , q)) = Typₛ M F (ε p) q
+
+  Inhₛ : (M : 𝕄) (F : Filler M)
+    → {f : Frmₛ M} (σ : Treeₛ M F f)
+    → (p : Posₛ M F σ) → Cellₛ M F (Typₛ M F σ p)
+  Inhₛ M F (nd σ τ θ δ ε) (inl unit) = θ
+  Inhₛ M F (nd σ τ θ δ ε) (inr (p , q)) = Inhₛ M F (ε p) q
+
   ηₛ : (M : 𝕄) (F : Filler M) 
     → {f : Frmₛ M} (τ : Cellₛ M F f)
     → Treeₛ M F f
@@ -149,6 +174,15 @@ module OpetopicType where
         lf-dec p = lf {F = F} (Inh M σ p)
     in nd σ τ θ η-dec lf-dec
 
+  μₛ : (M : 𝕄) (F : Filler M)
+    → {f : Frmₛ M} (σ : Treeₛ M F f)
+    → (δ : (p : Posₛ M F σ) → Treeₛ M F (Typₛ M F σ p))
+    → Treeₛ M F f
+  μₛ M F (lf τ) κ = lf τ
+  μₛ M F (nd σ τ θ δ ε) κ =
+    let w = κ (inl unit)
+        κ↑ p q = κ (inr (p , q))
+        ψ p = μₛ M F (ε p) (κ↑ p) 
+    in γ M F σ τ w δ ψ
 
-
-
+  γ = {!!}
