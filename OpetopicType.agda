@@ -352,4 +352,99 @@ module OpetopicType where
         inr*↑ p q r = inr* (μ-pos M σ δ p q) r
     in γ-pos-elim M F (ε p) (ϕ↑ p) (ψ↑ p) (X↑ p) (inl*↑ p) (inr*↑ p) q
 
+  --
+  --  The slice construction
+  --
 
+  postulate
+
+    Slice : (M : 𝕄) (F : Filler M) → 𝕄
+
+    Frm-Slice : (M : 𝕄) (F : Filler M)
+      → Frm (Slice M F) ↦ Frmₛ M
+    {-# REWRITE Frm-Slice #-}
+    
+    Cell-Slice : (M : 𝕄) (F : Filler M)
+      → Cell (Slice M F) ↦ Cellₛ M F
+    {-# REWRITE Cell-Slice #-}
+    
+    Tree-Slice : (M : 𝕄) (F : Filler M)
+      → Tree (Slice M F) ↦ Treeₛ M F
+    {-# REWRITE Tree-Slice #-}
+
+    Pos-Slice : (M : 𝕄) (F : Filler M)
+      → {f : Frm (Slice M F)}
+      → (σ : Tree (Slice M F) f)
+      → Pos (Slice M F) σ ↦ Posₛ M F σ
+    {-# REWRITE Pos-Slice #-}
+
+    Typ-Slice : (M : 𝕄) (F : Filler M)
+      → {f : Frm (Slice M F)}
+      → (σ : Tree (Slice M F) f) (p : Pos (Slice M F) σ)
+      → Typ (Slice M F) σ p ↦ Typₛ M F σ p
+    {-# REWRITE Typ-Slice #-}
+
+    Inh-Slice : (M : 𝕄) (F : Filler M)
+      → {f : Frm (Slice M F)}
+      → (σ : Tree (Slice M F) f) (p : Pos (Slice M F) σ)
+      → Inh (Slice M F) σ p ↦ Inhₛ M F σ p
+    {-# REWRITE Inh-Slice #-}
+
+    η-Slice : (M : 𝕄) (F : Filler M)
+      → {f : Frm (Slice M F)}
+      → (τ : Cell (Slice M F) f)
+      → η (Slice M F) τ ↦ ηₛ M F τ
+    {-# REWRITE η-Slice #-}
+
+    η-pos-Slice : (M : 𝕄) (F : Filler M)
+      → {f : Frm (Slice M F)}
+      → (τ : Cell (Slice M F) f)
+      → η-pos (Slice M F) τ ↦ η-posₛ M F τ
+    {-# REWRITE η-pos-Slice #-}
+
+    η-pos-elim-Slice : (M : 𝕄) (F : Filler M)
+      → {f : Frm (Slice M F)}
+      → (τ : Cell (Slice M F) f)
+      → (X : (p : Pos (Slice M F) (η (Slice M F) τ)) → Set)
+      → (η-pos* : X (η-pos (Slice M F) τ))
+      → (p : Pos (Slice M F) (η (Slice M F) τ))
+      → η-pos-elim (Slice M F) τ X η-pos* p ↦ η-pos-elimₛ M F τ X η-pos* p 
+    {-# REWRITE η-pos-elim-Slice #-}
+
+    μ-Slice : (M : 𝕄) (F : Filler M)
+      → {f : Frm (Slice M F)} (σ : Tree (Slice M F) f)
+      → (δ : (p : Pos (Slice M F) σ) → Tree (Slice M F) (Typ (Slice M F) σ p))
+      → μ (Slice M F) σ δ ↦ μₛ M F σ δ
+    {-# REWRITE μ-Slice #-}
+
+    μ-pos-Slice : (M : 𝕄) (F : Filler M)
+      → {f : Frm (Slice M F)} (σ : Tree (Slice M F) f)
+      → (δ : (p : Pos (Slice M F) σ) → Tree (Slice M F) (Typ (Slice M F) σ p))
+      → (p : Pos (Slice M F) σ) (q : Pos (Slice M F) (δ p))
+      → μ-pos (Slice M F) σ δ p q ↦ μ-posₛ M F σ δ p q
+    {-# REWRITE μ-pos-Slice #-}
+
+    μ-pos-fst-Slice : (M : 𝕄) (F : Filler M)
+      → {f : Frm (Slice M F)} (σ : Tree (Slice M F) f)
+      → (δ : (p : Pos (Slice M F) σ) → Tree (Slice M F) (Typ (Slice M F) σ p))
+      → (p : Pos (Slice M F) (μ (Slice M F) σ δ))
+      → μ-pos-fst (Slice M F) σ δ p ↦ μ-pos-fstₛ M F σ δ p
+    {-# REWRITE μ-pos-fst-Slice #-}
+    
+    μ-pos-snd-Slice : (M : 𝕄) (F : Filler M)
+      → {f : Frm (Slice M F)} (σ : Tree (Slice M F) f)
+      → (δ : (p : Pos (Slice M F) σ) → Tree (Slice M F) (Typ (Slice M F) σ p))
+      → (p : Pos (Slice M F) (μ (Slice M F) σ δ))
+      → μ-pos-snd (Slice M F) σ δ p ↦ μ-pos-sndₛ M F σ δ p
+    {-# REWRITE μ-pos-snd-Slice #-}
+
+  --
+  --  The definition of opetopic type
+  --
+  
+  record OpetopicType (M : 𝕄) : Set₁ where
+    coinductive
+    field
+
+      F : Filler M
+      H : OpetopicType (Slice M F)
