@@ -446,5 +446,5 @@ module OpetopicType where
     coinductive
     field
 
-      F : Filler M
-      H : OpetopicType (Slice M F)
+      Flr : Filler M
+      Hom : OpetopicType (Slice M Flr)
