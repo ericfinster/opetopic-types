@@ -1,7 +1,7 @@
 {-# OPTIONS --without-K --rewriting #-}
 
-open import Base
-open import OpetopicType
+open import HoTT
+open import Monad
 
 module RelationMonad where
 
@@ -63,39 +63,39 @@ module RelationMonad where
 
   postulate
 
-    Rel : (A : Set) → 𝕄
+    RelMnd : (A : Set) → 𝕄
 
-    Frm-Rel : (A : Set)
-      → Frm (Rel A) ↦ Frmᵣ A
-    {-# REWRITE Frm-Rel #-}
+    Frm-RelMnd : (A : Set)
+      → Frm (RelMnd A) ↦ Frmᵣ A
+    {-# REWRITE Frm-RelMnd #-}
 
-    Cell-Rel : (A : Set) (f : Frm (Rel A))
-      → Cell (Rel A) f ↦ Cellᵣ A f
-    {-# REWRITE Cell-Rel #-}
+    Cell-RelMnd : (A : Set) (f : Frm (RelMnd A))
+      → Cell (RelMnd A) f ↦ Cellᵣ A f
+    {-# REWRITE Cell-RelMnd #-}
 
-    Tree-Rel : (A : Set) (f : Frm (Rel A))
-      → Tree (Rel A) f ↦ Treeᵣ A f
-    {-# REWRITE Tree-Rel #-}
+    Tree-RelMnd : (A : Set) (f : Frm (RelMnd A))
+      → Tree (RelMnd A) f ↦ Treeᵣ A f
+    {-# REWRITE Tree-RelMnd #-}
 
-    Pos-Rel : (A : Set) (f : Frm (Rel A))
-      → (σ : Tree (Rel A) f) 
-      → Pos (Rel A) σ ↦ Posᵣ A σ
-    {-# REWRITE Pos-Rel #-}
+    Pos-RelMnd : (A : Set) (f : Frm (RelMnd A))
+      → (σ : Tree (RelMnd A) f) 
+      → Pos (RelMnd A) σ ↦ Posᵣ A σ
+    {-# REWRITE Pos-RelMnd #-}
 
-    Typ-Rel : (A : Set) (f : Frm (Rel A))
-      → (σ : Tree (Rel A) f) (p : Pos (Rel A) σ)
-      → Typ (Rel A) σ p ↦ Typᵣ A σ p
-    {-# REWRITE Typ-Rel #-}
+    Typ-RelMnd : (A : Set) (f : Frm (RelMnd A))
+      → (σ : Tree (RelMnd A) f) (p : Pos (RelMnd A) σ)
+      → Typ (RelMnd A) σ p ↦ Typᵣ A σ p
+    {-# REWRITE Typ-RelMnd #-}
 
-    Inh-Rel : (A : Set) (f : Frm (Rel A))
-      → (σ : Tree (Rel A) f) (p : Pos (Rel A) σ)
-      → Inh (Rel A) σ p ↦ Inhᵣ A σ p
-    {-# REWRITE Inh-Rel #-}
+    Inh-RelMnd : (A : Set) (f : Frm (RelMnd A))
+      → (σ : Tree (RelMnd A) f) (p : Pos (RelMnd A) σ)
+      → Inh (RelMnd A) σ p ↦ Inhᵣ A σ p
+    {-# REWRITE Inh-RelMnd #-}
 
-    η-Rel : (A : Set) {f : Frm (Rel A)}
-      → (τ : Cell (Rel A) f)
-      → η (Rel A) τ ↦ ηᵣ A τ
-    {-# REWRITE η-Rel #-}
+    η-RelMnd : (A : Set) {f : Frm (RelMnd A)}
+      → (τ : Cell (RelMnd A) f)
+      → η (RelMnd A) τ ↦ ηᵣ A τ
+    {-# REWRITE η-RelMnd #-}
 
     --
     -- It appears that because the positions are definitionally
@@ -105,38 +105,38 @@ module RelationMonad where
     -- later on.
     -- 
 
-    -- η-pos-Rel : (A : Set) {f : Frm (Rel A)}
-    --   → (τ : Cell (Rel A) f)
-    --   → η-pos (Rel A) τ ↦ η-posᵣ A τ
-    -- {-# REWRITE η-pos-Rel #-}
+    -- η-pos-RelMnd : (A : Set) {f : Frm (RelMnd A)}
+    --   → (τ : Cell (RelMnd A) f)
+    --   → η-pos (RelMnd A) τ ↦ η-posᵣ A τ
+    -- {-# REWRITE η-pos-RelMnd #-}
     
-    -- η-pos-elim-Rel : (A : Set) {f : Frm (Rel A)}
-    --   → (τ : Cell (Rel A) f)
-    --   → (X : (p : Pos (Rel A) (η (Rel A) τ)) → Set)
-    --   → (η-pos* : X (η-pos (Rel A) τ))
-    --   → (p : Pos (Rel A) (η (Rel A) τ))
-    --   → η-pos-elim (Rel A) τ X η-pos* p ↦ η-pos-elimᵣ A τ X η-pos* p
-    -- {-# REWRITE η-pos-elim-Rel #-}
+    -- η-pos-elim-RelMnd : (A : Set) {f : Frm (RelMnd A)}
+    --   → (τ : Cell (RelMnd A) f)
+    --   → (X : (p : Pos (RelMnd A) (η (RelMnd A) τ)) → Set)
+    --   → (η-pos* : X (η-pos (RelMnd A) τ))
+    --   → (p : Pos (RelMnd A) (η (RelMnd A) τ))
+    --   → η-pos-elim (RelMnd A) τ X η-pos* p ↦ η-pos-elimᵣ A τ X η-pos* p
+    -- {-# REWRITE η-pos-elim-RelMnd #-}
 
-    μ-Rel : (A : Set) {f : Frm (Rel A)} (σ : Tree (Rel A) f)
-      → (δ : (p : Pos (Rel A) σ) → Tree (Rel A) (Typ (Rel A) σ p))
-      → μ (Rel A) σ δ ↦ μᵣ A σ δ
-    {-# REWRITE μ-Rel #-}
+    μ-RelMnd : (A : Set) {f : Frm (RelMnd A)} (σ : Tree (RelMnd A) f)
+      → (δ : (p : Pos (RelMnd A) σ) → Tree (RelMnd A) (Typ (RelMnd A) σ p))
+      → μ (RelMnd A) σ δ ↦ μᵣ A σ δ
+    {-# REWRITE μ-RelMnd #-}
     
-    -- μ-pos-Rel : (A : Set) {f : Frm (Rel A)} (σ : Tree (Rel A) f)
-    --   → (δ : (p : Pos (Rel A) σ) → Tree (Rel A) (Typ (Rel A) σ p))
-    --   → (p : Pos (Rel A) σ) (q : Pos (Rel A) (δ p))
-    --   → μ-pos (Rel A) σ δ p q ↦ μ-posᵣ A σ δ p q
-    -- {-# REWRITE μ-pos-Rel #-}
+    -- μ-pos-RelMnd : (A : Set) {f : Frm (RelMnd A)} (σ : Tree (RelMnd A) f)
+    --   → (δ : (p : Pos (RelMnd A) σ) → Tree (RelMnd A) (Typ (RelMnd A) σ p))
+    --   → (p : Pos (RelMnd A) σ) (q : Pos (RelMnd A) (δ p))
+    --   → μ-pos (RelMnd A) σ δ p q ↦ μ-posᵣ A σ δ p q
+    -- {-# REWRITE μ-pos-RelMnd #-}
 
-    -- μ-pos-fst-Rel : (A : Set) {f : Frm (Rel A)} (σ : Tree (Rel A) f)
-    --   → (δ : (p : Pos (Rel A) σ) → Tree (Rel A) (Typ (Rel A) σ p))
-    --   → (p : Pos (Rel A) (μ (Rel A) σ δ))
-    --   → μ-pos-fst (Rel A) σ δ p ↦ μ-pos-fstᵣ A σ δ p
-    -- {-# REWRITE μ-pos-fst-Rel #-}
+    -- μ-pos-fst-RelMnd : (A : Set) {f : Frm (RelMnd A)} (σ : Tree (RelMnd A) f)
+    --   → (δ : (p : Pos (RelMnd A) σ) → Tree (RelMnd A) (Typ (RelMnd A) σ p))
+    --   → (p : Pos (RelMnd A) (μ (RelMnd A) σ δ))
+    --   → μ-pos-fst (RelMnd A) σ δ p ↦ μ-pos-fstᵣ A σ δ p
+    -- {-# REWRITE μ-pos-fst-RelMnd #-}
 
-    -- μ-pos-snd-Rel : (A : Set) {f : Frm (Rel A)} (σ : Tree (Rel A) f)
-    --   → (δ : (p : Pos (Rel A) σ) → Tree (Rel A) (Typ (Rel A) σ p))
-    --   → (p : Pos (Rel A) (μ (Rel A) σ δ))
-    --   → μ-pos-snd (Rel A) σ δ p ↦ μ-pos-sndᵣ A σ δ p
-    -- {-# REWRITE μ-pos-snd-Rel #-}
+    -- μ-pos-snd-RelMnd : (A : Set) {f : Frm (RelMnd A)} (σ : Tree (RelMnd A) f)
+    --   → (δ : (p : Pos (RelMnd A) σ) → Tree (RelMnd A) (Typ (RelMnd A) σ p))
+    --   → (p : Pos (RelMnd A) (μ (RelMnd A) σ δ))
+    --   → μ-pos-snd (RelMnd A) σ δ p ↦ μ-pos-sndᵣ A σ δ p
+    -- {-# REWRITE μ-pos-snd-RelMnd #-}
