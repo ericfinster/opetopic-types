@@ -140,15 +140,41 @@ module MonadOver where
   Typ↓ₛ M↓ (nd↓ σ↓ δ↓ ε↓) (inl unit) = _ , σ↓
   Typ↓ₛ M↓ (nd↓ σ↓ δ↓ ε↓) (inr (p , q)) = Typ↓ₛ M↓ (ε↓ p) q
 
+  γ↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+    → {f : Frm M} {σ : Tree M f} {ρ : Treeₛ M (f , σ)}
+    → {δ : (p : Pos M σ) → Tree M (Typ M σ p)}
+    → {ε : (p : Pos M σ) → Treeₛ M (Typ M σ p , δ p)}
+    → {f↓ : Frm↓ M↓ f} {σ↓ : Tree↓ M↓ f↓ σ}
+    → (ρ↓ : Tree↓ₛ M↓ (f↓ , σ↓) ρ)
+    → (δ↓ : (p : Pos M σ) → Tree↓ M↓ (Typ↓ M↓ σ↓ p) (δ p))
+    → (ε↓ : (p : Pos M σ) → Tree↓ₛ M↓ (Typ↓ M↓ σ↓ p , δ↓ p) (ε p))
+    → Tree↓ₛ M↓ (f↓ , μ↓ M↓ σ↓ δ↓) (γ M ρ δ ε) 
+  
   η↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
     → {f : Frm (Slice M)} (f↓ : Frm↓ₛ M↓ f)
     → Tree↓ₛ M↓ f↓ (η (Slice M) f)
-  η↓ₛ = {!!}
-  
+  η↓ₛ M↓ (f↓ , σ↓) =
+    let η-dec↓ p = η↓ M↓ (Typ↓ M↓ σ↓ p)
+        lf-dec↓ p = lf↓ (Typ↓ M↓ σ↓ p)
+    in nd↓ σ↓ η-dec↓ lf-dec↓
+
   μ↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
     → {f : Frm (Slice M)} {σ : Tree (Slice M) f}
     → {δ : (p : Pos (Slice M) σ) → Tree (Slice M) (Typ (Slice M) σ p)}
     → {f↓ : Frm↓ₛ M↓ f} (σ↓ : Tree↓ₛ M↓ f↓ σ)
     → (δ↓ : (p : Pos (Slice M) σ) → Tree↓ₛ M↓ (Typ↓ₛ M↓ {f↓ = f↓} σ↓ p) (δ p))
     → Tree↓ₛ M↓ f↓ (μ (Slice M) σ δ)
-  μ↓ₛ = {!!} 
+  μ↓ₛ M↓ (lf↓ f↓) κ↓ = lf↓ f↓
+  μ↓ₛ M↓ (nd↓ σ↓ δ↓ ε↓) κ↓ = 
+    let w↓ = κ↓ (inl unit)
+        κ↓↑ p q = κ↓ (inr (p , q))
+        ψ↓ p = μ↓ₛ M↓ (ε↓ p) (κ↓↑ p) 
+    in γ↓ M↓ w↓ δ↓ ψ↓
+  
+  γ↓ {M = M} M↓ (lf↓ {f = f} f↓) ϕ↓ ψ↓ = ψ↓ (η-pos M f)
+  γ↓ {M = M} M↓ (nd↓ {σ = σ} {δ = δ} σ↓ δ↓ ε↓) ϕ↓ ψ↓ =
+    let ϕ↓↑ p q = ϕ↓ (μ-pos M σ δ p q)
+        ψ↓↑ p q = ψ↓ (μ-pos M σ δ p q)
+        δ↓↑ p = μ↓ M↓ (δ↓ p) (ϕ↓↑ p)
+        ε↓↑ p = γ↓ M↓ (ε↓ p) (ϕ↓↑ p) (ψ↓↑ p)
+    in nd↓ σ↓ δ↓↑ ε↓↑
