@@ -70,3 +70,38 @@ module MonadOver where
       → (ε↓ : (p : Pos M (μ M σ δ)) → Tree↓ M↓ (Typ↓ M↓ (μ↓ M↓ σ↓ δ↓) p) (ε p))
       → μ↓ M↓ (μ↓ M↓ σ↓ δ↓) ε↓ ↦ μ↓ M↓ σ↓ (λ p → μ↓ M↓ (δ↓ p) (λ q → ε↓ (μ-pos M σ δ p q)))
     {-# REWRITE μ-assoc↓ #-} 
+
+    -- The canonical source of monads over:
+    -- extension of colors 
+    Ext : (M : 𝕄) (F↓ : Frm M → Set) → 𝕄↓ M
+
+    Frm↓-Ext : (M : 𝕄) (F↓ : Frm M → Set)
+      → Frm↓ (Ext M F↓) ↦ F↓
+    {-# REWRITE Frm↓-Ext #-}
+
+    Tree↓-Ext : (M : 𝕄) (F↓ : Frm M → Set)
+      → {f : Frm M} (σ : Tree M f) 
+      → (f↓ : F↓ f)
+      → Tree↓ (Ext M F↓) f↓ σ ↦ ((p : Pos M σ) → F↓ (Typ M σ p) )
+    {-# REWRITE Tree↓-Ext #-}
+    
+    Typ↓-Ext : (M : 𝕄) (F↓ : Frm M → Set)
+      → {f : Frm M} (σ : Tree M f) 
+      → (f↓ : F↓ f) (σ↓ : Tree↓ (Ext M F↓) f↓ σ)
+      → (p : Pos M σ)
+      → Typ↓ (Ext M F↓) {σ = σ} {f↓ = f↓} σ↓ p ↦ σ↓ p 
+    {-# REWRITE Typ↓-Ext #-}
+
+    η↓-Ext : (M : 𝕄) (F↓ : Frm M → Set)
+      → {f : Frm M} (f↓ : Frm↓ (Ext M F↓) f)
+      → η↓ (Ext M F↓) f↓ ↦ (λ _ → f↓)
+    {-# REWRITE η↓-Ext #-}
+    
+    μ↓-Ext : {M : 𝕄} (F↓ : Frm M → Set)
+      → {f : Frm M} {σ : Tree M f}
+      → {δ : (p : Pos M σ) → Tree M (Typ M σ p)}
+      → {f↓ : Frm↓ (Ext M F↓) f} (σ↓ : Tree↓ (Ext M F↓) f↓ σ)
+      → (δ↓ : (p : Pos M σ) → Tree↓ (Ext M F↓) (Typ↓ (Ext M F↓) {f↓ = f↓} σ↓ p) (δ p))
+      → μ↓ (Ext M F↓) {f↓ = f↓} σ↓ δ↓ ↦ (λ p → δ↓ (μ-pos-fst M σ δ p) (μ-pos-snd M σ δ p))
+    {-# REWRITE μ↓-Ext #-}
+  
