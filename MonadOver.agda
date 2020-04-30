@@ -71,8 +71,10 @@ module MonadOver where
       → μ↓ M↓ (μ↓ M↓ σ↓ δ↓) ε↓ ↦ μ↓ M↓ σ↓ (λ p → μ↓ M↓ (δ↓ p) (λ q → ε↓ (μ-pos M σ δ p q)))
     {-# REWRITE μ-assoc↓ #-} 
 
-    -- The canonical source of monads over:
-    -- extension of colors 
+    --
+    --  Extension of colors
+    --
+    
     Ext : (M : 𝕄) (F↓ : Frm M → Set) → 𝕄↓ M
 
     Frm↓-Ext : (M : 𝕄) (F↓ : Frm M → Set)
@@ -105,3 +107,48 @@ module MonadOver where
       → μ↓ (Ext M F↓) {f↓ = f↓} σ↓ δ↓ ↦ (λ p → δ↓ (μ-pos-fst M σ δ p) (μ-pos-snd M σ δ p))
     {-# REWRITE μ↓-Ext #-}
   
+  --
+  -- Slice↓
+  --
+
+  Frm↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
+    → Frm (Slice M) → Set
+  Frm↓ₛ M↓ (f , σ) = Σ (Frm↓ M↓ f) (λ f↓ → Tree↓ M↓ f↓ σ)
+
+  data Pd↓ {M : 𝕄} (M↓ : 𝕄↓ M) : {f : Frmₛ M} → Frm↓ₛ M↓ f → Treeₛ M f → Set where
+
+    lf↓ : {f : Frm M} (f↓ : Frm↓ M↓ f)
+      → Pd↓ M↓ (f↓ , η↓ M↓ f↓) (lf f) 
+    
+    nd↓ : {f : Frm M} {σ : Tree M f}
+      → {δ : (p : Pos M σ) → Tree M (Typ M σ p)}
+      → {ε : (p : Pos M σ) → Pd M (Typ M σ p , δ p)}
+      → {f↓ : Frm↓ M↓ f} (σ↓ : Tree↓ M↓ f↓ σ)
+      → (δ↓ : (p : Pos M σ) → Tree↓ M↓ (Typ↓ M↓ σ↓ p) (δ p))
+      → (ε↓ : (p : Pos M σ) → Pd↓ M↓ (Typ↓ M↓ σ↓ p , δ↓ p) (ε p))
+      → Pd↓ M↓ (f↓ , μ↓ M↓ σ↓ δ↓) (nd σ δ ε) 
+
+  Tree↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
+    → {f : Frm (Slice M)} (f↓ : Frm↓ₛ M↓ f)
+    → Tree (Slice M) f → Set 
+  Tree↓ₛ M↓ (f↓ , σ↓) σ = Pd↓ M↓ (f↓ , σ↓) σ 
+  
+  Typ↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
+    → {f : Frm (Slice M)} {σ : Tree (Slice M) f} 
+    → {f↓ : Frm↓ₛ M↓ f} (σ↓ : Tree↓ₛ M↓ f↓ σ)
+    → (p : Pos (Slice M) σ) → Frm↓ₛ M↓ (Typ (Slice M) σ p)
+  Typ↓ₛ M↓ (nd↓ σ↓ δ↓ ε↓) (inl unit) = _ , σ↓
+  Typ↓ₛ M↓ (nd↓ σ↓ δ↓ ε↓) (inr (p , q)) = Typ↓ₛ M↓ (ε↓ p) q
+
+  η↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
+    → {f : Frm (Slice M)} (f↓ : Frm↓ₛ M↓ f)
+    → Tree↓ₛ M↓ f↓ (η (Slice M) f)
+  η↓ₛ = {!!}
+  
+  μ↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
+    → {f : Frm (Slice M)} {σ : Tree (Slice M) f}
+    → {δ : (p : Pos (Slice M) σ) → Tree (Slice M) (Typ (Slice M) σ p)}
+    → {f↓ : Frm↓ₛ M↓ f} (σ↓ : Tree↓ₛ M↓ f↓ σ)
+    → (δ↓ : (p : Pos (Slice M) σ) → Tree↓ₛ M↓ (Typ↓ₛ M↓ {f↓ = f↓} σ↓ p) (δ p))
+    → Tree↓ₛ M↓ f↓ (μ (Slice M) σ δ)
+  μ↓ₛ = {!!} 
