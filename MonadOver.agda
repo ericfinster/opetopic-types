@@ -178,3 +178,36 @@ module MonadOver where
         δ↓↑ p = μ↓ M↓ (δ↓ p) (ϕ↓↑ p)
         ε↓↑ p = γ↓ M↓ (ε↓ p) (ϕ↓↑ p) (ψ↓↑ p)
     in nd↓ σ↓ δ↓↑ ε↓↑
+
+  postulate
+
+    Slice↓ : {M : 𝕄} (M↓ : 𝕄↓ M) → 𝕄↓ (Slice M)
+
+    Frm↓-Slice↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+      → Frm↓ (Slice↓ M↓) ↦ Frm↓ₛ M↓
+    {-# REWRITE Frm↓-Slice↓ #-}
+    
+    Tree↓-Slice↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+      → {f : Frm (Slice M)} (f↓ : Frm↓ (Slice↓ M↓) f)
+      → Tree↓ (Slice↓ M↓) f↓ ↦ Tree↓ₛ M↓ f↓
+    {-# REWRITE Tree↓-Slice↓ #-}
+
+    Typ↓-Slice↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+      → {f : Frm (Slice M)} {σ : Tree (Slice M) f} 
+      → {f↓ : Frm↓ₛ M↓ f} (σ↓ : Tree↓ₛ M↓ f↓ σ)
+      → (p : Pos (Slice M) σ)
+      → Typ↓ (Slice↓ M↓) σ↓ p ↦ Typ↓ₛ M↓ σ↓ p
+    {-# REWRITE Typ↓-Slice↓ #-}
+
+    η↓-Slice↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+      → {f : Frm (Slice M)} (f↓ : Frm↓ₛ M↓ f)
+      → η↓ (Slice↓ M↓) f↓ ↦ η↓ₛ M↓ f↓
+    {-# REWRITE η↓-Slice↓ #-}
+
+    μ↓-Slice↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+      → {f : Frm (Slice M)} {σ : Tree (Slice M) f}
+      → {δ : (p : Pos (Slice M) σ) → Tree (Slice M) (Typ (Slice M) σ p)}
+      → {f↓ : Frm↓ₛ M↓ f} (σ↓ : Tree↓ₛ M↓ f↓ σ)
+      → (δ↓ : (p : Pos (Slice M) σ) → Tree↓ₛ M↓ (Typ↓ₛ M↓ {f↓ = f↓} σ↓ p) (δ p))
+      → μ↓ (Slice↓ M↓) σ↓ δ↓ ↦ μ↓ₛ M↓ σ↓ δ↓
+    {-# REWRITE μ↓-Slice↓ #-}
