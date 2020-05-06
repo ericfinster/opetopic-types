@@ -104,6 +104,53 @@ module Monad where
       → μ M (μ M σ δ) ε ↦ μ M σ (λ p → μ M (δ p) (λ q → ε (μ-pos M σ δ p q)))
     {-# REWRITE μ-assoc #-}
 
+    -- μ pos compatibilities
+    μ-pos-unit-right : (M : 𝕄) (f : Frm M)
+      → (σ : Tree M f)
+      → (p : Pos M σ) (q : Pos M (η M (Typ M σ p)))
+      → μ-pos M σ (λ p → η M (Typ M σ p)) p q ↦ p 
+    {-# REWRITE μ-pos-unit-right #-}
+
+    μ-pos-unit-left : (M : 𝕄) (f : Frm M) 
+      → (δ : (p : Pos M (η M f)) → Tree M f)
+      → (p : Pos M (η M f)) (q : Pos M (δ p))
+      → μ-pos M (η M f) δ p q ↦ η-pos-elim M f (λ p → Pos M (δ p) → Pos M (δ (η-pos M f))) (λ p → p) p q 
+    {-# REWRITE μ-pos-unit-left #-} 
+
+    μ-pos-assoc : (M : 𝕄) {f : Frm M} (σ : Tree M f)
+      → (δ : (p : Pos M σ) → Tree M (Typ M σ p))
+      → (ε : (p : Pos M (μ M σ δ)) → Tree M (Typ M (μ M σ δ) p))
+      → (p : Pos M (μ M σ δ)) (q : Pos M (ε p))
+      → μ-pos M (μ M σ δ) ε p q ↦ μ-pos M σ
+              (λ p → μ M (δ p) (λ q → ε (μ-pos M σ δ p q))) (μ-pos-fst M σ δ p)
+              (μ-pos M (δ (μ-pos-fst M σ δ p)) (λ q → ε (μ-pos M σ δ (μ-pos-fst M σ δ p) q)) (μ-pos-snd M σ δ p) q) 
+    {-# REWRITE μ-pos-assoc #-}
+
+    μ-pos-fst-unit-right : (M : 𝕄) {f : Frm M}
+      → (σ : Tree M f) (p : Pos M σ)
+      → μ-pos-fst M σ (λ p → η M (Typ M σ p)) p ↦ p 
+    {-# REWRITE μ-pos-fst-unit-right #-}
+
+    -- Hmmm.  This doesn't make much sense ...
+    -- Really the expression we are rewriting
+    -- here should be ill-typed
+    μ-pos-fst-unit-left : (M : 𝕄) (f : Frm M) 
+      → (δ : (p : Pos M (η M f)) → Tree M f)
+      → (p : Pos M (δ (η-pos M f)))
+      → μ-pos-fst M (η M f) δ p ↦ η-pos M f
+    {-# REWRITE μ-pos-fst-unit-left #-}
+
+    μ-pos-fst-assoc : (M : 𝕄) {f : Frm M} (σ : Tree M f)
+      → (δ : (p : Pos M σ) → Tree M (Typ M σ p))
+      → (ε : (p : Pos M (μ M σ δ)) → Tree M (Typ M (μ M σ δ) p))
+      → 
+      → μ-pos-fst M (μ M σ δ) ε {!!} ↦ {!!}
+
+    -- μ-pos-snd : (M : 𝕄) {f : Frm M} (σ : Tree M f)
+    --   → (δ : (p : Pos M σ) → Tree M (Typ M σ p))
+    --   → (p : Pos M (μ M σ δ))
+    --   → Pos M (δ (μ-pos-fst M σ δ p))
+
   Frmₛ : (M : 𝕄) → Set
   Frmₛ M = Σ (Frm M) (Tree M)
   

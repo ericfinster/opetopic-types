@@ -5,7 +5,6 @@ open import Monad
 
 module MonadOver where
 
-
   postulate
 
     𝕄↓ : (M : 𝕄) → Set
@@ -30,17 +29,18 @@ module MonadOver where
       → {f : Frm M} {σ : Tree M f}
       → {δ : (p : Pos M σ) → Tree M (Typ M σ p)}
       → {f↓ : Frm↓ M↓ f} (ϕ : Typ↓ M↓ σ) 
-      → (ψ : (p : Pos M σ) → Typ↓ M↓ (δ p))
       → (σ↓ : Tree↓ M↓ f↓ σ ϕ)
-      → (δ↓ : (p : Pos M σ) → Tree↓ M↓ (ϕ p) (δ p) (ψ p))
-      → Tree↓ M↓ f↓ (μ M σ δ) (λ p → ψ (μ-pos-fst M σ δ p) (μ-pos-snd M σ δ p))
+      → (ψ : Typ↓ M↓ (μ M σ δ))
+      → (δ↓ : (p : Pos M σ) → Tree↓ M↓ (ϕ p) (δ p) (λ q → ψ (μ-pos M σ δ p q)))
+      → Tree↓ M↓ f↓ (μ M σ δ) ψ 
     
-  --   -- μ↓ laws
-  --   μ-unit-right↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
-  --     → {f : Frm M} {σ : Tree M f}
-  --     → {f↓ : Frm↓ M↓ f} (σ↓ : Tree↓ M↓ f↓ σ)
-  --     → μ↓ M↓ σ↓ (λ p → η↓ M↓ (Typ↓ M↓ σ↓ p)) ↦ σ↓
-  --   {-# REWRITE μ-unit-right↓ #-}
+    -- μ↓ laws
+    μ-unit-right↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+      → {f : Frm M} {σ : Tree M f}
+      → {f↓ : Frm↓ M↓ f} (ϕ : Typ↓ M↓ σ)
+      → (σ↓ : Tree↓ M↓ f↓ σ ϕ)
+      → μ↓ M↓ {δ = λ p → η M (Typ M σ p)} ϕ σ↓ ϕ (λ p → η↓ M↓ (ϕ p)) ↦ σ↓ 
+    {-# REWRITE μ-unit-right↓ #-}
 
   --   μ-unit-left↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
   --     → {f : Frm M} {f↓ : Frm↓ M↓ f}
@@ -99,45 +99,39 @@ module MonadOver where
   -- Slice↓
   --
 
-  Frm↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
-    → Frm (Slice M) → Set
-  Frm↓ₛ {M} M↓ (f , σ) = Σ (Frm↓ M↓ f) (λ f↓ → Σ (Typ↓ M↓ σ) (λ ϕ → Tree↓ M↓ f↓ σ ϕ))
+  -- Frm↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
+  --   → Frm (Slice M) → Set
+  -- Frm↓ₛ {M} M↓ (f , σ) = Σ (Frm↓ M↓ f) (λ f↓ → Σ (Typ↓ M↓ σ) (λ ϕ → Tree↓ M↓ f↓ σ ϕ))
 
-  Typ↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
-    → {f : Frmₛ M} (σ : Treeₛ M f)
-    → Set 
-  Typ↓ₛ {M} M↓ σ = (p : Posₛ M σ) → Frm↓ₛ M↓ (Typₛ M σ p)
+  -- Typ↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
+  --   → {f : Frmₛ M} (σ : Treeₛ M f)
+  --   → Set 
+  -- Typ↓ₛ {M} M↓ σ = (p : Posₛ M σ) → Frm↓ₛ M↓ (Typₛ M σ p)
 
-  data Pd↓ {M : 𝕄} (M↓ : 𝕄↓ M) : {f : Frmₛ M} → Frm↓ₛ M↓ f
-    → (σ : Treeₛ M f) → Typ↓ₛ M↓ σ → Set where
+  -- data Pd↓ {M : 𝕄} (M↓ : 𝕄↓ M) : {f : Frmₛ M} → Frm↓ₛ M↓ f
+  --   → (σ : Treeₛ M f) → Typ↓ₛ M↓ σ → Set where
 
-    lf↓ : {f : Frm M} (f↓ : Frm↓ M↓ f)
-      → Pd↓ M↓ (f↓ , cst f↓ , η↓ M↓ f↓) (lf f) ⊥-elim 
+  --   lf↓ : {f : Frm M} (f↓ : Frm↓ M↓ f)
+  --     → Pd↓ M↓ (f↓ , cst f↓ , η↓ M↓ f↓) (lf f) ⊥-elim 
     
-    nd↓ : {f : Frm M} {σ : Tree M f}
-      → {δ : (p : Pos M σ) → Tree M (Typ M σ p)}
-      → {ε : (p : Pos M σ) → Pd M (Typ M σ p , δ p)}
-      → {f↓ : Frm↓ M↓ f} (ϕ : Typ↓ M↓ σ) 
-      → (ψ : (p : Pos M σ) → Typ↓ M↓ (δ p))
-      → (σ↓ : Tree↓ M↓ f↓ σ ϕ)
-      → (δ↓ : (p : Pos M σ) → Tree↓ M↓ (ϕ p) (δ p) (ψ p))
-      → (χ : (p : Pos M σ) → Typ↓ₛ M↓ (ε p))
-      → (ε↓ : (p : Pos M σ) → Pd↓ M↓ (ϕ p , ψ p , δ↓ p) (ε p) (χ p))
-      → Pd↓ M↓ (f↓ , (λ p → ψ (μ-pos-fst M σ δ p) (μ-pos-snd M σ δ p)) , μ↓ M↓ ϕ ψ σ↓ δ↓) (nd σ δ ε)
-        (λ { (inl unit) → f↓ , ϕ , σ↓ ;
-             (inr (p , q)) → χ p q })
+  --   nd↓ : {f : Frm M} {σ : Tree M f}
+  --     → {δ : (p : Pos M σ) → Tree M (Typ M σ p)}
+  --     → {ε : (p : Pos M σ) → Pd M (Typ M σ p , δ p)}
+  --     → {f↓ : Frm↓ M↓ f} (ϕ : Typ↓ M↓ σ) 
+  --     → (ψ : (p : Pos M σ) → Typ↓ M↓ (δ p))
+  --     → (σ↓ : Tree↓ M↓ f↓ σ ϕ)
+  --     → (δ↓ : (p : Pos M σ) → Tree↓ M↓ (ϕ p) (δ p) (ψ p))
+  --     → (χ : (p : Pos M σ) → Typ↓ₛ M↓ (ε p))
+  --     → (ε↓ : (p : Pos M σ) → Pd↓ M↓ (ϕ p , ψ p , δ↓ p) (ε p) (χ p))
+  --     → Pd↓ M↓ (f↓ , (λ p → ψ (μ-pos-fst M σ δ p) (μ-pos-snd M σ δ p)) , μ↓ M↓ ϕ σ↓ ψ δ↓) (nd σ δ ε)
+  --       (λ { (inl unit) → f↓ , ϕ , σ↓ ;
+  --            (inr (p , q)) → χ p q })
 
   -- Tree↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
-  --   → {f : Frm (Slice M)} (f↓ : Frm↓ₛ M↓ f)
-  --   → Tree (Slice M) f → Set 
-  -- Tree↓ₛ M↓ (f↓ , σ↓) σ = Pd↓ M↓ (f↓ , σ↓) σ 
-  
-  -- Typ↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
-  --   → {f : Frm (Slice M)} {σ : Tree (Slice M) f} 
-  --   → {f↓ : Frm↓ₛ M↓ f} (σ↓ : Tree↓ₛ M↓ f↓ σ)
-  --   → (p : Pos (Slice M) σ) → Frm↓ₛ M↓ (Typ (Slice M) σ p)
-  -- Typ↓ₛ M↓ (nd↓ σ↓ δ↓ ε↓) (inl unit) = _ , σ↓
-  -- Typ↓ₛ M↓ (nd↓ σ↓ δ↓ ε↓) (inr (p , q)) = Typ↓ₛ M↓ (ε↓ p) q
+  --   → {f : Frmₛ M} (f↓ : Frm↓ₛ M↓ f) 
+  --   → (σ : Treeₛ M f) (ϕ : Typ↓ₛ M↓ σ)
+  --   → Set 
+  -- Tree↓ₛ M↓ f↓ σ ϕ = Pd↓ M↓ f↓ σ ϕ 
 
   -- γ↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
   --   → {f : Frm M} {σ : Tree M f} {ρ : Treeₛ M (f , σ)}
@@ -148,14 +142,14 @@ module MonadOver where
   --   → (δ↓ : (p : Pos M σ) → Tree↓ M↓ (Typ↓ M↓ σ↓ p) (δ p))
   --   → (ε↓ : (p : Pos M σ) → Tree↓ₛ M↓ (Typ↓ M↓ σ↓ p , δ↓ p) (ε p))
   --   → Tree↓ₛ M↓ (f↓ , μ↓ M↓ σ↓ δ↓) (γ M ρ δ ε) 
-  
+
   -- η↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
-  --   → {f : Frm (Slice M)} (f↓ : Frm↓ₛ M↓ f)
-  --   → Tree↓ₛ M↓ f↓ (η (Slice M) f)
-  -- η↓ₛ M↓ (f↓ , σ↓) =
-  --   let η-dec↓ p = η↓ M↓ (Typ↓ M↓ σ↓ p)
-  --       lf-dec↓ p = lf↓ (Typ↓ M↓ σ↓ p)
-  --   in nd↓ σ↓ η-dec↓ lf-dec↓
+  --   → {f : Frmₛ M} (f↓ : Frm↓ₛ M↓ f)
+  --   → Tree↓ₛ M↓ f↓ (ηₛ M f) (λ { true → f↓ })
+  -- η↓ₛ M↓ (f↓ , ϕ↓ , σ↓) =
+  --   let η-dec↓ p = η↓ M↓ (ϕ↓ p)
+  --       lf-dec↓ p = lf↓ (ϕ↓ p) 
+  --   in {!nd↓ ? ? σ↓ η-dec↓ ? lf-dec↓ !}
 
   -- μ↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
   --   → {f : Frm (Slice M)} {σ : Tree (Slice M) f}

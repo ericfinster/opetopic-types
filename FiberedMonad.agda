@@ -50,3 +50,9 @@ module FiberedMonad where
       → Cns (Slice M) i R ζ ↦ Pd M i R ζ
     {-# REWRITE Cns-Slice #-}
 
+
+  -- The "constructor" for elements of the identity type of
+  -- a type.  If the universe is univalent, one can transfer
+  -- this element to any other contractible type.
+  data Cnsᵢ (A : Set) : (a : A) (P : Set) (τ : P → A) → Set where
+    refl : (a : A) → Cnsᵢ A a ⊤ (cst a)
