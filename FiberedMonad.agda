@@ -27,6 +27,24 @@ module FiberedMonad where
       → μ M i P ρ c (cst ⊤ₛ) (λ p → cst (ρ p)) (λ p → η M (ρ p)) ↦ c 
     {-# REWRITE μ-unit-right #-}
 
+    μ-unit-left : (M : 𝕄) (i : Idx M)
+      → (Q : El ⊤ₛ → 𝕌) (σ : (u : El ⊤ₛ) → El (Q u) → Idx M)
+      → (d : (u : El ⊤ₛ) → Cns M i (Q u) (σ u))
+      → μ M i ⊤ₛ (cst i) (η M i) Q σ d ↦ d ttₛ 
+    {-# REWRITE μ-unit-left #-}
+
+    μ-assoc : (M : 𝕄) (i : Idx M)
+      → (P : 𝕌) (ρ : El P → Idx M) (c : Cns M i P ρ)
+      → (Q : El P → 𝕌) (σ : (p : El P) → El (Q p) → Idx M)
+      → (d : (p : El P) → Cns M (ρ p) (Q p) (σ p))
+      → (R : El (Σₛ P Q) → 𝕌)
+      → (τ : (p : El (Σₛ P Q)) → El (R p) → Idx M)
+      → (e : (p : El (Σₛ P Q)) → Cns M (uncurryₛ σ p) (R p) (τ p))
+      → μ M i (Σₛ P Q) (uncurryₛ σ) (μ M i P ρ c Q σ d) R τ e
+          ↦ μ M i P ρ c (λ p → Σₛ (Q p) (λ q → R (prₛ P Q p q)))
+                        (λ p qr → τ (prₛ P Q p (fstₛ (Q p) (λ q → R (prₛ P Q p q)) qr)) (sndₛ (Q p) (λ q → R (prₛ P Q p q)) qr))
+                        (λ p → μ M (ρ p) (Q p) (λ q → σ p q) (d p) (λ q → R (prₛ P Q p q)) (λ q → τ (prₛ P Q p q)) (λ q → e (prₛ P Q p q)))
+    {-# REWRITE μ-assoc #-}
 
   Idxₛ : (M : 𝕄) → Set
   Idxₛ M = Σ (Idx M) (λ i → Σ 𝕌 (λ P → Σ (El P → Idx M) λ ρ → Cns M i P ρ))
