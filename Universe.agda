@@ -18,7 +18,7 @@ module Universe where
     ⊥ₛ : 𝕌
 
     ⊥ₛ-elim : (A : Set)
-      → El ⊥ₛ → Set 
+      → El ⊥ₛ → A
       
     --
     -- Unit
@@ -257,17 +257,4 @@ module Universe where
                                                                   (λ b → inl* (inrₛ A B b)) inr*) abc
     {-# REWRITE ⊔ₛ-elim-assoc #-}
                                                                   
-  --
-  --  Currying of strict sigma
-  --
-  
-  -- curryₛ : {A D : Set} {B : A → Set}
-  --   → (C : Σₛ A B → D)
-  --   → (a : A) → B a → D
-  -- curryₛ {A} {D} {B} C a b = C (prₛ A B a b) 
-
-  -- uncurryₛ : {A D : Set} {B : A → Set}
-  --   → (C : (a : A) → B a → D)
-  --   → Σₛ A B → D
-  -- uncurryₛ {A} {D} {B} C s = C (fstₛ A B s) (sndₛ A B s) 
 
