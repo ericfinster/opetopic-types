@@ -105,9 +105,13 @@ module Universe where
       → Σₛ A (cst ⊥ₛ) ↦ ⊥ₛ
     {-# REWRITE Σₛ-absorb-right #-}
 
-    Σₛ-absorb-left : (A : 𝕌)
-      → Σₛ ⊥ₛ (cst A) ↦ ⊥ₛ
+    Σₛ-absorb-left : (A : El ⊥ₛ → 𝕌)
+      → Σₛ ⊥ₛ A ↦ ⊥ₛ
     {-# REWRITE Σₛ-absorb-left #-}
+
+    -- prₛ-absorb-left : (A : El ⊥ₛ → 𝕌)
+    --   → (b : El ⊥ₛ) (a : El (A b))
+    --   → prₛ ⊥ₛ A b a ↦ {!!} 
 
     -- Σₛ is right unital
     Σₛ-unit-right : (A : 𝕌)

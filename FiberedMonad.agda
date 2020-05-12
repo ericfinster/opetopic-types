@@ -43,8 +43,12 @@ module FiberedMonad where
       → μ M i (Σₛ P Q) (uncurryₛ σ) (μ M i P ρ c Q σ d) R τ e
           ↦ μ M i P ρ c (λ p → Σₛ (Q p) (λ q → R (prₛ P Q p q)))
                         (λ p qr → τ (prₛ P Q p (fstₛ (Q p) (λ q → R (prₛ P Q p q)) qr)) (sndₛ (Q p) (λ q → R (prₛ P Q p q)) qr))
-                        (λ p → μ M (ρ p) (Q p) (λ q → σ p q) (d p) (λ q → R (prₛ P Q p q)) (λ q → τ (prₛ P Q p q)) (λ q → e (prₛ P Q p q)))
+                        (λ p → μ M (ρ p) (Q p) (σ p) (d p) (λ q → R (prₛ P Q p q)) (λ q → τ (prₛ P Q p q)) (λ q → e (prₛ P Q p q)))
     {-# REWRITE μ-assoc #-}
+
+  --
+  --  Implementation of the slice monad
+  --
 
   Idxₛ : (M : 𝕄) → Set
   Idxₛ M = Σ (Idx M) (λ i → Σ 𝕌 (λ P → Σ (El P → Idx M) λ ρ → Cns M i P ρ))
@@ -60,10 +64,6 @@ module FiberedMonad where
       → (e : (p : El P) → Cnsₛ M (ρ p , Q p , σ p , d p) (R p) (τ p))
       → Cnsₛ M (i , Σₛ P Q , uncurryₛ σ , μ M i P ρ c Q σ d) (⊤ₛ ⊔ₛ (Σₛ P R))
         (⊔ₛ-rec ⊤ₛ (Σₛ P R) (cst (i , Σₛ P Q , uncurryₛ σ , μ M i P ρ c Q σ d)) (uncurryₛ τ))
-
-  --
-  --  I see.  We need the laws for μ at this point.
-  --
   
   ηₛ : (M : 𝕄) (i : Idxₛ M) → Cnsₛ M i ⊤ₛ (cst i)
   ηₛ M (i , P , ρ , c) =
@@ -72,13 +72,20 @@ module FiberedMonad where
     in nd i P ρ c (cst ⊤ₛ) (λ p → cst (ρ p)) η-dec
                   (cst ⊥ₛ) (cst (⊥ₛ-elim (Idxₛ M))) lf-dec  
 
-  -- μ : (M : 𝕄) (i : Idx M)
-  --   → (P : Set) (τ₀ : P → Idx M) (c : Cns M i P τ₀)
-  --   → (Q : P → Set) (τ₁ : (p : P) → Q p → Idx M)
-  --   → (d : (p : P) → Cns M (τ₀ p) (Q p) (τ₁ p))
-  --   → Cns M i (Σₛ P Q) (uncurryₛ τ₁)
+  μₛ : (M : 𝕄) (i : Idxₛ M)
+    → (P : 𝕌) (ρ : El P → Idxₛ M) (c : Cnsₛ M i P ρ)
+    → (Q : El P → 𝕌) (σ : (p : El P) → El (Q p) → Idxₛ M)
+    → (d : (p : El P) → Cnsₛ M (ρ p) (Q p) (σ p))
+    → Cnsₛ M i (Σₛ P Q) (uncurryₛ σ)
+  μₛ M ._ ._ ._ (lf i) Q₁ σ₁ d₁ = {!lf i!}
+  μₛ M ._ ._ ._ (nd i P ρ c Q σ d R τ e) Q₁ σ₁ d₁ = {!!}
 
-  -- So, this means the only thing left to do is to implement η and μ
-  -- for the slice.  Wacky.
+
+  -- uncurryₛ : {A : 𝕌} {B : El A → 𝕌} {C : Set}
+  --   → (D : (a : El A) → El (B a) → C)
+  --   → El (Σₛ A B) → C
+  -- uncurryₛ {A} {B} {C} D s = D (fstₛ A B s) (sndₛ A B s) 
+
+
 
 
