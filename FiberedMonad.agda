@@ -63,8 +63,19 @@ module FiberedMonad where
       → (R : El P → 𝕌) (τ : (p : El P) → El (R p) → Idxₛ M)
       → (e : (p : El P) → Cnsₛ M (ρ p , Q p , σ p , d p) (R p) (τ p))
       → Cnsₛ M (i , Σₛ P Q , uncurryₛ σ , μ M i P ρ c Q σ d) (⊤ₛ ⊔ₛ (Σₛ P R))
-        (⊔ₛ-rec ⊤ₛ (Σₛ P R) (cst (i , Σₛ P Q , uncurryₛ σ , μ M i P ρ c Q σ d)) (uncurryₛ τ))
-  
+        (⊔ₛ-rec ⊤ₛ (Σₛ P R) (cst (i , P , ρ , c)) (uncurryₛ τ))
+
+  -- Free monad multiplication 
+  γₛ : (M : 𝕄) (i : Idx M)
+    → (P : 𝕌) (ρ : El P → Idx M) (c : Cns M i P ρ)
+    → (Q : El P → 𝕌) (σ : (p : El P) → El (Q p) → Idx M)
+    → (d : (p : El P) → Cns M (ρ p) (Q p) (σ p))
+    → (R : 𝕌) (θ : El R → Idxₛ M) (e : Cnsₛ M (i , P , ρ , c) R θ)
+    → (O : (p : El P) → 𝕌) (ζ : (p : El P) → El (O p) → Idxₛ M)
+    → (f : (p : El P) → Cnsₛ M (ρ p , Q p , σ p , d p) (O p) (ζ p))
+    → Cnsₛ M (i , Σₛ P Q , uncurryₛ σ , μ M i P ρ c Q σ d) (R ⊔ₛ Σₛ P O)
+      (⊔ₛ-elim R (Σₛ P O) (cst (Idxₛ M)) θ (uncurryₛ ζ))
+
   ηₛ : (M : 𝕄) (i : Idxₛ M) → Cnsₛ M i ⊤ₛ (cst i)
   ηₛ M (i , P , ρ , c) =
     let η-dec p = η M (ρ p)
@@ -78,14 +89,26 @@ module FiberedMonad where
     → (d : (p : El P) → Cnsₛ M (ρ p) (Q p) (σ p))
     → Cnsₛ M i (Σₛ P Q) (uncurryₛ σ)
   μₛ M ._ ._ ._ (lf i) Q₁ σ₁ d₁ = {!lf i!}
-  μₛ M ._ ._ ._ (nd i P ρ c Q σ d R τ e) Q₁ σ₁ d₁ = {!!}
+  μₛ M ._ ._ ._ (nd i P ρ c Q σ d R τ e) T θ f =
+    let T₀ = T (inlₛ ⊤ₛ (Σₛ P R) ttₛ)
+        θ₀ = θ (inlₛ ⊤ₛ (Σₛ P R) ttₛ)
+        f₀ = f (inlₛ ⊤ₛ (Σₛ P R) ttₛ)
+        T₁ p r = T (inrₛ ⊤ₛ (Σₛ P R) (prₛ P R p r))
+        θ₁ p r = θ (inrₛ ⊤ₛ (Σₛ P R) (prₛ P R p r))
+        f₁ p r = f (inrₛ ⊤ₛ (Σₛ P R) (prₛ P R p r))
+        U p = Σₛ (R p) (T₁ p)
+        κ p = uncurryₛ (θ₁ p)
+        ψ p = μₛ M (ρ p , Q p , σ p , d p) (R p) (τ p) (e p) (T₁ p) (θ₁ p) (f₁ p)
+    in {!γₛ M i P ρ c Q σ d T₀ θ₀ f₀ U κ ψ!}
 
+  -- ⊔ₛ-elim (T (inlₛ ⊤ₛ (Σₛ P R) ttₛ)) (Σₛ P (λ p → Σₛ (R p) (λ r → T (inrₛ ⊤ₛ (Σₛ P R) (prₛ P R p r))))) (cst (Idxₛ M))
+  -- (θ (inlₛ ⊤ₛ (Σₛ P R) ttₛ))
+  -- (uncurryₛ (λ p → uncurryₛ (λ r → θ (inrₛ ⊤ₛ (Σₛ P R) (prₛ P R p r))))) x
+  -- != θ (fstₛ (⊤ₛ ⊔ₛ Σₛ P R) T x) (sndₛ (⊤ₛ ⊔ₛ Σₛ P R) T x) of type
+  -- Σ (Idx M) (λ i₁ → Σ 𝕌 (λ P₁ → Σ (El P₁ → Idx M) (Cns M i₁ P₁)))
 
-  -- uncurryₛ : {A : 𝕌} {B : El A → 𝕌} {C : Set}
-  --   → (D : (a : El A) → El (B a) → C)
-  --   → El (Σₛ A B) → C
-  -- uncurryₛ {A} {B} {C} D s = D (fstₛ A B s) (sndₛ A B s) 
+  -- So my elimination here is essentially trivial, but my rewrite
+  -- rules don't normalize that away.  I have a neutral function
+  -- blocking it.  Super lame sauce.
 
-
-
-
+  γₛ = {!!} 

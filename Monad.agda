@@ -140,11 +140,10 @@ module Monad where
       → μ-pos-fst M (η M f) δ p ↦ η-pos M f
     {-# REWRITE μ-pos-fst-unit-left #-}
 
-    μ-pos-fst-assoc : (M : 𝕄) {f : Frm M} (σ : Tree M f)
-      → (δ : (p : Pos M σ) → Tree M (Typ M σ p))
-      → (ε : (p : Pos M (μ M σ δ)) → Tree M (Typ M (μ M σ δ) p))
-      → 
-      → μ-pos-fst M (μ M σ δ) ε {!!} ↦ {!!}
+    -- μ-pos-fst-assoc : (M : 𝕄) {f : Frm M} (σ : Tree M f)
+    --   → (δ : (p : Pos M σ) → Tree M (Typ M σ p))
+    --   → (ε : (p : Pos M (μ M σ δ)) → Tree M (Typ M (μ M σ δ) p))
+    --   → μ-pos-fst M (μ M σ δ) ε {!!} ↦ {!!}
 
     -- μ-pos-snd : (M : 𝕄) {f : Frm M} (σ : Tree M f)
     --   → (δ : (p : Pos M σ) → Tree M (Typ M σ p))

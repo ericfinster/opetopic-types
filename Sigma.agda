@@ -13,9 +13,9 @@ module Sigma where
   Frm-Σ : (M : 𝕄) (M↓ : 𝕄↓ M) → Set
   Frm-Σ M M↓ = Σ (Frm M) (Frm↓ M↓)
   
-  Tree-Σ : (M : 𝕄) (M↓ : 𝕄↓ M)
-    → (f : Frm-Σ M M↓) → Set
-  Tree-Σ M M↓ (f , f↓) = Σ (Tree M f) (Tree↓ M↓ f↓)
+  -- Tree-Σ : (M : 𝕄) (M↓ : 𝕄↓ M)
+  --   → (f : Frm-Σ M M↓) → Set
+  -- Tree-Σ M M↓ (f , f↓) = Σ (Tree M f) (Tree↓ M↓ f↓)
   
   -- Pos : (M : 𝕄) {f : Frm M}
   --   → Tree M f → Set
@@ -61,8 +61,8 @@ module Sigma where
       → Frm (ΣM M M↓) ↦ Frm-Σ M M↓
     {-# REWRITE Frm-ΣM #-}
 
-    Tree-ΣM : (M : 𝕄) (M↓ : 𝕄↓ M)
-      → (f : Frm-Σ M M↓)
-      → Tree (ΣM M M↓) f ↦ Tree-Σ M M↓ f
-    {-# REWRITE Tree-ΣM #-} 
+    -- Tree-ΣM : (M : 𝕄) (M↓ : 𝕄↓ M)
+    --   → (f : Frm-Σ M M↓)
+    --   → Tree (ΣM M M↓) f ↦ Tree-Σ M M↓ f
+    -- {-# REWRITE Tree-ΣM #-} 
 

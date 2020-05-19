@@ -96,6 +96,11 @@ module Universe where
       → ⊔ₛ-elim A B P inl* inr* (inrₛ A B b) ↦ inr* b
     {-# REWRITE ⊔ₛ-inr-β #-}
 
+    -- Worth a shot ... but doesn't work ...
+    -- ⊔ₛ-elim-η : (A B : 𝕌) (C : Set) (f : El (A ⊔ₛ B) → C) (ab : El (A ⊔ₛ B))
+    --   → ⊔ₛ-elim A B (cst C) (λ a → f (inlₛ A B a)) (λ b → f (inrₛ A B b)) ab ↦ f ab
+    -- {-# REWRITE ⊔ₛ-elim-η #-}
+    
     --
     --  Typing Equations
     --
