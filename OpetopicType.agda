@@ -20,6 +20,33 @@ module OpetopicType where
 
   open OpetopicType public
 
+  action : (M : 𝕄) (A : Idx M → Set) → Set
+  action M A = (f : Idx M) (σ : Cns M f)
+    → (ν : (p : Pos M σ) → A (Typ M σ p))
+    → A f 
+
+  unique-action : (M : 𝕄) (A : Idx M → Set)
+    → (W : Idx (Slice (Pb M A)) → Set)
+    → Set
+  unique-action M A W = (f : Idx M) (σ : Cns M f)
+    → (ν : (p : Pos M σ) → A (Typ M σ p))
+    → is-contr (Σ (A f) (λ a → W ((f , a) , σ , ν)))
+    
+  record is-fibrant {M : 𝕄} (X : OpetopicType M) : Set where
+    coinductive
+    field
+
+      base-fibrant : unique-action M (Ob X) (Ob (Hom X))
+      hom-fibrant : is-fibrant (Hom X)
+
+  open is-fibrant public
+
+  -- The terminal opetopic type.
+  Terminal : (M : 𝕄) → OpetopicType M
+  Ob (Terminal M) = cst ⊤
+  Hom (Terminal M) = Terminal (Slice (Pb M (cst ⊤)))
+  
+  -- Relative opetopic types
   record OpetopicTypeOver {M : 𝕄} (M↓ : 𝕄↓ M) (X : OpetopicType M) : Set₁ where
     coinductive
     field
@@ -29,63 +56,3 @@ module OpetopicType where
 
   open OpetopicTypeOver public
 
-  -- action : (M : 𝕄) (A : Frm M → Set) → Set
-  -- action M A = (f : Frm M) (σ : Tree M f)
-  --   → (ν : (p : Pos M σ) → A (Typ M σ p))
-  --   → A f 
-
-  -- unique-action : (M : 𝕄) (A : Frm M → Set)
-  --   → (W : Frm (Slice (ΣM M (Ext M A))) → Set)
-  --   → Set
-  -- unique-action M A W = (f : Frm M) (σ : Tree M f)
-  --   → (ν : (p : Pos M σ) → A (Typ M σ p))
-  --   → is-contr (Σ (A f) (λ a → W ((f , a) , σ , ν)))
-    
-  -- record is-fibrant {M : 𝕄} (X : OpetopicType M) : Set where
-  --   coinductive
-  --   field
-
-  --     base-fibrant : unique-action M (Ob X) (Ob (Hom X))
-  --     hom-fibrant : is-fibrant (Hom X)
-
-  -- open is-fibrant public
-
-  -- -- The terminal opetopic type.
-  -- Terminal : (M : 𝕄) → OpetopicType M
-  -- Ob (Terminal M) = cst ⊤
-  -- Hom (Terminal M) = Terminal (Slice (ΣM M (Ext M (cst ⊤))))
-  
-  -- Trees : (M : 𝕄) → OpetopicType M
-  -- Ob (Trees M) = Tree M
-  -- Hom (Trees M) = Trees (Slice (ΣM M (Ext M (Tree M))))
-
-  -- -- No, I think it's neither one of these.  There are too many trees
-  -- -- to be equivalent to the path type.  And the terminal guy
-  -- -- identities everything.
-
-  -- -- Can you use the trees to get the right answer, though?  Somehow
-  -- -- you want to restrict to "trees of length 1", i.e. those in the
-  -- -- image (hmmm, why not just say this?) of η.  Not sure exactly what
-  -- -- this means.
-
-  -- -- Anyway, I think I like the setup, but there's still something to
-  -- -- understand in order to get this right.
-
-  -- -- Or maybe the are somehow trees equipped with a null homotopy.
-  -- -- I guess this is somehow the same as saying they are equal or
-  -- -- in the image of η?  Or something?
-
-  -- --
-  -- -- Here's Thorsten's syntax for a dependent coinductive
-  -- -- definition.  I agree totally that this is somehow what
-  -- -- the definition is suppsosed to look like.
-  -- --
-  
-  -- -- record OpetopicType : 𝕄 → Set₁ where
-  -- --   coinductive
-  -- --   destructor
-    
-  -- --     Ob : (M : 𝕄) → Frm M → Set
-  -- --     Hom : (M : 𝕄) → OpetopicType (Slice (ΣM M (Ext M (Ob M))))
-
-  -- -- Yeah.  It's true that this is better.
