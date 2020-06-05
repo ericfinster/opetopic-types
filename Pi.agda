@@ -6,56 +6,48 @@ open import MonadOver
 
 module Pi where
 
-  -- Is there a dependent product of monads over?
-  Frm-Π : (M : 𝕄) (M↓ : 𝕄↓ M) → Set
-  Frm-Π M M↓ = (f : Frm M) → Frm↓ M↓ f
+  -- We are going to start with the axiomatization of monadic terms
+  postulate
 
-  Tree-Π : (M : 𝕄) (M↓ : 𝕄↓ M)
-    (f : Frm-Π M M↓) → Set
-  Tree-Π M M↓ ϕ = (f : Frm M) (σ : Tree M f) → Tree↓ M↓ (ϕ f) σ 
+    𝕋 : {M : 𝕄} (M↓ : 𝕄↓ M) → Set 
 
-  Pos-Π : (M : 𝕄) (M↓ : 𝕄↓ M)
-    → (f : Frm-Π M M↓) (σ : Tree-Π M M↓ f)
-    → Set
-  Pos-Π M M↓ ϕ ψ = (f : Frm M) → Σ (Tree M f) (λ σ → Pos M σ)
+    idx : {M : 𝕄} {M↓ : 𝕄↓ M} (t : 𝕋 M↓)
+      → (i : Idx M) → Idx↓ M↓ i
+      
+    cns : {M : 𝕄} {M↓ : 𝕄↓ M} (t : 𝕋 M↓)
+      → {i : Idx M} (c : Cns M i)
+      → Cns↓ M↓ (idx t i) c
 
-  Typ-Π : (M : 𝕄) (M↓ : 𝕄↓ M)
-    → (f : Frm-Π M M↓) (σ : Tree-Π M M↓ f)
-    → (p : Pos-Π M M↓ f σ) → Frm-Π M M↓
-  Typ-Π M M↓ ϕ ψ χ f = {!Typ↓ M↓ (ϕ f) (ψ f σ) p!}
+    -- Term compatibility rewrites
+    cns-typ : {M : 𝕄} {M↓ : 𝕄↓ M} 
+      → (t : 𝕋 M↓) (i : Idx M)
+      → (c : Cns M i) (p : Pos M c)
+      → Typ↓ M↓ (cns t c) p ↦ idx t (Typ M c p)
+    {-# REWRITE cns-typ #-}
+    
+    cns-η : {M : 𝕄} {M↓ : 𝕄↓ M} 
+      → (t : 𝕋 M↓) (i : Idx M)
+      → cns t (η M i) ↦ η↓ M↓ (idx t i)
+    {-# REWRITE cns-η #-}
 
-    where σ : Tree M f
-          σ = fst (χ f)
+    cns-μ : {M : 𝕄} {M↓ : 𝕄↓ M} (t : 𝕋 M↓)
+      → (i : Idx M) (σ : Cns M i)
+      → (δ : (p : Pos M σ) → Cns M (Typ M σ p))
+      → cns t (μ M σ δ) ↦ μ↓ M↓ (cns t σ) (λ p → cns t (δ p))
+    {-# REWRITE cns-μ #-}
 
-          p : Pos M σ
-          p = snd (χ f)
+    Slice𝕋 : {M : 𝕄} {M↓ : 𝕄↓ M}
+      → 𝕋 M↓ → 𝕋 (Slice↓ M↓) 
 
+  idxₛ : {M : 𝕄} {M↓ : 𝕄↓ M} (t : 𝕋 M↓)
+    → (f : Idxₛ M) → Idx↓ₛ M↓ f
+  idxₛ t (i , c) = idx t i , cns t c
 
-  -- Frm-Π : (M : 𝕄) (M↓ : 𝕄↓ M) → Set
-  -- Frm-Π M M↓ = Frm M
-  
-  -- Tree-Π : (M : 𝕄) (M↓ : 𝕄↓ M)
-  --   (f : Frm-Π M M↓) → Set
-  -- Tree-Π M M↓ f = (f↓ : Frm↓ M↓ f) (σ : Tree M f) → Tree↓ M↓ f↓ σ
-
-  -- Pos-Π : (M : 𝕄) (M↓ : 𝕄↓ M)
-  --   → (f : Frm-Π M M↓) (σ : Tree-Π M M↓ f)
-  --   → Set
-  -- Pos-Π M M↓ f ϕ = {!!}
-
-  -- Typ-Π : (M : 𝕄) (M↓ : 𝕄↓ M)
-  --   → (f : Frm-Π M M↓) (σ : Tree-Π M M↓ f)
-  --   → (p : Pos-Π M M↓ f σ) → Frm-Π M M↓
-  -- Typ-Π M M↓ f ϕ p = {!!}
-
-
-  -- Hmmm.  But if this doesn't seem to be working, how does one
-  -- define the opetopic type of sections, which you have seen from
-  -- other work, definitely works ...
-
-  -- Perhaps it relies on the following observation: given just the
-  -- data of an extension of *polynomials*, it need not be the case
-  -- that the total space is a monad.  But it's *slice* is always a
-  -- monad.  So if you pass to taking a space of sections, you
-  -- probably have to compensate with a slice in order to have a
-  -- monad again ...
+  cnsₛ : {M : 𝕄} {M↓ : 𝕄↓ M} (t : 𝕋 M↓)
+    → (f : Idxₛ M) (σ : Cnsₛ M f)
+    → Cns↓ₛ M↓ (idxₛ t f) σ
+  cnsₛ {M} t .(i , η M i) (lf i) = lf↓ (idx t i)
+  cnsₛ {M} t .(_ , μ M σ δ) (nd σ δ ε) =
+    let δ↓ p = cns t (δ p)
+        ε↓ p = cnsₛ t (Typ M σ p , δ p) (ε p)
+    in nd↓ (cns t σ) δ↓ ε↓ 
