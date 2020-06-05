@@ -212,3 +212,8 @@ module MonadOver where
       → μ↓ (Slice↓ M↓) σ↓ δ↓ ↦ μ↓ₛ M↓ σ↓ δ↓
     {-# REWRITE μ↓-Slice↓ #-}
 
+  postulate
+
+    Pb↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+      → (X : Idx M → Set) (Y : (i : Idx M) → X i → Set)
+      → 𝕄↓ (Pb M X) 

@@ -3,6 +3,8 @@
 open import HoTT
 open import Monad
 open import MonadOver
+open import OpetopicType
+open import Pb
 
 module Pi where
 
@@ -51,3 +53,17 @@ module Pi where
     let δ↓ p = cns t (δ p)
         ε↓ p = cnsₛ t (Typ M σ p , δ p) (ε p)
     in nd↓ (cns t σ) δ↓ ε↓ 
+
+  postulate
+
+    Pb𝕋 : {M : 𝕄} {M↓ : 𝕄↓ M} 
+      → (X : Idx M → Set) (Y : (i : Idx M) → X i → Set)
+      → (t : 𝕋 M↓) (ϕ : (i : Idx M) (x : X i) → Y i x)
+      → 𝕋 (Pb↓ M↓ X Y) 
+
+  Π𝕆 : {M : 𝕄} (M↓ : 𝕄↓ M)
+    → (X : OpetopicType M)
+    → (Y : OpetopicTypeOver M↓ X)
+    → OpetopicType M 
+  Ob (Π𝕆 M↓ X Y) i = (o : Ob X i) → Ob↓ Y i o 
+  Hom (Π𝕆 {M} M↓ X Y) = {!Π𝕆 {Slice (Pb M (Ob X))} (Slice↓ (Pb↓ M↓ (Ob X) (Ob↓ Y))) (Hom X)!}

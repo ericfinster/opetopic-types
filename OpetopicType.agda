@@ -2,6 +2,7 @@
 
 open import HoTT
 open import Monad
+open import MonadOver
 open import Pb
 
 module OpetopicType where
@@ -19,7 +20,14 @@ module OpetopicType where
 
   open OpetopicType public
 
+  record OpetopicTypeOver {M : 𝕄} (M↓ : 𝕄↓ M) (X : OpetopicType M) : Set₁ where
+    coinductive
+    field
 
+      Ob↓ : (i : Idx M) → Ob X i → Set
+      Hom↓ : OpetopicTypeOver (Slice↓ (Pb↓ M↓ (Ob X) Ob↓)) (Hom X) 
+
+  open OpetopicTypeOver public
 
   -- action : (M : 𝕄) (A : Frm M → Set) → Set
   -- action M A = (f : Frm M) (σ : Tree M f)
