@@ -9,53 +9,53 @@ module MonadOver where
 
     𝕄↓ : (M : 𝕄) → Set
 
-    Frm↓ : {M : 𝕄} (M↓ : 𝕄↓ M) → Frm M → Set
+    Idx↓ : {M : 𝕄} (M↓ : 𝕄↓ M) → Idx M → Set
 
-  Typ↓ : {M : 𝕄} (M↓ : 𝕄↓ M) {f : Frm M} (σ : Tree M f) → Set
-  Typ↓ {M} M↓ σ = (p : Pos M σ) → Frm↓ M↓ (Typ M σ p)
+  Typ↓ : {M : 𝕄} (M↓ : 𝕄↓ M) {f : Idx M} (σ : Cns M f) → Set
+  Typ↓ {M} M↓ σ = (p : Pos M σ) → Idx↓ M↓ (Typ M σ p)
 
   postulate
     
-    Tree↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
-      → {f : Frm M} (f↓ : Frm↓ M↓ f) 
-      → (σ : Tree M f) (ϕ : Typ↓ M↓ σ)
+    Cns↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+      → {f : Idx M} (f↓ : Idx↓ M↓ f) 
+      → (σ : Cns M f) (ϕ : Typ↓ M↓ σ)
       → Set 
     
     η↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
-      → {f : Frm M} (f↓ : Frm↓ M↓ f)
-      → Tree↓ M↓ f↓ (η M f) (cst f↓) 
+      → {f : Idx M} (f↓ : Idx↓ M↓ f)
+      → Cns↓ M↓ f↓ (η M f) (cst f↓) 
 
     μ↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
-      → {f : Frm M} {σ : Tree M f}
-      → {δ : (p : Pos M σ) → Tree M (Typ M σ p)}
-      → {f↓ : Frm↓ M↓ f} (ϕ : Typ↓ M↓ σ) 
-      → (σ↓ : Tree↓ M↓ f↓ σ ϕ)
+      → {f : Idx M} {σ : Cns M f}
+      → {δ : (p : Pos M σ) → Cns M (Typ M σ p)}
+      → {f↓ : Idx↓ M↓ f} (ϕ : Typ↓ M↓ σ) 
+      → (σ↓ : Cns↓ M↓ f↓ σ ϕ)
       → (ψ : Typ↓ M↓ (μ M σ δ))
-      → (δ↓ : (p : Pos M σ) → Tree↓ M↓ (ϕ p) (δ p) (λ q → ψ (μ-pos M σ δ p q)))
-      → Tree↓ M↓ f↓ (μ M σ δ) ψ 
+      → (δ↓ : (p : Pos M σ) → Cns↓ M↓ (ϕ p) (δ p) (λ q → ψ (μ-pos M σ δ p q)))
+      → Cns↓ M↓ f↓ (μ M σ δ) ψ 
     
     -- μ↓ laws
     μ-unit-right↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
-      → {f : Frm M} {σ : Tree M f}
-      → {f↓ : Frm↓ M↓ f} (ϕ : Typ↓ M↓ σ)
-      → (σ↓ : Tree↓ M↓ f↓ σ ϕ)
+      → {f : Idx M} {σ : Cns M f}
+      → {f↓ : Idx↓ M↓ f} (ϕ : Typ↓ M↓ σ)
+      → (σ↓ : Cns↓ M↓ f↓ σ ϕ)
       → μ↓ M↓ {δ = λ p → η M (Typ M σ p)} ϕ σ↓ ϕ (λ p → η↓ M↓ (ϕ p)) ↦ σ↓ 
     {-# REWRITE μ-unit-right↓ #-}
 
   --   μ-unit-left↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
-  --     → {f : Frm M} {f↓ : Frm↓ M↓ f}
-  --     → {δ : (p : Pos M (η M f)) → Tree M f}
-  --     → (δ↓ : (p : Pos M (η M f)) → Tree↓ M↓ f↓ (δ p))
+  --     → {f : Idx M} {f↓ : Idx↓ M↓ f}
+  --     → {δ : (p : Pos M (η M f)) → Cns M f}
+  --     → (δ↓ : (p : Pos M (η M f)) → Cns↓ M↓ f↓ (δ p))
   --     → μ↓ M↓ (η↓ M↓ f↓) δ↓ ↦ δ↓ (η-pos M f) 
   --   {-# REWRITE μ-unit-left↓ #-}
     
   --   μ-assoc↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
-  --     → {f : Frm M} {σ : Tree M f}
-  --     → {δ : (p : Pos M σ) → Tree M (Typ M σ p)}
-  --     → {ε : (p : Pos M (μ M σ δ)) → Tree M (Typ M (μ M σ δ) p)}
-  --     → {f↓ : Frm↓ M↓ f} (σ↓ : Tree↓ M↓ f↓ σ)
-  --     → (δ↓ : (p : Pos M σ) → Tree↓ M↓ (Typ↓ M↓ σ↓ p) (δ p))
-  --     → (ε↓ : (p : Pos M (μ M σ δ)) → Tree↓ M↓ (Typ↓ M↓ (μ↓ M↓ σ↓ δ↓) p) (ε p))
+  --     → {f : Idx M} {σ : Cns M f}
+  --     → {δ : (p : Pos M σ) → Cns M (Typ M σ p)}
+  --     → {ε : (p : Pos M (μ M σ δ)) → Cns M (Typ M (μ M σ δ) p)}
+  --     → {f↓ : Idx↓ M↓ f} (σ↓ : Cns↓ M↓ f↓ σ)
+  --     → (δ↓ : (p : Pos M σ) → Cns↓ M↓ (Typ↓ M↓ σ↓ p) (δ p))
+  --     → (ε↓ : (p : Pos M (μ M σ δ)) → Cns↓ M↓ (Typ↓ M↓ (μ↓ M↓ σ↓ δ↓) p) (ε p))
   --     → μ↓ M↓ (μ↓ M↓ σ↓ δ↓) ε↓ ↦ μ↓ M↓ σ↓ (λ p → μ↓ M↓ (δ↓ p) (λ q → ε↓ (μ-pos M σ δ p q)))
   --   {-# REWRITE μ-assoc↓ #-} 
 
@@ -63,35 +63,35 @@ module MonadOver where
   --   --  Extension of colors
   --   --
     
-  --   Ext : (M : 𝕄) (F↓ : Frm M → Set) → 𝕄↓ M
+  --   Ext : (M : 𝕄) (F↓ : Idx M → Set) → 𝕄↓ M
 
-  --   Frm↓-Ext : (M : 𝕄) (F↓ : Frm M → Set)
-  --     → Frm↓ (Ext M F↓) ↦ F↓
-  --   {-# REWRITE Frm↓-Ext #-}
+  --   Idx↓-Ext : (M : 𝕄) (F↓ : Idx M → Set)
+  --     → Idx↓ (Ext M F↓) ↦ F↓
+  --   {-# REWRITE Idx↓-Ext #-}
 
-  --   Tree↓-Ext : (M : 𝕄) (F↓ : Frm M → Set)
-  --     → {f : Frm M} (σ : Tree M f) 
+  --   Cns↓-Ext : (M : 𝕄) (F↓ : Idx M → Set)
+  --     → {f : Idx M} (σ : Cns M f) 
   --     → (f↓ : F↓ f)
-  --     → Tree↓ (Ext M F↓) f↓ σ ↦ ((p : Pos M σ) → F↓ (Typ M σ p) )
-  --   {-# REWRITE Tree↓-Ext #-}
+  --     → Cns↓ (Ext M F↓) f↓ σ ↦ ((p : Pos M σ) → F↓ (Typ M σ p) )
+  --   {-# REWRITE Cns↓-Ext #-}
     
-  --   Typ↓-Ext : (M : 𝕄) (F↓ : Frm M → Set)
-  --     → {f : Frm M} (σ : Tree M f) 
-  --     → (f↓ : F↓ f) (σ↓ : Tree↓ (Ext M F↓) f↓ σ)
+  --   Typ↓-Ext : (M : 𝕄) (F↓ : Idx M → Set)
+  --     → {f : Idx M} (σ : Cns M f) 
+  --     → (f↓ : F↓ f) (σ↓ : Cns↓ (Ext M F↓) f↓ σ)
   --     → (p : Pos M σ)
   --     → Typ↓ (Ext M F↓) {σ = σ} {f↓ = f↓} σ↓ p ↦ σ↓ p 
   --   {-# REWRITE Typ↓-Ext #-}
 
-  --   η↓-Ext : (M : 𝕄) (F↓ : Frm M → Set)
-  --     → {f : Frm M} (f↓ : Frm↓ (Ext M F↓) f)
+  --   η↓-Ext : (M : 𝕄) (F↓ : Idx M → Set)
+  --     → {f : Idx M} (f↓ : Idx↓ (Ext M F↓) f)
   --     → η↓ (Ext M F↓) f↓ ↦ (λ _ → f↓)
   --   {-# REWRITE η↓-Ext #-}
     
-  --   μ↓-Ext : {M : 𝕄} (F↓ : Frm M → Set)
-  --     → {f : Frm M} {σ : Tree M f}
-  --     → {δ : (p : Pos M σ) → Tree M (Typ M σ p)}
-  --     → {f↓ : Frm↓ (Ext M F↓) f} (σ↓ : Tree↓ (Ext M F↓) f↓ σ)
-  --     → (δ↓ : (p : Pos M σ) → Tree↓ (Ext M F↓) (Typ↓ (Ext M F↓) {f↓ = f↓} σ↓ p) (δ p))
+  --   μ↓-Ext : {M : 𝕄} (F↓ : Idx M → Set)
+  --     → {f : Idx M} {σ : Cns M f}
+  --     → {δ : (p : Pos M σ) → Cns M (Typ M σ p)}
+  --     → {f↓ : Idx↓ (Ext M F↓) f} (σ↓ : Cns↓ (Ext M F↓) f↓ σ)
+  --     → (δ↓ : (p : Pos M σ) → Cns↓ (Ext M F↓) (Typ↓ (Ext M F↓) {f↓ = f↓} σ↓ p) (δ p))
   --     → μ↓ (Ext M F↓) {f↓ = f↓} σ↓ δ↓ ↦ (λ p → δ↓ (μ-pos-fst M σ δ p) (μ-pos-snd M σ δ p))
   --   {-# REWRITE μ↓-Ext #-}
   
@@ -99,64 +99,64 @@ module MonadOver where
   -- Slice↓
   --
 
-  Frm↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
-    → Frm (Slice M) → Set
-  Frm↓ₛ {M} M↓ (f , σ) = Σ (Frm↓ M↓ f) (λ f↓ → Σ (Typ↓ M↓ σ) (λ ϕ → Tree↓ M↓ f↓ σ ϕ))
+  Idx↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
+    → Idx (Slice M) → Set
+  Idx↓ₛ {M} M↓ (f , σ) = Σ (Idx↓ M↓ f) (λ f↓ → Σ (Typ↓ M↓ σ) (λ ϕ → Cns↓ M↓ f↓ σ ϕ))
 
   Typ↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
-    → {f : Frmₛ M} (σ : Treeₛ M f)
+    → {f : Idxₛ M} (σ : Cnsₛ M f)
     → Set 
-  Typ↓ₛ {M} M↓ σ = (p : Posₛ M σ) → Frm↓ₛ M↓ (Typₛ M σ p)
+  Typ↓ₛ {M} M↓ σ = (p : Posₛ M σ) → Idx↓ₛ M↓ (Typₛ M σ p)
 
-  data Pd↓ {M : 𝕄} (M↓ : 𝕄↓ M) : {f : Frmₛ M} → Frm↓ₛ M↓ f
-    → (σ : Treeₛ M f) → Typ↓ₛ M↓ σ → Set where
+  data Pd↓ {M : 𝕄} (M↓ : 𝕄↓ M) : {f : Idxₛ M} → Idx↓ₛ M↓ f
+    → (σ : Cnsₛ M f) → Typ↓ₛ M↓ σ → Set where
 
-    lf↓ : {f : Frm M} (f↓ : Frm↓ M↓ f)
+    lf↓ : {f : Idx M} (f↓ : Idx↓ M↓ f)
       → Pd↓ M↓ (f↓ , cst f↓ , η↓ M↓ f↓) (lf f) ⊥-elim 
     
-    -- nd↓ : {f : Frm M} {σ : Tree M f}
-    --   → {δ : (p : Pos M σ) → Tree M (Typ M σ p)}
+    -- nd↓ : {f : Idx M} {σ : Cns M f}
+    --   → {δ : (p : Pos M σ) → Cns M (Typ M σ p)}
     --   → {ε : (p : Pos M σ) → Pd M (Typ M σ p , δ p)}
-    --   → {f↓ : Frm↓ M↓ f} (ϕ : Typ↓ M↓ σ) 
+    --   → {f↓ : Idx↓ M↓ f} (ϕ : Typ↓ M↓ σ) 
     --   → (ψ : (p : Pos M σ) → Typ↓ M↓ (δ p))
-    --   → (σ↓ : Tree↓ M↓ f↓ σ ϕ)
-    --   → (δ↓ : (p : Pos M σ) → Tree↓ M↓ (ϕ p) (δ p) (ψ p))
+    --   → (σ↓ : Cns↓ M↓ f↓ σ ϕ)
+    --   → (δ↓ : (p : Pos M σ) → Cns↓ M↓ (ϕ p) (δ p) (ψ p))
     --   → (χ : (p : Pos M σ) → Typ↓ₛ M↓ (ε p))
     --   → (ε↓ : (p : Pos M σ) → Pd↓ M↓ (ϕ p , ψ p , δ↓ p) (ε p) (χ p))
     --   → Pd↓ M↓ (f↓ , (λ p → ψ (μ-pos-fst M σ δ p) (μ-pos-snd M σ δ p)) , μ↓ M↓ ϕ σ↓ ψ δ↓) (nd σ δ ε)
     --     (λ { (inl unit) → f↓ , ϕ , σ↓ ;
     --          (inr (p , q)) → χ p q })
 
-  Tree↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
-    → {f : Frmₛ M} (f↓ : Frm↓ₛ M↓ f) 
-    → (σ : Treeₛ M f) (ϕ : Typ↓ₛ M↓ σ)
+  Cns↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
+    → {f : Idxₛ M} (f↓ : Idx↓ₛ M↓ f) 
+    → (σ : Cnsₛ M f) (ϕ : Typ↓ₛ M↓ σ)
     → Set 
-  Tree↓ₛ M↓ f↓ σ ϕ = Pd↓ M↓ f↓ σ ϕ 
+  Cns↓ₛ M↓ f↓ σ ϕ = Pd↓ M↓ f↓ σ ϕ 
 
   -- γ↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
-  --   → {f : Frm M} {σ : Tree M f} {ρ : Treeₛ M (f , σ)}
-  --   → {δ : (p : Pos M σ) → Tree M (Typ M σ p)}
-  --   → {ε : (p : Pos M σ) → Treeₛ M (Typ M σ p , δ p)}
-  --   → {f↓ : Frm↓ M↓ f} {σ↓ : Tree↓ M↓ f↓ σ}
-  --   → (ρ↓ : Tree↓ₛ M↓ (f↓ , σ↓) ρ)
-  --   → (δ↓ : (p : Pos M σ) → Tree↓ M↓ (Typ↓ M↓ σ↓ p) (δ p))
-  --   → (ε↓ : (p : Pos M σ) → Tree↓ₛ M↓ (Typ↓ M↓ σ↓ p , δ↓ p) (ε p))
-  --   → Tree↓ₛ M↓ (f↓ , μ↓ M↓ σ↓ δ↓) (γ M ρ δ ε) 
+  --   → {f : Idx M} {σ : Cns M f} {ρ : Cnsₛ M (f , σ)}
+  --   → {δ : (p : Pos M σ) → Cns M (Typ M σ p)}
+  --   → {ε : (p : Pos M σ) → Cnsₛ M (Typ M σ p , δ p)}
+  --   → {f↓ : Idx↓ M↓ f} {σ↓ : Cns↓ M↓ f↓ σ}
+  --   → (ρ↓ : Cns↓ₛ M↓ (f↓ , σ↓) ρ)
+  --   → (δ↓ : (p : Pos M σ) → Cns↓ M↓ (Typ↓ M↓ σ↓ p) (δ p))
+  --   → (ε↓ : (p : Pos M σ) → Cns↓ₛ M↓ (Typ↓ M↓ σ↓ p , δ↓ p) (ε p))
+  --   → Cns↓ₛ M↓ (f↓ , μ↓ M↓ σ↓ δ↓) (γ M ρ δ ε) 
 
   -- η↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
-  --   → {f : Frmₛ M} (f↓ : Frm↓ₛ M↓ f)
-  --   → Tree↓ₛ M↓ f↓ (ηₛ M f) (λ { true → f↓ })
+  --   → {f : Idxₛ M} (f↓ : Idx↓ₛ M↓ f)
+  --   → Cns↓ₛ M↓ f↓ (ηₛ M f) (λ { true → f↓ })
   -- η↓ₛ M↓ (f↓ , ϕ↓ , σ↓) =
   --   let η-dec↓ p = η↓ M↓ (ϕ↓ p)
   --       lf-dec↓ p = lf↓ (ϕ↓ p) 
   --   in {!nd↓ ? ? σ↓ η-dec↓ ? lf-dec↓ !}
 
   -- μ↓ₛ : {M : 𝕄} (M↓ : 𝕄↓ M)
-  --   → {f : Frm (Slice M)} {σ : Tree (Slice M) f}
-  --   → {δ : (p : Pos (Slice M) σ) → Tree (Slice M) (Typ (Slice M) σ p)}
-  --   → {f↓ : Frm↓ₛ M↓ f} (σ↓ : Tree↓ₛ M↓ f↓ σ)
-  --   → (δ↓ : (p : Pos (Slice M) σ) → Tree↓ₛ M↓ (Typ↓ₛ M↓ {f↓ = f↓} σ↓ p) (δ p))
-  --   → Tree↓ₛ M↓ f↓ (μ (Slice M) σ δ)
+  --   → {f : Idx (Slice M)} {σ : Cns (Slice M) f}
+  --   → {δ : (p : Pos (Slice M) σ) → Cns (Slice M) (Typ (Slice M) σ p)}
+  --   → {f↓ : Idx↓ₛ M↓ f} (σ↓ : Cns↓ₛ M↓ f↓ σ)
+  --   → (δ↓ : (p : Pos (Slice M) σ) → Cns↓ₛ M↓ (Typ↓ₛ M↓ {f↓ = f↓} σ↓ p) (δ p))
+  --   → Cns↓ₛ M↓ f↓ (μ (Slice M) σ δ)
   -- μ↓ₛ M↓ (lf↓ f↓) κ↓ = lf↓ f↓
   -- μ↓ₛ M↓ (nd↓ σ↓ δ↓ ε↓) κ↓ = 
   --   let w↓ = κ↓ (inl unit)
@@ -176,32 +176,32 @@ module MonadOver where
 
   --   Slice↓ : {M : 𝕄} (M↓ : 𝕄↓ M) → 𝕄↓ (Slice M)
 
-  --   Frm↓-Slice↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
-  --     → Frm↓ (Slice↓ M↓) ↦ Frm↓ₛ M↓
-  --   {-# REWRITE Frm↓-Slice↓ #-}
+  --   Idx↓-Slice↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+  --     → Idx↓ (Slice↓ M↓) ↦ Idx↓ₛ M↓
+  --   {-# REWRITE Idx↓-Slice↓ #-}
     
-  --   Tree↓-Slice↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
-  --     → {f : Frm (Slice M)} (f↓ : Frm↓ (Slice↓ M↓) f)
-  --     → Tree↓ (Slice↓ M↓) f↓ ↦ Tree↓ₛ M↓ f↓
-  --   {-# REWRITE Tree↓-Slice↓ #-}
+  --   Cns↓-Slice↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+  --     → {f : Idx (Slice M)} (f↓ : Idx↓ (Slice↓ M↓) f)
+  --     → Cns↓ (Slice↓ M↓) f↓ ↦ Cns↓ₛ M↓ f↓
+  --   {-# REWRITE Cns↓-Slice↓ #-}
 
   --   Typ↓-Slice↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
-  --     → {f : Frm (Slice M)} {σ : Tree (Slice M) f} 
-  --     → {f↓ : Frm↓ₛ M↓ f} (σ↓ : Tree↓ₛ M↓ f↓ σ)
+  --     → {f : Idx (Slice M)} {σ : Cns (Slice M) f} 
+  --     → {f↓ : Idx↓ₛ M↓ f} (σ↓ : Cns↓ₛ M↓ f↓ σ)
   --     → (p : Pos (Slice M) σ)
   --     → Typ↓ (Slice↓ M↓) σ↓ p ↦ Typ↓ₛ M↓ σ↓ p
   --   {-# REWRITE Typ↓-Slice↓ #-}
 
   --   η↓-Slice↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
-  --     → {f : Frm (Slice M)} (f↓ : Frm↓ₛ M↓ f)
+  --     → {f : Idx (Slice M)} (f↓ : Idx↓ₛ M↓ f)
   --     → η↓ (Slice↓ M↓) f↓ ↦ η↓ₛ M↓ f↓
   --   {-# REWRITE η↓-Slice↓ #-}
 
   --   μ↓-Slice↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
-  --     → {f : Frm (Slice M)} {σ : Tree (Slice M) f}
-  --     → {δ : (p : Pos (Slice M) σ) → Tree (Slice M) (Typ (Slice M) σ p)}
-  --     → {f↓ : Frm↓ₛ M↓ f} (σ↓ : Tree↓ₛ M↓ f↓ σ)
-  --     → (δ↓ : (p : Pos (Slice M) σ) → Tree↓ₛ M↓ (Typ↓ₛ M↓ {f↓ = f↓} σ↓ p) (δ p))
+  --     → {f : Idx (Slice M)} {σ : Cns (Slice M) f}
+  --     → {δ : (p : Pos (Slice M) σ) → Cns (Slice M) (Typ (Slice M) σ p)}
+  --     → {f↓ : Idx↓ₛ M↓ f} (σ↓ : Cns↓ₛ M↓ f↓ σ)
+  --     → (δ↓ : (p : Pos (Slice M) σ) → Cns↓ₛ M↓ (Typ↓ₛ M↓ {f↓ = f↓} σ↓ p) (δ p))
   --     → μ↓ (Slice↓ M↓) σ↓ δ↓ ↦ μ↓ₛ M↓ σ↓ δ↓
   --   {-# REWRITE μ↓-Slice↓ #-}
 

@@ -14,17 +14,17 @@ module OpetopicType where
     coinductive
     field
     
-      Ob : Frm M → Set
+      Ob : Idx M → Set
       Hom : OpetopicType (Slice (Pb M Ob))
 
   open OpetopicType public
 
-  record OpetopicTerm (M : 𝕄) (X : OpetopicType M) (A : Set) (ϕ : A → Frm M) : Set where
-    coinductive
-    field
+  -- record OpetopicTerm (M : 𝕄) (X : OpetopicType M) (A : Set) (ϕ : A → Frm M) : Set where
+  --   coinductive
+  --   field
 
-      ob : (a : A) → Ob X (ϕ a)
-      hom : OpetopicTerm (Slice (Pb M (Ob X))) (Hom X) (Σ A (λ a → Tree M (ϕ a))) (λ { (a , σ) → (ϕ a , ob a) , (σ , (λ p → {!!})) })
+  --     ob : (a : A) → Ob X (ϕ a)
+  --     hom : OpetopicTerm (Slice (Pb M (Ob X))) (Hom X) (Σ A (λ a → Tree M (ϕ a))) (λ { (a , σ) → (ϕ a , ob a) , (σ , (λ p → {!!})) })
 
   -- Hmmm.  I guess this isn't quite right.  But I guess there's
   -- something to think about here.  What if, instead of *every*
