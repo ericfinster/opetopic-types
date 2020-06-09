@@ -75,12 +75,6 @@ module FundamentalThm where
   cmp [] = idp
   cmp (idp ◃∙ s) = cmp s
 
-  test : (A : Set) (F : Filler₂ A)
-    → {a₀ a₁ : A} (s : a₀ =-= a₁)
-    → F s (cmp s)
-  test A F [] = {!!}
-  test A F (idp ◃∙ s) = {!test A F s!}
-
   -- So, what's the idea? In the 1d case, the "canonification map" is
   -- given by transporting.  But in the current case, because of the
   -- asymmetry between source and target, there can't really be such

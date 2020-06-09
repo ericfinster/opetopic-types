@@ -51,7 +51,7 @@ module OpetopicType where
     coinductive
     field
 
-      Ob↓ : (i : Idx M) → Ob X i → Set
+      Ob↓ : (i : Idx M) → Idx↓ M↓ i → Ob X i → Set
       Hom↓ : OpetopicTypeOver (Slice↓ (Pb↓ M↓ (Ob X) Ob↓)) (Hom X) 
 
   open OpetopicTypeOver public

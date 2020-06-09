@@ -126,9 +126,3 @@ module IdentityMonad where
   --   --   → μ-pos-snd (IdMnd A) σ δ p ↦ μ-pos-sndᵢ A σ δ p
   --   -- {-# REWRITE μ-pos-snd-IdMnd #-}
 
-  𝕆Mnd : (n : ℕ) → 𝕄
-  𝕆Mnd O = IdMnd ⊤
-  𝕆Mnd (S n) = Slice (𝕆Mnd n)
-
-  𝕆 : (n : ℕ) → Set
-  𝕆 n = Idx (𝕆Mnd n) 

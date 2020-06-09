@@ -5,6 +5,7 @@ open import Monad
 open import MonadOver
 open import OpetopicType
 open import Pb
+open import IdentityMonad
 
 module Pi where
 
@@ -56,14 +57,16 @@ module Pi where
 
   postulate
 
-    Pb𝕋 : {M : 𝕄} {M↓ : 𝕄↓ M} 
-      → (X : Idx M → Set) (Y : (i : Idx M) → X i → Set)
-      → (t : 𝕋 M↓) (ϕ : (i : Idx M) (x : X i) → Y i x)
+    Pb𝕋 : {M : 𝕄} {M↓ : 𝕄↓ M} (X : Idx M → Set)
+      → (Y : (i : Idx M) → Idx↓ M↓ i → X i → Set)
+      → (t : 𝕋 M↓) (ϕ : (i : Idx M) (x : X i) → Y i (idx t i) x)
       → 𝕋 (Pb↓ M↓ X Y) 
 
   Π𝕆 : {M : 𝕄} (M↓ : 𝕄↓ M)
     → (X : OpetopicType M)
     → (Y : OpetopicTypeOver M↓ X)
-    → OpetopicType M 
-  Ob (Π𝕆 M↓ X Y) i = (o : Ob X i) → Ob↓ Y i o 
-  Hom (Π𝕆 {M} M↓ X Y) = {!Π𝕆 {Slice (Pb M (Ob X))} (Slice↓ (Pb↓ M↓ (Ob X) (Ob↓ Y))) (Hom X)!}
+    → (t : 𝕋 M↓)
+    → OpetopicType (IdMnd ⊤)
+  Ob (Π𝕆 {M} M↓ X Y t) unit = (i : Idx M) (x : Ob X i) → Ob↓ Y i (idx t i) x
+  Hom (Π𝕆 {M} M↓ X Y t) = {!Π𝕆 {Slice (Pb M (Ob X))} (Slice↓ (Pb↓ M↓ (Ob X) (Ob↓ Y))) (Hom X) (Hom↓ Y)!}
+

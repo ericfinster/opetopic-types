@@ -215,5 +215,22 @@ module MonadOver where
   postulate
 
     Pb↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
-      → (X : Idx M → Set) (Y : (i : Idx M) → X i → Set)
+      → (X : Idx M → Set)
+      → (Y : (i : Idx M) → Idx↓ M↓ i → X i → Set)
       → 𝕄↓ (Pb M X) 
+
+    Idx↓-Pb↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+      → (X : Idx M → Set)
+      → (Y : (i : Idx M) → Idx↓ M↓ i → X i → Set)
+      → (i : Idx M) (x : X i)
+      → Idx↓ (Pb↓ M↓ X Y) (i , x) ↦ Σ (Idx↓ M↓ i) (λ j → Y i j x)
+    {-# REWRITE Idx↓-Pb↓ #-}
+
+    Cns↓-Pb↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+      → (X : Idx M → Set)
+      → (Y : (i : Idx M) → Idx↓ M↓ i → X i → Set)
+      → (i : Idx M) (x : X i)
+      → (c : Cns M i) (ν : (p : Pos M c) → X (Typ M c p))
+      → (ϕ : Idx↓ (Pb↓ M↓ X Y) (i , x))
+      → Cns↓ (Pb↓ M↓ X Y) ϕ (c , ν) ↦ Σ (Cns↓ M↓ (fst ϕ) c) (λ d → (p : Pos M c) → Y (Typ M c p) (Typ↓ M↓ d p) (ν p))
+    {-# REWRITE Cns↓-Pb↓ #-}
