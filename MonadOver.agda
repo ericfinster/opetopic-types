@@ -212,6 +212,37 @@ module MonadOver where
       → μ↓ (Slice↓ M↓) σ↓ δ↓ ↦ μ↓ₛ M↓ σ↓ δ↓
     {-# REWRITE μ↓-Slice↓ #-}
 
+  --
+  --  Pb↓ 
+  --
+
+  module _ {M : 𝕄} (M↓ : 𝕄↓ M)
+    (X : Idx M → Set) 
+    (Y : (i : Idx M) → Idx↓ M↓ i → X i → Set) where
+
+    Idx↓ₚ : Idx (Pb M X) → Set
+    Idx↓ₚ (i , x) = Σ (Idx↓ M↓ i) (λ j → Y i j x)
+
+    Cns↓ₚ : {i : Idx (Pb M X)} (j : Idx↓ₚ i) (c : Cns (Pb M X) i) → Set
+    Cns↓ₚ (j , y) (c , ν) = Σ (Cns↓ M↓ j c) (λ d →
+      (p : Pos M c) → Y (Typ M c p) (Typ↓ M↓ d p) (ν p))
+
+    Typ↓ₚ : {i : Idx (Pb M X)} {c : Cns (Pb M X) i}
+      → {j : Idx↓ₚ i} (d : Cns↓ₚ j c)
+      → (p : Pos (Pb M X) {f = i} c) → Idx↓ₚ (Typ (Pb M X) {f = i} c p)
+    Typ↓ₚ (d , κ) p = Typ↓ M↓ d p , κ p 
+
+    η↓ₚ : {i : Idx (Pb M X)} 
+      → (j : Idx↓ₚ i) → Cns↓ₚ j (η (Pb M X) i)
+    η↓ₚ (j , y) = η↓ M↓ j , λ _ → y
+
+    -- μ↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+    --   → {f : Idx M} {σ : Cns M f}
+    --   → {δ : (p : Pos M σ) → Cns M (Typ M σ p)}
+    --   → {f↓ : Idx↓ M↓ f} (σ↓ : Cns↓ M↓ f↓ σ)
+    --   → (δ↓ : (p : Pos M σ) → Cns↓ M↓ (Typ↓ M↓ σ↓ p) (δ p))
+    --   → Cns↓ M↓ f↓ (μ M σ δ)
+
   postulate
 
     Pb↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
@@ -223,14 +254,32 @@ module MonadOver where
       → (X : Idx M → Set)
       → (Y : (i : Idx M) → Idx↓ M↓ i → X i → Set)
       → (i : Idx M) (x : X i)
-      → Idx↓ (Pb↓ M↓ X Y) (i , x) ↦ Σ (Idx↓ M↓ i) (λ j → Y i j x)
+      → Idx↓ (Pb↓ M↓ X Y) (i , x) ↦ Idx↓ₚ M↓ X Y (i , x)
     {-# REWRITE Idx↓-Pb↓ #-}
 
     Cns↓-Pb↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
       → (X : Idx M → Set)
       → (Y : (i : Idx M) → Idx↓ M↓ i → X i → Set)
-      → (i : Idx M) (x : X i)
-      → (c : Cns M i) (ν : (p : Pos M c) → X (Typ M c p))
-      → (ϕ : Idx↓ (Pb↓ M↓ X Y) (i , x))
-      → Cns↓ (Pb↓ M↓ X Y) ϕ (c , ν) ↦ Σ (Cns↓ M↓ (fst ϕ) c) (λ d → (p : Pos M c) → Y (Typ M c p) (Typ↓ M↓ d p) (ν p))
+      → (i : Idx (Pb M X)) (j : Idx↓ₚ M↓ X Y i)
+      → (c : Cns (Pb M X) i)
+      → Cns↓ (Pb↓ M↓ X Y) j c ↦ Cns↓ₚ M↓ X Y j c
     {-# REWRITE Cns↓-Pb↓ #-}
+
+    Typ↓-Pb↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+      → (X : Idx M → Set)
+      → (Y : (i : Idx M) → Idx↓ M↓ i → X i → Set)
+      → {i : Idx (Pb M X)} {c : Cns (Pb M X) i}
+      → {j : Idx↓ₚ M↓ X Y i} (d : Cns↓ₚ M↓ X Y j c)
+      → (p : Pos (Pb M X) {f = i} c) → Idx↓ₚ M↓ X Y (Typ (Pb M X) {f = i} c p)
+      → Typ↓ (Pb↓ M↓ X Y) {f↓ = j} d p ↦ Typ↓ₚ M↓ X Y {j = j} d p 
+    {-# REWRITE Typ↓-Pb↓ #-}
+
+    η↓-Pb↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+      → (X : Idx M → Set)
+      → (Y : (i : Idx M) → Idx↓ M↓ i → X i → Set)
+      → {i : Idx (Pb M X)}
+      → (j : Idx↓ₚ M↓ X Y i) 
+      → η↓ (Pb↓ M↓ X Y) j ↦ η↓ₚ M↓ X Y j 
+    {-# REWRITE η↓-Pb↓ #-}
+
+
