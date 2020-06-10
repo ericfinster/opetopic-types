@@ -236,12 +236,17 @@ module MonadOver where
       → (j : Idx↓ₚ i) → Cns↓ₚ j (η (Pb M X) i)
     η↓ₚ (j , y) = η↓ M↓ j , λ _ → y
 
-    -- μ↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
-    --   → {f : Idx M} {σ : Cns M f}
-    --   → {δ : (p : Pos M σ) → Cns M (Typ M σ p)}
-    --   → {f↓ : Idx↓ M↓ f} (σ↓ : Cns↓ M↓ f↓ σ)
-    --   → (δ↓ : (p : Pos M σ) → Cns↓ M↓ (Typ↓ M↓ σ↓ p) (δ p))
-    --   → Cns↓ M↓ f↓ (μ M σ δ)
+    μ↓ₚ : {i : Idx (Pb M X)} {c : Cns (Pb M X) i}
+      → {δ : (p : Pos (Pb M X) {f = i} c) → Cns (Pb M X) (Typ (Pb M X) {f = i} c p)}
+      → {j : Idx↓ₚ i} (d : Cns↓ₚ j c)
+      → (δ↓ : (p : Pos (Pb M X) {f = i} c) → Cns↓ₚ (Typ↓ₚ {j = j} d p) (δ p))
+      → Cns↓ₚ j (μ (Pb M X) {f = i} c δ)
+    μ↓ₚ {i , x} {c , ν} {δ} {j = j , y} (d , κ) δ↓ =
+      let δ' p = fst (δ p)
+          ν' p = snd (δ (μ-pos-fst M c δ' p)) (μ-pos-snd M c δ' p)
+          δ↓' p = fst (δ↓ p)
+          κ' p = snd (δ↓ (μ-pos-fst M c δ' p)) (μ-pos-snd M c δ' p)  
+      in μ↓ M↓ {δ = δ'} d δ↓' , κ'
 
   postulate
 
@@ -282,4 +287,12 @@ module MonadOver where
       → η↓ (Pb↓ M↓ X Y) j ↦ η↓ₚ M↓ X Y j 
     {-# REWRITE η↓-Pb↓ #-}
 
-
+    μ↓-Pb↓ : {M : 𝕄} (M↓ : 𝕄↓ M)
+      → (X : Idx M → Set)
+      → (Y : (i : Idx M) → Idx↓ M↓ i → X i → Set)
+      → {i : Idx (Pb M X)} {c : Cns (Pb M X) i}
+      → {δ : (p : Pos (Pb M X) {f = i} c) → Cns (Pb M X) (Typ (Pb M X) {f = i} c p)}
+      → {j : Idx↓ₚ M↓ X Y i} (d : Cns↓ₚ M↓ X Y j c)
+      → (δ↓ : (p : Pos (Pb M X) {f = i} c) → Cns↓ₚ M↓ X Y (Typ↓ₚ M↓ X Y {j = j} d p) (δ p))
+      → μ↓ (Pb↓ M↓ X Y) {f↓ = j} d δ↓  ↦ μ↓ₚ M↓ X Y {j = j} d δ↓ 
+    {-# REWRITE μ↓-Pb↓ #-}
