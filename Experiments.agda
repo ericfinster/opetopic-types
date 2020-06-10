@@ -63,14 +63,16 @@ module Experiments where
     slc-idx ((i , j) , ._ , ._) (nd (c , ν) δ ε) ϕ = 
       let ((j' , j=j') , (d , typ-d=ν)) = ϕ (inl unit)
           ϕ' p q = ϕ (inr (p , q))
-          ih p = slc-idx ((Typ M c p , ν p) , δ p) (ε p) (ϕ' p)
-          arg p = fst (snd (ih p))
-          wit p = snd (fst (ih p)) ∙ ! (typ-d=ν p)
+          idx-ih p = slc-idx ((Typ M c p , ν p) , δ p) (ε p) (ϕ' p)
+          arg p = fst (snd (idx-ih p))
+          wit p = snd (fst (idx-ih p)) ∙ ! (typ-d=ν p)
+          pth p q = snd (snd (idx-ih p)) q
+          ctl p q = cns-trans-lem (wit p) (arg p) q ∙ (pth p q)
           C p x = Cns↓ M↓ x (fst (δ p))
           δ' p = transport (C p) (wit p) (arg p)
           ev pq = let p = μ-pos-fst M c (fst ∘ δ) pq
                       q = μ-pos-snd M c (fst ∘ δ) pq
-                  in cns-trans-lem (wit p) (arg p) q ∙ (snd (snd (ih p)) q)
+                  in ctl p q
       in (j' , j=j') , μ↓ M↓ d δ' , ev
 
     slc-cns : (i : Idx Slc) (σ : Cns Slc i)
@@ -80,46 +82,73 @@ module Experiments where
     slc-cns ((i , j) , ._ , ._) (nd (c , ν) δ ε) ϕ = 
       let ((j' , j=j') , (d , typ-d=ν)) = ϕ (inl unit)
           ϕ' p q = ϕ (inr (p , q))
-          ih p = slc-idx ((Typ M c p , ν p) , δ p) (ε p) (ϕ' p)
-          arg p = fst (snd (ih p))
-          wit p = snd (fst (ih p)) ∙ ! (typ-d=ν p)
+          idx-ih p = slc-idx ((Typ M c p , ν p) , δ p) (ε p) (ϕ' p)
+          arg p = fst (snd (idx-ih p))
+          wit p = snd (fst (idx-ih p)) ∙ ! (typ-d=ν p)
+          pth p q = snd (snd (idx-ih p)) q
+          ctl p q = cns-trans-lem (wit p) (arg p) q ∙ (pth p q)
           C p x = Cns↓ M↓ x (fst (δ p))
           δ' p = transport (C p) (wit p) (arg p)
           ev pq = let p = μ-pos-fst M c (fst ∘ δ) pq
                       q = μ-pos-snd M c (fst ∘ δ) pq
-                  in cns-trans-lem (wit p) (arg p) q ∙ (snd (snd (ih p)) q)
-                  
+                  in cns-trans-lem (wit p) (arg p) q ∙ (pth p q)
+
+
+          cns-ih p = slc-cns ((Typ M c p , ν p) , δ p) (ε p) (ϕ' p)
+          P p x = Pd↓ (Pb↓ M↓ (Idx↓ M↓) (λ i j k → j == k)) x (ε p)
+
+          lemma : (p : Posₚ M (Idx↓ M↓) {f = i , j} (c , ν))
+            → idx-ih p == Typ↓ₚ M↓ (Idx↓ M↓) (λ i j k → j == k) {j = (j' , j=j')} (d , typ-d=ν) p , δ' p , λ q → ctl p q
+          lemma p = {!!} 
+
+          ε' p = transport (P p) (lemma p) (cns-ih p)
+
           goal : Cns↓ Slc↓ ((j' , j=j') , (μ↓ M↓ d δ' , ev)) (nd (c , ν) δ ε)
-          goal = {!nd↓ {M↓ = (Pb↓ M↓ (Idx↓ M↓) (λ i j k → j == k))} {σ = c , ν} {δ = δ} {ε = ε} {f↓ = (j' , j=j')} (d , typ-d=ν) !}
+          goal = nd↓ {M↓ = Pb↓ M↓ (Idx↓ M↓) (λ i j k → j == k)} {σ = c , ν} {δ = δ}
+                   {ε = ε} {f↓ = j' , j=j'} (d , typ-d=ν) (λ p → δ' p , λ q → ctl p q) ε'
           
       in goal
 
 
--- Have: (δ↓
---        : (p : Posₚ M (λ z → Idx↓ M↓ z) (c , ν)) →
---          Cns↓ₚ M↓ (λ z → Idx↓ M↓ z) (λ z z₁ i₁ → z₁ == i₁)
---          (Typ↓ M↓ (fst (snd (ϕ (inl tt)))) p , snd (snd (ϕ (inl tt))) p)
---          (δ p)) →
---       ((p : Posₚ M (λ z → Idx↓ M↓ z) (c , ν)) →
---        Pd↓ (Pb↓ M↓ (Idx↓ M↓) (λ i₁ j₁ k → j₁ == k))
---        (Typ↓ₚ M↓ (λ z → Idx↓ M↓ z) (λ z f↓ i₁ → f↓ == i₁)
---         (snd (ϕ (inl tt))) p
---         , δ↓ p)
---        (ε p)) →
---       Pd↓ (Pb↓ M↓ (Idx↓ M↓) (λ i₁ j₁ k → j₁ == k))
---       ((fst (fst (ϕ true)) , snd (fst (ϕ true))) ,
---        μ↓ (Pb↓ M↓ (Idx↓ M↓) (λ p j₁ k → j₁ == k))
---        (fst (snd (ϕ true)) , snd (snd (ϕ true))) δ↓)
---       (nd (c , ν) δ ε)
-
-
-    -- nd↓ : {f : Idx M} {σ : Cns M f}
-    --   → {δ : (p : Pos M σ) → Cns M (Typ M σ p)}
-    --   → {ε : (p : Pos M σ) → Pd M (Typ M σ p , δ p)}
-    --   → {f↓ : Idx↓ M↓ f} (σ↓ : Cns↓ M↓ f↓ σ)
-    --   → (δ↓ : (p : Pos M σ) → Cns↓ M↓ (Typ↓ M↓ σ↓ p) (δ p))
-    --   → (ε↓ : (p : Pos M σ) → Pd↓ M↓ (Typ↓ M↓ σ↓ p , δ↓ p) (ε p))
-    --   → Pd↓ M↓ (f↓ , μ↓ M↓ σ↓ δ↓) (nd σ δ ε) 
+-- goal: Pd↓ (Pb↓ M↓ (Idx↓ M↓) (λ i₁ j₁ k → j₁ == k))
+--       (Typ↓ₚ M↓ (λ z → Idx↓ M↓ z) (λ z z₁ i₁ → z₁ == i₁)
+--        (snd (ϕ (inl tt))) p
+--        ,
+--        transport (λ x → Cns↓ M↓ x (fst (δ p)))
+--        (snd
+--         (fst
+--          (slc-idx ((Typ M c p , ν p) , δ p) (ε p) (λ q → ϕ (inr (p , q)))))
+--         ∙ ! (snd (snd (ϕ true)) p))
+--        (fst
+--         (snd
+--          (slc-idx ((Typ M c p , ν p) , δ p) (ε p) (λ q → ϕ (inr (p , q))))))
+--        ,
+--        (λ q →
+--           cns-trans-lem
+--           (snd
+--            (fst
+--             (slc-idx ((Typ M c p , ν p) , δ p) (ε p)
+--              (λ q₁ → ϕ (inr (p , q₁)))))
+--            ∙ ! (snd (snd (ϕ true)) p))
+--           (fst
+--            (snd
+--             (slc-idx ((Typ M c p , ν p) , δ p) (ε p)
+--              (λ q₁ → ϕ (inr (p , q₁))))))
+--           q
+--           ∙
+--           snd
+--           (snd
+--            (slc-idx ((Typ M c p , ν p) , δ p) (ε p)
+--             (λ q₁ → ϕ (inr (p , q₁)))))
+--           q))
+--       (ε p)
+-- Have: Pd↓ (Pb↓ M↓ (Idx↓ M↓) (λ p₁ → _==_))
+--       (fst
+--        (slc-idx ((Typ M c p , ν p) , δ p) (ε p) (λ q → ϕ (inr (p , q))))
+--        ,
+--        snd
+--        (slc-idx ((Typ M c p , ν p) , δ p) (ε p) (λ q → ϕ (inr (p , q)))))
+--       (ε p)
 
 
 
