@@ -156,5 +156,26 @@ module Experiments where
       in  typ-trans-inv Slc Slc↓ (typ-pth p) (slc-cns ((Typ M c p , ν p) , δ p) (ε p)
         (λ q₁ → ϕ (inr (p , q₁)))) q ∙ typ-ih p q
 
+    slc-idx-unique : (i : Idx Slc) (σ : Cns Slc i)
+      → (ϕ : (p : Pos Slc σ) → Idx↓ Slc↓ (Typ Slc σ p))
+      → (α : alg-comp Slc Slc↓ i σ ϕ)
+      → slc-idx i σ ϕ == idx α
+    slc-idx-unique ((i , j) , ._ , ._) (lf .(i , j)) ._ ⟦ (._ , idp) , ._ , ._ ∣ lf↓ (.j , .idp) ∣ idp ⟧ = idp
+    slc-idx-unique ((i , j) , ._ , ._) (nd (c , ν) δ ε) ._ ⟦ (.j , idp) , ._ , ._ ∣ nd↓ (d , typ-d=ν) δ↓ ε↓ ∣ idp ⟧ =
+      pair= idp (pair= {!!} {!!})
 
+
+    slc-cns-unique : (i : Idx Slc) (σ : Cns Slc i)
+      → (ϕ : (p : Pos Slc σ) → Idx↓ Slc↓ (Typ Slc σ p))
+      → (α : alg-comp Slc Slc↓ i σ ϕ)
+      → slc-cns i σ ϕ == cns α [ (λ x → Cns↓ Slc↓ x σ) ↓ slc-idx-unique i σ ϕ α ]
+    slc-cns-unique = {!!}
+
+    slc-typ-unique : (i : Idx Slc) (σ : Cns Slc i)
+      → (ϕ : (p : Pos Slc σ) → Idx↓ Slc↓ (Typ Slc σ p))
+      → (α : alg-comp Slc Slc↓ i σ ϕ)
+      → (p : Pos Slc σ)
+      → slc-typ i σ ϕ p == app= (typ α) p [ (λ ic → Typ↓ Slc↓ (snd ic) p == ϕ p ) ↓
+                                            pair= (slc-idx-unique i σ ϕ α) (slc-cns-unique i σ ϕ α) ]
+    slc-typ-unique i σ ϕ α p = {!!}
 
