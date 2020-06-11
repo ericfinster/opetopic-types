@@ -169,7 +169,8 @@ module Experiments where
       → (ϕ : (p : Pos Slc σ) → Idx↓ Slc↓ (Typ Slc σ p))
       → (α : alg-comp Slc Slc↓ i σ ϕ)
       → slc-cns i σ ϕ == cns α [ (λ x → Cns↓ Slc↓ x σ) ↓ slc-idx-unique i σ ϕ α ]
-    slc-cns-unique = {!!}
+    slc-cns-unique ((i , j) , ._ , ._) (lf .(i , j)) ._ ⟦ (._ , idp) , ._ , ._ ∣ lf↓ (.j , .idp) ∣ idp ⟧ = idp
+    slc-cns-unique ((i , j) , ._ , ._) (nd (c , ν) δ ε) ._ ⟦ (.j , idp) , ._ , ._ ∣ nd↓ (d , typ-d=ν) δ↓ ε↓ ∣ idp ⟧ = {!!} 
 
     slc-typ-unique : (i : Idx Slc) (σ : Cns Slc i)
       → (ϕ : (p : Pos Slc σ) → Idx↓ Slc↓ (Typ Slc σ p))
@@ -177,5 +178,6 @@ module Experiments where
       → (p : Pos Slc σ)
       → slc-typ i σ ϕ p == app= (typ α) p [ (λ ic → Typ↓ Slc↓ (snd ic) p == ϕ p ) ↓
                                             pair= (slc-idx-unique i σ ϕ α) (slc-cns-unique i σ ϕ α) ]
-    slc-typ-unique i σ ϕ α p = {!!}
+    slc-typ-unique ((i , j) , ._ , ._) (nd (c , ν) δ ε) ._ ⟦ (.j , idp) , ._ , ._ ∣ nd↓ (d , typ-d=ν) δ↓ ε↓ ∣ idp ⟧ (inl unit) = {!!}
+    slc-typ-unique ((i , j) , ._ , ._) (nd (c , ν) δ ε) ._ ⟦ (.j , idp) , ._ , ._ ∣ nd↓ (d , typ-d=ν) δ↓ ε↓ ∣ idp ⟧ (inr (p , q)) = {!!}
 
