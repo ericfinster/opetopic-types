@@ -19,7 +19,7 @@ module Lemmas where
 
   pth-alg₀ : ∀ {ℓ} {A : Set ℓ} {a₀ a₁ a₂ : A}
     → (p : a₀ == a₁) (q : a₂ == a₁) 
-    → (p ∙ ! q) ∙ q == p
+    → p == (p ∙ ! q) ∙ q 
   pth-alg₀ idp idp = idp
 
   pth-alg₁ : ∀ {ℓ} {A : Set ℓ} {a₀ a₁ a₂ : A}
@@ -34,6 +34,11 @@ module Lemmas where
     → (d : Cns↓ M↓ j c) (p : Pos M c)
     → Typ↓ M↓ (transport (λ x → Cns↓ M↓ x c) e d) p == Typ↓ M↓ d p
   typ-trans-inv M M↓ idp d p = idp
+
+  fst=-comm : ∀ {i j} {A : Type i} {B : A → Type j}
+    → {x y z : Σ A B} (p : y == x) (q : y == z)
+    → fst= (! p ∙ q) == ! (fst= p) ∙ fst= q
+  fst=-comm idp idp = idp
 
   --
   -- Various generic lemmas about indices and so on in the slice
@@ -61,7 +66,7 @@ module Lemmas where
       → {d₀ : Cns↓ M↓ j₀ c} {α₀ : (p : Pos M c) → Typ↓ M↓ d₀ p == ν p}
       → {j₁ : Idx↓ M↓ i} {e₁ : j₁ == j}
       → {d₁ : Cns↓ M↓ j₁ c} {α₁ : (p : Pos M c) → Typ↓ M↓ d₁ p == ν p}
-      → (q : j₀ == j₁) (r : q ∙ e₁ == e₀)
+      → (q : j₀ == j₁) (r : e₀ == q ∙ e₁)
       → (s : transport (λ x → Cns↓ M↓ x c) q d₀ == d₁)
       → (t : (p : Pos M c) → α₀ p == (! (typ-trans-inv M M↓ q d₀ p) ∙ ap (λ x → Typ↓ M↓ x p) s) ∙ α₁ p)
       → Path {A = Idx↓ Slc↓ ((i , j) , c , ν)}
@@ -75,12 +80,11 @@ module Lemmas where
       → {d₀ : Cns↓ M↓ j₀ c} {α₀ : (p : Pos M c) → Typ↓ M↓ d₀ p == ν p}
       → {j₁ : Idx↓ M↓ i} {e₁ : j₁ == j}
       → {d₁ : Cns↓ M↓ j₁ c} {α₁ : (p : Pos M c) → Typ↓ M↓ d₁ p == ν p}
-      → (q : j₀ == j₁) (r : q ∙ e₁ == e₀)
+      → (q : j₀ == j₁) (r : e₀ == q ∙ e₁)
       → (s : transport (λ x → Cns↓ M↓ x c) q d₀ == d₁)
       → (t : (p : Pos M c) → α₀ p == (! (typ-trans-inv M M↓ q d₀ p) ∙ ap (λ x → Typ↓ M↓ x p) s) ∙ α₁ p)
-      → fst= (fst= (slc-idx-lem i j c ν q r s t)) == q
-    slc-idx-lem-coh i j c ν {j₀ = j₀} {e₀ = e₀} {d₀ = d₀} idp idp idp t =
-      ap fst= (fst=-β idp (pair= idp (λ= t)))    
+      → fst= (slc-idx-lem i j c ν q r s t) == pair= q (↓-idf=cst-in r)
+    slc-idx-lem-coh i j c ν idp idp idp t = fst=-β idp (pair= idp (λ= t)) 
 
     postulate
       ↓-Pb-out : {i : Idx Plbk} {c : Cns Plbk i}
