@@ -34,21 +34,10 @@ module SliceAlg2 (M : 𝕄) (M↓ : 𝕄↓ M) where
                      (δ↓ : (p : Pos Plbk {f = i , j} (c , ν)) → Cns↓ Plbk↓ (Typ↓ M↓ d' p , typ-d'=ν p) (δ p))
                      (ε↓ : (p : Pos Plbk {f = i , j} (c , ν)) → Cns↓ Slc↓ ((Typ↓ M↓ d' p , typ-d'=ν p) , δ↓ p) (ε p)) where
 
-
-    μf = μ-pos-fst M c (fst ∘ δ)
-    μs = μ-pos-snd M c (fst ∘ δ)
-
-    δμ : (pq : Pos M (μ M c (fst ∘ δ)))
-      → Idx↓ M↓ (Typ M (fst (δ (μf pq))) (μs pq))
-    δμ pq = snd (δ (μf pq)) (μs pq) 
-
-    δ↓μ : (pq : Pos M (μ M c (fst ∘ δ)))
-      → Typ↓ M↓ (fst (δ↓ (μf pq))) (μs pq)
-      == snd (δ (μf pq)) (μs pq)
-    δ↓μ pq = snd (δ↓ (μf pq)) (μs pq) 
+    open Helpers i j c ν δ ε d' typ-d'=ν 
 
     idxslc↓ : Idx↓ Slc↓ ((i , j) , μ M c (fst ∘ δ) , λ p → snd (δ (μf p)) (μs p))
-    idxslc↓ = (j , idp) , μ↓ M↓ d' (fst ∘ δ↓) , δ↓μ 
+    idxslc↓ = (j , idp) , μ↓ M↓ d' (fst ∘ δ↓) , δ↓μ δ↓
 
     -- Note that by opening the Idx module with this definition, we
     -- get definitionally in what follows that:
@@ -99,39 +88,22 @@ module SliceAlg2 (M : 𝕄) (M↓ : 𝕄↓ M) where
       δ↓'=δ↓ = transport (λ y → (δ↓' p , typ-δ↓'=ν' p) == (δ↓ p) [ (λ x → Cns↓ Plbk↓ x (δ p)) ↓ y ])
                  contr-lemma (snd= idx-pth)  
 
-    --   so q = ↓-app=cst-out (↓-Π-cst-app-out {B = Pos M (fst (δ p))} {C = λ x q → Typ↓ M↓ x q == snd (δ p) q}
-    --            {p = fst= δ↓'=δ↓} {u = typ-δ↓'=ν' p} {u' = snd (δ↓ p)} (snd= δ↓'=δ↓) q) 
-
-    -- finally : (pq : Pos M (μ M c (fst ∘ δ)))
-    --   → typ-μ↓=ν' pq == ap (λ x → Typ↓ M↓ x pq) (ap (μ↓ M↓ d) (λ= (λ p → fst= (δ↓'=δ↓ p)))) ∙ δ↓μ pq
-    -- finally pq = typ-δ↓'=ν' (μf pq) (μs pq)
-    --                =⟨ so (μf pq) (μs pq) ⟩ 
-    --              ap (λ x → Typ↓ M↓ x (μs pq)) (fst= (δ↓'=δ↓ (μf pq))) ∙ δ↓μ pq
-    --                =⟨ ! (app=-β (λ p → fst= (δ↓'=δ↓ p)) (μf pq)) |in-ctx (λ y → ap (λ x → Typ↓ M↓ x (μs pq)) y ∙ δ↓μ pq) ⟩ 
-    --              ap (λ x → Typ↓ M↓ x (μs pq)) (ap (λ x → x (μf pq)) (λ= (λ p → fst= (δ↓'=δ↓ p)))) ∙ δ↓μ pq
-    --                =⟨ ! (ap-∘ (λ x → Typ↓ M↓ x (μs pq)) (λ x → x (μf pq)) (λ= (λ p → fst= (δ↓'=δ↓ p)))) 
-    --                  |in-ctx (λ x → x ∙ δ↓μ pq) ⟩ 
-    --              ap (λ x → Typ↓ M↓ (x (μf pq)) (μs pq)) (λ= (λ p → fst= (δ↓'=δ↓ p))) ∙ δ↓μ pq
-    --                =⟨ ap-∘ (λ x → Typ↓ M↓ x pq) (μ↓ M↓ d) (λ= (λ p → fst= (δ↓'=δ↓ p)))
-    --                  |in-ctx (λ x → x ∙ δ↓μ pq) ⟩ 
-    --              ap (λ x → Typ↓ M↓ x pq) (ap (μ↓ M↓ d) (λ= (λ p → fst= (δ↓'=δ↓ p)))) ∙ δ↓μ pq
-    --                =∎
-
-
-    need : (μ↓ M↓ d δ↓' , typ-μ↓=ν') == (μ↓ M↓ d' (fst ∘ δ↓) , δ↓μ)
-    need = (ap (λ x → μ↓ M↓ d (fst x) , snd x)
-                         (pair= (λ= (λ p → fst= (δ↓'=δ↓ p)))
-                                (↓-Π-cst-app-in (λ pq → {!!}))))
 
   slc-idx-unique ((i , j) , ._ , ._) (lf .(i , j)) ._ ⟦ (._ , idp) , ._ , ._ ∣ lf↓ (.j , .idp) ∣ idp ⟧ = idp
   slc-idx-unique ((i , j) , ._ , ._) (nd (c , ν) δ ε) ._ ⟦ (.j , idp) , ._ , ._ ∣ nd↓ (d' , typ-d'=ν) δ↓ ε↓ ∣ idp ⟧ =
     let open IdxUniqueIh i j c ν δ ε d' typ-d'=ν δ↓ ε↓
-    in pair= idp need 
+        open IdxIh i j c ν δ ε ϕ
+        open CnsIh i j c ν δ ε ϕ
+        open Helpers i j c ν δ ε d' typ-d'=ν 
+    in pair= idp (pb-pth (λ p → δ↓' p , typ-δ↓'=ν' p) δ↓ δ↓'=δ↓)
 
   slc-idx-unique-coh ((i , j) , ._ , ._) (lf .(i , j)) ._ ⟦ (._ , idp) , ._ , ._ ∣ lf↓ (.j , .idp) ∣ idp ⟧ = idp
   slc-idx-unique-coh ((i , j) , ._ , ._) (nd (c , ν) δ ε) ._ ⟦ (.j , idp) , ._ , ._ ∣ nd↓ (d' , typ-d'=ν) δ↓ ε↓ ∣ idp ⟧ =
     let open IdxUniqueIh i j c ν δ ε d' typ-d'=ν δ↓ ε↓
-    in ! (fst=-β idp need)
+        open IdxIh i j c ν δ ε ϕ
+        open CnsIh i j c ν δ ε ϕ
+        open Helpers i j c ν δ ε d' typ-d'=ν 
+    in ! (fst=-β idp (pb-pth (λ p → δ↓' p , typ-δ↓'=ν' p) δ↓ δ↓'=δ↓))
 
 
 

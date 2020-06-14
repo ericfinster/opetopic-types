@@ -122,10 +122,11 @@ module Lemmas where
     slc-idx-lem↓ i j c ν {j₀} {e₀} {d₀} {α₀ = α₀} {α₁ = α₁} idp idp idp t =
       ap (λ x → ((j₀ , e₀) , d₀ , x)) (λ= t)
 
-    module Helpers {i : Idx M} {c : Cns M i} {ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p)}
-             {δ : (p : Pos M c) → Cns Plbk (Typ M c p , ν p)}
-             {ε : (p : Pos M c) → Cns Slc ((Typ M c p , ν p) , δ p)}
-             {j : Idx↓ M↓ i} {d : Cns↓ M↓ j c} {typ-d=ν : (p : Pos M c) → Typ↓ M↓ d p == ν p} where
+    module Helpers (i : Idx M) (j : Idx↓ M↓ i)
+             (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
+             (δ : (p : Pos M c) → Cns Plbk (Typ M c p , ν p))
+             (ε : (p : Pos M c) → Cns Slc ((Typ M c p , ν p) , δ p))
+             (d : Cns↓ M↓ j c) (typ-d=ν : (p : Pos M c) → Typ↓ M↓ d p == ν p) where
 
       μf = μ-pos-fst M c (fst ∘ δ)
       μs = μ-pos-snd M c (fst ∘ δ)
@@ -143,31 +144,29 @@ module Lemmas where
       module _ (δ↓₀ δ↓₁ : (p : Pos M c) → Cns↓ Plbk↓ (Typ↓ M↓ d p , typ-d=ν p) (δ p))
                (δ-eq : (p : Pos M c) → δ↓₀ p == δ↓₁ p) where
 
-        to-slc-idx-lem-hyp : (pq : Pos M (μ M c (fst ∘ δ)))
-          → δ↓μ δ↓₀ pq == ap (λ x → Typ↓ M↓ x pq) (ap (λ z → μ↓ M↓ d (fst ∘ z)) (λ= δ-eq)) ∙ δ↓μ δ↓₁ pq
-        to-slc-idx-lem-hyp pq =
-          ↓-app=cst-out (↓-Π-cst-app-out (snd= (δ-eq (μf pq))) (μs pq)) ∙
-          ap (λ z → z ∙ δ↓μ δ↓₁ pq) lem
+        -- to-slc-idx-lem-hyp : (pq : Pos M (μ M c (fst ∘ δ)))
+        --   → δ↓μ δ↓₀ pq == ap (λ x → Typ↓ M↓ x pq) (ap (λ z → μ↓ M↓ d (fst ∘ z)) (λ= δ-eq)) ∙ δ↓μ δ↓₁ pq
+        -- to-slc-idx-lem-hyp pq =
+        --   ↓-app=cst-out (↓-Π-cst-app-out (snd= (δ-eq (μf pq))) (μs pq)) ∙
+        --   ap (λ z → z ∙ δ↓μ δ↓₁ pq) lem
 
-          where lem = ap (λ x → Typ↓ M↓ x (μs pq)) (ap fst (δ-eq (μf pq)))
-                        =⟨ ! (app=-β δ-eq (μf pq)) |in-ctx (λ z → ap (λ x → Typ↓ M↓ x (μs pq)) (ap fst z)) ⟩ 
-                      ap (λ x → Typ↓ M↓ x (μs pq)) (ap fst (ap (λ x → x (μf pq)) (λ= δ-eq)))
-                        =⟨ ! (ap-∘ fst (λ x → x (μf pq)) (λ= δ-eq)) |in-ctx (λ z → ap (λ x → Typ↓ M↓ x (μs pq)) z) ⟩ 
-                      ap (λ x → Typ↓ M↓ x (μs pq)) (ap (λ x → fst (x (μf pq))) (λ= δ-eq))
-                        =⟨ ! (ap-∘ (λ x → Typ↓ M↓ x (μs pq)) (λ x → fst (x (μf pq))) (λ= δ-eq)) ⟩ 
-                      ap (λ x → Typ↓ M↓ (fst (x (μf pq))) (μs pq)) (λ= δ-eq)
-                        =⟨ ap-∘ (λ x → Typ↓ M↓ x pq) (λ x → μ↓ M↓ d (fst ∘ x)) (λ= δ-eq) ⟩
-                      ap (λ x → Typ↓ M↓ x pq) (ap (λ x → μ↓ M↓ d (fst ∘ x)) (λ= δ-eq)) =∎
+        --   where lem = ap (λ x → Typ↓ M↓ x (μs pq)) (ap fst (δ-eq (μf pq)))
+        --                 =⟨ ! (app=-β δ-eq (μf pq)) |in-ctx (λ z → ap (λ x → Typ↓ M↓ x (μs pq)) (ap fst z)) ⟩ 
+        --               ap (λ x → Typ↓ M↓ x (μs pq)) (ap fst (ap (λ x → x (μf pq)) (λ= δ-eq)))
+        --                 =⟨ ! (ap-∘ fst (λ x → x (μf pq)) (λ= δ-eq)) |in-ctx (λ z → ap (λ x → Typ↓ M↓ x (μs pq)) z) ⟩ 
+        --               ap (λ x → Typ↓ M↓ x (μs pq)) (ap (λ x → fst (x (μf pq))) (λ= δ-eq))
+        --                 =⟨ ! (ap-∘ (λ x → Typ↓ M↓ x (μs pq)) (λ x → fst (x (μf pq))) (λ= δ-eq)) ⟩ 
+        --               ap (λ x → Typ↓ M↓ (fst (x (μf pq))) (μs pq)) (λ= δ-eq)
+        --                 =⟨ ap-∘ (λ x → Typ↓ M↓ x pq) (λ x → μ↓ M↓ d (fst ∘ x)) (λ= δ-eq) ⟩
+        --               ap (λ x → Typ↓ M↓ x pq) (ap (λ x → μ↓ M↓ d (fst ∘ x)) (λ= δ-eq)) =∎
 
         -- But here, why do you use something so complicated when you
         -- could simply ap in the first two arguments?
 
-        idx-pth : Path {A = Idx↓ Slc↓ ((i , j) , μ M c (fst ∘ δ) , δμ)}
-                      ((j , idp) , (μ↓ M↓ d (fst ∘ δ↓₀) , δ↓μ δ↓₀))
-                      ((j , idp) , (μ↓ M↓ d (fst ∘ δ↓₁) , δ↓μ δ↓₁))
-        idx-pth = slc-idx-lem i j (μ M c (fst ∘ δ)) δμ idp idp
-                    (ap (λ z → μ↓ M↓ d (fst ∘ z)) (λ= δ-eq)) to-slc-idx-lem-hyp
-
+        pb-pth : Path {A = Cns↓ Plbk↓ (j , idp) (μ M c (fst ∘ δ) , δμ)}
+                    (μ↓ M↓ d (fst ∘ δ↓₀) , δ↓μ δ↓₀)
+                    (μ↓ M↓ d (fst ∘ δ↓₁) , δ↓μ δ↓₁)
+        pb-pth = ap (λ x → μ↓ M↓ d (fst ∘ x) , δ↓μ x) (λ= δ-eq)
 
         module _ (ε↓₀ : (p : Pos M c) → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , δ↓₀ p) (ε p))
                  (ε↓₁ : (p : Pos M c) → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , δ↓₁ p) (ε p))
