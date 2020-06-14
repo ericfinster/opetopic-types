@@ -99,7 +99,16 @@ module SliceAlg (M : 𝕄) (M↓ : 𝕄↓ M) where
       idx-ih-coh : idx-ih p == ((Typ↓ M↓ d p , typ-d=ν p) , (δ↓' p , typ-δ↓'=ν' p))                             
       idx-ih-coh = slc-idx-lem (Typ M c p) (ν p) (fst (δ p)) (snd (δ p))
                      (k=typ-dp p) (pth-alg₀ (k=νp p) (typ-d=ν p)) idp
-                     (λ q → pth-alg₁ (typ-e=ν' p q) (typ-trans-inv M M↓ (k=typ-dp p) (e p) q)) 
+                     (λ q → pth-alg₁ (typ-e=ν' p q) (typ-trans-inv M M↓ (k=typ-dp p) (e p) q))
+                     
+      -- idx-ih-coh↓ : idx-ih p == ((Typ↓ M↓ d p , typ-d=ν p) , (δ↓' p , typ-δ↓'=ν' p))                             
+      -- idx-ih-coh↓ = slc-idx-lem↓ (Typ M c p) (ν p) (fst (δ p)) (snd (δ p))
+      --                (k=typ-dp p) (pth-alg₀ (k=νp p) (typ-d=ν p))
+      --                (from-transp (CnsFib p) (k=typ-dp p) idp)
+      --                (λ q → {!!})
+
+      -- idx-ih-coh-simp : idx-ih p == ((Typ↓ M↓ d p , typ-d=ν p) , (δ↓' p , typ-δ↓'=ν' p))
+      -- idx-ih-coh-simp = {!slc-idx-lem-simp (Typ M c p) (ν p) (fst (δ p)) (snd (δ p)) (k=typ-dp p)!} 
 
       ε↓' : Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , (δ↓' p , typ-δ↓'=ν' p)) (ε p)
       ε↓' = transport PdFib idx-ih-coh cns-ih
