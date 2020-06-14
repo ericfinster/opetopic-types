@@ -144,25 +144,6 @@ module Lemmas where
       module _ (δ↓₀ δ↓₁ : (p : Pos M c) → Cns↓ Plbk↓ (Typ↓ M↓ d p , typ-d=ν p) (δ p))
                (δ-eq : (p : Pos M c) → δ↓₀ p == δ↓₁ p) where
 
-        -- to-slc-idx-lem-hyp : (pq : Pos M (μ M c (fst ∘ δ)))
-        --   → δ↓μ δ↓₀ pq == ap (λ x → Typ↓ M↓ x pq) (ap (λ z → μ↓ M↓ d (fst ∘ z)) (λ= δ-eq)) ∙ δ↓μ δ↓₁ pq
-        -- to-slc-idx-lem-hyp pq =
-        --   ↓-app=cst-out (↓-Π-cst-app-out (snd= (δ-eq (μf pq))) (μs pq)) ∙
-        --   ap (λ z → z ∙ δ↓μ δ↓₁ pq) lem
-
-        --   where lem = ap (λ x → Typ↓ M↓ x (μs pq)) (ap fst (δ-eq (μf pq)))
-        --                 =⟨ ! (app=-β δ-eq (μf pq)) |in-ctx (λ z → ap (λ x → Typ↓ M↓ x (μs pq)) (ap fst z)) ⟩ 
-        --               ap (λ x → Typ↓ M↓ x (μs pq)) (ap fst (ap (λ x → x (μf pq)) (λ= δ-eq)))
-        --                 =⟨ ! (ap-∘ fst (λ x → x (μf pq)) (λ= δ-eq)) |in-ctx (λ z → ap (λ x → Typ↓ M↓ x (μs pq)) z) ⟩ 
-        --               ap (λ x → Typ↓ M↓ x (μs pq)) (ap (λ x → fst (x (μf pq))) (λ= δ-eq))
-        --                 =⟨ ! (ap-∘ (λ x → Typ↓ M↓ x (μs pq)) (λ x → fst (x (μf pq))) (λ= δ-eq)) ⟩ 
-        --               ap (λ x → Typ↓ M↓ (fst (x (μf pq))) (μs pq)) (λ= δ-eq)
-        --                 =⟨ ap-∘ (λ x → Typ↓ M↓ x pq) (λ x → μ↓ M↓ d (fst ∘ x)) (λ= δ-eq) ⟩
-        --               ap (λ x → Typ↓ M↓ x pq) (ap (λ x → μ↓ M↓ d (fst ∘ x)) (λ= δ-eq)) =∎
-
-        -- But here, why do you use something so complicated when you
-        -- could simply ap in the first two arguments?
-
         pb-pth : Path {A = Cns↓ Plbk↓ (j , idp) (μ M c (fst ∘ δ) , δμ)}
                     (μ↓ M↓ d (fst ∘ δ↓₀) , δ↓μ δ↓₀)
                     (μ↓ M↓ d (fst ∘ δ↓₁) , δ↓μ δ↓₁)
@@ -172,32 +153,83 @@ module Lemmas where
                  (ε↓₁ : (p : Pos M c) → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , δ↓₁ p) (ε p))
                  (ε-eq : (p : Pos M c) → ε↓₀ p == ε↓₁ p [ (λ x → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , x) (ε p)) ↓ δ-eq p ]) where
 
+          Dom : Set 
+          Dom = Σ ((p : Pos M c) → Cns↓ Plbk↓ (Typ↓ M↓ d p , typ-d=ν p) (δ p))
+                (λ δ↓ → (p : Pos M c) → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , δ↓ p) (ε p))
+
+          Map : (dm : Dom) → Cns↓ Slc↓ ((j , idp) , (μ↓ M↓ d (fst ∘ fst dm) , δ↓μ (fst dm))) (nd (c , ν) δ ε)
+          Map (δ⇣ , ε⇣) =  nd↓ {f↓ = j , idp} (d , typ-d=ν) δ⇣ ε⇣
+
+
+
+          something : ε↓₀ == ε↓₁ [ (λ x → (p : Pos M c) → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , x p) (ε p)) ↓ λ= δ-eq ]
+          something = ↓-Π-cst-app-in (λ p → ↓-ap-out
+                                              {A = (r : Pos M c) → Cns↓ Plbk↓ (Typ↓ M↓ d r , typ-d=ν r) (δ r)}
+                                              (λ x → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , x) (ε p)) (λ x → x p)
+                                              (λ= δ-eq) (transport (λ z → ε↓₀ p == ε↓₁ p [ (λ x → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , x) (ε p)) ↓ z ])
+                                              (! (app=-β δ-eq p)) (ε-eq p)))
+
+          pth : Path {A = Dom} (δ↓₀ , ε↓₀) (δ↓₁ , ε↓₁)
+          pth = pair= (λ= δ-eq) something
+
+          can-get : nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
+                    == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
+                      [ (λ x → Cns↓ Slc↓ ((j , idp) , (μ↓ M↓ d (fst ∘ (fst x)) , δ↓μ (fst x))) (nd (c , ν) δ ε)) ↓ pth ]
+          can-get = apd Map pth 
+
+          hence : nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
+                    == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
+                      [ (λ x → Cns↓ Slc↓ ((j , idp) , (μ↓ M↓ d (fst ∘ x) , δ↓μ x)) (nd (c , ν) δ ε)) ↓ ap fst pth ]
+          hence = ↓-ap-in (λ x → Cns↓ Slc↓ ((j , idp) , (μ↓ M↓ d (fst ∘ x) , δ↓μ x)) (nd (c , ν) δ ε)) fst can-get 
+
+          need : nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
+                == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
+                  [ (λ x → Cns↓ Slc↓ ((j , idp) , (μ↓ M↓ d (fst ∘ x) , δ↓μ x)) (nd (c , ν) δ ε)) ↓ λ= δ-eq ]
+          need = transport (λ z → nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
+                    == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
+                      [ (λ x → Cns↓ Slc↓ ((j , idp) , (μ↓ M↓ d (fst ∘ x) , δ↓μ x)) (nd (c , ν) δ ε)) ↓ z ]) (fst=-β (λ= δ-eq) something) hence 
+
+          first :  nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
+                == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
+                     [ (λ x → Cns↓ Slc↓ ((j , idp) , x) (nd (c , ν) δ ε)) ↓ pb-pth ]
+          first = ↓-ap-in (λ x → Cns↓ Slc↓ ((j , idp) , x) (nd (c , ν) δ ε)) (λ x → μ↓ M↓ d (fst ∘ x) , δ↓μ x)
+                  need
+
+          and-ive-got : nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
+                == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
+                     [ (λ x → Cns↓ Slc↓ x (nd (c , ν) δ ε)) ↓ ap (λ x → (j , idp) , x) pb-pth ]
+          and-ive-got = ↓-ap-in (λ x → Cns↓ Slc↓ x (nd (c , ν) δ ε)) (λ x → (j , idp) , x)
+                          first 
+
           -- Okay, now we'd like to get this last lemma
-          -- claim :  nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
-          --       == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
-          --            [ (λ x → Cns↓ Slc↓ x (nd (c , ν) δ ε)) ↓ idx-pth ]
-          -- claim = {!!}
+          claim :  nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
+                == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
+                     [ (λ x → Cns↓ Slc↓ x (nd (c , ν) δ ε)) ↓ pair= idp pb-pth ]
+          claim = transport (λ z → nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
+                == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
+                     [ (λ x → Cns↓ Slc↓ x (nd (c , ν) δ ε)) ↓ z ]) idp and-ive-got
 
 
-          -- What's the strategy? 
+-- ap↓ : ∀ {i j k} {A : Type i} {B : A → Type j} {C : A → Type k}
+--   (g : {a : A} → B a → C a) {x y : A} {p : x == y}
+--   {u : B x} {v : B y}
+--   → (u == v [ B ↓ p ] → g u == g v [ C ↓ p ])
+-- ap↓ g {p = idp} p = ap g p
 
+-- apd↓ : ∀ {i j k} {A : Type i} {B : A → Type j} {C : (a : A) → B a → Type k}
+--   (f : {a : A} (b : B a) → C a b) {x y : A} {p : x == y}
+--   {u : B x} {v : B y} (q : u == v [ B ↓ p ])
+--   → f u == f v [ (λ xy → C (fst xy) (snd xy)) ↓ pair= p q ]
+-- apd↓ f {p = idp} idp = idp
 
-      -- ε-claim : ε↓' p == ε↓ p [ (λ x → Cns↓ Slc↓ ((Typ↓ M↓ d' p , typ-d'=ν p) , x) (ε p)) ↓ δ↓'=δ↓ p ]
-      -- ε-claim = Σ-fst-triv-lem₁ {C = λ z → Cns↓ Slc↓ z (ε p)} {a = (Typ↓ M↓ d' p , typ-d'=ν p)}
-      --   (idx-pth p) (contr-lemma p) (!ᵈ by-defn ∙ᵈ cns-u-ih)
+  -- ↓-Π-cst-app-in : {x x' : A} {p : x == x'}
+  --   {u : (b : B) → C x b} {u' : (b : B) → C x' b}
+  --   → ((b : B) → u b == u' b [ (λ x → C x b) ↓ p ])
+  --   → (u == u' [ (λ x → (b : B) → C x b) ↓ p ])
+  -- ↓-Π-cst-app-in {p = idp} f = λ= f
 
-      -- ↓-nd↓-in : (δ↓₀ δ↓₁ : (p : Pos M c) → Cns↓ Plbk↓ (Typ↓ M↓ d p , typ-d=ν p) (δ p))
-      --   → (δ-eq : δ↓₀ == δ↓₁)
-      --   → (ε↓₀ : (p : Pos M c) → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , δ↓₀ p) (ε p))
-      --   → (ε↓₁ : (p : Pos M c) → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , δ↓₁ p) (ε p))
-      --   → (ε-eq : (p : Pos M c) → ε↓₀ p == ε↓₁ p [ (λ x → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , x) (ε p)) ↓ app= δ-eq p ])
-      --   →  nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
-      --   == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
-      --         [ (λ x → Cns↓ Slc↓ x (nd (c , ν) δ ε)) ↓ to-idx δ↓₀ δ↓₁ δ-eq ]
-      -- ↓-nd↓-in δ↓₀ .δ↓₀ idp ε↓₀ ε↓₁ ε-eq = {!!}
-    
-    -- goal : (nd↓ {f↓ = j , idp} (d' , typ-d'=ν) (λ p → δ↓' p , λ q → typ-δ↓'=ν' p q) ε↓')  
-    --        == (nd↓ {f↓ = j , idp} (d' , typ-d'=ν) δ↓ ε↓) [ (λ x → Cns↓ Slc↓ x (nd (c , ν) δ ε)) ↓
-    --             slc-idx-lem i j (μ M c (fst ∘ δ)) δμ idp idp
-    --             (ap (μ↓ M↓ d') (λ= (λ p → fst= (δ↓'=δ↓ p)))) finally ]
-    -- goal = {!!} 
+  -- ↓-Π-in : {x x' : A} {p : x == x'} {u : Π (B x) (C x)} {u' : Π (B x') (C x')}
+  --   → ({t : B x} {t' : B x'} (q : t == t' [ B ↓ p ])
+  --       → u t == u' t' [ uncurry C ↓ pair= p q ])
+  --   → (u == u' [ (λ x → Π (B x) (C x)) ↓ p ])
+  -- ↓-Π-in {p = idp} f = λ= (λ x → f (idp {a = x}))
