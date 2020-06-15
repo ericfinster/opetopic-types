@@ -71,6 +71,6 @@ module InftyGroupoid where
     claim = {!!} 
 
 
-  to-∞Groupoid : (A : Set) → ∞Groupoid
+  to-∞Groupoid : Set → ∞Groupoid
   to-∞Groupoid A = XA A  , XA-is-fibrant A
 

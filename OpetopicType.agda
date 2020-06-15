@@ -4,6 +4,7 @@ open import HoTT
 open import Monad
 open import MonadOver
 open import Pb
+open import SigmaMonad
 
 module OpetopicType where
 
@@ -56,3 +57,13 @@ module OpetopicType where
 
   open OpetopicTypeOver public
 
+  -- Have to transport by an equivalence for this ...
+  -- ΣO : {M : 𝕄} (M↓ : 𝕄↓ M)
+  --   → (X : OpetopicType M)
+  --   → OpetopicTypeOver M↓ X
+  --   → OpetopicType (ΣM M M↓)
+  -- Ob (ΣO M↓ X Y) (i , j) = Σ (Ob X i) (Ob↓ Y i j)
+  -- Hom (ΣO {M} M↓ X Y) = {!!}
+
+  --   where CH : OpetopicType (ΣM (Slice (Pb M (Ob X))) (Slice↓ (Pb↓ M↓ (Ob X) (Ob↓ Y))))
+  --         CH = ΣO {M = Slice (Pb M (Ob X))} (Slice↓ (Pb↓ M↓ (Ob X) (Ob↓ Y))) (Hom X) (Hom↓ Y) 

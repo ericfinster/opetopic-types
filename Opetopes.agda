@@ -3,6 +3,7 @@
 open import HoTT
 open import Monad
 open import IdentityMonad
+open import OpetopicType
 
 module Opetopes where
 
@@ -30,8 +31,10 @@ module Opetopes where
   glob₂ = (ttᵢ , ttᵢ) , (nd ttᵢ (λ { ttᵢ → ttᵢ })
                                 (λ { ttᵢ → lf ttᵢ }))
 
-  -- Attempt at the representable ...
-
+  --
+  --  Faces
+  --
+  
   data InnerFace : {n : ℕ} → 𝕆 n → ℕ → Set where
     src-face : {n : ℕ} (o : 𝕆 n) (p : Cns (𝕆Mnd n) o) (q : Cns (𝕆Mnd (S n)) (o , p))
       → InnerFace {S (S n)} ((o , p) , q) (S n)
@@ -61,3 +64,7 @@ module Opetopes where
 
   arr-top-face : Face 1 arr 1
   arr-top-face = top arr 
+
+  -- The representable?
+  Representable : {n : ℕ} → 𝕆 n → OpetopicType IdMnd
+  Representable o = {!!}
