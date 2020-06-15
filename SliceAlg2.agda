@@ -88,7 +88,6 @@ module SliceAlg2 (M : 𝕄) (M↓ : 𝕄↓ M) where
       δ↓'=δ↓ = transport (λ y → (δ↓' p , typ-δ↓'=ν' p) == (δ↓ p) [ (λ x → Cns↓ Plbk↓ x (δ p)) ↓ y ])
                  contr-lemma (snd= idx-pth)  
 
-
   slc-idx-unique ((i , j) , ._ , ._) (lf .(i , j)) ._ ⟦ (._ , idp) , ._ , ._ ∣ lf↓ (.j , .idp) ∣ idp ⟧ = idp
   slc-idx-unique ((i , j) , ._ , ._) (nd (c , ν) δ ε) ._ ⟦ (.j , idp) , ._ , ._ ∣ nd↓ (d' , typ-d'=ν) δ↓ ε↓ ∣ idp ⟧ =
     let open IdxUniqueIh i j c ν δ ε d' typ-d'=ν δ↓ ε↓

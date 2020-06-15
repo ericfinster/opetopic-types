@@ -46,22 +46,15 @@ module SliceAlg3 (M : 𝕄) (M↓ : 𝕄↓ M) where
       ε-claim = Σ-fst-triv-lem₁ {C = λ z → Cns↓ Slc↓ z (ε p)} {a = (Typ↓ M↓ d' p , typ-d'=ν p)}
         (idx-pth p) (contr-lemma p) (!ᵈ by-defn ∙ᵈ cns-u-ih)
 
-    -- And clearly, for the second part, we lift the constructors and
-    -- use the above claim + a bit of fixup related to funext.  So
-    -- it's completely clear that we can get this, even if a bit
-    -- tedious.
-    
-    goal : (nd↓ {f↓ = j , idp} (d' , typ-d'=ν) (λ p → δ↓' p , λ q → typ-δ↓'=ν' p q) ε↓')  
-           == (nd↓ {f↓ = j , idp} (d' , typ-d'=ν) δ↓ ε↓) [ (λ x → Cns↓ Slc↓ x (nd (c , ν) δ ε)) ↓
-                slc-idx-lem i j (μ M c (fst ∘ δ)) δμ idp idp
-                (ap (μ↓ M↓ d') (λ= (λ p → fst= (δ↓'=δ↓ p)))) finally ]
-    goal = {!!} 
-
   slc-cns-unique ((i , j) , ._ , ._) (lf .(i , j)) ._ ⟦ (._ , idp) , ._ , ._ ∣ lf↓ (.j , .idp) ∣ idp ⟧ = idp
   slc-cns-unique ((i , j) , ._ , ._) (nd (c , ν) δ ε) ._ ⟦ (.j , idp) , ._ , ._ ∣ nd↓ (d' , typ-d'=ν) δ↓ ε↓ ∣ idp ⟧ =
     let open IdxUniqueIh i j c ν δ ε d' typ-d'=ν δ↓ ε↓
         open CnsUniqueIh i j c ν δ ε d' typ-d'=ν δ↓ ε↓
-    in goal 
+        open IdxIh i j c ν δ ε ϕ
+        open CnsIh i j c ν δ ε ϕ
+        open Helpers i j c ν δ ε d' typ-d'=ν 
+    in result (λ p → δ↓' p , typ-δ↓'=ν' p) δ↓ δ↓'=δ↓ ε↓' ε↓ ε-claim
+
 
 
 
