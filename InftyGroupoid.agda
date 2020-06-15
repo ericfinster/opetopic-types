@@ -16,7 +16,6 @@ module InftyGroupoid where
   underlying : ∞Groupoid → Set  
   underlying (X , is-fib) = Ob X ttᵢ 
 
-
   module _ (M : 𝕄) (M↓ : 𝕄↓ M) where
 
     Plbk : 𝕄
@@ -65,5 +64,13 @@ module InftyGroupoid where
     XA-is-fibrant : is-fibrant XA
     XA-is-fibrant = alg-is-fibrant IdMnd IdMnd↓ id-is-algebraic 
 
+    _==ₒ_ : A → A → Set
+    a₀ ==ₒ a₁ = Ob (Hom XA) ((ttᵢ , a₀) , (ttᵢ , (λ { ttᵢ → a₁ }))) 
+
+    claim : {a₀ a₁ : A} → (a₀ == a₁) ≃ (a₀ ==ₒ a₁)
+    claim = {!!} 
+
+
   to-∞Groupoid : (A : Set) → ∞Groupoid
   to-∞Groupoid A = XA A  , XA-is-fibrant A
+
