@@ -13,33 +13,51 @@ module Opetopes where
   𝕆 : ℕ → Set
   𝕆 n = Idx (𝕆Mnd n)
 
+  --
+  --  Examples
+  --
+  
+  obj : 𝕆 0
+  obj = ttᵢ
 
-  -- Yeah, it's messy, but this looks like a solution.
-  -- data InnerFace : {n : ℕ} → 𝕆 n → ℕ → 𝕌 where
-  --   src-face : {n : ℕ} (o : 𝕆 n) (p : ℙ o) (q : ℙ (o ▸ p)) (u : Pos q) → InnerFace (o ▸ p ▸ q) (S n)
-  --   tgt-face : {n : ℕ} (o : 𝕆 n) (p : ℙ o) (q : ℙ (o ▸ p)) (u : Pos q) → InnerFace (o ▸ p ▸ q) n
-  --   raise-face : {n m : ℕ} (o : 𝕆 n) (p : ℙ o) → InnerFace o m → InnerFace (o ▸ p) m
+  arr : 𝕆 1
+  arr = ttᵢ , ttᵢ 
 
-  -- data Face : {n : ℕ} → 𝕆 n → ℕ → 𝕌 where
-  --   top : {n : ℕ} (o : 𝕆 n) → Face o n
-  --   tgt : {n : ℕ} (o : 𝕆 (S n)) → Face o n
-  --   init : {n : ℕ} (o : 𝕆 (S n)) → Face o 0
-  --   inner : {n m : ℕ} (o : 𝕆 n) → InnerFace o m → Face o m
+  drop₂ : 𝕆 2
+  drop₂ = (ttᵢ , ttᵢ) , lf ttᵢ
+
+  glob₂ : 𝕆 2
+  glob₂ = (ttᵢ , ttᵢ) , (nd ttᵢ (λ { ttᵢ → ttᵢ })
+                                (λ { ttᵢ → lf ttᵢ }))
+
+  -- Attempt at the representable ...
+
+  data InnerFace : {n : ℕ} → 𝕆 n → ℕ → Set where
+    src-face : {n : ℕ} (o : 𝕆 n) (p : Cns (𝕆Mnd n) o) (q : Cns (𝕆Mnd (S n)) (o , p))
+      → InnerFace {S (S n)} ((o , p) , q) (S n)
+    tgt-face : {n : ℕ} (o : 𝕆 n) (p : Cns (𝕆Mnd n) o) (q : Cns (𝕆Mnd (S n)) (o , p))
+      → InnerFace {S (S n)} ((o , p) , q) n
+    raise-face : {n m : ℕ} (o : 𝕆 n) (p : Cns (𝕆Mnd n) o)
+      → InnerFace {n} o m → InnerFace {S n} (o , p) m 
+
+  data Face : (n : ℕ) → 𝕆 n → ℕ → Set where
+    top : {n : ℕ} (o : 𝕆 n) → Face n o n
+    tgt : {n : ℕ} (o : 𝕆 (S n)) → Face (S n) o n
+    init : {n : ℕ} (o : 𝕆 (S n)) → Face (S n) o 0
+    inner : {n m : ℕ} (o : 𝕆 n) → InnerFace {n} o m → Face n o m  
     
-  -- ob-face : Face ● 0
-  -- ob-face = top ●
+  --
+  --  Example faces
+  --
 
-  -- arr-src-face : Face arrow 0
-  -- arr-src-face = init (● ▸ arr)
+  obj-face : Face 0 obj 0
+  obj-face = top obj
 
-  -- arr-tgt-face : Face arrow 0
-  -- arr-tgt-face = tgt (● ▸ arr)
+  arr-src-face : Face 1 arr 0
+  arr-src-face = init arr
 
-  -- drop-obj-face : Face 2-drop 0
-  -- drop-obj-face = init _
+  arr-tgt-face : Face 1 arr 0
+  arr-tgt-face = tgt arr
 
-  -- drop-arr-face : Face 2-drop 1
-  -- drop-arr-face = tgt _
-
-  -- simplex-obj-face : Face 2-simplex 0
-  -- simplex-obj-face = inner _ (tgt-face ● arr _ (nd-pos-here ● arr _ _))
+  arr-top-face : Face 1 arr 1
+  arr-top-face = top arr 
