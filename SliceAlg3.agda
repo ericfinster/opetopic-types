@@ -42,8 +42,8 @@ module SliceAlg3 (M : 𝕄) (M↓ : 𝕄↓ M) where
       cns-u-ih : cns-ih p == ε↓ p [ PdFib p ↓ slc-u-ih p ]
       cns-u-ih = slc-cns-unique ((Typ M c p , ν p) , δ p) (ε p) (Typ↓ Slc↓ (ε↓ p)) (α p) 
 
-      ε-claim : ε↓' p == ε↓ p [ (λ x → Cns↓ Slc↓ ((Typ↓ M↓ d' p , typ-d'=ν p) , x) (ε p)) ↓ δ↓'=δ↓ p ]
-      ε-claim = Σ-fst-triv-lem₁ {C = λ z → Cns↓ Slc↓ z (ε p)} {a = (Typ↓ M↓ d' p , typ-d'=ν p)}
+      ε↓'=ε↓ : ε↓' p == ε↓ p [ (λ x → Cns↓ Slc↓ ((Typ↓ M↓ d' p , typ-d'=ν p) , x) (ε p)) ↓ δ↓'=δ↓ p ]
+      ε↓'=ε↓ = Σ-fst-triv-lem₁ {C = λ z → Cns↓ Slc↓ z (ε p)} {a = (Typ↓ M↓ d' p , typ-d'=ν p)}
         (idx-pth p) (contr-lemma p) (!ᵈ by-defn ∙ᵈ cns-u-ih)
 
   slc-cns-unique ((i , j) , ._ , ._) (lf .(i , j)) ._ ⟦ (._ , idp) , ._ , ._ ∣ lf↓ (.j , .idp) ∣ idp ⟧ = idp
@@ -53,8 +53,7 @@ module SliceAlg3 (M : 𝕄) (M↓ : 𝕄↓ M) where
         open IdxIh i j c ν δ ε ϕ
         open CnsIh i j c ν δ ε ϕ
         open Helpers i j c ν δ ε d' typ-d'=ν 
-    in result (λ p → δ↓' p , typ-δ↓'=ν' p) δ↓ δ↓'=δ↓ ε↓' ε↓ ε-claim
-
+    in nd↓-pth (λ p → δ↓' p , typ-δ↓'=ν' p) δ↓ δ↓'=δ↓ ε↓' ε↓ ε↓'=ε↓
 
 
 

@@ -107,60 +107,6 @@ module Lemmas where
       → fst= (slc-idx-lem i j c ν q r s t) == pair= q (↓-idf=cst-in r)
     slc-idx-lem-coh i j c ν idp idp idp t = fst=-β idp (pair= idp (λ= t)) 
 
-
-    -- module TypHelpers (i : Idx M) (j : Idx↓ M↓ i)
-    --          (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
-    --          (δ : (p : Pos M c) → Cns Plbk (Typ M c p , ν p))
-    --          (ε : (p : Pos M c) → Cns Slc ((Typ M c p , ν p) , δ p))
-    --          (d : Cns↓ M↓ j c) (typ-d=ν : (p : Pos M c) → Typ↓ M↓ d p == ν p) 
-    --          (δ↓₀ δ↓₁ : (p : Pos M c) → Cns↓ Plbk↓ (Typ↓ M↓ d p , typ-d=ν p) (δ p))
-    --          (ε↓₀ : (p : Pos M c) → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , δ↓₀ p) (ε p))
-    --          (ε↓₁ : (p : Pos M c) → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , δ↓₁ p) (ε p)) where
-
-    --   μf = μ-pos-fst M c (fst ∘ δ)
-    --   μs = μ-pos-snd M c (fst ∘ δ)
-
-    --   δμ : (pq : Pos M (μ M c (fst ∘ δ)))
-    --     → Idx↓ M↓ (Typ M (fst (δ (μf pq))) (μs pq))
-    --   δμ pq = snd (δ (μf pq)) (μs pq) 
-
-    --   δ↓μ : (δ↓ : (p : Pos M c) → Cns↓ Plbk↓ (Typ↓ M↓ d p , typ-d=ν p) (δ p))
-    --     → (pq : Pos M (μ M c (fst ∘ δ)))
-    --     → Typ↓ M↓ (fst (δ↓ (μf pq))) (μs pq)
-    --     == snd (δ (μf pq)) (μs pq)
-    --   δ↓μ δ↓ pq = snd (δ↓ (μf pq)) (μs pq) 
-
-    --   Σ-δε : Set 
-    --   Σ-δε = Σ ((p : Pos M c) → Cns↓ Plbk↓ (Typ↓ M↓ d p , typ-d=ν p) (δ p))
-    --            (λ δ↓ → (p : Pos M c) → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , δ↓ p) (ε p))
-
-    --   total-space : Set
-    --   total-space = Σ (Idx↓ Slc↓ ((i , j) , (μ M c (fst ∘ δ) , δμ))) (λ i → Cns↓ Slc↓ i (nd (c , ν) δ ε))
-
-    --   nd↓-map : Σ-δε → total-space
-    --   nd↓-map (δ↓ , ε↓) = ((j , idp) , (μ↓ M↓ d (fst ∘ δ↓) , δ↓μ δ↓)) , nd↓ (d , typ-d=ν) δ↓ ε↓
-
-    --   -- my-pth : Path {A = Σ-δε} (δ↓₀ , ε↓₀) (δ↓₁ , ε↓₁)
-    --   -- my-pth = pair= p q
-
-    --   slc-typ-cst : (p : δ↓₀ == δ↓₁) (q : ε↓₀ == ε↓₁ [ (λ x → (p : Pos M c) → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , x p) (ε p)) ↓ p ])
-    --     → ap (λ x → Typ↓ Slc↓ (snd x) true) {!!} == {!!}
-    --   slc-typ-cst p q = {!!} 
-
-
-          -- goal : idp == ap (λ x → Typ↓ Slc↓ (snd x) true)
-          --                 (pair= (pair= idp (pb-pth (λ p → δ↓' p , typ-δ↓'=ν' p) δ↓ δ↓'=δ↓))
-          --                        (result (λ p → δ↓' p , typ-δ↓'=ν' p) δ↓ δ↓'=δ↓ ε↓' ε↓ ε-claim)) ∙ idp
-
-
-          -- before-the-app : ((j , idp) , μ↓ M↓ d' (fst ∘ (λ p → δ↓' p , typ-δ↓'=ν' p)) , δ↓μ (λ p → δ↓' p , typ-δ↓'=ν' p)) ,
-          --                     nd↓ (d' , typ-d'=ν) (λ p → (fst ∘ (λ p₁ → δ↓' p₁ , typ-δ↓'=ν' p₁)) p , typ-δ↓'=ν' p) ε↓'
-          --                  ==
-          --                  ((j , idp) , μ↓ M↓ d' (fst ∘ δ↓) , δ↓μ δ↓) ,
-          --                     nd↓ (d' , typ-d'=ν) (λ p → (fst ∘ δ↓) p , snd (δ↓ p)) ε↓
-          -- before-the-app = (pair= (pair= idp (pb-pth (λ p → δ↓' p , typ-δ↓'=ν' p) δ↓ δ↓'=δ↓))
-          --                              (result (λ p → δ↓' p , typ-δ↓'=ν' p) δ↓ δ↓'=δ↓ ε↓' ε↓ ε-claim))
-
     module Helpers (i : Idx M) (j : Idx↓ M↓ i)
              (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
              (δ : (p : Pos M c) → Cns Plbk (Typ M c p , ν p))
@@ -180,24 +126,48 @@ module Lemmas where
         == snd (δ (μf pq)) (μs pq)
       δ↓μ δ↓ pq = snd (δ↓ (μf pq)) (μs pq) 
 
-      module _ (δ↓₀ δ↓₁ : (p : Pos M c) → Cns↓ Plbk↓ (Typ↓ M↓ d p , typ-d=ν p) (δ p))
-               (δ-eq : (p : Pos M c) → δ↓₀ p == δ↓₁ p) where
+      δ-set : Set
+      δ-set = (p : Pos M c) → Cns↓ Plbk↓ (Typ↓ M↓ d p , typ-d=ν p) (δ p)
+
+      ε-fib : δ-set → Set
+      ε-fib δ↓ = (p : Pos M c) → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , δ↓ p) (ε p)
+
+      Σ-δε : Set 
+      Σ-δε = Σ δ-set ε-fib
+
+      Idx↓Slc↓Slc↓ : Set
+      Idx↓Slc↓Slc↓ = Σ (Idx↓ Slc↓ ((i , j) , (μ M c (fst ∘ δ) , δμ))) (λ i → Cns↓ Slc↓ i (nd (c , ν) δ ε))
+
+      nd↓-map : Σ-δε → Idx↓Slc↓Slc↓
+      nd↓-map (δ↓ , ε↓) = ((j , idp) , (μ↓ M↓ d (fst ∘ δ↓) , δ↓μ δ↓)) , nd↓ (d , typ-d=ν) δ↓ ε↓
+
+      -- Some id-elims on decoration types
+      module _ (δ↓₀ δ↓₁ : δ-set) (ε↓₀ : ε-fib δ↓₀) (ε↓₁ : ε-fib δ↓₁) where
+
+        ap-nd↓-map : (p : δ↓₀ == δ↓₁) (q : ε↓₀ == ε↓₁ [ ε-fib ↓ p ])
+          → nd↓ (d , typ-d=ν) δ↓₀ ε↓₀ == nd↓ (d , typ-d=ν) δ↓₁ ε↓₁
+                [ (λ x → Cns↓ Slc↓ x (nd (c , ν) δ ε)) ↓ ap ((j , idp) ,_) (ap (λ x → μ↓ M↓ d (fst ∘ x) , δ↓μ x) p) ]
+        ap-nd↓-map idp idp = idp
+
+        idx-slc-slc-pth : (p : δ↓₀ == δ↓₁) (q : ε↓₀ == ε↓₁ [ ε-fib ↓ p ])
+          → nd↓-map (δ↓₀ , ε↓₀) == nd↓-map (δ↓₁ , ε↓₁)
+        idx-slc-slc-pth p q = pair= (pair= idp (ap (λ x → μ↓ M↓ d (fst ∘ x) , δ↓μ x) p))
+                            (ap-nd↓-map p q) 
+
+        slc-typ-cst : (p : δ↓₀ == δ↓₁) (q : ε↓₀ == ε↓₁ [ ε-fib ↓ p ])
+          → Path {A = Path {A = Idx↓ Slc↓ ((i , j) , (c , ν))} ((j , idp) , (d , typ-d=ν)) ((j , idp) , (d , typ-d=ν))}
+                 idp (ap (λ x → Typ↓ Slc↓ (snd x) true) (idx-slc-slc-pth p q) ∙ idp)
+        slc-typ-cst idp idp = idp
+
+      module _ (δ↓₀ δ↓₁ : δ-set) (δ-eq : (p : Pos M c) → δ↓₀ p == δ↓₁ p) where
 
         pb-pth : Path {A = Cns↓ Plbk↓ (j , idp) (μ M c (fst ∘ δ) , δμ)}
                     (μ↓ M↓ d (fst ∘ δ↓₀) , δ↓μ δ↓₀)
                     (μ↓ M↓ d (fst ∘ δ↓₁) , δ↓μ δ↓₁)
         pb-pth = ap (λ x → μ↓ M↓ d (fst ∘ x) , δ↓μ x) (λ= δ-eq)
 
-        module _ (ε↓₀ : (p : Pos M c) → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , δ↓₀ p) (ε p))
-                 (ε↓₁ : (p : Pos M c) → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , δ↓₁ p) (ε p))
+        module _ (ε↓₀ : ε-fib δ↓₀) (ε↓₁ : ε-fib δ↓₁)
                  (ε-eq : (p : Pos M c) → ε↓₀ p == ε↓₁ p [ (λ x → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , x) (ε p)) ↓ δ-eq p ]) where
-
-          Σ-δε : Set 
-          Σ-δε = Σ ((p : Pos M c) → Cns↓ Plbk↓ (Typ↓ M↓ d p , typ-d=ν p) (δ p))
-                (λ δ↓ → (p : Pos M c) → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , δ↓ p) (ε p))
-
-          ap-nd↓ : (dm : Σ-δε) → Cns↓ Slc↓ ((j , idp) , (μ↓ M↓ d (fst ∘ fst dm) , δ↓μ (fst dm))) (nd (c , ν) δ ε)
-          ap-nd↓ (δ↓ , ε↓) =  nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓ ε↓
 
           ε-eq' : (p : Pos M c) → ε↓₀ p == ε↓₁ p [ (λ x → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , x) (ε p)) ↓ app= (λ= δ-eq) p ]
           ε-eq' p = transport (λ z → ε↓₀ p == ε↓₁ p [ (λ x → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , x) (ε p)) ↓ z ])
@@ -208,30 +178,10 @@ module Lemmas where
             ↓-ap-out (λ x → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , x) (ε p)) (λ x → x p)
                      (λ= δ-eq) (ε-eq' p))
 
-          pth : Path {A = Σ-δε} (δ↓₀ , ε↓₀) (δ↓₁ , ε↓₁)
-          pth = pair= (λ= δ-eq) λ=ε↓
-
-          step₀ : nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
-                    == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
-                      [ (λ x → Cns↓ Slc↓ ((j , idp) , (μ↓ M↓ d (fst ∘ x) , δ↓μ x)) (nd (c , ν) δ ε)) ↓ ap fst pth ]
-          step₀ = ↓-ap-in (λ x → Cns↓ Slc↓ ((j , idp) , (μ↓ M↓ d (fst ∘ x) , δ↓μ x)) (nd (c , ν) δ ε)) fst (apd ap-nd↓ pth)
-
-          step₁ : nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
-                == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
-                  [ (λ x → Cns↓ Slc↓ ((j , idp) , (μ↓ M↓ d (fst ∘ x) , δ↓μ x)) (nd (c , ν) δ ε)) ↓ λ= δ-eq ]
-          step₁ = transport (λ z → nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
-                    == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
-                      [ (λ x → Cns↓ Slc↓ ((j , idp) , (μ↓ M↓ d (fst ∘ x) , δ↓μ x)) (nd (c , ν) δ ε)) ↓ z ]) (fst=-β (λ= δ-eq) λ=ε↓) step₀ 
-
-          step₂ :  nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
-                == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
-                     [ (λ x → Cns↓ Slc↓ ((j , idp) , x) (nd (c , ν) δ ε)) ↓ pb-pth ]
-          step₂ = ↓-ap-in (λ x → Cns↓ Slc↓ ((j , idp) , x) (nd (c , ν) δ ε)) (λ x → μ↓ M↓ d (fst ∘ x) , δ↓μ x) step₁
-
-          result :  nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
+          nd↓-pth :  nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
                 == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
                      [ (λ x → Cns↓ Slc↓ x (nd (c , ν) δ ε)) ↓ ap (λ x → (j , idp) , x) pb-pth ] 
-          result = ↓-ap-in (λ x → Cns↓ Slc↓ x (nd (c , ν) δ ε)) (λ x → (j , idp) , x) step₂ 
+          nd↓-pth = ap-nd↓-map δ↓₀ δ↓₁ ε↓₀ ε↓₁ (λ= δ-eq) λ=ε↓
 
 
   
