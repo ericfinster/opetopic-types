@@ -39,7 +39,7 @@ module SliceAlg3 (M : 𝕄) (M↓ : 𝕄↓ M) where
       by-defn : cns-ih p == ε↓' p [ PdFib p ↓ idx-ih-coh p ] 
       by-defn = from-transp (PdFib p) (idx-ih-coh p) idp
 
-      cns-u-ih : cns-ih p == ε↓ p [ PdFib p ↓ slc-u-ih p ]
+      cns-u-ih : cns-ih p == ε↓ p [ PdFib p ↓ idx-u-ih p ]
       cns-u-ih = slc-cns-unique ((Typ M c p , ν p) , δ p) (ε p) (Typ↓ Slc↓ (ε↓ p)) (α p) 
 
       ε↓'=ε↓ : ε↓' p == ε↓ p [ (λ x → Cns↓ Slc↓ ((Typ↓ M↓ d' p , typ-d'=ν p) , x) (ε p)) ↓ δ↓'=δ↓ p ]

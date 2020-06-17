@@ -159,6 +159,66 @@ module Lemmas where
                  idp (ap (λ x → Typ↓ Slc↓ (snd x) true) (idx-slc-slc-pth p q) ∙ idp)
         slc-typ-cst idp idp = idp
 
+        -- Okay, let's work on the other side. So I think the point is that
+        -- isp should be expressible in terms of this slice lemma thing.
+
+    -- -- An explicit description of equalities in Idx↓ Slc↓ 
+    -- slc-idx-lem : (i : Idx M) (j : Idx↓ M↓ i)
+    --   → (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
+    --   → {j₀ : Idx↓ M↓ i} {e₀ : j₀ == j}
+    --   → {d₀ : Cns↓ M↓ j₀ c} {α₀ : (p : Pos M c) → Typ↓ M↓ d₀ p == ν p}
+    --   → {j₁ : Idx↓ M↓ i} {e₁ : j₁ == j}
+    --   → {d₁ : Cns↓ M↓ j₁ c} {α₁ : (p : Pos M c) → Typ↓ M↓ d₁ p == ν p}
+    --   → (q : j₀ == j₁) (r : e₀ == q ∙ e₁)
+    --   → (s : transport (λ x → Cns↓ M↓ x c) q d₀ == d₁)
+    --   → (t : (p : Pos M c) → α₀ p == (! (typ-trans-inv M M↓ q d₀ p) ∙ ap (λ x → Typ↓ M↓ x p) s) ∙ α₁ p)
+    --   → Path {A = Idx↓ Slc↓ ((i , j) , c , ν)}
+    --     ((j₀ , e₀) , (d₀ , α₀)) ((j₁ , e₁) , (d₁ , α₁)) 
+    -- slc-idx-lem i j c ν idp idp idp t =
+    --   pair= idp (pair= idp (λ= t))
+
+
+
+
+        module _ (p : Pos M c) (q : Pos Slc (ε p))
+                 (r : δ↓₀ == δ↓₁) (s : ε↓₀ == ε↓₁ [ ε-fib ↓ r ])
+                 (idx-ih : Idx↓ Slc↓ ((Typ M c p , ν p) , δ p))
+                 (cns-ih : Cns↓ Slc↓ idx-ih (ε p))
+                 (idx-u-ih : idx-ih == ((Typ↓ M↓ d p , typ-d=ν p) , δ↓₁ p))
+                 (cns-u-ih : cns-ih == ε↓₁ p [ (λ x → Cns↓ Slc↓ x (ε p)) ↓ idx-u-ih ])
+          where
+
+            δ↓' : δ-set
+            δ↓' p = {!!} , {!!}
+
+            okay : Path {A = Path {A = Idx↓ Slc↓ (Typₛ (Pb M (Idx↓ M↓)) (ε p) q)} (Typ↓ Slc↓ (ε↓₀ p) q) (Typ↓ Slc↓ (ε↓₁ p) q)}
+              ({!typ-trans-inv Slc Slc↓ ? cns-ih q!} ∙ (ap (λ x → Typ↓ Slc↓ (snd x) q) (pair= idx-u-ih cns-u-ih)))
+              (ap (λ x → Typ↓ Slc↓ (snd x) (inr (p , q))) (idx-slc-slc-pth r s))
+            okay = {!!}
+
+      -- nd↓-map : Σ-δε → Idx↓Slc↓Slc↓
+      -- nd↓-map (δ↓ , ε↓) = ((j , idp) , (μ↓ M↓ d (fst ∘ δ↓) , δ↓μ δ↓)) , nd↓ (d , typ-d=ν) δ↓ ε↓
+
+
+  -- typ-trans-inv : (M : 𝕄) (M↓ : 𝕄↓ M)
+  --   → {i : Idx M} {c : Cns M i}
+  --   → {j j' : Idx↓ M↓ i} (e : j == j')
+  --   → (d : Cns↓ M↓ j c) (p : Pos M c)
+  --   → Typ↓ M↓ (transport (λ x → Cns↓ M↓ x c) e d) p == Typ↓ M↓ d p
+  -- typ-trans-inv M M↓ idp d p = idp
+
+
+
+          -- we-need : typ-trans-inv Slc Slc↓ {!other!} cns-ih q ∙
+          --           ap (λ x → Typ↓ Slc↓ (snd x) q) (pair= idx-u-ih cns-u-ih)
+          --           == ap (λ x → Typ↓ Slc↓ (snd x) (inr (p , q))) (idx-slc-slc-pth r s) 
+          -- we-need = {!!}
+
+          -- suffices : typ-trans-inv Slc Slc↓ (idx-ih-coh p) (cns-ih p) q ∙ 
+          --            ap (λ x → Typ↓ Slc↓ (snd x) q) (pair= (idx-u-ih p) (cns-u-ih p))
+          --            == ap (λ x → Typ↓ Slc↓ (snd x) (inr (p , q))) isp
+
+
       module _ (δ↓₀ δ↓₁ : δ-set) (δ-eq : (p : Pos M c) → δ↓₀ p == δ↓₁ p) where
 
         pb-pth : Path {A = Cns↓ Plbk↓ (j , idp) (μ M c (fst ∘ δ) , δμ)}

@@ -61,22 +61,22 @@ module SliceAlg2 (M : 𝕄) (M↓ : 𝕄↓ M) where
       α : alg-comp Slc Slc↓ ((Typ M c p , ν p) , δ p) (ε p) (Typ↓ Slc↓ (ε↓ p))
       α = ⟦ ((Typ↓ M↓ d p , typ-d=ν p) , δ↓ p) ∣ ε↓ p ∣ idp ⟧
 
-      slc-u-ih : idx-ih p == idx α
-      slc-u-ih = slc-idx-unique ((Typ M c p , ν p) , δ p) (ε p) (Typ↓ Slc↓ (ε↓ p)) α
+      idx-u-ih : idx-ih p == idx α
+      idx-u-ih = slc-idx-unique ((Typ M c p , ν p) , δ p) (ε p) (Typ↓ Slc↓ (ε↓ p)) α
 
       idx-pth : ((Typ↓ M↓ d p , typ-d=ν p) , (δ↓' p , typ-δ↓'=ν' p)) ==
                   ((Typ↓ M↓ d p , typ-d=ν p) , δ↓ p)
-      idx-pth = ! (idx-ih-coh p) ∙ slc-u-ih  
+      idx-pth = ! (idx-ih-coh p) ∙ idx-u-ih  
 
       contr-lemma : fst= idx-pth == idp
-      contr-lemma = fst= (! (idx-ih-coh p) ∙ slc-u-ih)
-                         =⟨ fst=-comm (idx-ih-coh p) slc-u-ih ⟩
-                    ! (fst= (idx-ih-coh p)) ∙ fst= slc-u-ih
+      contr-lemma = fst= (! (idx-ih-coh p) ∙ idx-u-ih)
+                         =⟨ fst=-comm (idx-ih-coh p) idx-u-ih ⟩
+                    ! (fst= (idx-ih-coh p)) ∙ fst= idx-u-ih
                          =⟨ slc-idx-lem-coh (Typ M c p) (ν p) (fst (δ p)) (snd (δ p))
                                (k=typ-dp p) (pth-alg₀ (k=νp p) (typ-d=ν p)) idp
                                (λ q → pth-alg₁ (typ-e=ν' p q) (typ-trans-inv M M↓ (k=typ-dp p) (e p) q))
-                            |in-ctx (λ x → ! x ∙ fst= slc-u-ih) ⟩
-                    ! (pair= (k=typ-dp p) (↓-idf=cst-in (pth-alg₀ (k=νp p) (typ-d=ν p)))) ∙ fst= slc-u-ih
+                            |in-ctx (λ x → ! x ∙ fst= idx-u-ih) ⟩
+                    ! (pair= (k=typ-dp p) (↓-idf=cst-in (pth-alg₀ (k=νp p) (typ-d=ν p)))) ∙ fst= idx-u-ih
                          =⟨ ! (slc-idx-unique-coh ((Typ M c p , ν p) , δ p) (ε p) (Typ↓ Slc↓ (ε↓ p)) α) |in-ctx
                             (λ x → ! (pair= (k=typ-dp p) (↓-idf=cst-in (pth-alg₀ (k=νp p) (typ-d=ν p)))) ∙ x) ⟩
                     ! (pair= (k=typ-dp p) (↓-idf=cst-in (pth-alg₀ (k=νp p) (typ-d=ν p)))) ∙
