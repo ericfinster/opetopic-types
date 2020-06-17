@@ -66,11 +66,11 @@ module IdentityMonad where
     {-# REWRITE Cns-IdMnd #-}
 
     Pos-IdMnd : (u : Idxᵢ) (c : Cnsᵢ u)
-      → Pos IdMnd {f = u} c ↦ Posᵢ {u = u} c
+      → Pos IdMnd {i = u} c ↦ Posᵢ {u = u} c
     {-# REWRITE Pos-IdMnd #-}
 
     Typ-IdMnd : (u : Idxᵢ) (c : Cnsᵢ u) (p : Posᵢ {u = u} c)
-      → Typ IdMnd {f = u} c p ↦ Typᵢ {u = u} c p
+      → Typ IdMnd {i = u} c p ↦ Typᵢ {u = u} c p
     {-# REWRITE Typ-IdMnd #-}
 
     η-IdMnd : (u : Idxᵢ) 
@@ -90,25 +90,25 @@ module IdentityMonad where
     
     μ-IdMnd : {u : Idxᵢ} (c : Cnsᵢ u)
       → (δ : (p : Posᵢ {u = u} c) → Cnsᵢ (Typᵢ {u = u} c p))
-      → μ IdMnd {f = u} c δ ↦ μᵢ {u = u} c δ
+      → μ IdMnd {i = u} c δ ↦ μᵢ {u = u} c δ
     {-# REWRITE μ-IdMnd #-}
 
     μ-pos-IdMnd : {u : Idxᵢ} (c : Cnsᵢ u)
       → (δ : (p : Posᵢ {u = u} c) → Cnsᵢ (Typᵢ {u = u} c p))
       → (p : Posᵢ {u = u} c) (q : Posᵢ {u = Typᵢ {u = u} c p} (δ p))
-      → μ-pos IdMnd {f = u} c δ p ↦ μ-posᵢ {u = u} c δ p
+      → μ-pos IdMnd {i = u} c δ p ↦ μ-posᵢ {u = u} c δ p
     {-# REWRITE μ-pos-IdMnd #-}
 
     μ-pos-fst-IdMnd : {u : Idxᵢ} (c : Cnsᵢ u)
       → (δ : (p : Posᵢ {u = u} c) → Cnsᵢ (Typᵢ {u = u} c p))
       → (p : Posᵢ {u = u} (μᵢ {u = u} c δ)) 
-      → μ-pos-fst IdMnd {f = u} c δ p ↦ μ-pos-fstᵢ {u = u} c δ p
+      → μ-pos-fst IdMnd {i = u} c δ p ↦ μ-pos-fstᵢ {u = u} c δ p
     {-# REWRITE μ-pos-fst-IdMnd #-}
 
     μ-pos-snd-IdMnd : {u : Idxᵢ} (c : Cnsᵢ u)
       → (δ : (p : Posᵢ {u = u} c) → Cnsᵢ (Typᵢ {u = u} c p))
       → (p : Posᵢ {u = u} (μᵢ {u = u} c δ))
-      → μ-pos-snd IdMnd {f = u} c δ p ↦ μ-pos-sndᵢ {u = u} c δ p
+      → μ-pos-snd IdMnd {i = u} c δ p ↦ μ-pos-sndᵢ {u = u} c δ p
     {-# REWRITE μ-pos-snd-IdMnd #-} 
 
 
