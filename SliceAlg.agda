@@ -27,9 +27,9 @@ module SliceAlg (M : 𝕄) (M↓ : 𝕄↓ M) where
 
   module IdxIh (i : Idx M) (j : Idx↓ M↓ i)
                (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
-               (δ : (p : Pos Plbk {f = i , j} (c , ν)) → Cns Plbk (Typ Plbk {f = i , j} (c , ν) p))
-               (ε : (p : Pos Plbk {f = i , j} (c , ν)) → Cns Slc (Typ Plbk {f = i , j} (c , ν) p , δ p))
-               (ϕ : (p : Pos Slc (nd {f = i , j} (c , ν) δ ε)) → Idx↓ Slc↓ (Typ Slc (nd {f = i , j} (c , ν) δ ε) p)) where
+               (δ : (p : Pos Plbk {i = i , j} (c , ν)) → Cns Plbk (Typ Plbk {i = i , j} (c , ν) p))
+               (ε : (p : Pos Plbk {i = i , j} (c , ν)) → Cns Slc (Typ Plbk {i = i , j} (c , ν) p , δ p))
+               (ϕ : (p : Pos Slc (nd {i = i , j} (c , ν) δ ε)) → Idx↓ Slc↓ (Typ Slc (nd {i = i , j} (c , ν) δ ε) p)) where
 
     j' = fst (fst (ϕ (inl unit)))
     j'=j = snd (fst (ϕ (inl unit)))
@@ -82,9 +82,9 @@ module SliceAlg (M : 𝕄) (M↓ : 𝕄↓ M) where
 
   module CnsIh (i : Idx M) (j : Idx↓ M↓ i)
                (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
-               (δ : (p : Pos Plbk {f = i , j} (c , ν)) → Cns Plbk (Typ Plbk {f = i , j} (c , ν) p))
-               (ε : (p : Pos Plbk {f = i , j} (c , ν)) → Cns Slc (Typ Plbk {f = i , j} (c , ν) p , δ p))
-               (ϕ : (p : Pos Slc (nd {f = i , j} (c , ν) δ ε)) → Idx↓ Slc↓ (Typ Slc (nd {f = i , j} (c , ν) δ ε) p)) where
+               (δ : (p : Pos Plbk {i = i , j} (c , ν)) → Cns Plbk (Typ Plbk {i = i , j} (c , ν) p))
+               (ε : (p : Pos Plbk {i = i , j} (c , ν)) → Cns Slc (Typ Plbk {i = i , j} (c , ν) p , δ p))
+               (ϕ : (p : Pos Slc (nd {i = i , j} (c , ν) δ ε)) → Idx↓ Slc↓ (Typ Slc (nd {i = i , j} (c , ν) δ ε) p)) where
 
     open IdxIh i j c ν δ ε ϕ 
 
@@ -96,7 +96,7 @@ module SliceAlg (M : 𝕄) (M↓ : 𝕄↓ M) where
       PdFib : Idx↓ Slc↓ ((Typ M c p , ν p) , δ p) → Set
       PdFib x = Pd↓ (Pb↓ M↓ (Idx↓ M↓) (λ i j k → j == k)) x (ε p) 
   
-      idx-ih-coh : idx-ih p == ((Typ↓ M↓ d p , typ-d=ν p) , (δ↓' p , typ-δ↓'=ν' p))                             
+      idx-ih-coh : idx-ih p == ((Typ↓ M↓ d p , typ-d=ν p) , (δ↓' p , typ-δ↓'=ν' p))
       idx-ih-coh = slc-idx-lem (Typ M c p) (ν p) (fst (δ p)) (snd (δ p))
                      (k=typ-dp p) (pth-alg₀ (k=νp p) (typ-d=ν p)) idp
                      (λ q → pth-alg₁ (typ-e=ν' p q) (typ-trans-inv M M↓ (k=typ-dp p) (e p) q))

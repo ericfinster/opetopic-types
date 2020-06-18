@@ -28,11 +28,11 @@ module SliceAlg2 (M : 𝕄) (M↓ : 𝕄↓ M) where
 
   module IdxUniqueIh (i : Idx M) (j : Idx↓ M↓ i)
                      (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
-                     (δ : (p : Pos Plbk {f = i , j} (c , ν)) → Cns Plbk (Typ Plbk {f = i , j} (c , ν) p))
-                     (ε : (p : Pos Plbk {f = i , j} (c , ν)) → Cns Slc (Typ Plbk {f = i , j} (c , ν) p , δ p))
+                     (δ : (p : Pos Plbk {i = i , j} (c , ν)) → Cns Plbk (Typ Plbk {i = i , j} (c , ν) p))
+                     (ε : (p : Pos Plbk {i = i , j} (c , ν)) → Cns Slc (Typ Plbk {i = i , j} (c , ν) p , δ p))
                      (d' : Cns↓ M↓ j c) (typ-d'=ν : (p : Pos M c) → Typ↓ M↓ d' p == ν p)
-                     (δ↓ : (p : Pos Plbk {f = i , j} (c , ν)) → Cns↓ Plbk↓ (Typ↓ M↓ d' p , typ-d'=ν p) (δ p))
-                     (ε↓ : (p : Pos Plbk {f = i , j} (c , ν)) → Cns↓ Slc↓ ((Typ↓ M↓ d' p , typ-d'=ν p) , δ↓ p) (ε p)) where
+                     (δ↓ : (p : Pos Plbk {i = i , j} (c , ν)) → Cns↓ Plbk↓ (Typ↓ M↓ d' p , typ-d'=ν p) (δ p))
+                     (ε↓ : (p : Pos Plbk {i = i , j} (c , ν)) → Cns↓ Slc↓ ((Typ↓ M↓ d' p , typ-d'=ν p) , δ↓ p) (ε p)) where
 
     open Helpers i j c ν δ ε d' typ-d'=ν 
 
@@ -49,8 +49,8 @@ module SliceAlg2 (M : 𝕄) (M↓ : 𝕄↓ M) where
     -- that proof obligation and why we seem to only need to characterize
     -- δ↓ and ε↓ in terms of previous data.
 
-    ϕ : (p : Pos Slc (nd {f = i , j} (c , ν) δ ε)) → Idx↓ Slc↓ (Typ Slc (nd {f = i , j} (c , ν) δ ε) p)
-    ϕ = Typ↓ Slc↓ {f↓ = idxslc↓} (nd↓ {f↓ = j , idp} (d' , typ-d'=ν) δ↓ ε↓)
+    ϕ : (p : Pos Slc (nd {i = i , j} (c , ν) δ ε)) → Idx↓ Slc↓ (Typ Slc (nd {i = i , j} (c , ν) δ ε) p)
+    ϕ = Typ↓ Slc↓ {i↓ = idxslc↓} (nd↓ {i↓ = j , idp} (d' , typ-d'=ν) δ↓ ε↓)
 
     open IdxIh i j c ν δ ε ϕ
     open CnsIh i j c ν δ ε ϕ
@@ -85,8 +85,11 @@ module SliceAlg2 (M : 𝕄) (M↓ : 𝕄↓ M) where
                     idp =∎  
 
       δ↓'=δ↓ : (δ↓' p , typ-δ↓'=ν' p) == δ↓ p
-      δ↓'=δ↓ = transport (λ y → (δ↓' p , typ-δ↓'=ν' p) == (δ↓ p) [ (λ x → Cns↓ Plbk↓ x (δ p)) ↓ y ])
-                 contr-lemma (snd= idx-pth)  
+      δ↓'=δ↓ = Σ-fst-triv-lem₀ {B = (λ x → Cns↓ Plbk↓ x (δ p))}
+                     idx-pth contr-lemma
+
+      -- transport (λ y → (δ↓' p , typ-δ↓'=ν' p) == (δ↓ p) [ (λ x → Cns↓ Plbk↓ x (δ p)) ↓ y ])
+      --            contr-lemma (snd= idx-pth)  
 
   slc-idx-unique ((i , j) , ._ , ._) (lf .(i , j)) ._ ⟦ (._ , idp) , ._ , ._ ∣ lf↓ (.j , .idp) ∣ idp ⟧ = idp
   slc-idx-unique ((i , j) , ._ , ._) (nd (c , ν) δ ε) ._ ⟦ (.j , idp) , ._ , ._ ∣ nd↓ (d' , typ-d'=ν) δ↓ ε↓ ∣ idp ⟧ =

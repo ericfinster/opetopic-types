@@ -27,6 +27,20 @@ module Lemmas where
     → p == (! q ∙ idp) ∙ q ∙ p
   pth-alg₁ idp idp = idp 
 
+  fst=-comm : ∀ {i j} {A : Type i} {B : A → Type j}
+    → {x y z : Σ A B} (p : y == x) (q : y == z)
+    → fst= (! p ∙ q) == ! (fst= p) ∙ fst= q
+  fst=-comm idp idp = idp
+
+  pair=ap-lem : ∀ {i j k l} {A : Type i} {B : A → Type j}
+    → {C : Σ A B → Type k} {R : Type l} {D : Σ (Σ A B) C → R}
+    → {a : A} {b b' : B a} {c : C (a , b)} {c' : C (a , b')}
+    → (p : b == b')
+    → (q : c == c' [ C ↓ ap (a ,_) p ])
+    → ap D (pair= (ap (a ,_) p) q) == 
+      (ap (λ x → D ((a , fst x) , snd x)) (pair= p (↓-ap-out C (a ,_) p q)))
+  pair=ap-lem idp idp = idp
+
   -- Lemma about transporting in constructors
   typ-trans-inv : (M : 𝕄) (M↓ : 𝕄↓ M)
     → {i : Idx M} {c : Cns M i}
@@ -35,31 +49,65 @@ module Lemmas where
     → Typ↓ M↓ (transport (λ x → Cns↓ M↓ x c) e d) p == Typ↓ M↓ d p
   typ-trans-inv M M↓ idp d p = idp
 
-  fst=-comm : ∀ {i j} {A : Type i} {B : A → Type j}
-    → {x y z : Σ A B} (p : y == x) (q : y == z)
-    → fst= (! p ∙ q) == ! (fst= p) ∙ fst= q
-  fst=-comm idp idp = idp
-
   Σ-fst-triv-lem₀ : ∀ {i j} {A : Type i} {B : A → Type j}
-    → {a : A} {b₀ b₁ : B a} (p : Path {A = Σ A B} (a , b₀) (a , b₁))
+    → {a : A} {b b' : B a} (p : Path {A = Σ A B} (a , b) (a , b'))
     → (q : fst= p == idp)
-    → b₀ == b₁
-  Σ-fst-triv-lem₀ {B = B} {b₀ = b₀} {b₁ = b₁} p q =
-    transport (λ x → b₀ == b₁ [ B ↓ x ]) q (snd= p) 
+    → b == b'
+  Σ-fst-triv-lem₀ {B = B} {b = b} {b' = b'} p q =
+    transport (λ x → b == b' [ B ↓ x ]) q (snd= p) 
   
   Σ-fst-triv-lem₁ : ∀ {i j k} {A : Type i} {B : A → Type j}
     → {C : Σ A B → Type k}
-    → {a : A} {b₀ b₁ : B a} (p : (a , b₀) == (a , b₁))
+    → {a : A} {b b' : B a} (p : (a , b) == (a , b'))
     → (q : fst= p == idp)
-    → {x : C (a , b₀)} {y : C (a , b₁)}
-    → x == y [ C ↓ p ]
-    → x == y [ (λ b → C (a , b)) ↓ Σ-fst-triv-lem₀ p q ] 
-  Σ-fst-triv-lem₁ {B = B} {C = C} {a = a} {b₀ = b₀} {b₁ = b₁} p q {x} {y} r =
-    ↓-ap-out C (a ,_) (Σ-fst-triv-lem₀ p q) (transport (λ z → x == y [ C ↓ z ]) pth r)
+    → {c : C (a , b)} {c' : C (a , b')}
+    → c == c' [ C ↓ p ]
+    → c == c' [ (λ b → C (a , b)) ↓ Σ-fst-triv-lem₀ p q ] 
+  Σ-fst-triv-lem₁ {B = B} {C = C} {a = a} {b = b} {b' = b'} p q {c} {c'} r =
+    ↓-ap-out C (a ,_) (Σ-fst-triv-lem₀ p q) pth-ovr
 
     where pth : p == pair= idp (Σ-fst-triv-lem₀ p q)
           pth = pair=-η p ∙ (ap (λ z → pair= (fst z) (snd z))
-            (pair= q (from-transp (λ z → b₀ == b₁ [ B ↓ z ]) q {u = snd= p} idp)))
+            (pair= q (from-transp (λ z → b == b' [ B ↓ z ]) q {u = snd= p} idp)))
+
+          pth-ovr : c == c' [ C ↓ ap (a ,_) (Σ-fst-triv-lem₀ p q) ]
+          pth-ovr = transport (λ z → c == c' [ C ↓ z ]) pth r 
+
+  Σ-fst-triv-lem₂ : ∀ {i j k l} (A : Type i) (B : A → Type j) 
+    → (C : Σ A B → Type k) {R : Type l} (D : Σ (Σ A B) C → R)
+    → (a : A) (b b' : B a) (c : C (a , b)) (c' : C (a , b'))
+    → (p : (a , b) == (a , b'))
+    → (q : fst= p == idp)
+    → (r : c == c' [ C ↓ p ])
+    → ap D (pair= p r) ==
+      ap (λ x → D ((a , fst x) , snd x))
+         (pair= (Σ-fst-triv-lem₀ p q) (Σ-fst-triv-lem₁ p q r))
+  Σ-fst-triv-lem₂ A B C D a b b' c c' p q r = 
+
+    ap D (pair= p r) =⟨ ap (λ x → ap D (pair= (fst x) (snd x))) pth-pair ⟩  
+    ap D (pair= (ap (a ,_) (Σ-fst-triv-lem₀ p q)) pth-ovr)
+      =⟨ pair=ap-lem (Σ-fst-triv-lem₀ p q) pth-ovr ⟩ 
+    ap (λ x → D ((a , fst x) , snd x))
+      (pair= (Σ-fst-triv-lem₀ p q) (↓-ap-out C (a ,_) (Σ-fst-triv-lem₀ p q) pth-ovr)) =∎
+
+    where pth : p == pair= idp (Σ-fst-triv-lem₀ p q)
+          pth = pair=-η p ∙ (ap (λ z → pair= (fst z) (snd z))
+            (pair= q (from-transp (λ z → b == b' [ B ↓ z ]) q {u = snd= p} idp)))
+
+          pth-ovr : c == c' [ C ↓ ap (a ,_) (Σ-fst-triv-lem₀ p q) ]
+          pth-ovr = transport (λ z → c == c' [ C ↓ z ]) pth r 
+
+          pth-pair : (p , r) == (pair= idp (Σ-fst-triv-lem₀ p q) , pth-ovr)
+          pth-pair = pair= pth (from-transp (λ z → c == c' [ C ↓ z ]) pth {u = r} idp) 
+
+  app=↓ : ∀ {i j k} {A : Type i} {B : A → Type j}
+    → {C : (a : A) → B a → Type k}
+    → {f f' : (a : A) → B a} (p : f == f')
+    → {g : (a : A) → C a (f a)}
+    → {g' : (a : A) → C a (f' a)}
+    → (q : g == g' [ (λ x → (a : A) → C a (x a)) ↓ p ])
+    → (a : A) → g a == g' a [ (λ x → C a x) ↓ app= p a ]
+  app=↓ idp idp a = idp 
 
   --
   -- Various generic lemmas about indices and so on in the slice
@@ -107,6 +155,33 @@ module Lemmas where
       → fst= (slc-idx-lem i j c ν q r s t) == pair= q (↓-idf=cst-in r)
     slc-idx-lem-coh i j c ν idp idp idp t = fst=-β idp (pair= idp (λ= t)) 
 
+    module _ where
+
+      the-lemma : {i : Idx Slc} {εp : Cns Slc i}
+        → {k k' : Idx↓ Plbk↓ (fst i)} {j : Cns↓ Plbk↓ k (snd i)}
+        → {j' j'' : Cns↓ Plbk↓ k' (snd i)}
+        → (idx-ih-coh : Path {A = Idx↓ Slc↓ i} (k , j) (k' , j'))
+        → (cns-ih : Cns↓ Slc↓ (k , j) εp) (q : Pos Slc εp)
+        → (idx-u-ih : Path {A = Idx↓ Slc↓ i} (k , j) (k' , j''))
+        → (ε↓ : Cns↓ Slc↓ (k' , j'') εp)
+        → (cns-u-ih : cns-ih == ε↓ [ (λ x → Cns↓ Slc↓ x εp) ↓ idx-u-ih ])
+        → (ctr : fst= (! idx-ih-coh ∙ idx-u-ih) == idp)
+        → typ-trans-inv Slc Slc↓ idx-ih-coh cns-ih q ∙ (ap (λ x → Typ↓ Slc↓ (snd x) q) (pair= idx-u-ih cns-u-ih))
+          == ap (λ x → Typ↓ Slc↓ (snd x) q)
+            (pair= (Σ-fst-triv-lem₀ (! idx-ih-coh ∙ idx-u-ih) ctr)
+              (Σ-fst-triv-lem₁ (! idx-ih-coh ∙ idx-u-ih) ctr (!ᵈ (from-transp (λ x → Cns↓ Slc↓ x εp) idx-ih-coh idp) ∙ᵈ cns-u-ih))) 
+      the-lemma {i} {εp} {k = k} {j = j} {j'' = j''} idp cns-ih q idx-u-ih ε↓ cns-u-ih ctr =
+        transport (λ z → ap (λ x → Typ↓ₛ (Pb↓ M↓ (Idx↓ M↓) (λ i₁ → _==_)) (snd x) q)
+                         (pair= idx-u-ih cns-u-ih)
+                         ==
+                         ap (λ x → Typ↓ₛ (Pb↓ M↓ (Idx↓ M↓) (λ i₁ → _==_)) (snd x) q)
+                         (pair= (Σ-fst-triv-lem₀ idx-u-ih ctr)
+                          (Σ-fst-triv-lem₁ idx-u-ih ctr z))) 
+                  (! (idp◃ cns-u-ih))
+                  (Σ-fst-triv-lem₂ (Idx↓ Plbk↓ (fst i)) (λ x → Cns↓ Plbk↓ x (snd i))
+                      (λ x → Cns↓ Slc↓ x εp) (λ x → Typ↓ Slc↓ (snd x) q) k j j''
+                        cns-ih ε↓ idx-u-ih ctr cns-u-ih)
+
     module Helpers (i : Idx M) (j : Idx↓ M↓ i)
              (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
              (δ : (p : Pos M c) → Cns Plbk (Typ M c p , ν p))
@@ -144,80 +219,94 @@ module Lemmas where
       -- Some id-elims on decoration types
       module _ (δ↓₀ δ↓₁ : δ-set) (ε↓₀ : ε-fib δ↓₀) (ε↓₁ : ε-fib δ↓₁) where
 
-        ap-nd↓-map : (p : δ↓₀ == δ↓₁) (q : ε↓₀ == ε↓₁ [ ε-fib ↓ p ])
+        ap-nd↓-map : (δ↓= : δ↓₀ == δ↓₁) (ε↓= : ε↓₀ == ε↓₁ [ ε-fib ↓ δ↓= ])
           → nd↓ (d , typ-d=ν) δ↓₀ ε↓₀ == nd↓ (d , typ-d=ν) δ↓₁ ε↓₁
-                [ (λ x → Cns↓ Slc↓ x (nd (c , ν) δ ε)) ↓ ap ((j , idp) ,_) (ap (λ x → μ↓ M↓ d (fst ∘ x) , δ↓μ x) p) ]
+                [ (λ x → Cns↓ Slc↓ x (nd (c , ν) δ ε)) ↓ ap ((j , idp) ,_) (ap (λ x → μ↓ M↓ d (fst ∘ x) , δ↓μ x) δ↓=) ]
         ap-nd↓-map idp idp = idp
 
-        idx-slc-slc-pth : (p : δ↓₀ == δ↓₁) (q : ε↓₀ == ε↓₁ [ ε-fib ↓ p ])
+        idx-slc-slc-pth : (δ↓= : δ↓₀ == δ↓₁) (ε↓= : ε↓₀ == ε↓₁ [ ε-fib ↓ δ↓= ])
           → nd↓-map (δ↓₀ , ε↓₀) == nd↓-map (δ↓₁ , ε↓₁)
         idx-slc-slc-pth p q = pair= (pair= idp (ap (λ x → μ↓ M↓ d (fst ∘ x) , δ↓μ x) p))
                             (ap-nd↓-map p q) 
 
-        slc-typ-cst : (p : δ↓₀ == δ↓₁) (q : ε↓₀ == ε↓₁ [ ε-fib ↓ p ])
+        slc-typ-cst : (δ↓= : δ↓₀ == δ↓₁) (ε↓= : ε↓₀ == ε↓₁ [ ε-fib ↓ δ↓= ])
           → Path {A = Path {A = Idx↓ Slc↓ ((i , j) , (c , ν))} ((j , idp) , (d , typ-d=ν)) ((j , idp) , (d , typ-d=ν))}
-                 idp (ap (λ x → Typ↓ Slc↓ (snd x) true) (idx-slc-slc-pth p q) ∙ idp)
+                 idp (ap (λ x → Typ↓ Slc↓ (snd x) true) (idx-slc-slc-pth δ↓= ε↓=) ∙ idp)
         slc-typ-cst idp idp = idp
 
-        -- Okay, let's work on the other side. So I think the point is that
-        -- isp should be expressible in terms of this slice lemma thing.
+        slc-typ-cst-coh : (δ↓= : δ↓₀ == δ↓₁) (ε↓= : ε↓₀ == ε↓₁ [ ε-fib ↓ δ↓= ])
+          → (p : Pos M c) (q : Pos Slc (ε p))
+          → Path {A = Path {A = Idx↓ Slc↓ (Typₛ (Pb M (Idx↓ M↓)) (ε p) q)} (Typ↓ Slc↓ (ε↓₀ p) q) (Typ↓ Slc↓ (ε↓₁ p) q)}
+                 (ap (λ x → Typ↓ Slc↓ (snd x) q) (pair= (app= δ↓= p)
+                   (app=↓ {A = Pos M c} {B = λ p → Cns↓ Plbk↓ (Typ↓ M↓ d p , typ-d=ν p) (δ p)}
+                          {C = λ p x → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , x) (ε p)} δ↓= ε↓= p)))
+                 (ap (λ x → Typ↓ Slc↓ (snd x) (inr (p , q))) (idx-slc-slc-pth δ↓= ε↓=)) 
+        slc-typ-cst-coh idp idp p q = idp
 
-    -- -- An explicit description of equalities in Idx↓ Slc↓ 
-    -- slc-idx-lem : (i : Idx M) (j : Idx↓ M↓ i)
-    --   → (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
-    --   → {j₀ : Idx↓ M↓ i} {e₀ : j₀ == j}
-    --   → {d₀ : Cns↓ M↓ j₀ c} {α₀ : (p : Pos M c) → Typ↓ M↓ d₀ p == ν p}
-    --   → {j₁ : Idx↓ M↓ i} {e₁ : j₁ == j}
-    --   → {d₁ : Cns↓ M↓ j₁ c} {α₁ : (p : Pos M c) → Typ↓ M↓ d₁ p == ν p}
-    --   → (q : j₀ == j₁) (r : e₀ == q ∙ e₁)
-    --   → (s : transport (λ x → Cns↓ M↓ x c) q d₀ == d₁)
-    --   → (t : (p : Pos M c) → α₀ p == (! (typ-trans-inv M M↓ q d₀ p) ∙ ap (λ x → Typ↓ M↓ x p) s) ∙ α₁ p)
-    --   → Path {A = Idx↓ Slc↓ ((i , j) , c , ν)}
-    --     ((j₀ , e₀) , (d₀ , α₀)) ((j₁ , e₁) , (d₁ , α₁)) 
-    -- slc-idx-lem i j c ν idp idp idp t =
-    --   pair= idp (pair= idp (λ= t))
-
-
-
+      module WIP (δ↓ : δ-set) (ε↓ : ε-fib δ↓) where
 
         module _ (p : Pos M c) (q : Pos Slc (ε p))
-                 (r : δ↓₀ == δ↓₁) (s : ε↓₀ == ε↓₁ [ ε-fib ↓ r ])
-                 (idx-ih : Idx↓ Slc↓ ((Typ M c p , ν p) , δ p))
-                 (cns-ih : Cns↓ Slc↓ idx-ih (ε p))
-                 (idx-u-ih : idx-ih == ((Typ↓ M↓ d p , typ-d=ν p) , δ↓₁ p))
-                 (cns-u-ih : cns-ih == ε↓₁ p [ (λ x → Cns↓ Slc↓ x (ε p)) ↓ idx-u-ih ])
-          where
+                     (idx-ih : Idx↓ Slc↓ ((Typ M c p , ν p) , δ p))
+                     (cns-ih : Cns↓ Slc↓ idx-ih (ε p))
+                     (idx-u-ih : idx-ih == ((Typ↓ M↓ d p , typ-d=ν p) , δ↓ p))
+                     (cns-u-ih : cns-ih == ε↓ p [ (λ x → Cns↓ Slc↓ x (ε p)) ↓ idx-u-ih ]) where
 
-            δ↓' : δ-set
-            δ↓' p = {!!} , {!!}
+          ν' = snd (δ p)
 
-            okay : Path {A = Path {A = Idx↓ Slc↓ (Typₛ (Pb M (Idx↓ M↓)) (ε p) q)} (Typ↓ Slc↓ (ε↓₀ p) q) (Typ↓ Slc↓ (ε↓₁ p) q)}
-              ({!typ-trans-inv Slc Slc↓ ? cns-ih q!} ∙ (ap (λ x → Typ↓ Slc↓ (snd x) q) (pair= idx-u-ih cns-u-ih)))
-              (ap (λ x → Typ↓ Slc↓ (snd x) (inr (p , q))) (idx-slc-slc-pth r s))
-            okay = {!!}
+          k : Idx↓ M↓ (Typ M c p)
+          k = fst (fst idx-ih)
 
-      -- nd↓-map : Σ-δε → Idx↓Slc↓Slc↓
-      -- nd↓-map (δ↓ , ε↓) = ((j , idp) , (μ↓ M↓ d (fst ∘ δ↓) , δ↓μ δ↓)) , nd↓ (d , typ-d=ν) δ↓ ε↓
+          e : Cns↓ M↓ k (fst (δ p))
+          e = fst (snd idx-ih) 
 
+          k=νp : k == ν p
+          k=νp = snd (fst idx-ih) 
 
-  -- typ-trans-inv : (M : 𝕄) (M↓ : 𝕄↓ M)
-  --   → {i : Idx M} {c : Cns M i}
-  --   → {j j' : Idx↓ M↓ i} (e : j == j')
-  --   → (d : Cns↓ M↓ j c) (p : Pos M c)
-  --   → Typ↓ M↓ (transport (λ x → Cns↓ M↓ x c) e d) p == Typ↓ M↓ d p
-  -- typ-trans-inv M M↓ idp d p = idp
+          typ-e=ν' : (q : Pos M (fst (δ p))) → Typ↓ M↓ e q == ν' q
+          typ-e=ν' = snd (snd idx-ih) 
 
+          CnsFib : Idx↓ M↓ (Typ M c p) → Set
+          CnsFib x = Cns↓ M↓ x (fst (δ p)) 
 
+          k=typ-dp : k == Typ↓ M↓ d p
+          k=typ-dp = k=νp ∙ ! (typ-d=ν p) 
 
-          -- we-need : typ-trans-inv Slc Slc↓ {!other!} cns-ih q ∙
-          --           ap (λ x → Typ↓ Slc↓ (snd x) q) (pair= idx-u-ih cns-u-ih)
-          --           == ap (λ x → Typ↓ Slc↓ (snd x) (inr (p , q))) (idx-slc-slc-pth r s) 
-          -- we-need = {!!}
+          δ↓' = transport CnsFib k=typ-dp e
 
-          -- suffices : typ-trans-inv Slc Slc↓ (idx-ih-coh p) (cns-ih p) q ∙ 
-          --            ap (λ x → Typ↓ Slc↓ (snd x) q) (pair= (idx-u-ih p) (cns-u-ih p))
-          --            == ap (λ x → Typ↓ Slc↓ (snd x) (inr (p , q))) isp
+          typ-δ↓'=ν' : (q : Pos M (fst (δ p))) → Typ↓ M↓ δ↓' q == ν' q
+          typ-δ↓'=ν' q = typ-trans-inv M M↓ k=typ-dp e q ∙ typ-e=ν' q 
 
+          PdFib : Idx↓ Slc↓ ((Typ M c p , ν p) , δ p) → Set
+          PdFib x = Pd↓ (Pb↓ M↓ (Idx↓ M↓) (λ i j k → j == k)) x (ε p) 
+
+          idx-ih-coh : idx-ih == ((Typ↓ M↓ d p , typ-d=ν p) , (δ↓' , typ-δ↓'=ν'))                             
+          idx-ih-coh = slc-idx-lem (Typ M c p) (ν p) (fst (δ p)) (snd (δ p))
+                         k=typ-dp (pth-alg₀ k=νp (typ-d=ν p)) idp
+                         (λ q → pth-alg₁ (typ-e=ν' q) (typ-trans-inv M M↓ k=typ-dp e q))
+
+          ε↓' : Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , δ↓' , typ-δ↓'=ν') (ε p)
+          ε↓' = transport PdFib idx-ih-coh cns-ih 
+
+          idx-pth : ((Typ↓ M↓ d p , typ-d=ν p) , δ↓' , typ-δ↓'=ν') ==
+                    ((Typ↓ M↓ d p , typ-d=ν p) , δ↓ p)
+          idx-pth = ! idx-ih-coh ∙ idx-u-ih  
+
+          -- So, these are going to come out the the two proofs that δ↓'=δ↓ and ε↓'=ε↓ locally
+          -- at p.  These are written in terms of the lemmas above.
+
+          δ↓'=δ↓ : (cpth : fst= idx-pth == idp) → (δ↓' , typ-δ↓'=ν') == δ↓ p
+          δ↓'=δ↓ q = Σ-fst-triv-lem₀ {B = (λ x → Cns↓ Plbk↓ x (δ p))}
+                     idx-pth q
+                     
+          ε↓'=ε↓ : (cpth : fst= idx-pth == idp) → ε↓' == ε↓ p [ (λ x → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , x) (ε p)) ↓ δ↓'=δ↓ cpth ]
+          ε↓'=ε↓ cpth = Σ-fst-triv-lem₁ {C = λ z → Cns↓ Slc↓ z (ε p)} {a = (Typ↓ M↓ d p , typ-d=ν p)}
+                     idx-pth cpth (!ᵈ (from-transp PdFib idx-ih-coh {u = cns-ih} {v = ε↓'} idp) ∙ᵈ cns-u-ih)
+
+          looking-for : (cpth : fst= idx-pth == idp)
+            → Path {A = Path {A = Idx↓ Slc↓ (Typₛ (Pb M (Idx↓ M↓)) (ε p) q)} (Typ↓ Slc↓ ε↓' q) (Typ↓ Slc↓ (ε↓ p) q)}
+                   (typ-trans-inv Slc Slc↓ idx-ih-coh cns-ih q ∙ (ap (λ x → Typ↓ Slc↓ (snd x) q) (pair= idx-u-ih cns-u-ih)))
+                   (ap (λ x → Typ↓ Slc↓ (snd x) q) (pair= (δ↓'=δ↓ cpth) (ε↓'=ε↓ cpth)))
+          looking-for cpth = the-lemma idx-ih-coh cns-ih q idx-u-ih (ε↓ p) cns-u-ih cpth
 
       module _ (δ↓₀ δ↓₁ : δ-set) (δ-eq : (p : Pos M c) → δ↓₀ p == δ↓₁ p) where
 
@@ -238,8 +327,8 @@ module Lemmas where
             ↓-ap-out (λ x → Cns↓ Slc↓ ((Typ↓ M↓ d p , typ-d=ν p) , x) (ε p)) (λ x → x p)
                      (λ= δ-eq) (ε-eq' p))
 
-          nd↓-pth :  nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
-                == nd↓ {f↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
+          nd↓-pth :  nd↓ {i↓ = j , idp} (d , typ-d=ν) δ↓₀ ε↓₀
+                == nd↓ {i↓ = j , idp} (d , typ-d=ν) δ↓₁ ε↓₁
                      [ (λ x → Cns↓ Slc↓ x (nd (c , ν) δ ε)) ↓ ap (λ x → (j , idp) , x) pb-pth ] 
           nd↓-pth = ap-nd↓-map δ↓₀ δ↓₁ ε↓₀ ε↓₁ (λ= δ-eq) λ=ε↓
 

@@ -18,13 +18,6 @@ module Globular where
 
   open GType public
 
-  record GMap (X Y : GType) : Set where
-    coinductive
-    field
-      f-ob : GOb X → GOb Y
-      f-hom : (x y : GOb X)
-        → GMap (GHom X x y) (GHom Y (f-ob x) (f-ob y))
-
   record _≃g_ (X Y : GType)  : Set where
     coinductive
     field
@@ -46,12 +39,6 @@ module Globular where
   ObEqv (equiv-to-g-equiv X Y e) = e
   HomEqv (equiv-to-g-equiv X Y e) x y =
     equiv-to-g-equiv (x == y) (–> e x == –> e y) (ap-equiv e x y)
-
-  OpToGlob : (M : 𝕄) (X : OpetopicType M) → Idx M → GType
-  GOb (OpToGlob M X i) = Ob X i
-  GHom (OpToGlob M X i) x y =
-    OpToGlob (Slice (Pb M (Ob X))) (Hom X)
-                       ((i , y) , (η M i , λ _ → x))
 
   module _ (M : 𝕄) (X : OpetopicType M) (is-fib : is-fibrant X) where
 
@@ -81,3 +68,10 @@ module Globular where
     → OpToGlob M X i ≃g IdG (Ob X i)
   corollary M i X is-fib =
     fibrant-is-eq M i X (Ob X i) (ide (Ob X i)) is-fib 
+
+
+  OpToGlob : (M : 𝕄) (X : OpetopicType M) → Idx M → GType
+  GOb (OpToGlob M X i) = Ob X i
+  GHom (OpToGlob M X i) x y =
+    OpToGlob (Slice (Pb M (Ob X))) (Hom X)
+                       ((i , y) , (η M i , λ _ → x))
