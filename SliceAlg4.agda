@@ -61,7 +61,9 @@ module SliceAlg4 (M : 𝕄) (M↓ : 𝕄↓ M) where
                    -- Well, it works, but this step here makes the typechecking take
                    -- a full couple minutes.  Perhaps explicit the arguments or something?
                    =⟨ ap (λ z → ap (λ x → Typ↓ₛ (Pb↓ M↓ (Idx↓ M↓) (λ i₁ → _==_)) (snd x) q) z)
-                          (app=-pair δ↓'=δ↓ ε↓'=ε↓ p) ⟩ 
+                          (app=-pair δ↓'=δ↓ ε↓'=ε↓ p) ⟩
+                   -- Ooops!  I changed the definition of λ=↓ and now this step fails.  Have
+                   -- to go back to the previous version.
                  (ap (λ x → Typ↓ Slc↓ (snd x) q)
                    (pair= (app= (λ= δ↓'=δ↓) p) (app=↓ (λ= δ↓'=δ↓) (λ=↓ δ↓'=δ↓ ε↓'=ε↓) p)))
                    =⟨ slc-typ-cst-coh (λ p → δ↓' p , typ-δ↓'=ν' p) δ↓ ε↓' ε↓
