@@ -6,7 +6,7 @@ open import MonadOver
 open import IdentityMonad
 open import Pb
 open import OpetopicType
-open import Lemmas
+open import SliceLemmas
 
 module SliceAlg (M : 𝕄) (M↓ : 𝕄↓ M) where
 

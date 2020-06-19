@@ -33,44 +33,60 @@ module InftyGroupoid where
     postulate
 
       slc-algebraic : is-algebraic Slc Slc↓
+    
+    alg-to-idx↓ : (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
+      → alg-comp M M↓ i c ν ≃ Σ (Idx↓ M↓ i) (λ j → Idx↓ Slc↓ ((i , j) , (c , ν)))
+    alg-to-idx↓ i c ν = equiv to from to-from from-to
 
-    X : OpetopicType M
-    X = OverToOpetopicType M M↓
+      where to : alg-comp M M↓ i c ν → Σ (Idx↓ M↓ i) (λ j → Idx↓ Slc↓ ((i , j) , (c , ν)))
+            to ⟦ j ∣ d ∣ τ ⟧ = j , (j , idp) , d , app= τ
 
+            from : Σ (Idx↓ M↓ i) (λ j → Idx↓ Slc↓ ((i , j) , (c , ν))) → alg-comp M M↓ i c ν
+            from (j , (.j , idp) , d , τ) = ⟦ j ∣ d ∣ λ= τ ⟧
+
+            to-from : (x : Σ (Idx↓ M↓ i) (λ j → Idx↓ Slc↓ ((i , j) , (c , ν))))
+              → to (from x) == x
+            to-from (j , (.j , idp) , d , τ) =
+              ap (λ x → j , (j , idp) , d , x) (λ= (λ p → app=-β τ p))
+
+            from-to : (x : alg-comp M M↓ i c ν)
+              → from (to x) == x
+            from-to ⟦ j ∣ d ∣ τ ⟧ = ap (λ x → ⟦ j ∣ d ∣ x ⟧) (! (λ=-η τ)) 
+            
     alg-mnd-has-unique-action : is-algebraic M M↓
-      → unique-action M (Ob X) (Ob (Hom X))
-    alg-mnd-has-unique-action is-alg i c ν = {!is-alg i c ν !} 
+      → unique-action M (Idx↓ M↓) (Idx↓ Slc↓) 
+    alg-mnd-has-unique-action is-alg i c ν =
+      equiv-preserves-level (alg-to-idx↓ i c ν) ⦃ is-alg i c ν ⦄ 
 
-    alg-is-fibrant : is-algebraic M M↓ → is-fibrant X
-    base-fibrant (alg-is-fibrant is-alg) = alg-mnd-has-unique-action is-alg
-    hom-fibrant (alg-is-fibrant is-alg) = {!slc-algebraic!}
+  alg-is-fibrant : (M : 𝕄) (M↓ : 𝕄↓ M)
+    → is-algebraic M M↓
+    → is-fibrant (↓-to-OpType M M↓)
+  base-fibrant (alg-is-fibrant M M↓ is-alg) =
+    alg-mnd-has-unique-action M M↓ is-alg
+  hom-fibrant (alg-is-fibrant M M↓ is-alg) =
+    alg-is-fibrant (Slc M M↓) (Slc↓ M M↓) (slc-algebraic M M↓)
 
   module _ (A : Set) where
 
     open import IdentityMonadOver A
 
     id-is-algebraic : is-algebraic IdMnd IdMnd↓
-    id-is-algebraic ttᵢ ttᵢ ν = has-level-in (ctr , ctr-unique)
+    id-is-algebraic ttᵢ ttᵢ ν = has-level-in (ctr , unique)
 
-      where ctr : Σ A (λ a → Σ ⊤ᵢ (λ u → Typ↓ IdMnd↓ {f↓ = a} u == ν))
-            ctr = ν ttᵢ , ttᵢ , λ= (λ { ttᵢ → idp })
+      where ctr : alg-comp IdMnd IdMnd↓ ttᵢ ttᵢ ν
+            ctr = ⟦ ν ttᵢ ∣ ttᵢ ∣ λ= (λ { ttᵢ → idp }) ⟧
 
-            ctr-unique : (x : Σ A (λ a → Σ ⊤ᵢ (λ u → Typ↓ IdMnd↓ {f↓ = a} u == ν))) → ctr == x
-            ctr-unique (a , ttᵢ , idp) = {!!}
+            unique : (α : alg-comp IdMnd IdMnd↓ ttᵢ ttᵢ ν) → ctr == α
+            unique ⟦ a ∣ ttᵢ ∣ idp ⟧ =
+              ap (λ x → ⟦ a ∣ ttᵢ ∣ x ⟧) {!!}
 
     XA : OpetopicType IdMnd
-    XA = OverToOpetopicType IdMnd IdMnd↓ 
+    XA = ↓-to-OpType IdMnd IdMnd↓ 
 
     XA-is-fibrant : is-fibrant XA
-    XA-is-fibrant = alg-is-fibrant IdMnd IdMnd↓ id-is-algebraic 
-
-    _==ₒ_ : A → A → Set
-    a₀ ==ₒ a₁ = Ob (Hom XA) ((ttᵢ , a₀) , (ttᵢ , (λ { ttᵢ → a₁ }))) 
-
-    claim : {a₀ a₁ : A} → (a₀ == a₁) ≃ (a₀ ==ₒ a₁)
-    claim = {!!} 
-
+    XA-is-fibrant = alg-is-fibrant IdMnd IdMnd↓
+      id-is-algebraic
 
   to-∞Groupoid : Set → ∞Groupoid
-  to-∞Groupoid A = XA A  , XA-is-fibrant A
+  to-∞Groupoid A = XA A , XA-is-fibrant A
 
