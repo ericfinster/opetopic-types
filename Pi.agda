@@ -6,6 +6,7 @@ open import MonadOver
 open import OpetopicType
 open import Pb
 open import IdentityMonad
+open import SigmaMonad
 
 module Pi where
 
@@ -62,11 +63,15 @@ module Pi where
       → (t : 𝕋 M↓) (ϕ : (i : Idx M) (x : X i) → Y i (idx t i) x)
       → 𝕋 (Pb↓ M↓ X Y) 
 
-  Π𝕆 : {M : 𝕄} (M↓ : 𝕄↓ M)
-    → (X : OpetopicType M)
-    → (Y : OpetopicTypeOver M↓ X)
-    → (t : 𝕋 M↓)
-    → OpetopicType (IdMnd ⊤)
-  Ob (Π𝕆 {M} M↓ X Y t) unit = (i : Idx M) (x : Ob X i) → Ob↓ Y i (idx t i) x
-  Hom (Π𝕆 {M} M↓ X Y t) = {!Π𝕆 {Slice (Pb M (Ob X))} (Slice↓ (Pb↓ M↓ (Ob X) (Ob↓ Y))) (Hom X) (Hom↓ Y)!}
+  Π' : (M : 𝕄) (M↓ : 𝕄↓ M)
+    → (M↓↓ : 𝕄↓ (ΣM M M↓))
+    → (X : OpetopicType (ΣM M M↓))
+    → (Y : OpetopicTypeOver M↓↓ X)
+    → (t : 𝕋 M↓↓)
+    → OpetopicType M  
+  Ob (Π' M M↓ M↓↓ X Y t) i = (j : Idx↓ M↓ i) (x : Ob X (i , j)) → Ob↓ Y (i , j) (idx t (i , j)) x
+  Hom (Π' M M↓ M↓↓ X Y t) = {!!}
+
+    where C : Idx M → Set
+          C i = (j : Idx↓ M↓ i) (x : Ob X (i , j)) → Ob↓ Y (i , j) (idx t (i , j)) x
 

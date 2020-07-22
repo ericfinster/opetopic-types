@@ -66,27 +66,55 @@ module InftyGroupoid where
   hom-fibrant (alg-is-fibrant M M↓ is-alg) =
     alg-is-fibrant (Slc M M↓) (Slc↓ M M↓) (slc-algebraic M M↓)
 
+
   module _ (A : Set) where
 
     open import IdentityMonadOver A
 
-    id-is-algebraic : is-algebraic IdMnd IdMnd↓
-    id-is-algebraic ttᵢ ttᵢ ν = has-level-in (ctr , unique)
-
-      where ctr : alg-comp IdMnd IdMnd↓ ttᵢ ttᵢ ν
-            ctr = ⟦ ν ttᵢ ∣ ttᵢ ∣ λ= (λ { ttᵢ → idp }) ⟧
-
-            unique : (α : alg-comp IdMnd IdMnd↓ ttᵢ ttᵢ ν) → ctr == α
-            unique ⟦ a ∣ ttᵢ ∣ idp ⟧ =
-              ap (λ x → ⟦ a ∣ ttᵢ ∣ x ⟧) {!!}
-
     XA : OpetopicType IdMnd
-    XA = ↓-to-OpType IdMnd IdMnd↓ 
+    XA = ↓-to-OpType IdMnd IdMnd↓
 
-    XA-is-fibrant : is-fibrant XA
-    XA-is-fibrant = alg-is-fibrant IdMnd IdMnd↓
-      id-is-algebraic
+    unary-pd : (x y z : A) → Pd (Pb IdMnd (Idx↓ IdMnd↓)) (((ttᵢ , z) , (ttᵢ , cst x)))
+    unary-pd x y z =
+      nd (ttᵢ , cst y)
+         (cst (ttᵢ , cst x))
+         (cst (η (Slice (Pb IdMnd (Idx↓ IdMnd↓))) ((ttᵢ , y) , ttᵢ , cst x)))
 
-  to-∞Groupoid : Set → ∞Groupoid
-  to-∞Groupoid A = XA A , XA-is-fibrant A
+    -- This should be the type of fillers of the 2-simplex
+    2-simplex : {x y z : A} (p : x == y) (q : y == z) (r : x == z) → Set
+    2-simplex {x} {y} {z} p q r =
+      Ob (Hom (Hom XA))
+        ((((ttᵢ , z) , (ttᵢ , cst x)) , (x , r) , ttᵢ , cst idp) ,
+         unary-pd x y z ,
+         λ { (inl tt)  → (y , q) , ttᵢ , cst idp ;
+             (inr (ttᵢ , inl tt)) → (x , p) , ttᵢ , cst idp ;
+             (inr (ttᵢ , inr ())) })
+             
+    2-simplex-lem→ : {x y z : A} (p : x == y) (q : y == z) (r : x == z) → 2-simplex p q r → r == p ∙ q
+    2-simplex-lem→ {x} {y} {.t} p q r ((((t , idp) , ttᵢ , u) , v) , pd , rel) = {!pd!}
+    
+
+  -- module _ (A : Set) where
+
+  --   open import IdentityMonadOver A
+
+  --   id-is-algebraic : is-algebraic IdMnd IdMnd↓
+  --   id-is-algebraic ttᵢ ttᵢ ν = has-level-in (ctr , unique)
+
+  --     where ctr : alg-comp IdMnd IdMnd↓ ttᵢ ttᵢ ν
+  --           ctr = ⟦ ν ttᵢ ∣ ttᵢ ∣ λ= (λ { ttᵢ → idp }) ⟧
+
+  --           unique : (α : alg-comp IdMnd IdMnd↓ ttᵢ ttᵢ ν) → ctr == α
+  --           unique ⟦ a ∣ ttᵢ ∣ idp ⟧ =
+  --             ap (λ x → ⟦ a ∣ ttᵢ ∣ x ⟧) {!!}
+
+  --   XA : OpetopicType IdMnd
+  --   XA = ↓-to-OpType IdMnd IdMnd↓ 
+
+  --   XA-is-fibrant : is-fibrant XA
+  --   XA-is-fibrant = alg-is-fibrant IdMnd IdMnd↓
+  --     id-is-algebraic
+
+  -- to-∞Groupoid : Set → ∞Groupoid
+  -- to-∞Groupoid A = XA A , XA-is-fibrant A
 
