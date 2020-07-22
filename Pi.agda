@@ -75,3 +75,9 @@ module Pi where
     where C : Idx M → Set
           C i = (j : Idx↓ M↓ i) (x : Ob X (i , j)) → Ob↓ Y (i , j) (idx t (i , j)) x
 
+  PullDown : (M : 𝕄) (M↓ : 𝕄↓ M)
+    → (X : OpetopicType (ΣM M M↓))
+    → (t : 𝕋 M↓)
+    → OpetopicType M
+  Ob (PullDown M M↓ X t) i = Ob X (i , idx t i)
+  Hom (PullDown M M↓ X t) = {!!}
