@@ -7,6 +7,9 @@ open import OpetopicType
 
 module MonadEqv where
 
+  _≃[_]_ : {A B : Set} (P : A → Set) (e : A ≃ B) (Q : B → Set) → Set
+  P ≃[ e ] Q  = (a : _) → P a ≃ Q (fst e a)  
+
   record _≃ₘ_ (M N : 𝕄) : Set where
     field
 
@@ -25,8 +28,6 @@ module MonadEqv where
       η-pos≃ : (i : Idx M)
         → –> (Pos≃ i (η M i)) (η-pos M i) == transport (Pos N) (! (η≃ i)) (η-pos N (–> Idx≃ i))
 
-      -- Etc ...
-
       μ≃ : (i : Idx M) (c : Cns M i)
         → (δ : (p : Pos M c) → Cns M (Typ M c p))
         → –> (Cns≃ i) (μ M c δ) == μ N (–> (Cns≃ i) c)
@@ -38,3 +39,15 @@ module MonadEqv where
     → OpetopicType M → OpetopicType N 
   Ob (OpInv M N eqv X) = (Ob X) ∘ (<– (Idx≃ eqv)) 
   Hom (OpInv M N eqv X) = {!OpInv (Slice!}
+
+  postulate
+
+    Slice≃ : (M N : 𝕄)
+      → M ≃ₘ N
+      → Slice M ≃ₘ Slice N 
+
+    Pb≃ : (M N : 𝕄) (e : M ≃ₘ N)
+      → (X : Idx M → Set)
+      → (Y : Idx N → Set)
+      → X ≃[ Idx≃ e ] Y
+      → Pb M X ≃ₘ Pb N Y 
