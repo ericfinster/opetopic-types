@@ -81,3 +81,5 @@ module Pi where
     → OpetopicType M
   Ob (PullDown M M↓ X t) i = Ob X (i , idx t i)
   Hom (PullDown M M↓ X t) = {!!}
+
+  

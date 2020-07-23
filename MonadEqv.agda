@@ -22,14 +22,15 @@ module MonadEqv where
       η≃ : (i : Idx M)
         → –> (Cns≃ i) (η M i) == η N (–> Idx≃ i) 
 
+      η-pos≃ : (i : Idx M)
+        → –> (Pos≃ i (η M i)) (η-pos M i) == transport (Pos N) (! (η≃ i)) (η-pos N (–> Idx≃ i))
+
+      -- Etc ...
+
       μ≃ : (i : Idx M) (c : Cns M i)
         → (δ : (p : Pos M c) → Cns M (Typ M c p))
         → –> (Cns≃ i) (μ M c δ) == μ N (–> (Cns≃ i) c)
           (λ p → transport (Cns N) (Typ≃ i c p) (–> (Cns≃ (Typ M c (<– (Pos≃ i c) p))) (δ (<– (Pos≃ i c) p))))
-
-      -- Unfortunately, we also need all the eliminations and so on
-      -- as well.  It's going to get long and kinda boring at this point ...
-
 
   open _≃ₘ_ public
   
