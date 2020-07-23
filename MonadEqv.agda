@@ -35,19 +35,22 @@ module MonadEqv where
 
   open _≃ₘ_ public
   
-  OpInv : (M N : 𝕄) (eqv : M ≃ₘ N)
-    → OpetopicType M → OpetopicType N 
-  Ob (OpInv M N eqv X) = (Ob X) ∘ (<– (Idx≃ eqv)) 
-  Hom (OpInv M N eqv X) = {!OpInv (Slice!}
-
   postulate
 
-    Slice≃ : (M N : 𝕄)
+    Slice≃ : {M N : 𝕄}
       → M ≃ₘ N
       → Slice M ≃ₘ Slice N 
 
-    Pb≃ : (M N : 𝕄) (e : M ≃ₘ N)
-      → (X : Idx M → Set)
-      → (Y : Idx N → Set)
+    Pb≃ : {M N : 𝕄} (e : M ≃ₘ N)
+      → {X : Idx M → Set}
+      → {Y : Idx N → Set}
       → X ≃[ Idx≃ e ] Y
       → Pb M X ≃ₘ Pb N Y 
+
+  OpInv : {M N : 𝕄} (eqv : M ≃ₘ N)
+    → OpetopicType N → OpetopicType M
+  Ob (OpInv eqv X) = Ob X ∘ –> (Idx≃ eqv)
+  Hom (OpInv {M} {N} eqv X) = OpInv spb-eqv (Hom X)
+
+    where spb-eqv : Slice (Pb M (Ob X ∘ –> (Idx≃ eqv))) ≃ₘ Slice (Pb N (Ob X))
+          spb-eqv = Slice≃ (Pb≃ eqv (λ i → ide (Ob X (fst (Idx≃ eqv) i)))) 
