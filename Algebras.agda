@@ -102,17 +102,16 @@ module Algebras where
     (e : M ≃ₘ N) (E : Idx↓ M↓ ≃[ Idx≃ e ] Ob X)
     where
 
-    -- Hmmm.  But this doesn't seem like quite enough.  We
-    -- have that their carrier sets are the same.  But not
-    -- that the multiplicative structures are the same.
-    -- I see.  So I think we should *also* need that the
-    -- Hom's of X are equivalent to the constructors over
-    -- of the algebra.  This will say that they share the
-    -- same multiplicative structure.
+    -- Hmmm.  But this doesn't seem like quite enough.  We have that
+    -- their carrier sets are the same.  But not that the
+    -- multiplicative structures are the same.  I see.  So I think we
+    -- should *also* need that the Hom's of X are equivalent to the
+    -- constructors over of the algebra.  This will say that they
+    -- share the same multiplicative structure.
 
-    -- From here, the claim would have to be that the next
-    -- level, i.e. Ob (Hom (Hom X)) is determined.  Does
-    -- this actually seem plausible?  Dunno .....
+    -- From here, the claim would have to be that the next level,
+    -- i.e. Ob (Hom (Hom X)) is determined.  Does this actually seem
+    -- plausible?  Dunno .....
 
     slc-eqv : Slc M M↓ ≃ₘ Slice (Pb N (Ob X))
     slc-eqv = Slice≃ (Pb≃ e E) 
@@ -123,3 +122,14 @@ module Algebras where
       where result : Σ (Σ (Idx↓ M↓ i) (λ j₁ → j₁ == j)) (λ i↓ → Σ (Cns↓ M↓ (fst i↓) c) (λ d → (p : Pos M c) → Typ↓ M↓ d p == ν p)) ≃
                      Ob (Hom X) (fst (Idx≃ slc-eqv) ((i , j) , c , ν))
             result = {!!} 
+
+    -- Yeah, it seems like we will need at least two levels.  And then
+    -- what's going to happen?  So you can picture the setup: you have
+    -- a chain of algebra like multiplications.  And on the other side
+    -- you have this decoration.  Now, by fibrancy, you know there is
+    -- a unique composite on the X side.  And by the slice-algebraic
+    -- theorem, so too on the monad side.  By FTHTT, it follows that
+    -- the fillers are an equality type for the multiplication
+    -- operation on the two sides.  So it looks like we just need to
+    -- show that the identification of constructors is a kind of
+    -- homomorphism or something, and we should be okay.
