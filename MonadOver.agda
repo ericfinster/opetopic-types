@@ -296,3 +296,33 @@ module MonadOver where
       → (δ↓ : (p : Pos (Pb M X) {i = i} c) → Cns↓ₚ M↓ X Y (Typ↓ₚ M↓ X Y {j = j} d p) (δ p))
       → μ↓ (Pb↓ M↓ X Y) {i↓ = j} d δ↓  ↦ μ↓ₚ M↓ X Y {j = j} d δ↓ 
     {-# REWRITE μ↓-Pb↓ #-}
+
+  --
+  --  Algebricity of an extension 
+  --
+
+  module _ (M : 𝕄) (M↓ : 𝕄↓ M) where
+
+    record alg-comp (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p)) : Set where
+      constructor ⟦_∣_∣_⟧
+      field
+        idx : Idx↓ M↓ i 
+        cns : Cns↓ M↓ idx c
+        typ : Typ↓ M↓ cns == ν
+
+    is-algebraic : Set
+    is-algebraic = (i : Idx M) (c : Cns M i)
+      → (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
+      → is-contr (alg-comp i c ν) 
+    
+    open alg-comp public
+
+    alg-comp-= : (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
+      → {j j' : Idx↓ M↓ i} (m : j == j')
+      → {d : Cns↓ M↓ j c} {d' : Cns↓ M↓ j' c}
+      → (n : d == d' [ (λ x → Cns↓ M↓ x c) ↓ m ])
+      → {r : Typ↓ M↓ d == ν} {r' : Typ↓ M↓ d' == ν}
+      → (ϕ : (p : Pos M c) → app= r p == ap (λ x → Typ↓ M↓ (snd x) p) (pair= m n) ∙ app= r' p)
+      → ⟦ j ∣ d ∣ r ⟧ == ⟦ j' ∣ d' ∣ r' ⟧
+    alg-comp-= i c ν {j = j} idp {d = d} idp {r} {r'} ϕ =
+      ap (λ x → ⟦ j ∣ d ∣ x ⟧) (λ=-η r ∙ ap λ= (λ= ϕ) ∙ ! (λ=-η r'))

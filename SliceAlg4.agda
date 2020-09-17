@@ -7,7 +7,6 @@ open import IdentityMonad
 open import Pb
 open import OpetopicType
 open import SliceLemmas
-open import Algebras
 
 module SliceAlg4 (M : 𝕄) (M↓ : 𝕄↓ M) where
 
@@ -15,7 +14,6 @@ module SliceAlg4 (M : 𝕄) (M↓ : 𝕄↓ M) where
   open import SliceAlg M M↓ 
   open import SliceAlg2 M M↓
   open import SliceAlg3 M M↓
-
   
   slc-typ-unique : (i : Idx Slc) (σ : Cns Slc i)
     → (ϕ : (p : Pos Slc σ) → Idx↓ Slc↓ (Typ Slc σ p))
@@ -80,18 +78,3 @@ module SliceAlg4 (M : 𝕄) (M↓ : 𝕄↓ M) where
                    
                  ap (λ x → Typ↓ Slc↓ (snd x) (inr (p , q))) isp ∙ idp =∎
 
-  --
-  --  The main theorem
-  --
-
-  slc-algebraic : is-algebraic Slc Slc↓
-  slc-algebraic i c ν = has-level-in (ctr , unique) 
-
-    where ctr : alg-comp Slc Slc↓ i c ν
-          ctr = ⟦ slc-idx i c ν ∣ slc-cns i c ν ∣ λ= (slc-typ i c ν) ⟧
-          
-          unique : (α : alg-comp Slc Slc↓ i c ν) → ctr == α
-          unique α = alg-comp-= Slc Slc↓ i c ν
-                     (slc-idx-unique i c ν α)
-                     (slc-cns-unique i c ν α)
-                     (λ p → app=-β (slc-typ i c ν) p ∙ slc-typ-unique i c ν α p)

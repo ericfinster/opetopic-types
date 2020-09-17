@@ -10,9 +10,9 @@ open import SigmaMonad
 module OpetopicType where
 
   --
-  --  The definition of opetopic type
+  --  Opetopic Types
   --
-
+  
   record OpetopicType (M : 𝕄) : Set₁ where
     coinductive
     field
@@ -22,11 +22,10 @@ module OpetopicType where
 
   open OpetopicType public
 
-  action : (M : 𝕄) (A : Idx M → Set) → Set
-  action M A = (f : Idx M) (σ : Cns M f)
-    → (ν : (p : Pos M σ) → A (Typ M σ p))
-    → A f 
-
+  --
+  --  Fibrancy
+  --
+  
   unique-action : (M : 𝕄) (A : Idx M → Set)
     → (W : Idx (Slice (Pb M A)) → Set)
     → Set
@@ -43,33 +42,30 @@ module OpetopicType where
 
   open is-fibrant public
 
-  -- The terminal opetopic type.
+  --
+  --  The terminal opetopic type
+  --
+  
   Terminal : (M : 𝕄) → OpetopicType M
   Ob (Terminal M) = cst ⊤
   Hom (Terminal M) = Terminal (Slice (Pb M (cst ⊤)))
+
+  --
+  --  The opetopic type associated to a monad over
+  --
   
-  -- Relative opetopic types
-  record OpetopicTypeOver {M : 𝕄} (M↓ : 𝕄↓ M) (X : OpetopicType M) : Set₁ where
-    coinductive
-    field
+  ↓-to-OpType : (M : 𝕄) (M↓ : 𝕄↓ M)
+    → OpetopicType M
+  Ob (↓-to-OpType M M↓) = Idx↓ M↓ 
+  Hom (↓-to-OpType M M↓) =
+    ↓-to-OpType (Slice (Pb M (Idx↓ M↓)))
+                       (Slice↓ (Pb↓ M↓ (Idx↓ M↓) (λ i j k → j == k)))
 
-      Ob↓ : (i : Idx M) → Idx↓ M↓ i → Ob X i → Set
-      Hom↓ : OpetopicTypeOver (Slice↓ (Pb↓ M↓ (Ob X) Ob↓)) (Hom X) 
 
-  open OpetopicTypeOver public
-
-  -- Have to transport by an equivalence for this ...
-  -- ΣO : {M : 𝕄} (M↓ : 𝕄↓ M)
-  --   → (X : OpetopicType M)
-  --   → OpetopicTypeOver M↓ X
-  --   → OpetopicType (ΣM M M↓)
-  -- Ob (ΣO M↓ X Y) (i , j) = Σ (Ob X i) (Ob↓ Y i j)
-  -- Hom (ΣO {M} M↓ X Y) = {!!}
-
-  --   where CH : OpetopicType (ΣM (Slice (Pb M (Ob X))) (Slice↓ (Pb↓ M↓ (Ob X) (Ob↓ Y))))
-  --         CH = ΣO {M = Slice (Pb M (Ob X))} (Slice↓ (Pb↓ M↓ (Ob X) (Ob↓ Y))) (Hom X) (Hom↓ Y) 
-
-  -- Examples
+  --
+  --  Examples of Opetopic shapes
+  --
+  
   module _ (X : OpetopicType IdMnd) where
 
     Obj : Set
@@ -98,3 +94,27 @@ module OpetopicType where
           (nd (ttᵢ , (cst x)) (cst (ttᵢ , cst x)) (cst (lf (ttᵢ , x)))))) ,
         (λ { true → g ;
              (inr (ttᵢ , true)) → f }))
+
+  --
+  -- Relative opetopic types
+  --
+  
+  record OpetopicTypeOver {M : 𝕄} (M↓ : 𝕄↓ M) (X : OpetopicType M) : Set₁ where
+    coinductive
+    field
+
+      Ob↓ : (i : Idx M) → Idx↓ M↓ i → Ob X i → Set
+      Hom↓ : OpetopicTypeOver (Slice↓ (Pb↓ M↓ (Ob X) Ob↓)) (Hom X) 
+
+  open OpetopicTypeOver public
+
+  -- Have to transport by an equivalence for this ...
+  -- ΣO : {M : 𝕄} (M↓ : 𝕄↓ M)
+  --   → (X : OpetopicType M)
+  --   → OpetopicTypeOver M↓ X
+  --   → OpetopicType (ΣM M M↓)
+  -- Ob (ΣO M↓ X Y) (i , j) = Σ (Ob X i) (Ob↓ Y i j)
+  -- Hom (ΣO {M} M↓ X Y) = {!!}
+
+  --   where CH : OpetopicType (ΣM (Slice (Pb M (Ob X))) (Slice↓ (Pb↓ M↓ (Ob X) (Ob↓ Y))))
+  --         CH = ΣO {M = Slice (Pb M (Ob X))} (Slice↓ (Pb↓ M↓ (Ob X) (Ob↓ Y))) (Hom X) (Hom↓ Y) 

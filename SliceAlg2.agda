@@ -7,7 +7,6 @@ open import IdentityMonad
 open import Pb
 open import OpetopicType
 open import SliceLemmas
-open import Algebras
 
 module SliceAlg2 (M : 𝕄) (M↓ : 𝕄↓ M) where
 

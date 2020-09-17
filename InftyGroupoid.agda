@@ -6,65 +6,51 @@ open import MonadOver
 open import IdentityMonad
 open import Pb
 open import OpetopicType
-open import Algebras
+open import SliceAlgebraic
 
 module InftyGroupoid where
 
   ∞Groupoid : Set₁
   ∞Groupoid = Σ (OpetopicType IdMnd) (is-fibrant)
 
-  underlying : ∞Groupoid → Set  
-  underlying (X , is-fib) = Ob X ttᵢ 
-
-
-  -- module _ (A : Set) where
-
-  --   open import IdentityMonadOver A
-
-  --   XA : OpetopicType IdMnd
-  --   XA = ↓-to-OpType IdMnd IdMnd↓
-
-  --   unary-pd : (x y z : A) → Pd (Pb IdMnd (Idx↓ IdMnd↓)) (((ttᵢ , z) , (ttᵢ , cst x)))
-  --   unary-pd x y z =
-  --     nd (ttᵢ , cst y)
-  --        (cst (ttᵢ , cst x))
-  --        (cst (η (Slice (Pb IdMnd (Idx↓ IdMnd↓))) ((ttᵢ , y) , ttᵢ , cst x)))
-
-  --   -- This should be the type of fillers of the 2-simplex
-  --   2-simplex : {x y z : A} (p : x == y) (q : y == z) (r : x == z) → Set
-  --   2-simplex {x} {y} {z} p q r =
-  --     Ob (Hom (Hom XA))
-  --       ((((ttᵢ , z) , (ttᵢ , cst x)) , (x , r) , ttᵢ , cst idp) ,
-  --        unary-pd x y z ,
-  --        λ { (inl tt)  → (y , q) , ttᵢ , cst idp ;
-  --            (inr (ttᵢ , inl tt)) → (x , p) , ttᵢ , cst idp ;
-  --            (inr (ttᵢ , inr ())) })
+  ∞grp-carrier : ∞Groupoid → Set  
+  ∞grp-carrier (X , is-fib) = Ob X ttᵢ 
 
   module _ (A : Set) where
 
     open import IdentityMonadOver A
 
-    postulate
-    
-      id-is-algebraic : is-algebraic IdMnd IdMnd↓
-      -- id-is-algebraic ttᵢ ttᵢ ν = has-level-in (ctr , unique)
+    -- Some weird reduction with the indices of the identity forces
+    -- these two lemmas to be separated out.  A bit fishy, but it works.
+    dec-is-typ : (ν : (p : Posᵢ {ttᵢ} ttᵢ) → Idx↓ᵢ ttᵢ)
+      → (p : Posᵢ {u = ttᵢ} ttᵢ)
+      → Typ↓ IdMnd↓ {i = ttᵢ} {c = ttᵢ} {i↓ = ν ttᵢ} ttᵢ p == ν p
+    dec-is-typ ν ttᵢ = idp {a = ν ttᵢ}
 
-      --   where ctr : alg-comp IdMnd IdMnd↓ ttᵢ ttᵢ ν
-      --         ctr = ⟦ ν ttᵢ ∣ ttᵢ ∣ λ= (λ { ttᵢ → idp }) ⟧ 
+    dec-is-typ-is-idp : (ν : (p : Posᵢ {ttᵢ} ttᵢ) → Idx↓ᵢ ttᵢ) (a : A)
+      → (p : Posᵢ {u = ttᵢ} ttᵢ) 
+      →  app= (λ= (dec-is-typ (Typ↓ IdMnd↓ {i = ttᵢ} {c = ttᵢ} {i↓ = a} ttᵢ))) p == idp {a = a}
+    dec-is-typ-is-idp ν a ttᵢ = app=-β (dec-is-typ (Typ↓ IdMnd↓ {i = ttᵢ} {c = ttᵢ} {i↓ = a} ttᵢ)) ttᵢ
 
-      --         unique : (α : alg-comp IdMnd IdMnd↓ ttᵢ ttᵢ ν) → ctr == α
-      --         unique ⟦ a ∣ ttᵢ ∣ idp ⟧ = alg-comp-= IdMnd IdMnd↓ ttᵢ ttᵢ ν idp idp
-      --           (λ { ttᵢ → {!!} })
+    id-is-algebraic : is-algebraic IdMnd IdMnd↓
+    id-is-algebraic ttᵢ ttᵢ ν = has-level-in (ctr , unique)
 
-    XA : OpetopicType IdMnd
-    XA = ↓-to-OpType IdMnd IdMnd↓ 
+      where ctr : alg-comp IdMnd IdMnd↓ ttᵢ ttᵢ ν
+            ctr = ⟦ ν ttᵢ ∣ ttᵢ ∣ λ= (dec-is-typ ν) ⟧  
 
-    XA-is-fibrant : is-fibrant XA
-    XA-is-fibrant = alg-is-fibrant IdMnd IdMnd↓
-      id-is-algebraic
+            unique : (α : alg-comp IdMnd IdMnd↓ ttᵢ ttᵢ ν) → ctr == α
+            unique ⟦ a ∣ ttᵢ ∣ idp ⟧ = alg-comp-= IdMnd IdMnd↓ ttᵢ ttᵢ ν idp idp
+              (dec-is-typ-is-idp ν a) 
+
+    IdOpType : OpetopicType IdMnd
+    IdOpType = ↓-to-OpType IdMnd IdMnd↓
+
+    IdOpType-is-fibrant : is-fibrant IdOpType
+    IdOpType-is-fibrant = alg-is-fibrant IdMnd IdMnd↓ id-is-algebraic
 
   to-∞Groupoid : Set → ∞Groupoid
-  to-∞Groupoid A = XA A , XA-is-fibrant A
+  to-∞Groupoid A = IdOpType A ,
+    IdOpType-is-fibrant A
 
 
   
