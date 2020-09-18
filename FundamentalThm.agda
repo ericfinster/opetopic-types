@@ -43,17 +43,19 @@ module FundamentalThm where
 
     comp : {a₀ a₁ : A} → a₀ === a₁ → a₀ == a₁
     comp emp = idp
-    comp (ext idp σ) = comp σ
+    comp (ext p σ) = p ∙ comp σ
 
     seqcat : {a₀ a₁ a₂ : A} → a₀ === a₁ → a₁ === a₂ → a₀ === a₂
-    seqcat σ₀ emp = σ₀
-    seqcat σ₀ (ext idp σ₁) = seqcat σ₀ σ₁
+    seqcat emp σ₁ = σ₁
+    seqcat (ext p σ₀) σ₁ = ext p (seqcat σ₀ σ₁)
 
     comp-seqcat : {a₀ a₁ a₂ : A}
-      → (p : a₀ === a₁) (q : a₁ === a₂)
-      → comp (seqcat p q) == comp p ∙ comp q
-    comp-seqcat p emp = ! (∙-unit-r (comp p))
-    comp-seqcat p (ext idp q) = comp-seqcat p q
+      → (σ₀ : a₀ === a₁) (σ₁ : a₁ === a₂)
+      → comp (seqcat σ₀ σ₁) == comp σ₀ ∙ comp σ₁
+    comp-seqcat emp σ₁ = idp
+    comp-seqcat (ext p σ₀) σ₁ =
+      ap (λ x → p ∙ x) (comp-seqcat σ₀ σ₁) ∙
+      ! (∙-assoc p (comp σ₀) (comp σ₁))
   
     SeqRel : Set₁
     SeqRel = {a₀ a₁ : A} → a₀ === a₁ → a₀ == a₁ → Set 
@@ -72,15 +74,26 @@ module FundamentalThm where
     is-left-unital R = {a₀ a₁ : A} (σ : a₀ === a₁) (τ : a₀ == a₁)
       → R (ext idp σ) τ ≃ R σ τ
 
+    is-compositional : SeqRel → Set
+    is-compositional R = {a₀ a₁ a₂ : A} (p : a₀ == a₁)
+      → (σ : a₁ === a₂) (τ : a₀ == a₂)
+      → R (ext p σ) τ ≃ R σ (! p ∙ τ) 
+
+    postulate
+
+      rotate-eqv : {a₀ a₁ a₂ : A}
+        → (p : a₀ == a₂) (q : a₁ == a₀) (r : a₁ == a₂)
+        → (p == ! q ∙ r) ≃ (q ∙ p == r)
+        
     comp-unique : (R : SeqRel) (ϕ : is-contr-rel R)
-      → (ψ : is-unital-rel R) (ρ : is-left-unital R)
+      → (ψ : is-unital-rel R) (ρ : is-compositional R)
       → {a₀ a₁ : A} (σ : a₀ === a₁) (τ : a₀ == a₁)
-      → R σ τ ≃ (comp σ == τ) 
+      → R σ τ ≃ (comp σ == τ)
     comp-unique R ϕ ψ ρ {a} emp τ =
       fundamental-thm (a == a) (λ p → R emp p) idp (ψ a) (ϕ emp) τ
-    comp-unique R ϕ ψ ρ {a₀} {a₁} (ext idp σ) τ =
-      (comp-unique R ϕ ψ ρ σ τ) ∘e ρ σ τ
-
+    comp-unique R ϕ ψ ρ (ext p σ) τ =
+      rotate-eqv (comp σ) p τ ∘e (comp-unique R ϕ ψ ρ σ (! p ∙ τ)) ∘e (ρ p σ τ)
+      
     --
     --  Dimension 2
     -- 
@@ -110,40 +123,30 @@ module FundamentalThm where
              (μ-seq σ (λ p → δ (inr p)))
 
     data tr : {a₀ a₁ : A} → a₀ === a₁ → a₀ == a₁ → Set where 
-      lf-seq : {a₀ a₁ : A} (τ : a₀ == a₁)
-        → tr (ext τ emp) τ
+      lf-seq : {a : A} → tr (ext (idp {a = a}) emp) idp
       nd-seq : {a₀ a₁ : A} (σ : a₀ === a₁) 
         → (δ : (p : plc σ) → src p === tgt p)
         → (ε : (p : plc σ) → tr (δ p) (inh p))
         → tr (μ-seq σ δ) (comp σ)
 
-    lem₀ : {a₀ a₁ : A} (τ : a₀ == a₁)
-      → comp (ext τ emp) == τ
-    lem₀ idp = idp
-
-    {-# TERMINATING #-}
-    lem₁ : {a₀ a₁ : A} (σ : a₀ === a₁)
+    comp-μ : {a₀ a₁ : A} (σ : a₀ === a₁)
       → (δ : (p : plc σ) → src p === tgt p)
-      → (ε : (p : plc σ) → tr (δ p) (inh p))
+      → (ε : (p : plc σ) → comp (δ p) == (inh p))
       → comp (μ-seq σ δ) == comp σ
-    
+    comp-μ emp δ ε = idp
+    comp-μ (ext p σ) δ ε = 
+      let δ' p = δ (inr p)
+          ε' p = ε (inr p)
+          σ' = μ-seq σ δ'
+      in comp-seqcat (δ true) σ' ∙ ε true ∙2 comp-μ σ δ' ε'
+
     interpret : {a₀ a₁ : A}
       → {σ : a₀ === a₁} {τ : a₀ == a₁}
       → (θ : tr σ τ)
       → comp σ == τ
-
-    interpret (lf-seq τ) = lem₀ τ
+    interpret lf-seq = idp
     interpret (nd-seq σ δ ε) =
-      lem₁ σ δ ε
-
-    lem₁ emp δ ε = idp
-    lem₁ (ext idp σ) δ ε =
-      let δ' p = δ (inr p)
-          ε' p = ε (inr p)
-          σ' = μ-seq σ δ'
-      in comp-seqcat (δ true) σ' ∙
-         ap (λ x → x ∙ comp σ') (interpret (ε true)) ∙
-         lem₁ σ δ' ε' 
+      comp-μ σ δ (λ p → interpret (ε p))
 
     TrRel : SeqRel → Set₁
     TrRel R = {a₀ a₁ : A} {σ : a₀ === a₁} {τ : a₀ == a₁}
@@ -161,15 +164,6 @@ module FundamentalThm where
       → {a₀ a₁ : A} {σ : a₀ === a₁} {τ : a₀ == a₁}
       → (θ : tr σ τ) (ζ : comp σ == τ)
       → T θ ζ == AssocRel θ ζ
-    assoc-unique T ϕ (lf-seq τ) ζ = {!!}
+    assoc-unique T ϕ lf-seq ζ = {!!}
     assoc-unique T ϕ (nd-seq σ δ ε) ζ = {!!}
-
-    -- comp-unique : (R : SeqRel) (ϕ : is-contr-rel R)
-    --   → (ψ : is-unital-rel R) (ρ : is-left-unital R)
-    --   → {a₀ a₁ : A} (σ : a₀ === a₁) (τ : a₀ == a₁)
-    --   → R σ τ ≃ (comp σ == τ) 
-    -- comp-unique R ϕ ψ ρ {a} emp τ =
-    --   fundamental-thm (a == a) (λ p → R emp p) idp (ψ a) (ϕ emp) τ
-    -- comp-unique R ϕ ψ ρ {a₀} {a₁} (ext idp σ) τ =
-    --   (comp-unique R ϕ ψ ρ σ τ) ∘e ρ σ τ
 
