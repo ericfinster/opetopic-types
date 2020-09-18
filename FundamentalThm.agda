@@ -28,6 +28,21 @@ module FundamentalThm where
           from-to p = to-transp (snd= (contr-has-all-paths ⦃ is-c ⦄ (a₀ , r) (a₁ , p)))
 
   --
+  --  A couple coherences for later
+  --
+
+  rotate-left-eqv : ∀ {i} {A : Set i} {a₀ a₁ a₂ : A}
+    → (p : a₀ == a₁) (q : a₁ == a₂) (r : a₀ == a₂)
+    → (p ∙ q == r) ≃ (q == ! p ∙ r)
+  rotate-left-eqv idp q r = ide (q == r)
+
+  postulate
+  
+    rotate-right-eqv : ∀ {i} {A : Set i} {a₀ a₁ a₂ : A}
+      → (p : a₀ == a₁) (q : a₁ == a₂) (r : a₀ == a₂)
+      → (p ∙ q == r) ≃ (p == r ∙ ! q)
+
+  --
   --  Higher dimensional generalizations
   --
 
@@ -79,20 +94,28 @@ module FundamentalThm where
       → (σ : a₁ === a₂) (τ : a₀ == a₂)
       → R (ext p σ) τ ≃ R σ (! p ∙ τ) 
 
-    postulate
+    div : {a₀ a₁ a₂ : A} (σ : a₁ === a₂) (τ : a₀ == a₂) → a₀ == a₁
+    div σ τ = τ ∙ ! (comp σ) 
 
-      rotate-eqv : {a₀ a₁ a₂ : A}
-        → (p : a₀ == a₂) (q : a₁ == a₀) (r : a₁ == a₂)
-        → (p == ! q ∙ r) ≃ (q ∙ p == r)
-        
+    is-divisible : SeqRel → Set
+    is-divisible R = {a₀ a₁ a₂ : A} (p : a₀ == a₁)
+      → (σ : a₁ === a₂) (τ : a₀ == a₂)
+      → R (ext p σ) τ ≃ (p == div σ τ)
+
+    comp-divisible : is-divisible CompRel
+    comp-divisible p σ τ = goal
+
+      where goal : (p ∙ comp σ == τ) ≃ (p == τ ∙ ! (comp σ) )
+            goal = rotate-right-eqv p (comp σ) τ 
+
     comp-unique : (R : SeqRel) (ϕ : is-contr-rel R)
-      → (ψ : is-unital-rel R) (ρ : is-compositional R)
+      → (ψ : is-unital-rel R) (ρ : is-divisible R)
       → {a₀ a₁ : A} (σ : a₀ === a₁) (τ : a₀ == a₁)
       → R σ τ ≃ (comp σ == τ)
     comp-unique R ϕ ψ ρ {a} emp τ =
       fundamental-thm (a == a) (λ p → R emp p) idp (ψ a) (ϕ emp) τ
     comp-unique R ϕ ψ ρ (ext p σ) τ =
-      rotate-eqv (comp σ) p τ ∘e (comp-unique R ϕ ψ ρ σ (! p ∙ τ)) ∘e (ρ p σ τ)
+      (comp-divisible p σ τ) ⁻¹ ∘e (ρ p σ τ)
       
     --
     --  Dimension 2
@@ -122,13 +145,6 @@ module FundamentalThm where
       seqcat (δ (inl unit))
              (μ-seq σ (λ p → δ (inr p)))
 
-    data tr : {a₀ a₁ : A} → a₀ === a₁ → a₀ == a₁ → Set where 
-      lf-seq : {a : A} → tr (ext (idp {a = a}) emp) idp
-      nd-seq : {a₀ a₁ : A} (σ : a₀ === a₁) 
-        → (δ : (p : plc σ) → src p === tgt p)
-        → (ε : (p : plc σ) → tr (δ p) (inh p))
-        → tr (μ-seq σ δ) (comp σ)
-
     comp-μ : {a₀ a₁ : A} (σ : a₀ === a₁)
       → (δ : (p : plc σ) → src p === tgt p)
       → (ε : (p : plc σ) → comp (δ p) == (inh p))
@@ -140,14 +156,24 @@ module FundamentalThm where
           σ' = μ-seq σ δ'
       in comp-seqcat (δ true) σ' ∙ ε true ∙2 comp-μ σ δ' ε'
 
+    data tr : {a₀ a₁ : A} → a₀ === a₁ → a₀ == a₁ → Set where 
+      lf-seq : {a₀ a₁ : A} (p : a₀ == a₁)
+        → tr (ext p emp) p 
+      nd-seq : {a₀ a₁ : A}
+        → (σ : a₀ === a₁) (τ : a₀ == a₁)
+        → (θ : comp σ == τ)
+        → (δ : (p : plc σ) → src p === tgt p)
+        → (ε : (p : plc σ) → tr (δ p) (inh p))
+        → tr (μ-seq σ δ) τ 
+
     interpret : {a₀ a₁ : A}
       → {σ : a₀ === a₁} {τ : a₀ == a₁}
       → (θ : tr σ τ)
       → comp σ == τ
-    interpret lf-seq = idp
-    interpret (nd-seq σ δ ε) =
-      comp-μ σ δ (λ p → interpret (ε p))
-
+    interpret (lf-seq τ) = ∙-unit-r τ
+    interpret (nd-seq σ τ θ δ ε) =
+      comp-μ σ δ (λ p → interpret (ε p)) ∙ θ
+    
     TrRel : SeqRel → Set₁
     TrRel R = {a₀ a₁ : A} {σ : a₀ === a₁} {τ : a₀ == a₁}
       → tr σ τ → R σ τ → Set 
@@ -156,14 +182,45 @@ module FundamentalThm where
     is-contr-tr-rel T = {a₀ a₁ : A}
       → {σ : a₀ === a₁} {τ : a₀ == a₁}
       → (θ : tr σ τ) → is-contr (Σ (comp σ == τ) (T θ)) 
-    
+
+    is-unital-tr-rel : (T : TrRel CompRel) → Set
+    is-unital-tr-rel T = {a₀ a₁ : A}
+      → (p : a₀ == a₁)
+      → T (lf-seq p) (∙-unit-r p)
+
+    tr-div : {a₀ a₁ : A}
+      → (σ : a₀ === a₁) (τ : a₀ == a₁)
+      → (δ : (p : plc σ) → src p === tgt p)
+      → (ε : (p : plc σ) → tr (δ p) (inh p))
+      → (ζ : comp (μ-seq σ δ) == τ)
+      → comp σ == τ
+    tr-div σ τ δ ε ζ = ! (comp-μ σ δ (λ p → interpret (ε p))) ∙ ζ 
+
+    is-divisible-tr-rel : (T : TrRel CompRel) → Set
+    is-divisible-tr-rel T = {a₀ a₁ : A}
+      → (σ : a₀ === a₁) (τ : a₀ == a₁)
+      → (θ : comp σ == τ)
+      → (δ : (p : plc σ) → src p === tgt p)
+      → (ε : (p : plc σ) → tr (δ p) (inh p))
+      → (ζ : comp (μ-seq σ δ) == τ)
+      → T (nd-seq σ τ θ δ ε) ζ ≃ (θ == tr-div σ τ δ ε ζ) 
+
     AssocRel : TrRel CompRel
     AssocRel θ ζ = interpret θ == ζ 
 
+    assoc-is-divisible : is-divisible-tr-rel AssocRel 
+    assoc-is-divisible σ τ θ δ ε ζ = goal
+
+      where goal : (comp-μ σ δ (λ p → interpret (ε p)) ∙ θ == ζ) ≃ 
+                   (θ == ! (comp-μ σ δ (λ p → interpret (ε p))) ∙ ζ)
+            goal = rotate-left-eqv (comp-μ σ δ (λ p → interpret (ε p))) θ ζ
+            
     assoc-unique : (T : TrRel CompRel) (ϕ : is-contr-tr-rel T)
+      → (ψ : is-unital-tr-rel T) (ρ : is-divisible-tr-rel T)
       → {a₀ a₁ : A} {σ : a₀ === a₁} {τ : a₀ == a₁}
       → (θ : tr σ τ) (ζ : comp σ == τ)
-      → T θ ζ == AssocRel θ ζ
-    assoc-unique T ϕ lf-seq ζ = {!!}
-    assoc-unique T ϕ (nd-seq σ δ ε) ζ = {!!}
-
+      → T θ ζ ≃ AssocRel θ ζ
+    assoc-unique T ϕ ψ ρ (lf-seq τ) ζ =
+      fundamental-thm (τ ∙ idp == τ) (T (lf-seq τ)) (∙-unit-r τ) (ψ τ) (ϕ (lf-seq τ)) ζ
+    assoc-unique T ϕ ψ ρ (nd-seq σ τ θ δ ε) ζ =
+      (assoc-is-divisible σ τ θ δ ε ζ) ⁻¹ ∘e (ρ σ τ θ δ ε ζ)
