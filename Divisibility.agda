@@ -113,7 +113,9 @@ module Divisibility where
     --     such relations is a proposition, this means it is an *inhabited*
     --     proposition and hence contractible.
     --
-
+    --  In other words: given a divisible monad extension, the space
+    --  of divisible relations on the slice of that monad is
+    --  contractible.
     --
     --  So what's left to show, roughly, is that if we have a fibrant
     --  opetopic type over the identity monad, then all of its monads,
