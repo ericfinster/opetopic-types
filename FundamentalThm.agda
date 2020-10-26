@@ -166,13 +166,13 @@ module FundamentalThm where
         → (ε : (p : plc σ) → tr (δ p) (inh p))
         → tr (μ-seq σ δ) τ 
 
-    interpret : {a₀ a₁ : A}
+    assoc : {a₀ a₁ : A}
       → {σ : a₀ === a₁} {τ : a₀ == a₁}
       → (θ : tr σ τ)
       → comp σ == τ
-    interpret (lf-seq τ) = ∙-unit-r τ
-    interpret (nd-seq σ τ θ δ ε) =
-      comp-μ σ δ (λ p → interpret (ε p)) ∙ θ
+    assoc (lf-seq τ) = ∙-unit-r τ
+    assoc (nd-seq σ τ θ δ ε) =
+      comp-μ σ δ (λ p → assoc (ε p)) ∙ θ
     
     TrRel : SeqRel → Set₁
     TrRel R = {a₀ a₁ : A} {σ : a₀ === a₁} {τ : a₀ == a₁}
@@ -194,7 +194,7 @@ module FundamentalThm where
       → (ε : (p : plc σ) → tr (δ p) (inh p))
       → (ζ : comp (μ-seq σ δ) == τ)
       → comp σ == τ
-    tr-div σ τ δ ε ζ = ! (comp-μ σ δ (λ p → interpret (ε p))) ∙ ζ 
+    tr-div σ τ δ ε ζ = ! (comp-μ σ δ (λ p → assoc (ε p))) ∙ ζ 
 
     is-divisible-tr-rel : (T : TrRel CompRel) → Set
     is-divisible-tr-rel T = {a₀ a₁ : A}
@@ -206,14 +206,14 @@ module FundamentalThm where
       → T (nd-seq σ τ θ δ ε) ζ ≃ (θ == tr-div σ τ δ ε ζ) 
 
     AssocRel : TrRel CompRel
-    AssocRel θ ζ = interpret θ == ζ 
+    AssocRel θ ζ = assoc θ == ζ 
 
     assoc-is-divisible : is-divisible-tr-rel AssocRel 
     assoc-is-divisible σ τ θ δ ε ζ = goal
 
-      where goal : (comp-μ σ δ (λ p → interpret (ε p)) ∙ θ == ζ) ≃ 
-                   (θ == ! (comp-μ σ δ (λ p → interpret (ε p))) ∙ ζ)
-            goal = rotate-left-eqv (comp-μ σ δ (λ p → interpret (ε p))) θ ζ
+      where goal : (comp-μ σ δ (λ p → assoc (ε p)) ∙ θ == ζ) ≃ 
+                   (θ == ! (comp-μ σ δ (λ p → assoc (ε p))) ∙ ζ)
+            goal = rotate-left-eqv (comp-μ σ δ (λ p → assoc (ε p))) θ ζ
             
     assoc-unique : (T : TrRel CompRel) (ϕ : is-contr-tr-rel T)
       → (ψ : is-unital-tr-rel T) (ρ : is-divisible-tr-rel T)

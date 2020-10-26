@@ -326,3 +326,4 @@ module MonadOver where
       → ⟦ j ∣ d ∣ r ⟧ == ⟦ j' ∣ d' ∣ r' ⟧
     alg-comp-= i c ν {j = j} idp {d = d} idp {r} {r'} ϕ =
       ap (λ x → ⟦ j ∣ d ∣ x ⟧) (λ=-η r ∙ ap λ= (λ= ϕ) ∙ ! (λ=-η r'))
+
