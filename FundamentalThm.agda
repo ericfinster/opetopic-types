@@ -48,6 +48,18 @@ module FundamentalThm where
 
   module _ {A : Set} where
 
+    BinRel : Set₁
+    BinRel = A → A → Set
+
+    is-fib-bin-rel : BinRel → Set
+    is-fib-bin-rel B = (a : A) → is-contr (Σ A (B a))
+
+    eq-is-fib : is-fib-bin-rel _==_
+    eq-is-fib a = has-level-in ((a , idp) , contr) 
+
+      where contr : (p : Σ A (_==_ a)) → (a , idp) == p
+            contr (a , idp) = idp
+            
     --
     --  Dimension 1 
     --
@@ -56,9 +68,20 @@ module FundamentalThm where
       emp : {a : A} → a === a
       ext : {a₀ a₁ a₂ : A} → a₀ == a₁ → a₁ === a₂ → a₀ === a₂
 
+    SeqRel : Set₁
+    SeqRel = {a₀ a₁ : A} → a₀ === a₁ → a₀ == a₁ → Set 
+
+    is-fib-seq-rel : (R : SeqRel) → Set
+    is-fib-seq-rel R = {a₀ a₁ : A} (σ : a₀ === a₁)
+      → is-contr (Σ (a₀ == a₁) (R σ)) 
+
+    -- The composition relation
     comp : {a₀ a₁ : A} → a₀ === a₁ → a₀ == a₁
     comp emp = idp
     comp (ext p σ) = p ∙ comp σ
+
+    CompRel : SeqRel
+    CompRel σ τ = comp σ == τ 
 
     seqcat : {a₀ a₁ a₂ : A} → a₀ === a₁ → a₁ === a₂ → a₀ === a₂
     seqcat emp σ₁ = σ₁
@@ -72,27 +95,8 @@ module FundamentalThm where
       ap (λ x → p ∙ x) (comp-seqcat σ₀ σ₁) ∙
       ! (∙-assoc p (comp σ₀) (comp σ₁))
   
-    SeqRel : Set₁
-    SeqRel = {a₀ a₁ : A} → a₀ === a₁ → a₀ == a₁ → Set 
-
-    CompRel : SeqRel
-    CompRel σ τ = comp σ == τ 
-
-    is-contr-rel : SeqRel → Set
-    is-contr-rel R = {a₀ a₁ : A} (σ : a₀ === a₁)
-      → is-contr (Σ (a₀ == a₁) (R σ))  
-
     is-unital-rel : SeqRel → Set
     is-unital-rel R = (a : A) → R emp (idp {a = a}) 
-
-    is-left-unital : SeqRel → Set
-    is-left-unital R = {a₀ a₁ : A} (σ : a₀ === a₁) (τ : a₀ == a₁)
-      → R (ext idp σ) τ ≃ R σ τ
-
-    is-compositional : SeqRel → Set
-    is-compositional R = {a₀ a₁ a₂ : A} (p : a₀ == a₁)
-      → (σ : a₁ === a₂) (τ : a₀ == a₂)
-      → R (ext p σ) τ ≃ R σ (! p ∙ τ) 
 
     div : {a₀ a₁ a₂ : A} (σ : a₁ === a₂) (τ : a₀ == a₂) → a₀ == a₁
     div σ τ = τ ∙ ! (comp σ) 
@@ -108,7 +112,7 @@ module FundamentalThm where
       where goal : (p ∙ comp σ == τ) ≃ (p == τ ∙ ! (comp σ) )
             goal = rotate-right-eqv p (comp σ) τ 
 
-    comp-unique : (R : SeqRel) (ϕ : is-contr-rel R)
+    comp-unique : (R : SeqRel) (ϕ : is-fib-seq-rel R)
       → (ψ : is-unital-rel R) (ρ : is-divisible R)
       → {a₀ a₁ : A} (σ : a₀ === a₁) (τ : a₀ == a₁)
       → R σ τ ≃ (comp σ == τ)
@@ -145,6 +149,26 @@ module FundamentalThm where
       seqcat (δ (inl unit))
              (μ-seq σ (λ p → δ (inr p)))
 
+    data tr (R : SeqRel) : {a₀ a₁ : A} → a₀ === a₁ → a₀ == a₁ → Set where
+      lf-tr : {a₀ a₁ : A} (p : a₀ == a₁)
+        → tr R (ext p emp) p
+      nd-tr : {a₀ a₁ : A}
+        → (σ : a₀ === a₁) (τ : a₀ == a₁)
+        → (r : R σ τ)
+        → (δ : (p : plc σ) → src p === tgt p)
+        → (ε : (p : plc σ) → tr R (δ p) (inh p))
+        → tr R (μ-seq σ δ) τ 
+    
+    TrRel : SeqRel → Set₁
+    TrRel R = {a₀ a₁ : A} {σ : a₀ === a₁} {τ : a₀ == a₁}
+      → tr R σ τ → R σ τ → Set 
+
+    is-fib-tr-rel : (R : SeqRel) (S : TrRel R) → Set
+    is-fib-tr-rel R T = {a₀ a₁ : A}
+      → {σ : a₀ === a₁} {τ : a₀ == a₁}
+      → (θ : tr R σ τ) → is-contr (Σ (R σ τ) (T θ)) 
+
+    -- The associative relation
     comp-μ : {a₀ a₁ : A} (σ : a₀ === a₁)
       → (δ : (p : plc σ) → src p === tgt p)
       → (ε : (p : plc σ) → comp (δ p) == (inh p))
@@ -156,42 +180,26 @@ module FundamentalThm where
           σ' = μ-seq σ δ'
       in comp-seqcat (δ true) σ' ∙ ε true ∙2 comp-μ σ δ' ε'
 
-    data tr : {a₀ a₁ : A} → a₀ === a₁ → a₀ == a₁ → Set where 
-      lf-seq : {a₀ a₁ : A} (p : a₀ == a₁)
-        → tr (ext p emp) p 
-      nd-seq : {a₀ a₁ : A}
-        → (σ : a₀ === a₁) (τ : a₀ == a₁)
-        → (θ : comp σ == τ)
-        → (δ : (p : plc σ) → src p === tgt p)
-        → (ε : (p : plc σ) → tr (δ p) (inh p))
-        → tr (μ-seq σ δ) τ 
-
     assoc : {a₀ a₁ : A}
       → {σ : a₀ === a₁} {τ : a₀ == a₁}
-      → (θ : tr σ τ)
+      → (θ : tr CompRel σ τ)
       → comp σ == τ
-    assoc (lf-seq τ) = ∙-unit-r τ
-    assoc (nd-seq σ τ θ δ ε) =
+    assoc (lf-tr τ) = ∙-unit-r τ
+    assoc (nd-tr σ τ θ δ ε) =
       comp-μ σ δ (λ p → assoc (ε p)) ∙ θ
-    
-    TrRel : SeqRel → Set₁
-    TrRel R = {a₀ a₁ : A} {σ : a₀ === a₁} {τ : a₀ == a₁}
-      → tr σ τ → R σ τ → Set 
 
-    is-contr-tr-rel : (T : TrRel CompRel) → Set
-    is-contr-tr-rel T = {a₀ a₁ : A}
-      → {σ : a₀ === a₁} {τ : a₀ == a₁}
-      → (θ : tr σ τ) → is-contr (Σ (comp σ == τ) (T θ)) 
+    AssocRel : TrRel CompRel
+    AssocRel θ ζ = assoc θ == ζ 
 
     is-unital-tr-rel : (T : TrRel CompRel) → Set
     is-unital-tr-rel T = {a₀ a₁ : A}
       → (p : a₀ == a₁)
-      → T (lf-seq p) (∙-unit-r p)
+      → T (lf-tr p) (∙-unit-r p)
 
     tr-div : {a₀ a₁ : A}
       → (σ : a₀ === a₁) (τ : a₀ == a₁)
       → (δ : (p : plc σ) → src p === tgt p)
-      → (ε : (p : plc σ) → tr (δ p) (inh p))
+      → (ε : (p : plc σ) → tr CompRel (δ p) (inh p))
       → (ζ : comp (μ-seq σ δ) == τ)
       → comp σ == τ
     tr-div σ τ δ ε ζ = ! (comp-μ σ δ (λ p → assoc (ε p))) ∙ ζ 
@@ -201,12 +209,9 @@ module FundamentalThm where
       → (σ : a₀ === a₁) (τ : a₀ == a₁)
       → (θ : comp σ == τ)
       → (δ : (p : plc σ) → src p === tgt p)
-      → (ε : (p : plc σ) → tr (δ p) (inh p))
+      → (ε : (p : plc σ) → tr CompRel (δ p) (inh p))
       → (ζ : comp (μ-seq σ δ) == τ)
-      → T (nd-seq σ τ θ δ ε) ζ ≃ (θ == tr-div σ τ δ ε ζ) 
-
-    AssocRel : TrRel CompRel
-    AssocRel θ ζ = assoc θ == ζ 
+      → T (nd-tr σ τ θ δ ε) ζ ≃ (θ == tr-div σ τ δ ε ζ) 
 
     assoc-is-divisible : is-divisible-tr-rel AssocRel 
     assoc-is-divisible σ τ θ δ ε ζ = goal
@@ -215,12 +220,137 @@ module FundamentalThm where
                    (θ == ! (comp-μ σ δ (λ p → assoc (ε p))) ∙ ζ)
             goal = rotate-left-eqv (comp-μ σ δ (λ p → assoc (ε p))) θ ζ
             
-    assoc-unique : (T : TrRel CompRel) (ϕ : is-contr-tr-rel T)
+    assoc-unique : (T : TrRel CompRel) (ϕ : is-fib-tr-rel CompRel T)
       → (ψ : is-unital-tr-rel T) (ρ : is-divisible-tr-rel T)
       → {a₀ a₁ : A} {σ : a₀ === a₁} {τ : a₀ == a₁}
-      → (θ : tr σ τ) (ζ : comp σ == τ)
+      → (θ : tr CompRel σ τ) (ζ : comp σ == τ)
       → T θ ζ ≃ AssocRel θ ζ
-    assoc-unique T ϕ ψ ρ (lf-seq τ) ζ =
-      fundamental-thm (τ ∙ idp == τ) (T (lf-seq τ)) (∙-unit-r τ) (ψ τ) (ϕ (lf-seq τ)) ζ
-    assoc-unique T ϕ ψ ρ (nd-seq σ τ θ δ ε) ζ =
+    assoc-unique T ϕ ψ ρ (lf-tr τ) ζ =
+      fundamental-thm (τ ∙ idp == τ) (T (lf-tr τ)) (∙-unit-r τ) (ψ τ) (ϕ (lf-tr τ)) ζ
+    assoc-unique T ϕ ψ ρ (nd-tr σ τ θ δ ε) ζ =
       (assoc-is-divisible σ τ θ δ ε ζ) ⁻¹ ∘e (ρ σ τ θ δ ε ζ)
+
+    module _ (R : SeqRel) (S : TrRel R) 
+             (is-fib-R : is-fib-seq-rel R)
+             (is-fib-S : is-fib-tr-rel R S) where
+
+
+
+      -- postulate
+      
+      --   thm : {!!}
+      --     → {a₀ a₁ : A} (σ : a₀ === a₁) (τ : a₀ == a₁)
+      --     → R σ τ ≃ CompRel σ τ 
+
+
+
+      completeness : Set
+      completeness = {a₀ a₁ a₂ : A}
+        → (p : a₀ == a₁) (q : a₀ == a₂)
+        → ((a₁ , p) == (a₂ , q)) ≃ Σ (a₁ == a₂) (λ r → R (ext p (ext r emp)) q)
+
+      -- So, is there a map in one direction or the other?
+      completeness-map : (is-unital-R : is-unital-rel R)
+        → {a₀ a₁ a₂ : A}
+        → (p : a₀ == a₁) (q : a₀ == a₂)
+        → ((a₁ , p) == (a₂ , q)) → Σ (a₁ == a₂) (λ r → R (ext p (ext r emp)) q)
+      completeness-map is-u-R p .p idp = idp , {!!} -- fst (contr-center (is-fib-S {!!}))
+
+      emp-tr : {a : A} (p : a == a) (r : R emp p) → tr R emp p
+      emp-tr p r = nd-tr emp p r (λ { () }) (λ { () })
+
+      -- Wow, this I find at least somewhat surprising, but okay.
+      completeness-inv : (is-u-R : is-unital-rel R)
+        → {a₀ a₁ a₂ : A}
+        → (p : a₀ == a₁) (q : a₀ == a₂)
+        → Σ (a₁ == a₂) (λ r → R (ext p (ext r emp)) q) → ((a₁ , p) == (a₂ , q))
+      completeness-inv is-u-R {a₁ = a₁} p q (idp , r) = pair= idp (fst= (contr-has-all-paths ⦃ is-fib-R (ext p emp) ⦄ (p , blorp) (q , bleep)))
+
+        where blorp : R (ext p emp) p
+              blorp = fst (contr-center (is-fib-S (lf-tr p)))  
+
+              bleep : R (ext p emp) q
+              bleep = fst (contr-center (is-fib-S (nd-tr (ext p (ext idp emp)) q r
+                          (λ { true → ext p emp ;
+                               (inr true) → emp })
+                          λ { true → lf-tr p ;
+                              (inr true) → emp-tr idp (is-u-R a₁) }))) 
+
+      -- Now, if we assume completeness, I think I can prove that R
+      -- has left liftings.  On the other hand, it looks like if I
+      -- knew that *S* has left liftings, then I would actually be
+      -- able to prove completeness.  Not sure what to make of that....
+
+      -- On the other hand, can I now just prove directly that R agrees
+      -- with composition? 
+
+      thm : (is-u-R : is-unital-rel R) 
+        → {a₀ a₁ : A} (σ : a₀ === a₁) (τ : a₀ == a₁)
+        → R σ τ ≃ CompRel σ τ 
+      thm is-u-R {a₀} emp τ = {!!}  -- This is fundamental theorem non-sense
+      thm is-u-R (ext idp σ) τ = comp-case
+
+        where R-tr : R (ext idp σ) τ → tr R σ τ
+              R-tr r = {!!} 
+
+                -- (nd-tr (ext idp σ) τ r
+                --           (λ { true → emp ; 
+                --                (inl p) → ? })
+                --           λ { true → emp-tr idp (is-u-R _) ;
+                --               (inr p) → ? })
+
+              suffices-to : R (ext idp σ) τ → R σ τ 
+              suffices-to r = fst (contr-center (is-fib-S (R-tr r)))
+
+              suffices-from : R σ τ → R (ext idp σ) τ
+              suffices-from = {!!}
+              
+              suffices : R (ext idp σ) τ ≃ R σ τ 
+              suffices = {!!}
+              
+              comp-case : R (ext idp σ) τ ≃ (comp σ == τ)
+              comp-case = (thm is-u-R σ τ) ∘e {!!} 
+
+      -- Okay, it's a bit annoying because of some non-computation, but
+      -- it seems that this is going to work fine, yeah? Oh one direction
+      -- will just use the unit, but the other will use either completeness
+      -- or else the lifting property of S.  Which, by the way, suggests that
+      -- these two properties are equivalent.
+
+      -- Hmm. Okay.  So while it's true that this will work, it won't
+      -- generalize: in the next dimension, you won't be able to just
+      -- compose with this nullifying tree to get what you want.
+
+
+      -- -- is-fib-bin-rel : BinRel → Set
+      -- -- is-fib-bin-rel B = (a : A) → is-contr (Σ A (B a))
+
+      -- -- data tr (R : SeqRel) : {a₀ a₁ : A} → a₀ === a₁ → a₀ == a₁ → Set where
+      -- --   lf-tr : {a₀ a₁ : A} (p : a₀ == a₁)
+      -- --     → tr R (ext p emp) p
+      -- --   nd-tr : {a₀ a₁ : A}
+      -- --     → (σ : a₀ === a₁) (τ : a₀ == a₁)
+      -- --     → (r : R σ τ)
+      -- --     → (δ : (p : plc σ) → src p === tgt p)
+      -- --     → (ε : (p : plc σ) → tr R (δ p) (inh p))
+      -- --     → tr R (μ-seq σ δ) τ 
+
+      -- -- TrRel : SeqRel → Set₁
+      -- -- TrRel R = {a₀ a₁ : A} {σ : a₀ === a₁} {τ : a₀ == a₁}
+      -- --   → tr R σ τ → R σ τ → Set 
+
+      -- -- is-fib-seq-rel : (R : SeqRel) → Set
+      -- -- is-fib-seq-rel R = {a₀ a₁ : A} (σ : a₀ === a₁)
+      -- --   → is-contr (Σ (a₀ == a₁) (R σ)) 
+
+      -- -- is-unital-rel : SeqRel → Set
+      -- -- is-unital-rel R = (a : A) → R emp (idp {a = a}) 
+
+      -- -- div : {a₀ a₁ a₂ : A} (σ : a₁ === a₂) (τ : a₀ == a₂) → a₀ == a₁
+      -- -- div σ τ = τ ∙ ! (comp σ) 
+
+      -- -- is-divisible : SeqRel → Set
+      -- -- is-divisible R = {a₀ a₁ a₂ : A} (p : a₀ == a₁)
+      -- --   → (σ : a₁ === a₂) (τ : a₀ == a₂)
+      -- --   → R (ext p σ) τ ≃ (p == div σ τ)
+
