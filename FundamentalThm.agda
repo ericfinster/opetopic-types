@@ -83,6 +83,7 @@ module FundamentalThm where
     CompRel : SeqRel
     CompRel σ τ = comp σ == τ 
 
+
     seqcat : {a₀ a₁ a₂ : A} → a₀ === a₁ → a₁ === a₂ → a₀ === a₂
     seqcat emp σ₁ = σ₁
     seqcat (ext p σ₀) σ₁ = ext p (seqcat σ₀ σ₁)
@@ -234,14 +235,18 @@ module FundamentalThm where
              (is-fib-R : is-fib-seq-rel R)
              (is-fib-S : is-fib-tr-rel R S) where
 
-
-
-      -- postulate
+      postulate
       
-      --   thm : {!!}
-      --     → {a₀ a₁ : A} (σ : a₀ === a₁) (τ : a₀ == a₁)
-      --     → R σ τ ≃ CompRel σ τ 
-
+        -- This form is general, I think, although the path
+        -- you transport along will come from what happens when
+        -- you project off the target equality from the fibrancy
+        -- of the previous.
+        can-assume : {a₀ a₁ a₂ : A}
+          → (p : a₀ == a₁) (σ : a₁ === a₂)
+          → (τ : a₀ == a₂)
+          → R (ext p σ) τ ≃ R (ext idp σ) (transport (λ x → x == a₂) p τ)  
+        -- The point is, this is just the transport equivalence induced
+        -- by the fact that the *previous* guy was fibrant.
 
 
       completeness : Set
@@ -254,7 +259,7 @@ module FundamentalThm where
         → {a₀ a₁ a₂ : A}
         → (p : a₀ == a₁) (q : a₀ == a₂)
         → ((a₁ , p) == (a₂ , q)) → Σ (a₁ == a₂) (λ r → R (ext p (ext r emp)) q)
-      completeness-map is-u-R p .p idp = idp , {!!} -- fst (contr-center (is-fib-S {!!}))
+      completeness-map is-u-R p .p idp = idp , {!!}
 
       emp-tr : {a : A} (p : a == a) (r : R emp p) → tr R emp p
       emp-tr p r = nd-tr emp p r (λ { () }) (λ { () })
