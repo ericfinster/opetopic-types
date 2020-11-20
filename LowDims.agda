@@ -26,70 +26,54 @@ module LowDims where
       → is-contr (Σ (Q a₀ a₁) (V σ)) 
 
     --  Showing that a fibrant, unital relation admits a composition
-    module _ (Q : UnaryRel) (is-unital-Q : (a : A) → Q a a) (is-fib-Q : is-fib-unary Q) where
+    module _ (Q : UnaryRel) (refl-Q : (a : A) → Q a a) (is-fib-Q : is-fib-unary Q) where
+
+      Q-elim : (a₀ : A) (P : Σ A (Q a₀) → Set)
+        → (r : P (a₀ , refl-Q a₀))
+        → (x : Σ A (Q a₀)) → P x
+      Q-elim a₀ P r x = transport P (contr-has-all-paths ⦃ is-fib-Q a₀ ⦄ (a₀ , refl-Q a₀) x) r 
+
+      Q-elim-β : (a₀ : A) (P : Σ A (Q a₀) → Set)
+        → (r : P (a₀ , refl-Q a₀))
+        → Q-elim a₀ P r (a₀ , refl-Q a₀) == r
+      Q-elim-β a₀ P r = {!!} 
 
       comp : {a₀ a₁ : A} → seq Q a₀ a₁ → Q a₀ a₁
-      comp (emp {a₀}) = is-unital-Q a₀
-      comp (ext {a₀} {a₁} {a₂} s r) = transport! (Q a₀) p (comp s)
-
-        where p : a₂ ==  a₁
-              p = fst= (contr-has-all-paths ⦃ is-fib-Q a₁ ⦄ (a₂ , r) (a₁ , is-unital-Q a₁)) 
-
-      Q-elim : (P : {a₀ a₁ : A} → Q a₀ a₁ → Set)
-        → (r : (a : A) → P (is-unital-Q a))
-        → {a₀ a₁ : A} (q : Q a₀ a₁) → P q
-      Q-elim P r {a₀} {a₁} q = transport! P' pth r'
-
-        where pth : (a₁ , q) == (a₀ , is-unital-Q a₀)
-              pth = contr-has-all-paths ⦃ is-fib-Q a₀ ⦄ (a₁ , q) (a₀ , is-unital-Q a₀)
-
-              P' : Σ A (Q a₀) → Set
-              P' x = P (snd x) 
-
-              r' : P' (a₀ , is-unital-Q a₀)
-              r' = r a₀ 
-
-      Q-elim' : (a₀ : A) (P : Σ A (Q a₀) → Set)
-        → (r : P (a₀ , is-unital-Q a₀))
-        → (x : Σ A (Q a₀)) → P x
-      Q-elim' a₀ P r x = transport P (contr-has-all-paths ⦃ is-fib-Q a₀ ⦄ (a₀ , is-unital-Q a₀) x) r 
-
-      comp' : {a₀ a₁ : A} → seq Q a₀ a₁ → Q a₀ a₁
-      comp' (emp {a₀}) = is-unital-Q a₀
-      comp' (ext {a₀} {a₁} {a₂} s r) = Q-elim' a₁ P (idf (Q a₀ a₁)) (a₂ , r) (comp' s)
+      comp (emp {a₀}) = refl-Q a₀
+      comp (ext {a₀} {a₁} {a₂} s r) = Q-elim a₁ P (idf (Q a₀ a₁)) (a₂ , r) (comp s)
 
         where P : Σ A (Q a₁) → Set
               P (a , _) = Q a₀ a₁ → Q a₀ a
 
               ih : Q a₀ a₁
-              ih = comp' s
+              ih = comp s
 
     module _ (Q : UnaryRel) (is-fib-Q : is-fib-unary Q)
              (R : SeqRel Q) (is-fib-R : is-fib-seq R) where
              
-      is-unital-Q : (a : A) → Q a a
-      is-unital-Q a = fst (contr-center (is-fib-R (emp {Q} {a}))) 
+      refl-Q : (a : A) → Q a a
+      refl-Q a = fst (contr-center (is-fib-R (emp {Q} {a}))) 
 
       comp-Q : {a₀ a₁ : A} → seq Q a₀ a₁ → Q a₀ a₁
-      comp-Q = comp Q is-unital-Q is-fib-Q
+      comp-Q = comp Q refl-Q is-fib-Q
 
       -- Yeah, so it's clear you can in fact finish this, though
       -- it needs the fibrancy of T.
       R-is-comp : {a₀ a₁ : A} → (s : seq Q a₀ a₁) → R s (comp-Q s)
       R-is-comp {a₀} {.a₀} emp = snd (contr-center (is-fib-R (emp {Q} {a₀}))) 
       R-is-comp (ext {a₀} {a₁} {a₂} s r) =
-        Q-elim' Q is-unital-Q is-fib-Q a₁
+        Q-elim Q refl-Q is-fib-Q a₁
           (λ x → R (ext s (snd x))
           (comp-Q (ext s (snd x)))) claim (a₂ , r)
 
-        where by-β : (comp-Q (ext s (is-unital-Q a₁))) == comp-Q s
-              by-β = {!!}
+        where by-β : comp-Q (ext s (refl-Q a₁)) == comp-Q s
+              by-β = {!Q-elim-β!}
 
               R-comp : Q a₀ a₁
-              R-comp = fst (contr-center (is-fib-R (ext s (is-unital-Q a₁))))
+              R-comp = fst (contr-center (is-fib-R (ext s (refl-Q a₁))))
 
-              R-fill : R (ext s (is-unital-Q a₁)) R-comp
-              R-fill = snd (contr-center (is-fib-R (ext s (is-unital-Q a₁))))
+              R-fill : R (ext s (refl-Q a₁)) R-comp
+              R-fill = snd (contr-center (is-fib-R (ext s (refl-Q a₁))))
 
               by-T-fib : R s R-comp
               by-T-fib = {!!}
@@ -100,8 +84,8 @@ module LowDims where
               thus : comp-Q s == R-comp
               thus = fst= (contr-has-all-paths ⦃ is-fib-R s ⦄ (comp-Q s , by-ih) (R-comp , by-T-fib))
               
-              claim : R (ext s (is-unital-Q a₁)) (comp-Q (ext s (is-unital-Q a₁)))
-              claim = transport! (R (ext s (is-unital-Q a₁))) (by-β ∙ thus) R-fill  
+              claim : R (ext s (refl-Q a₁)) (comp-Q (ext s (refl-Q a₁)))
+              claim = transport! (R (ext s (refl-Q a₁))) (by-β ∙ thus) R-fill  
 
     module _ {Q : UnaryRel} where
 
