@@ -35,11 +35,6 @@ module LowDims where
         where p : a₂ ==  a₁
               p = fst= (contr-has-all-paths ⦃ is-fib-Q a₁ ⦄ (a₂ , r) (a₁ , is-unital-Q a₁)) 
 
-      Q-elim' : (a₀ : A) (P : Σ A (Q a₀) → Set)
-        → (r : P (a₀ , is-unital-Q a₀))
-        → (x : Σ A (Q a₀)) → P x
-      Q-elim' a₀ P r x = transport P (contr-has-all-paths ⦃ is-fib-Q a₀ ⦄ (a₀ , is-unital-Q a₀) x) r 
-
       Q-elim : (P : {a₀ a₁ : A} → Q a₀ a₁ → Set)
         → (r : (a : A) → P (is-unital-Q a))
         → {a₀ a₁ : A} (q : Q a₀ a₁) → P q
@@ -53,6 +48,21 @@ module LowDims where
 
               r' : P' (a₀ , is-unital-Q a₀)
               r' = r a₀ 
+
+      Q-elim' : (a₀ : A) (P : Σ A (Q a₀) → Set)
+        → (r : P (a₀ , is-unital-Q a₀))
+        → (x : Σ A (Q a₀)) → P x
+      Q-elim' a₀ P r x = transport P (contr-has-all-paths ⦃ is-fib-Q a₀ ⦄ (a₀ , is-unital-Q a₀) x) r 
+
+      comp' : {a₀ a₁ : A} → seq Q a₀ a₁ → Q a₀ a₁
+      comp' (emp {a₀}) = is-unital-Q a₀
+      comp' (ext {a₀} {a₁} {a₂} s r) = Q-elim' a₁ P (idf (Q a₀ a₁)) (a₂ , r) (comp' s)
+
+        where P : Σ A (Q a₁) → Set
+              P (a , _) = Q a₀ a₁ → Q a₀ a
+
+              ih : Q a₀ a₁
+              ih = comp' s
 
     module _ (Q : UnaryRel) (is-fib-Q : is-fib-unary Q)
              (R : SeqRel Q) (is-fib-R : is-fib-seq R) where
@@ -92,14 +102,6 @@ module LowDims where
               
               claim : R (ext s (is-unital-Q a₁)) (comp-Q (ext s (is-unital-Q a₁)))
               claim = transport! (R (ext s (is-unital-Q a₁))) (by-β ∙ thus) R-fill  
-
-      -- Right.  So by "Q id-elim" it suffices to consider r = refl.
-      -- In this case, we should be able to show, from the induction
-      -- hypothesis and fibrancy that there is a cell from the
-      -- extension with the identity back to the composition of the
-      -- sequence.
-
-      -- It seems this would use the fibrancy of T, right?
 
     module _ {Q : UnaryRel} where
 
