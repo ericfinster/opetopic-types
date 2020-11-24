@@ -48,7 +48,7 @@ module LowDims where
               ih : Q a₀ a₁
               ih = comp s
 
-    module _ (Q : UnaryRel) (is-fib-Q : is-fib-unary Q)
+    module Lcl (Q : UnaryRel) (is-fib-Q : is-fib-unary Q)
              (R : SeqRel Q) (is-fib-R : is-fib-seq R) where
              
       refl-Q : (a : A) → Q a a
@@ -137,89 +137,76 @@ module LowDims where
         → (θ : tr R s q) → is-contr (Σ (R s q) (T θ)) 
 
     module _ (Q : UnaryRel) (is-fib-Q : is-fib-unary Q)
-             (R : SeqRel Q) (is-fib-R : is-fib-seq R)
-             (T : TrRel R) (is-fib-T : is-fib-tr R T) where
+             (R : SeqRel Q) (is-fib-R : is-fib-seq R) where
 
-      R-divisible : Set
-      R-divisible = {a₀ a₁ : A} (s : seq Q a₀ a₁)
-          → (δ : (p : plc s) → seq Q (src p) (tgt p))
-          → (ε : (p : plc s) → tr R (δ p) (inh p))
-          → (q : Q a₀ a₁)
-          → (back : R (μ-seq s δ) q)
-          → is-contr (Σ (R s q) (λ r → T (nd-tr s δ ε q r) back))
+      refl-Q : (a : A) → Q a a
+      refl-Q a = fst (contr-center (is-fib-R (emp {Q} {a}))) 
 
-      -- So this looks excellent.  It appears I can just directly show
-      -- that R is divisible.  I'm a bit surprised, but hey, why not.
-      -- (Although you still have to show uniqueness...)
+      comp-Q : {a₀ a₁ : A} → seq Q a₀ a₁ → Q a₀ a₁
+      comp-Q = comp Q refl-Q is-fib-Q
+
+      -- What hypotheses do I need on R in order that it has
+      -- a composition?
+      postulate
+
+        R-unital : {a₀ a₁ : A} (q : Q a₀ a₁)
+          → R (ext emp q) q
+
+        R-is-comp : {a₀ a₁ a₂ : A}
+          → (s : seq Q a₀ a₁) (r : Q a₁ a₂)
+          → R (ext s r) {!!}
+
+      -- R-free : {a₀ a₁ a₂ : A}
+      --   → (s₀ : seq Q a₀ a₁) (s₁ : seq Q a₁ a₂)
+      --   → R (seqcat s₀ s₁) (comp-Q (ext (ext emp (comp-Q s₀)) (comp-Q s₁)))
+      -- R-free = {!!} 
+
+      R-free : {a₀ a₁ a₂ : A}
+        → (s₀ : seq Q a₀ a₁) (s₁ : seq Q a₁ a₂)
+        → R (seqcat s₀ s₁) (comp-Q (ext s₀ (comp-Q s₁)))
+      R-free = {!!} 
+
+      R-γ-elim : {a₀ a₁ a₂ : A}
+        → (s₀ : seq Q a₀ a₁) (s₁ : seq Q a₁ a₂)
+        → (q : Q a₁ a₂)
+        → R s₁ q
+        → R (seqcat s₀ s₁) (comp-Q (ext s₀ q))
+      R-γ-elim = {!!}
       
-      conjecture : R-divisible
-      conjecture {a₀} {a₁} s δ ε q back = has-level-in ((tr-lift , tr-wit) , {!!}) 
+      R-inv : {a₀ a₁ : A} (s : seq Q a₀ a₁)
+        → (δ : (p : plc s) → seq Q (src p) (tgt p))
+        -- → (ε : (p : plc s) → tr R (δ p) (inh p))
+        → (ε : (p : plc s) → R (δ p) (inh p))
+        → R (μ-seq s δ) (comp-Q s)
+      R-inv emp δ ε = snd (contr-center (is-fib-R (emp {Q}))) 
+      R-inv (ext s r) δ ε =
+        let δ' p = δ (inl p)
+            ε' p = ε (inl p)
+            
+            ih : R (μ-seq s δ') (comp-Q s)
+            ih = R-inv s δ' ε'
+            
+            ε-ih : R (δ false) r
+            ε-ih = ε false 
 
-        where cmp : Q a₀ a₁
-              cmp = fst (contr-center (is-fib-R s))
+            from-γ : R (seqcat (μ-seq s (λ p → δ (inl p))) (δ false))
+                     (comp-Q (ext (μ-seq s (λ p → δ (inl p))) (comp-Q (δ false))))
+            from-γ = R-free (μ-seq s δ') (δ false)
 
-              fill : R s cmp
-              fill = snd (contr-center (is-fib-R s)) 
-
-              ext-tr : tr R (μ-seq s δ) cmp
-              ext-tr = nd-tr s δ ε cmp fill
-              
-              competitor : R (μ-seq s δ) cmp
-              competitor = fst (contr-center (is-fib-T ext-tr))
-
-              by-fibrancy : (cmp , competitor) == (q , back)
-              by-fibrancy = (contr-has-all-paths ⦃ is-fib-R (μ-seq s δ) ⦄ (cmp , competitor) (q , back))
-
-              thus : cmp == q
-              thus = fst= by-fibrancy
-
-              tr-lift : R s q
-              tr-lift = transport (R s) thus fill 
-
-              we-have : T (nd-tr s δ ε cmp fill) competitor
-              we-have = snd (contr-center (is-fib-T ext-tr)) 
-
-              -- Great.  So now this is just a kind of funky tranpsort
-              -- where I use the path over from the definition and the
-              -- one from by-fibrancy simultaneously.
-              
-              tr-wit : T (nd-tr s δ ε q tr-lift) back
-              tr-wit = {!snd (contr-center (is-fib-T ext-tr))!} 
+        in {!R-γ-elim (μ-seq s δ') (δ false) r ε-ih!}
 
 
+      assoc : {a₀ a₁ : A}
+        → {s : seq Q a₀ a₁} {t : Q a₀ a₁}
+        → tr R s t
+        → R s t
+      assoc (lf-tr q) = R-unital q
+      assoc (nd-tr s δ ε t r) = {!!}
 
-      refl : (a : A) → Q a a
-      refl a = fst (contr-center (is-fib-R emp)) 
+        -- So, here the idea would be that we can
+        -- suppose that t = comp s.  Then we are reduced
+        -- to showing that we always have:
+        --
+        --   R (μ-seq s δ) (comp s)
+        --
 
-      blorp : {a₀ a₁ a₂ : A} 
-        → (s : seq Q a₀ a₁) (u : Q a₁ a₂)  (t : Q a₀ a₂)
-        → R (ext s u) t ≃ R (ext s (snd (contr-center (is-fib-Q a₁))))
-          (transport! (Q a₀) (fst= (contr-path (is-fib-Q a₁) (a₂ , u))) t)
-      blorp s u t = {!!} 
-
-      -- Hmmm.  But oddly, this doesn't actually use the fibrancy of V
-      -- like I would have expected.  Still, it's something to keep
-      -- in mind.  What *would* use the fibrancy of V?
-
-      -- Anyway, the point is to observe that I can assume WLOG that
-      -- either the target, or the exposed node is in fact the
-      -- composite with respect to the previous relation.
-
-      -- I still don't quite see how this helps ....
-
-      -- I'd like to try to formalize the idea that "R is Q complete"
-      -- What does this mean?
-
-      div : {a₀ a₁ a₂ : A} (p : Q a₀ a₁) (q : Q a₀ a₂)
-        → Q a₁ a₂
-      div {a₀} {a₁} {a₂} p q = transport (λ x → Q x a₂) claim q 
-
-        where claim : a₀ == a₁
-              claim = fst= (contr-has-all-paths ⦃ is-fib-Q a₀ ⦄ (a₀ , refl a₀) (a₁ , p)) 
-              
-      wit : {a₀ a₁ a₂ : A} (p : Q a₀ a₁) (q : Q a₀ a₂)
-        → R (ext (ext emp p) (div p q)) q
-      wit = {!!}
-
-      -- Yeah, okay, so this seems possible.  So will this generalize
-      -- geometrically speaking? I mean, I think so.  Should we try it?
