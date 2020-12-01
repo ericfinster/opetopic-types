@@ -303,6 +303,9 @@ module MonadOver where
 
   module _ (M : 𝕄) (M↓ : 𝕄↓ M) where
 
+    -- NOTE: I think switching the "typ" entry to be a function would
+    -- probably save a bunch of extra annoying funext problems later
+    -- on.   Is there a reason you opted for this?
     record alg-comp (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p)) : Set where
       constructor ⟦_∣_∣_⟧
       field

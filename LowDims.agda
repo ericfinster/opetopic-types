@@ -36,7 +36,14 @@ module LowDims where
       Q-elim-β : (a₀ : A) (P : Σ A (Q a₀) → Set)
         → (r : P (a₀ , refl-Q a₀))
         → Q-elim a₀ P r (a₀ , refl-Q a₀) == r
-      Q-elim-β a₀ P r = {!!} 
+      Q-elim-β a₀ P r = ap (λ x → transport P x r) claim 
+
+        where pth : (a₀ , refl-Q a₀) == (a₀ , refl-Q a₀)
+              pth = contr-has-all-paths ⦃ is-fib-Q a₀ ⦄ (a₀ , refl-Q a₀) (a₀ , refl-Q a₀)
+              
+              claim : pth == idp
+              claim = contr-has-all-paths ⦃ has-level-apply (contr-has-level {n = S ⟨-2⟩} (is-fib-Q a₀))
+                                            (a₀ , refl-Q a₀) (a₀ , refl-Q a₀) ⦄ pth idp 
 
       comp : {a₀ a₁ : A} → seq Q a₀ a₁ → Q a₀ a₁
       comp (emp {a₀}) = refl-Q a₀
@@ -45,47 +52,12 @@ module LowDims where
         where P : Σ A (Q a₁) → Set
               P (a , _) = Q a₀ a₁ → Q a₀ a
 
-              ih : Q a₀ a₁
-              ih = comp s
+      comp-β : {a₀ a₁ : A} (s : seq Q a₀ a₁)
+        → comp (ext s (refl-Q a₁)) == comp s
+      comp-β {a₀} {a₁} s = app= (Q-elim-β a₁ P (idf (Q a₀ a₁))) (comp s) 
 
-    module Lcl (Q : UnaryRel) (is-fib-Q : is-fib-unary Q)
-             (R : SeqRel Q) (is-fib-R : is-fib-seq R) where
-             
-      refl-Q : (a : A) → Q a a
-      refl-Q a = fst (contr-center (is-fib-R (emp {Q} {a}))) 
-
-      comp-Q : {a₀ a₁ : A} → seq Q a₀ a₁ → Q a₀ a₁
-      comp-Q = comp Q refl-Q is-fib-Q
-
-      -- Yeah, so it's clear you can in fact finish this, though
-      -- it needs the fibrancy of T.
-      R-is-comp : {a₀ a₁ : A} → (s : seq Q a₀ a₁) → R s (comp-Q s)
-      R-is-comp {a₀} {.a₀} emp = snd (contr-center (is-fib-R (emp {Q} {a₀}))) 
-      R-is-comp (ext {a₀} {a₁} {a₂} s r) =
-        Q-elim Q refl-Q is-fib-Q a₁
-          (λ x → R (ext s (snd x))
-          (comp-Q (ext s (snd x)))) claim (a₂ , r)
-
-        where by-β : comp-Q (ext s (refl-Q a₁)) == comp-Q s
-              by-β = {!Q-elim-β!}
-
-              R-comp : Q a₀ a₁
-              R-comp = fst (contr-center (is-fib-R (ext s (refl-Q a₁))))
-
-              R-fill : R (ext s (refl-Q a₁)) R-comp
-              R-fill = snd (contr-center (is-fib-R (ext s (refl-Q a₁))))
-
-              by-T-fib : R s R-comp
-              by-T-fib = {!!}
-
-              by-ih : R s (comp-Q s)
-              by-ih = R-is-comp s 
-
-              thus : comp-Q s == R-comp
-              thus = fst= (contr-has-all-paths ⦃ is-fib-R s ⦄ (comp-Q s , by-ih) (R-comp , by-T-fib))
-              
-              claim : R (ext s (refl-Q a₁)) (comp-Q (ext s (refl-Q a₁)))
-              claim = transport! (R (ext s (refl-Q a₁))) (by-β ∙ thus) R-fill  
+        where P : Σ A (Q a₁) → Set
+              P (a , _) = Q a₀ a₁ → Q a₀ a
 
     module _ {Q : UnaryRel} where
 
@@ -132,9 +104,56 @@ module LowDims where
       TrRel R = {a₀ a₁ : A} {s : seq Q a₀ a₁} {q : Q a₀ a₁}
         → tr R s q → R s q → Set
 
-      is-fib-tr : (R : SeqRel Q) (T : TrRel R) → Set
-      is-fib-tr R T = {a₀ a₁ : A} {s : seq Q a₀ a₁} {q : Q a₀ a₁}
+      is-fib-tr : {R : SeqRel Q} (T : TrRel R) → Set
+      is-fib-tr {R} T = {a₀ a₁ : A} {s : seq Q a₀ a₁} {q : Q a₀ a₁}
         → (θ : tr R s q) → is-contr (Σ (R s q) (T θ)) 
+
+
+    module R-WitnessesComp (Q : UnaryRel) (is-fib-Q : is-fib-unary Q)
+                           (R : SeqRel Q) (is-fib-R : is-fib-seq R)
+                           (T : TrRel R) (is-fib-T : is-fib-tr T) where
+             
+      refl-Q : (a : A) → Q a a
+      refl-Q a = fst (contr-center (is-fib-R (emp {Q} {a}))) 
+
+      comp-Q : {a₀ a₁ : A} → seq Q a₀ a₁ → Q a₀ a₁
+      comp-Q = comp Q refl-Q is-fib-Q
+
+      -- Yeah, so it's clear you can in fact finish this, though
+      -- it needs the fibrancy of T.
+      R-is-comp : {a₀ a₁ : A} → (s : seq Q a₀ a₁) → R s (comp-Q s)
+      R-is-comp {a₀} {.a₀} emp = snd (contr-center (is-fib-R (emp {Q} {a₀}))) 
+      R-is-comp (ext {a₀} {a₁} {a₂} s r) =
+        Q-elim Q refl-Q is-fib-Q a₁
+          (λ x → R (ext s (snd x))
+          (comp-Q (ext s (snd x)))) claim (a₂ , r)
+
+        where by-β : comp-Q (ext s (refl-Q a₁)) == comp-Q s
+              by-β = comp-β Q refl-Q is-fib-Q s
+
+              R-comp : Q a₀ a₁
+              R-comp = fst (contr-center (is-fib-R (ext s (refl-Q a₁))))
+
+              R-fill : R (ext s (refl-Q a₁)) R-comp
+              R-fill = snd (contr-center (is-fib-R (ext s (refl-Q a₁))))
+
+              -- Oh.  We need a bit of definitional equality here
+              -- in order to write this tree.
+              r-tr : tr R s R-comp
+              r-tr = nd-tr {!ext s (refl-Q a₁)!} {!!} {!!} {!!} {!!} 
+              
+              by-T-fib : R s R-comp
+              by-T-fib = fst (contr-center (is-fib-T r-tr))
+
+              by-ih : R s (comp-Q s)
+              by-ih = R-is-comp s 
+
+              thus : comp-Q s == R-comp
+              thus = fst= (contr-has-all-paths ⦃ is-fib-R s ⦄ (comp-Q s , by-ih) (R-comp , by-T-fib))
+              
+              claim : R (ext s (refl-Q a₁)) (comp-Q (ext s (refl-Q a₁)))
+              claim = transport! (R (ext s (refl-Q a₁))) (by-β ∙ thus) R-fill  
+
 
     module _ (Q : UnaryRel) (is-fib-Q : is-fib-unary Q)
              (R : SeqRel Q) (is-fib-R : is-fib-seq R) where
@@ -154,7 +173,7 @@ module LowDims where
 
         R-is-comp : {a₀ a₁ a₂ : A}
           → (s : seq Q a₀ a₁) (r : Q a₁ a₂)
-          → R (ext s r) {!!}
+          → R (ext s r) {!comp-Q s!}
 
       -- R-free : {a₀ a₁ a₂ : A}
       --   → (s₀ : seq Q a₀ a₁) (s₁ : seq Q a₁ a₂)
@@ -202,6 +221,10 @@ module LowDims where
         → R s t
       assoc (lf-tr q) = R-unital q
       assoc (nd-tr s δ ε t r) = {!!}
+
+        -- Oh.  So I can clearly suppose that t = the fibrant composite
+        -- of R.  But actually, in order to show this is comp S, I need
+        -- T itself in a non-trivial way.
 
         -- So, here the idea would be that we can
         -- suppose that t = comp s.  Then we are reduced
