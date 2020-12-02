@@ -12,7 +12,7 @@ module SliceUnique (M : 𝕄) (M↓ : 𝕄↓ M) where
   open import SliceUnfold M M↓
   open import SliceAlg M M↓
 
-  --  This is type hypothesis that I think we will need to
+  --  This is the hypothesis that I think we will need to
   --  show for a relation R.  So first I will show that this
   --  hypothesis implies that R is equivalent to the canonical
   --  relation.
@@ -24,7 +24,7 @@ module SliceUnique (M : 𝕄) (M↓ : 𝕄↓ M) where
       → R ((i , slc-idx i σ ϕ) , (σ , ϕ)) 
 
   --  In this module, I will assume R is fibrant and satisfies
-  --  the hypothesis above.  Then I claim that theorem follows
+  --  the hypothesis above.  Then I claim the theorem follows
   --  from the Fundamental Theorem of HoTT.
   
   module RIsCanonical (R : Rel₂) (is-fib-R : unique-action Slc₁ (Idx↓ Slc↓₁) R)
@@ -92,4 +92,23 @@ module SliceUnique (M : 𝕄) (M↓ : 𝕄↓ M) where
     R-is-CanonRel : (i : Idx Slc₂) → R i ≃ CanonRel₂ i
     R-is-CanonRel ((i , a) , σ , ϕ) = (Canon-is-== i σ ϕ a) ⁻¹ ∘e (R-is-== i σ ϕ a)  
 
+  -- The above argument shows that *if* we can prove that *any*
+  -- fibrant R over an algebraic extension which admits a fibrant
+  -- extension T necessarily satsifies our hypothesis, then we have
+  -- finished the uniqueness theorem.  (Modulo some playing around
+  -- with equivalences of monads and whatnot in the coinductive step.
+  -- But this will be routine, if a bit tedious).
 
+  -- In other words, I claim that the equivalence between Type and
+  -- oo-groupoid follows from the following statement:
+
+  postulate
+  
+    to-finish-the-theorem : (is-alg : is-algebraic M M↓)
+      → (R : Rel₂) (is-fib-R : unique-action Slc₁ (Idx↓ Slc↓₁) R)
+      → (T : Rel₃) (is-fib-T : unique-action Slc₂ (Idx↓ Slc↓₂) T)
+      → R-hypothesis R
+
+  -- For a long time, I thought this looked impossible without more
+  -- hypotheses on R.  But now I think we can actually do it. I'll
+  -- try and sketch why in SliceUnique1.agda.
