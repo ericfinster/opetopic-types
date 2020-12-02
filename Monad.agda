@@ -435,3 +435,10 @@ module Monad where
     --   → (p : Pos M c) (q : Pos M (δ p))
     --   → μ-pos-fst M c δ (μ-pos M c δ p q) ↦ p
     -- {-# REWRITE μ-pos-fst-β #-}
+
+  --
+  --  The induced monad on families
+  --
+  
+  ⟦_⟧ : (M : 𝕄) → (Idx M → Set) → (Idx M → Set)
+  ⟦ M ⟧ X i = Σ (Cns M i) (λ c → (p : Pos M c) → X (Typ M c p))  
