@@ -13,16 +13,44 @@ open import SliceUnfold
 
 module MonadicUniqueness (A : Set) where
 
+  question : (a : A) (p : a == a)
+    → p ∙ p == p
+    → p == idp
+  question a p idm =
+           p =⟨ {!!} ⟩
+           p ∙ (p ∙ ! p) =⟨ {!!} ⟩
+           (p ∙ p) ∙ ! p =⟨ {!!} ⟩
+           p ∙ ! p =⟨ {!!} ⟩ 
+           idp =∎ 
+
   open Slices IdMnd (IdMnd↓ A)
 
   module _ (R : Rel₂) (is-fib-R : unique-action Slc₁ (Idx↓ Slc↓₁) R) 
            (T : Rel₃) (is-fib-T : unique-action Slc₂ (Idx↓ Slc↓₂) T) where
 
     -- Okay, so is it now true that I can prove R is composition?
+
+    postulate
     
-    R-lf-η↓ : (i : Idx IdMnd) (j : Idx↓ (IdMnd↓ A) i)
-      → R ((((i , j) , _ , _) , (j , idp) , η↓ (IdMnd↓ A) {i = i}  j , cst idp) , lf (i , j) , ⊥-elim) 
-    R-lf-η↓ ttᵢ a = {!!}
+      slc-idx : (i : Idx Slc₁) (σ : Cns Slc₁ i)
+        → (ϕ : (p : Pos Slc₁ σ) → Idx↓ Slc↓₁ (Typ Slc₁ σ p))
+        → Idx↓ Slc↓₁ i
+
+      slc-cns : (i : Idx Slc₁) (σ : Cns Slc₁ i)
+        → (ϕ : (p : Pos Slc₁ σ) → Idx↓ Slc↓₁ (Typ Slc₁ σ p))
+        → Cns↓ Slc↓₁ (slc-idx i σ ϕ) σ
+
+      slc-typ : (i : Idx Slc₁) (σ : Cns Slc₁ i)
+        → (ϕ : (p : Pos Slc₁ σ) → Idx↓ Slc↓₁ (Typ Slc₁ σ p))
+        → (p : Pos Slc₁ σ)
+        → Typ↓ Slc↓₁ (slc-cns i σ ϕ) p == ϕ p 
+
+    -- Exactly.  So this is the general version, which specializes to exactly
+    -- the case for leaf and node that you would have unfolded below.
+    R-is-slc : (i : Idx Slc₁) (σ : Cns Slc₁ i)
+      → (ϕ : (p : Pos Slc₁ σ) → Idx↓ Slc↓₁ (Typ Slc₁ σ p))
+      → R ((i , slc-idx i σ ϕ) , (σ , ϕ)) 
+    R-is-slc i σ ϕ = {!!} 
 
     R-fib-gives : (i : Idx Slc₁) (c : Cns Slc₁ i)
       → (ν : (p : Pos Slc₁ c) → (Idx↓ Slc↓₁) (Typ Slc₁ c p))
@@ -40,6 +68,46 @@ module MonadicUniqueness (A : Set) where
       → (θ : (p : Pos Slc₁ ω) → (Idx↓ Slc↓₁) (Typ Slc₁ ω p))
       → Σ (Idx↓ Slc↓₁ ((i , a₀) , c , ν)) (λ i↓ → R ((((i , a₀) , c , ν) , i↓) , ω , θ))
     R-fib-gives'' i a₀ c ν ω θ = contr-center (is-fib-R ((i , a₀) , c , ν) ω θ) 
+
+    -- Right.  This seems totally clear.  So it's definitely not contractible.
+    -- So how do I know that, when applying the above to a leaf, I get the right thing?
+    slice-fib : (i : Idxᵢ) (a₀ : A) (c : Cnsᵢ i) (ν : (p : Posᵢ {u = i} c) → A)
+      → Idx↓ Slc↓₁ ((i , a₀) , c , ν) ≃ (a₀ == ν ttᵢ)
+    slice-fib i a₀ c ν = {!!}
+
+    our-index : (a : A) → Idx↓ Slc↓₁ ((ttᵢ , a) , ttᵢ , cst a)
+    our-index a = fst (R-fib-gives'' ttᵢ a ttᵢ (cst a) (lf (ttᵢ , a)) ⊥-elim)
+
+    we-have : (a : A) → R ((((ttᵢ , a) , ttᵢ , cst a) , our-index a) , lf (ttᵢ , a) , ⊥-elim)
+    we-have a = snd (R-fib-gives'' ttᵢ a ttᵢ (cst a) (lf (ttᵢ , a)) ⊥-elim) 
+
+    we-want : (a : A) → R ((((ttᵢ , a) , ttᵢ , cst a) , (a , idp) , (ttᵢ , cst idp)) , lf (ttᵢ , a) , ⊥-elim)
+    we-want a = {!!} 
+
+    -- So.  This seems to be the crux of the problem.  R gives us back a loop on
+    -- a in this case.  But where does the null-homotopy come from? 
+
+    -- In this setup, there is nothing more to add to the hypotheses, right?
+    -- There's no previous step, nothing like that.  There's only R and what
+    -- it gives us.
+
+    -- So the only thing which seems to make sense is that we are going to use
+    -- the fundamental theorem to produce a possible non-trivial equivalence
+    -- which will "fix" R so that what it thinks is the unit actually becomes
+    -- the unit.
+
+    -- Or can you somehow "compose" R with the inverse loop and get a
+    -- null homotopy?  In any case, this is clearly where you have to
+    -- confront the problem and find a solution.
+
+    -- But you can probably inspect this at the level of the
+    -- fundamental theorem: basically, I'm going to get a map sending
+    -- one unit to the other, right?  But how does this help?
+
+    -- Okay.  So the above I think gives the idea: the unit element
+    -- is forced to be idempotent.  And in an identity type, this
+    -- forces it to be the identity.  And that's going to use the
+    -- fibrancy in the next dimension.  Okay.  Nice.
 
     to : (i : Idx Slc₂) → CanonRel₂ i → R i
     to ((((i , a₀) , c , ν) , (a₁ , p) , c↓ , typ-c↓=ν) , ω , θ) ((._ , idp) , ω↓ , θ↓) = {!ν!}

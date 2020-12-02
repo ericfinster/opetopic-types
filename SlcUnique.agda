@@ -10,6 +10,7 @@ open import OpetopicType
 -- open import InftyGroupoid
 -- open import FundamentalThm
 -- open import MonadEqv 
+open import SliceUnfold
 
 module SlcUnique where
 
@@ -18,38 +19,35 @@ module SlcUnique where
   --
   module _ (M : 𝕄) (M↓ : 𝕄↓ M) where
 
-    open import SliceUnfold M M↓ 
+    open Slices M M↓ 
 
-    is-this-useful : (i : Idx Plbk) → is-contr ((Idx↓ Plbk↓) i)
-    is-this-useful (i , j) = pathto-is-contr j 
-
-    module _ (R : Idx DblSlc → Set) where
+    module _ (R : Idx Slc₂ → Set) where
 
       SlcR : 𝕄
-      SlcR = Slice (Pb DblSlc R)
+      SlcR = Slice (Pb Slc₂ R)
 
-      module _ (T : Idx SlcR → Set) (is-fib-T : unique-action DblSlc R T) where
+      module _ (T : Idx SlcR → Set) (is-fib-T : unique-action Slc₂ R T) where
 
         -- So, what does the fibrancy of T get us in this case?
-        dbl-slice-unit : (i : Idx M) (j : Idx↓ M↓ i) → Idx DblSlc
+        dbl-slice-unit : (i : Idx M) (j : Idx↓ M↓ i) → Idx Slc₂
         dbl-slice-unit i j = (((i , j) , (_ , _)) , ((j , idp) , (η↓ M↓ j , cst idp))) , lf (i , j) , λ { () }
 
         -- Ahh!  What's the unit?
-        T-lf : (i : Idx (Pb Slc (Idx↓ Slc↓))) → Cns DblSlc (i , η (Pb Slc (Idx↓ Slc↓)) i)
+        T-lf : (i : Idx (Pb Slc₁ (Idx↓ Slc↓₁))) → Cns Slc₂ (i , η (Pb Slc₁ (Idx↓ Slc↓₁)) i)
         T-lf i = lf i 
 
-        R-unital : (i : Idx (Pb Slc (Idx↓ Slc↓))) → R (i , η (Pb Slc (Idx↓ Slc↓)) i) 
-        R-unital i = fst (contr-center (is-fib-T (i , η (Pb Slc (Idx↓ Slc↓)) i) (lf i) (λ { () })))
+        R-unital : (i : Idx (Pb Slc₁ (Idx↓ Slc↓₁))) → R (i , η (Pb Slc₁ (Idx↓ Slc↓₁)) i) 
+        R-unital i = fst (contr-center (is-fib-T (i , η (Pb Slc₁ (Idx↓ Slc↓₁)) i) (lf i) (λ { () })))
 
-        gen-case : Idx (Pb Slc (Idx↓ Slc↓)) → Type₀
-        gen-case (((i , j) , (c , ν)) , ((j' , j'=j) , d , typ-d=ν)) = {!η (Pb Slc (Idx↓ Slc↓)) (((i , j) , (c , ν)) , ((j' , j'=j) , d , typ-d=ν))!} 
+        gen-case : Idx (Pb Slc₁ (Idx↓ Slc↓₁)) → Type₀
+        gen-case (((i , j) , (c , ν)) , ((j' , j'=j) , d , typ-d=ν)) = {!η (Pb Slc₁ (Idx↓ Slc↓₁)) (((i , j) , (c , ν)) , ((j' , j'=j) , d , typ-d=ν))!} 
 
         -- nd (c , ν) (λ p → η M (Typ M c p) , (λ _ → ν p)) (λ p → lf (Typ M c p , ν p)), (λ _ → (j' , j'=j) , d , typ-d=ν)
 
-        idx-pb : (i : Idx M) (j : Idx↓ M↓ i) → Idx (Pb Slc (Idx↓ Slc↓))
+        idx-pb : (i : Idx M) (j : Idx↓ M↓ i) → Idx (Pb Slc₁ (Idx↓ Slc↓₁))
         idx-pb i j = (((i , j) , (_ , _)) , ((j , idp) , (η↓ M↓ j , cst idp)))
 
-        eta-pb : (i : Idx M) (j : Idx↓ M↓ i) → Cns (Pb Slc (Idx↓ Slc↓)) (idx-pb i j)
+        eta-pb : (i : Idx M) (j : Idx↓ M↓ i) → Cns (Pb Slc₁ (Idx↓ Slc↓₁)) (idx-pb i j)
         eta-pb i j = nd (η M i , (λ _ → j)) (λ _ → η M i , (λ _ → j)) (λ _ → lf (i , j)) , λ { true → (j , idp) , (η↓ M↓ j , cst idp) } 
 
         -- Hmmm.  This doesn't typecheck when we actually normalize.  Is that kind
@@ -73,15 +71,15 @@ module SlcUnique where
         
   module _ (M : 𝕄) (M↓ : 𝕄↓ M) (is-alg : is-algebraic M M↓) where
 
-    open import SliceUnfold M M↓
+    open Slices M M↓
     
-    module _ (R : Idx DblSlc → Set) (is-fib-R : unique-action Slc (Idx↓ Slc↓) R) where
+    module _ (R : Idx Slc₂ → Set) (is-fib-R : unique-action Slc₁ (Idx↓ Slc↓₁) R) where
 
       -- Wait, can I *prove* the statement below using the fibrancy of R? 
 
       module _ (i : Idx M) (j : Idx↓ M↓ i) where
 
-        ctr : Σ (Idx↓ Slc↓ ((i , j) , (η M i , cst j))) (λ z → R ((((i , j) , (η M i , cst j)) , z) , lf (i , j) , ⊥-elim))
+        ctr : Σ (Idx↓ Slc↓₁ ((i , j) , (η M i , cst j))) (λ z → R ((((i , j) , (η M i , cst j)) , z) , lf (i , j) , ⊥-elim))
         ctr = contr-center (is-fib-R ((i , j) , (η M i , cst j)) (lf (i , j)) ⊥-elim)
 
         R-fib-lf : R ((((i , j) , (η M i , cst j)) , fst ctr) , lf (i , j) , ⊥-elim)
@@ -164,7 +162,7 @@ module SlcUnique where
       -- the multiplication over, and then reassemble the θ argument
       -- from the local data and the assumed continuation.
 
-      need-to-show : (i : Idx DblSlc) → R i → CanonRel i
+      need-to-show : (i : Idx Slc₂) → R i → CanonRel₂ i
       need-to-show ((((i , j) , ._ , ._) , (.j , idp) , d , typ-d=ν) , lf .(i , j) , θ) r =
         (((j , idp) , η↓ M↓ j , cst idp) , {!!}) , lf↓ (j , idp) , λ { () }
 
@@ -177,7 +175,7 @@ module SlcUnique where
 
 
       -- It occurs to me that this direction may be more informative ...
-      other-way : (i : Idx DblSlc) → CanonRel i → R i
+      other-way : (i : Idx Slc₂) → CanonRel₂ i → R i
       -- other-way ((((i , j) , c , ν) , (.j , idp) , (d , typ-d=ν)) , ω , θ) ((_ , idp) , (A , B)) = {!ω!}
       other-way ((((i , j) , ._ , ._) , (.j , idp) , d , typ-d=ν) , lf .(i , j) , θ) ((_ , idp) , A , B) = {!!}
 
