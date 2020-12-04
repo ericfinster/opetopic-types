@@ -9,7 +9,6 @@ open import Pb
 open import OpetopicType
 open import IdentityMonad
 open import IdentityMonadOver
-open import SliceUnfold
 
 module MonadicUniqueness (A : Set) where
 
@@ -23,7 +22,7 @@ module MonadicUniqueness (A : Set) where
            p ∙ ! p =⟨ {!!} ⟩ 
            idp =∎ 
 
-  open Slices IdMnd (IdMnd↓ A)
+  open import SliceUnfold IdMnd (IdMnd↓ A)
 
   module _ (R : Rel₂) (is-fib-R : unique-action Slc₁ (Idx↓ Slc↓₁) R) 
            (T : Rel₃) (is-fib-T : unique-action Slc₂ (Idx↓ Slc↓₂) T) where
@@ -117,3 +116,5 @@ module MonadicUniqueness (A : Set) where
     -- So, to prove that R is composition is to prove the following:
     thm : (i : Idx Slc₂) → R i ≃ CanonRel₂ i
     thm ((((i , a₀) , c , ν) , (a₁ , p) , c↓ , typ-c↓=ν) , ω , θ) = {!!} 
+
+    
