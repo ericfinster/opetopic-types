@@ -12,16 +12,6 @@ open import IdentityMonadOver
 
 module MonadicUniqueness (A : Set) where
 
-  question : (a : A) (p : a == a)
-    → p ∙ p == p
-    → p == idp
-  question a p idm =
-           p =⟨ {!!} ⟩
-           p ∙ (p ∙ ! p) =⟨ {!!} ⟩
-           (p ∙ p) ∙ ! p =⟨ {!!} ⟩
-           p ∙ ! p =⟨ {!!} ⟩ 
-           idp =∎ 
-
   open import SliceUnfold IdMnd (IdMnd↓ A)
 
   module _ (R : Rel₂) (is-fib-R : unique-action Slc₁ (Idx↓ Slc↓₁) R) 

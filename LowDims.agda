@@ -90,7 +90,6 @@ module LowDims (A : Set) where
       seqcat (μ-seq s (λ p → δ (inl p)))
              (δ (inr unit))
 
-
     is-fib-seq : SeqRel Q → Set
     is-fib-seq R = {a₀ a₁ : A} (σ : seq Q a₀ a₁)
        → is-contr (Σ (Q a₀ a₁) (R σ)) 
@@ -103,8 +102,14 @@ module LowDims (A : Set) where
       → (r : R s t)
       → R (μ-seq s δ) t
 
+  module _ {Q₀ Q₁ : BinRel} (ϕ : {a₀ a₁ : A} → Q₀ a₀ a₁ → Q₁ a₀ a₁) where
+
+    map-seq : {a₀ a₁ : A} → seq Q₀ a₀ a₁ → seq Q₁ a₀ a₁
+    map-seq emp = emp
+    map-seq (ext s r) = ext (map-seq s) (ϕ r)
+
   -- The composition relation on the identity type
-  module IdCompRel where
+  module _ where
 
     id-comp : {a₀ a₁ : A} → seq IdRel a₀ a₁ → a₀ == a₁
     id-comp emp = idp
@@ -112,6 +117,26 @@ module LowDims (A : Set) where
 
     IdCompRel : SeqRel IdRel
     IdCompRel s p = id-comp s == p 
+
+
+  -- generic composition in a fibrant, reflexive relation
+  module BinComp (Q : BinRel) (is-fib-Q : is-fib-bin Q) (refl-Q : is-refl-bin Q) where
+
+    open BinElim Q is-fib-Q refl-Q
+
+    comp-Q : {a₀ a₁ : A} → seq Q a₀ a₁ → Q a₀ a₁
+    comp-Q (emp {a₀}) = refl-Q a₀
+    comp-Q (ext {a₀} {a₁} {a₂} s r) = Bin-elim a₁ P (idf (Q a₀ a₁)) (a₂ , r) (comp-Q s)
+
+      where P : Σ A (Q a₁) → Set
+            P (a , _) = Q a₀ a₁ → Q a₀ a
+
+    comp-Q-β : {a₀ a₁ : A} (s : seq Q a₀ a₁)
+      → comp-Q (ext s (refl-Q a₁)) == comp-Q s
+    comp-Q-β {a₀} {a₁} s = app= (Bin-elim-β a₁ P (idf (Q a₀ a₁))) (comp-Q s) 
+
+      where P : Σ A (Q a₁) → Set
+            P (a , _) = Q a₀ a₁ → Q a₀ a
 
   module _ {Q : BinRel} (R : SeqRel Q) where
 
@@ -133,75 +158,152 @@ module LowDims (A : Set) where
       → (θ : tr s q) → is-contr (Σ (R s q) (T θ)) 
 
 
-  module _ (Q : BinRel) (is-fib-Q : is-fib-bin Q)
-           (R : SeqRel Q) (is-fib-R : is-fib-seq R) where
+  module FtDim2 (Q : BinRel) (is-fib-Q : is-fib-bin Q)
+                (R : SeqRel Q) (is-fib-R : is-fib-seq R) where
 
-    -- So, the question is, what additional data can I add to
-    -- the hypotheses so that the space of such data becomes
-    -- contractible?
+    refl-Q : (a : A) → Q a a
+    refl-Q a = fst (contr-center (is-fib-R (emp {Q} {a}))) 
+
+    open BinFT Q is-fib-Q refl-Q
+    open BinComp Q is-fib-Q refl-Q
+    
+    -- Okay, we now have an identification of Q with the identity
+    -- type.  We now want to understand what exactly we need in
+    -- order to have the following:
+
+    ϕ : {a₀ a₁ : A} → Q a₀ a₁ → IdRel a₀ a₁
+    ϕ {a₀} {a₁} = –> (bin-ft a₀ a₁)
+
+    postulate
+
+      -- I mean, you could also just *assert* this.  In this way,
+      -- it *is* just data and not any kind of function.
+      
+      extreme : {a₀ a₁ : A} → (s : seq Q a₀ a₁) → R s (comp-Q s)
+      
+      -- does this have some kind of nice transfer properties?
+
+      -- id-comp-rel-extreme : {a₀ a₁ : A}
+      --   → (s : seq IdRel a₀ a₁)
+      --   → IdCompRel s (id-comp s)
+      -- id-comp-rel-extreme s = idp
+
+      -- Well, the identity relation's versions of this is idp!  so
+      -- this seems, in some sense, directly analagous to the case
+      -- before: we just choose an axiom about where to send idp, and
+      -- that's it.  And then it is in some sense tautological
+        -- (I think) that we can track the image of this element.
+
+    would-like : {a₀ a₁ : A} (s : seq Q a₀ a₁) (t : Q a₀ a₁)
+      → R s t ≃ IdCompRel (map-seq ϕ s) (ϕ t)
+    would-like s t = R s t                         ≃⟨ {!!} ⟩  -- fibrancy, if R witnesses composition
+                     comp-Q s == t                 ≃⟨ {!!} ⟩  -- ϕ is an equivalence
+                     ϕ (comp-Q s) == ϕ t           ≃⟨ {!!} ⟩  -- ϕ preserves composition
+                     id-comp (map-seq ϕ s) == ϕ t  ≃⟨ {!!} ⟩  -- fibrancy 
+                     IdCompRel (map-seq ϕ s) (ϕ t) ≃∎
+
+  module R-WitnessesComp (Q : BinRel) (is-fib-Q : is-fib-bin Q)
+                         (R : SeqRel Q) (is-fib-R : is-fib-seq R) where
+
+    refl-Q : (a : A) → Q a a
+    refl-Q a = fst (contr-center (is-fib-R (emp {Q} {a}))) 
+
+    open BinElim Q is-fib-Q refl-Q
+    open BinComp Q is-fib-Q refl-Q
+
+    postulate
+
+      R-unital : {a₀ a₁ : A} (s : seq Q a₀ a₁) (t : Q a₀ a₁)
+        → R (ext s (refl-Q a₁)) t
+        → R s t 
+
+      -- I mean, you could also just *assert* this.  In this way,
+      -- it *is* just data and not any kind of function.
+      extreme : {a₀ a₁ : A} → (s : seq Q a₀ a₁) → R s (comp-Q s)
+      -- does this have some kind of nice transfer properties?
 
 
-  -- --  Showing that a fibrant, unital relation admits a composition
-  -- module _ (Q : BinRel) (refl-Q : (a : A) → Q a a) (is-fib-Q : is-fib-unary Q) where
+      -- I mean, it make sense to me that some *data* on one side
+      -- is transformed into some *data* on the other.  But how
+      -- does it make sense that an abstract *function* is transformed
+      -- to another?
+      
+      or-maybe : {a₀ a₁ : A} (s : seq Q a₀ a₁)
+        → R (ext s (refl-Q a₁)) (comp-Q s)
 
-  --   comp : {a₀ a₁ : A} → seq Q a₀ a₁ → Q a₀ a₁
-  --   comp (emp {a₀}) = refl-Q a₀
-  --   comp (ext {a₀} {a₁} {a₂} s r) = Q-elim a₁ P (idf (Q a₀ a₁)) (a₂ , r) (comp s)
 
-  --     where P : Σ A (Q a₁) → Set
-  --           P (a , _) = Q a₀ a₁ → Q a₀ a
+    -- So now I'm wondering what we have as consequences it we
+    -- assume extreme.
 
-  --   comp-β : {a₀ a₁ : A} (s : seq Q a₀ a₁)
-  --     → comp (ext s (refl-Q a₁)) == comp s
-  --   comp-β {a₀} {a₁} s = app= (Q-elim-β a₁ P (idf (Q a₀ a₁))) (comp s) 
+    R-unit-right : {a₀ a₁ : A} (s : seq Q a₀ a₁)
+      → R (ext s (refl-Q a₁)) (comp-Q s)
+    R-unit-right {a₀} {a₁} s = transport (R (ext s (refl-Q a₁))) claim (extreme (ext s (refl-Q a₁))) 
 
-  --     where P : Σ A (Q a₁) → Set
-  --           P (a , _) = Q a₀ a₁ → Q a₀ a
+      where claim : comp-Q (ext s (refl-Q a₁)) == comp-Q s
+            claim = comp-Q-β s
 
-  -- module R-WitnessesComp (Q : BinRel) (is-fib-Q : is-fib-unary Q)
-  --                        (R : SeqRel Q) (is-fib-R : is-fib-seq R)
-  --                        (T : TrRel R) (is-fib-T : is-fib-tr T) where
+    -- Interesting.  And probably there is more.
 
-  --   refl-Q : (a : A) → Q a a
-  --   refl-Q a = fst (contr-center (is-fib-R (emp {Q} {a}))) 
+    R-concat : {a₀ a₁ a₂ : A} (s : seq Q a₀ a₁) (t : seq Q a₁ a₂)
+      → R (seqcat s t) (comp-Q (ext (ext emp (comp-Q s)) (comp-Q t)))
+    R-concat s emp = {!!}
+    R-concat s (ext t r) = {!!}
 
-  --   comp-Q : {a₀ a₁ : A} → seq Q a₀ a₁ → Q a₀ a₁
-  --   comp-Q = comp Q refl-Q is-fib-Q
+    -- Right.  This is some long inductive argument and so on.
+    -- but I think you'll be able to carry it out.
 
-  --   -- Yeah, so it's clear you can in fact finish this, though
-  --   -- it needs the fibrancy of T.
-  --   R-is-comp : {a₀ a₁ : A} → (s : seq Q a₀ a₁) → R s (comp-Q s)
-  --   R-is-comp {a₀} {.a₀} emp = snd (contr-center (is-fib-R (emp {Q} {a₀}))) 
-  --   R-is-comp (ext {a₀} {a₁} {a₂} s r) =
-  --     Q-elim Q refl-Q is-fib-Q a₁
-  --       (λ x → R (ext s (snd x))
-  --       (comp-Q (ext s (snd x)))) claim (a₂ , r)
+    -- Okay, interesting.  So the only thing we seem to need is this
+    -- unitality postulate.  And this we are clearly going to get
+    -- from the fibrancy in the next dimension.
 
-  --     where by-β : comp-Q (ext s (refl-Q a₁)) == comp-Q s
-  --           by-β = comp-β Q refl-Q is-fib-Q s
+    -- But what would it mean for this structure to be "transported to"
+    -- the cancellation on the identity type? Becase the function is
+    -- "abstract".
 
-  --           R-comp : Q a₀ a₁
-  --           R-comp = fst (contr-center (is-fib-R (ext s (refl-Q a₁))))
+    R-is-comp : {a₀ a₁ : A} → (s : seq Q a₀ a₁) → R s (comp-Q s)
+    R-is-comp {a₀} {.a₀} emp = snd (contr-center (is-fib-R (emp {Q} {a₀}))) 
+    R-is-comp (ext {a₀} {a₁} {a₂} s r) =
+      Bin-elim a₁
+        (λ x → R (ext s (snd x))
+        (comp-Q (ext s (snd x)))) claim (a₂ , r)
 
-  --           R-fill : R (ext s (refl-Q a₁)) R-comp
-  --           R-fill = snd (contr-center (is-fib-R (ext s (refl-Q a₁))))
+      where by-β : comp-Q (ext s (refl-Q a₁)) == comp-Q s
+            by-β = comp-Q-β s
 
-  --           -- Oh.  We need a bit of definitional equality here
-  --           -- in order to write this tree.
-  --           r-tr : tr R s R-comp
-  --           r-tr = nd-tr {!ext s (refl-Q a₁)!} {!!} {!!} {!!} {!!} 
+            by-ih : R s (comp-Q s)
+            by-ih = R-is-comp s 
 
-  --           by-T-fib : R s R-comp
-  --           by-T-fib = fst (contr-center (is-fib-T r-tr))
+            R-comp : Q a₀ a₁
+            R-comp = fst (contr-center (is-fib-R (ext s (refl-Q a₁))))
 
-  --           by-ih : R s (comp-Q s)
-  --           by-ih = R-is-comp s 
+            R-fill : R (ext s (refl-Q a₁)) R-comp
+            R-fill = snd (contr-center (is-fib-R (ext s (refl-Q a₁))))
 
-  --           thus : comp-Q s == R-comp
-  --           thus = fst= (contr-has-all-paths ⦃ is-fib-R s ⦄ (comp-Q s , by-ih) (R-comp , by-T-fib))
+            by-T-fib : R s R-comp
+            by-T-fib = R-unital s R-comp R-fill 
 
-  --           claim : R (ext s (refl-Q a₁)) (comp-Q (ext s (refl-Q a₁)))
-  --           claim = transport! (R (ext s (refl-Q a₁))) (by-β ∙ thus) R-fill  
+
+            thus : comp-Q s == R-comp
+            thus = fst= (contr-has-all-paths ⦃ is-fib-R s ⦄ (comp-Q s , by-ih) (R-comp , by-T-fib))
+
+            claim : R (ext s (refl-Q a₁)) (comp-Q (ext s (refl-Q a₁)))
+            claim = transport! (R (ext s (refl-Q a₁))) (by-β ∙ thus) R-fill  
+
+    R-is-comp' : {a₀ a₁ : A} → (s : seq Q a₀ a₁) → R s (comp-Q s)
+    R-is-comp' {a₀} {.a₀} emp = snd (contr-center (is-fib-R (emp {Q} {a₀}))) 
+    R-is-comp' (ext {a₀} {a₁} {a₂} s r) = 
+      Bin-elim a₁
+        (λ x → R (ext s (snd x))
+        (comp-Q (ext s (snd x)))) need (a₂ , r)
+
+      where by-β : comp-Q (ext s (refl-Q a₁)) == comp-Q s
+            by-β = comp-Q-β s
+
+            by-ih : R s (comp-Q s)
+            by-ih = R-is-comp' s 
+
+            need : R (ext s (refl-Q a₁)) (comp-Q (ext s (refl-Q a₁)))
+            need = {!!}
 
 
   -- module _ (Q : BinRel) (is-fib-Q : is-fib-unary Q)

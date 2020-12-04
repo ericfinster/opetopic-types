@@ -6,6 +6,10 @@ open import Pb
 
 module Shapes (M : 𝕄) (X₀ : Idx M → Set) where
 
+  --
+  --  TODO : SliceUnfold has be rewritten to be generic.  Use those definitions.
+  --
+
   ShpSlc₁ : 𝕄
   ShpSlc₁ = Slice (Pb M X₀)
 

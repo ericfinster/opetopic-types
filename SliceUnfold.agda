@@ -5,75 +5,91 @@ open import Monad
 open import MonadOver
 open import Pb
 
-module SliceUnfold (M : 𝕄) (M↓ : 𝕄↓ M) where
-
-  -- module Slices (M : 𝕄) (M↓ : 𝕄↓ M) where
+module SliceUnfold (M : 𝕄) where
 
   --
   --  First slice
   --
 
-  Plbk₁ : 𝕄
-  Plbk₁ = Pb M (Idx↓ M↓)
+  Rel₀ : Set₁
+  Rel₀ = Idx M → Set
 
-  Plbk↓₁ : 𝕄↓ Plbk₁
-  Plbk↓₁ = Pb↓ M↓ (Idx↓ M↓) (λ i j k → j == k)
+  module _ (X₀ : Rel₀) where
+  
+    Plbk₁ : 𝕄
+    Plbk₁ = Pb M X₀
 
-  Slc₁ : 𝕄
-  Slc₁ = Slice Plbk₁
+    Slc₁ : 𝕄
+    Slc₁ = Slice Plbk₁
 
-  Slc↓₁ : 𝕄↓ Slc₁
-  Slc↓₁ = Slice↓ Plbk↓₁
-
-  Rel₁ : Set₁
-  Rel₁ = Idx Slc₁ → Set
-
-  CanonRel₁ : Rel₁
-  CanonRel₁ = Idx↓ Slc↓₁
+    Rel₁ : Set₁
+    Rel₁ = Idx Slc₁ → Set
 
   --
   --  Second slice
   --
 
-  Plbk₂ : 𝕄
-  Plbk₂ = Pb Slc₁ (Idx↓ Slc↓₁)
+  module _ {X₀ : Rel₀} (X₁ : Rel₁ X₀) where
 
-  Plbk↓₂ : 𝕄↓ Plbk₂
-  Plbk↓₂ = Pb↓ Slc↓₁ (Idx↓ Slc↓₁) (λ i j k → j == k)
+    Plbk₂ : 𝕄
+    Plbk₂ = Pb (Slc₁ X₀) X₁
 
-  Slc₂ : 𝕄
-  Slc₂ = Slice Plbk₂
+    Slc₂ : 𝕄
+    Slc₂ = Slice Plbk₂
 
-  Slc↓₂ : 𝕄↓ Slc₂
-  Slc↓₂ = Slice↓ Plbk↓₂
-
-  Rel₂ : Set₁
-  Rel₂ = Idx Slc₂ → Set 
-
-  CanonRel₂ : Rel₂
-  CanonRel₂ = Idx↓ Slc↓₂
+    Rel₂ : Set₁
+    Rel₂ = Idx Slc₂ → Set 
 
   --
   --  Third slice
   --
 
-  Plbk₃ : 𝕄
-  Plbk₃ = Pb Slc₂ (Idx↓ Slc↓₂)
+  module _ {X₀ : Rel₀} {X₁ : Rel₁ X₀} (X₂ : Rel₂ X₁) where
 
-  Plbk↓₃ : 𝕄↓ Plbk₃
-  Plbk↓₃ = Pb↓ Slc↓₂ (Idx↓ Slc↓₂) (λ i j k → j == k)
+    Plbk₃ : 𝕄
+    Plbk₃ = Pb (Slc₂ X₁) X₂
 
-  Slc₃ : 𝕄
-  Slc₃ = Slice Plbk₃
+    Slc₃ : 𝕄
+    Slc₃ = Slice Plbk₃
 
-  Slc↓₃ : 𝕄↓ Slc₃
-  Slc↓₃ = Slice↓ Plbk↓₃
-
-  Rel₃ : Set₁
-  Rel₃ = Idx Slc₃ → Set 
-
-  CanonRel₃ : Rel₃
-  CanonRel₃ = Idx↓ Slc↓₃
+    Rel₃ : Set₁
+    Rel₃ = Idx Slc₃ → Set 
 
 
+  --
+  --  Specializations for the case of an extension
+  --
 
+  module ExtUnfold (M↓ : 𝕄↓ M) where
+
+    ↓Rel₀ : Rel₀
+    ↓Rel₀ = Idx↓ M↓ 
+
+    -- First slice
+    ExtPlbk₁ : 𝕄
+    ExtPlbk₁ = Plbk₁ ↓Rel₀
+    
+    ExtPlbk↓₁ : 𝕄↓ ExtPlbk₁
+    ExtPlbk↓₁ = Pb↓ M↓ ↓Rel₀ (λ i j k → j == k)
+
+    ExtSlc₁ : 𝕄
+    ExtSlc₁ = Slc₁ ↓Rel₀
+    
+    ExtSlc↓₁ : 𝕄↓ ExtSlc₁
+    ExtSlc↓₁ = Slice↓ ExtPlbk↓₁ 
+
+    ↓Rel₁ : Rel₁ ↓Rel₀
+    ↓Rel₁ = Idx↓ ExtSlc↓₁ 
+
+    -- Second slice
+    ExtPlbk₂ : 𝕄
+    ExtPlbk₂ = Plbk₂ ↓Rel₁
+    
+    ExtPlbk↓₂ : 𝕄↓ ExtPlbk₂
+    ExtPlbk↓₂ = Pb↓ ExtSlc↓₁ ↓Rel₁ (λ i j k → j == k)
+
+    ExtSlc₂ : 𝕄
+    ExtSlc₂ = Slc₂ ↓Rel₁
+    
+    ExtSlc↓₂ : 𝕄↓ ExtSlc₂
+    ExtSlc↓₂ = Slice↓ ExtPlbk↓₂ 
