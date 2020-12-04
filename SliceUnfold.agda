@@ -7,7 +7,7 @@ open import Pb
 open import OpetopicType
 
 module SliceUnfold (M : 𝕄) where
-
+  
   --
   --  First slice
   --

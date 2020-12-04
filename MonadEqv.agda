@@ -61,18 +61,25 @@ module MonadEqv where
       → X ≃[ Idx≃ e ] Y
       → Pb M X ≃ₘ Pb N Y 
 
-  OpInv : {M N : 𝕄} (eqv : M ≃ₘ N)
+    Pb≃' : {M : 𝕄} 
+      → {X : Idx M → Set}
+      → {Y : Idx M → Set}
+      → (ϕ : (i : Idx M) → X i ≃ Y i)
+      → Pb M X ≃ₘ Pb M Y 
+
+  op-transp : {M N : 𝕄} (eqv : M ≃ₘ N)
     → OpetopicType N → OpetopicType M
-  Ob (OpInv eqv X) = Ob X ∘ –> (Idx≃ eqv)
-  Hom (OpInv {M} {N} eqv X) = OpInv spb-eqv (Hom X)
+  Ob (op-transp eqv X) = Ob X ∘ –> (Idx≃ eqv)
+  Hom (op-transp {M} {N} eqv X) = op-transp spb-eqv (Hom X)
 
     where spb-eqv : Slice (Pb M (Ob X ∘ –> (Idx≃ eqv))) ≃ₘ Slice (Pb N (Ob X))
           spb-eqv = Slice≃ (Pb≃ eqv (λ i → ide (Ob X (fst (Idx≃ eqv) i)))) 
 
   -- Equivalences of opetopic types
-  record _≃ₒ_[_] {M N : 𝕄} (X : OpetopicType M) (Y : OpetopicType N) (e : M ≃ₘ N) : Set where
+  record _≃ₒ_ {M : 𝕄} (X : OpetopicType M) (Y : OpetopicType M) : Set where
     coinductive
     field
 
-      Ob≃ : Ob X ≃[ Idx≃ e ] Ob Y
-      Hom≃ : Hom X ≃ₒ Hom Y [ Slice≃ (Pb≃ e Ob≃) ]
+      Ob≃ : (i : Idx M) → Ob X i ≃ Ob Y i
+      Hom≃ : Hom X ≃ₒ op-transp (Slice≃ (Pb≃' Ob≃)) (Hom Y) 
+
