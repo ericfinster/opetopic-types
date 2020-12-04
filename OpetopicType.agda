@@ -23,16 +23,16 @@ module OpetopicType where
   open OpetopicType public
 
   --
-  --  Fibrancy
+  --  Fibrancy 
   --
-  
+
   unique-action : (M : 𝕄) (A : Idx M → Set)
     → (W : Idx (Slice (Pb M A)) → Set)
     → Set
   unique-action M A W = (f : Idx M) (σ : Cns M f)
     → (ν : (p : Pos M σ) → A (Typ M σ p))
     → is-contr (Σ (A f) (λ a → W ((f , a) , σ , ν)))
-    
+
   record is-fibrant {M : 𝕄} (X : OpetopicType M) : Set where
     coinductive
     field

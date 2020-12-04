@@ -4,6 +4,7 @@ open import HoTT
 open import Monad
 open import MonadOver
 open import Pb
+open import OpetopicType
 
 module SliceUnfold (M : 𝕄) where
 
@@ -31,6 +32,9 @@ module SliceUnfold (M : 𝕄) where
 
   module _ {X₀ : Rel₀} (X₁ : Rel₁ X₀) where
 
+    is-fib₁ : Set
+    is-fib₁ = unique-action M X₀ X₁ 
+
     Plbk₂ : 𝕄
     Plbk₂ = Pb (Slc₁ X₀) X₁
 
@@ -46,6 +50,9 @@ module SliceUnfold (M : 𝕄) where
 
   module _ {X₀ : Rel₀} {X₁ : Rel₁ X₀} (X₂ : Rel₂ X₁) where
 
+    is-fib₂ : Set
+    is-fib₂ = unique-action (Slc₁ X₀) X₁ X₂
+
     Plbk₃ : 𝕄
     Plbk₃ = Pb (Slc₂ X₁) X₂
 
@@ -54,7 +61,6 @@ module SliceUnfold (M : 𝕄) where
 
     Rel₃ : Set₁
     Rel₃ = Idx Slc₃ → Set 
-
 
   --
   --  Specializations for the case of an extension

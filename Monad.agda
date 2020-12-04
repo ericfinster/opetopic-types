@@ -442,3 +442,5 @@ module Monad where
   
   ⟦_⟧ : (M : 𝕄) → (Idx M → Set) → (Idx M → Set)
   ⟦ M ⟧ X i = Σ (Cns M i) (λ c → (p : Pos M c) → X (Typ M c p))  
+
+
