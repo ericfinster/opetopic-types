@@ -83,3 +83,58 @@ module Monad where
 
     -- Compatible rewrites for position constructors of μ ? 
     
+
+  --
+  --  Morphisms of Monads
+  --
+
+  record _→ₘ_ (M N : 𝕄) : Set where
+    field
+
+      Idx→ : Idx M → Idx N
+      Cns→ : (i : Idx M) → Cns M i → Cns N (Idx→ i)
+      Pos≃ : (i : Idx M) (c : Cns M i)
+        → (j : Idx M) → Pos M c j ≃ Pos N (Cns→ i c) (Idx→ j)
+
+  --
+  --  Equivalences of Monads
+  --
+
+  record _≃ₘ_ (M N : 𝕄) : Set₁ where
+    field
+
+      Idx≃ : Idx M ≃ Idx N
+      Cns≃ : (i : Idx M) → Cns M i ≃ Cns N (–> Idx≃ i) 
+      Pos≃ : (i : Idx M) (c : Cns M i)
+        → (j : Idx M) → Pos M c j ≃ Pos N (–> (Cns≃ i) c) (–> Idx≃ j)
+
+    dec≃ : {i : Idx M} (c : Cns M i)
+      → ({j : Idx M} (p : Pos M c j) → Cns M j) ≃
+        ({k : Idx N} (p : Pos N (–> (Cns≃ i) c) k) → Cns N k)
+    dec≃ = {!!} 
+  
+    field
+
+      η≃ : (i : Idx M)
+        → –> (Cns≃ i) (η M i) == η N (–> Idx≃ i) 
+
+      η-pos≃ : (i : Idx M) 
+        → –> (Pos≃ i (η M i) i) (η-pos M i) == η-pos N (–> Idx≃ i)
+             [ (λ x → Pos N x (–> Idx≃ i)) ↓ η≃ i ]
+
+      μ≃ : {i : Idx M} (c : Cns M i)
+        → (δ : {j : Idx M} (p : Pos M c j) → Cns M j)
+        → –> (Cns≃ i) (μ M c δ) == μ N (–> (Cns≃ i) c) (–> (dec≃ c) δ)
+        
+          -- (λ {j} p → transport (Cns N) (<–-inv-r Idx≃ j) (–> (Cns≃ (<– Idx≃ j))
+          --            (δ (<– (Pos≃ i c (<– Idx≃ j)) (transport (Pos N (–> (Cns≃ i) c)) (! (<–-inv-r Idx≃ j)) p)))))  
+
+      -- Here is a version which typechecks without transport.  Is this useful?
+      μ≃' : {i : Idx M} (c : Cns M i)
+        → (δ : {j : Idx N} (p : Pos N (–> (Cns≃ i) c) j) → Cns N j)
+        → –> (Cns≃ i) (μ M c (λ {j} p → <– (Cns≃ j) (δ (–> (Pos≃ i c j) p)))) ==
+          μ N (–> (Cns≃ i) c) δ
+
+      -- I mean, the thing about it is that it won't work for *morphisms*,
+      -- but only for equivalences.
+

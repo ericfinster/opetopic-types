@@ -9,106 +9,39 @@ open import FundamentalThm
 
 module SliceUnique (M : 𝕄) (M↓ : 𝕄↓ M) where
 
-  open import SliceUnfold M M↓
-  open import SliceAlg M M↓
+  open import SliceUnfold M
+  open ExtUnfold M↓
 
-  --  This is the hypothesis that I think we will need to
-  --  show for a relation R.  So first I will show that this
-  --  hypothesis implies that R is equivalent to the canonical
-  --  relation.
+  -- Yeah, it really seems that you should be able to eliminate away
+  -- the bottom equivalence and just be working over the index fibration.
+  -- So, in that case, what exactly is the difference between this
+  -- and your setup before?
+
+  -- Intersting, yeah, you start with R : Rel₂.  I see. So you start
+  -- working assuming that the constructors are given.  And I think this
+  -- is exactly the point: this is one step too far.  You need to know
+  -- that the equivalence on constructors is given by application of the
+  -- fundamental theorem, and *then* you should be able to show that 
+
+  module _ (is-alg : is-algebraic M M↓) 
+           (X₁ : Rel₁ (Idx↓ M↓)) (is-fib-X₁ : is-fib₁ X₁)
+           (X₂ : Rel₂ X₁) (is-fib-X₂ : is-fib₂ X₂)
+           (hyp : (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
+                  → X₁ ((i , idx (contr-center (is-alg i c ν))) , (c , ν)))
+           where
   
-  R-hypothesis : Rel₂ → Set
-  R-hypothesis R =
-        (i : Idx Slc₁) (σ : Cns Slc₁ i)
-      → (ϕ : (p : Pos Slc₁ σ) → Idx↓ Slc↓₁ (Typ Slc₁ σ p))
-      → R ((i , slc-idx i σ ϕ) , (σ , ϕ)) 
+    -- So, this will be just a composition of the fundamental
+    -- theorem.
+    to-show : (i : Idx ExtSlc₁) → Idx↓ ExtSlc↓₁ i ≃ X₁ i
+    to-show = {!!} 
 
-  --  In this module, I will assume R is fibrant and satisfies
-  --  the hypothesis above.  Then I claim the theorem follows
-  --  from the Fundamental Theorem of HoTT.
-  
-  module RIsCanonical (R : Rel₂) (is-fib-R : unique-action Slc₁ (Idx↓ Slc↓₁) R)
-                      (R-hyp : R-hypothesis R) where
+    open import SliceAlg M M↓
 
-    -- First, since R is fibrant, we can describe it as an identity
-    -- type.  And the hypothesis on R allows us to say *exactly which
-    -- identity type* it is equivalent to.
+    -- And then *this* amounts to saying that the above identification
+    -- is a homomorphism, which I feel must be the case.
+    and-this : (i : Idx ExtSlc₁) (σ : Cns ExtSlc₁ i)
+      → (ν : (p : Pos ExtSlc₁ σ) → X₁ (Typ ExtSlc₁ σ p))
+      → X₂ ((i , –> (to-show i) (slc-idx i σ (λ p → <– (to-show (Typ ExtSlc₁ σ p)) (ν p)))) , (σ , ν))
+    and-this = {!!}
     
-    R-is-== : (i : Idx Slc₁) (σ : Cns Slc₁ i)
-      → (ϕ : (p : Pos Slc₁ σ) → Idx↓ Slc↓₁ (Typ Slc₁ σ p))
-      → (a : Idx↓ Slc↓₁ i)
-      → R ((i , a) , (σ , ϕ)) ≃ (slc-idx i σ ϕ == a)
-    R-is-== i σ ϕ a = fundamental-thm A P a₀ r (is-fib-R i σ ϕ) a
 
-      where A : Set
-            A = Idx↓ Slc↓₁ i 
-
-            P : A → Set
-            P a = R ((i , a) , σ , ϕ)
-
-            a₀ : A
-            a₀ = slc-idx i σ ϕ
-
-            r : P a₀
-            r = R-hyp i σ ϕ
-
-    open import SliceAlgebraic
-
-    --  Next, the proof that the slice of monad extension is 
-    --  always algebraic is exactly the proof that the canonical
-    --  relation is fibrant.
-
-    canon-is-fib : unique-action Slc₁ (Idx↓ Slc↓₁) CanonRel₂
-    canon-is-fib = alg-mnd-has-unique-action Slc₁ Slc↓₁ (slc-algebraic M M↓) 
-
-    --  Since we show that the canonical relation is fibrant by
-    --  explicitly constructing an element and showing that it 
-    --  is unique, this lets us again use the fundamental theorem
-    --  to describe the canonical relation of an identity type.
-    
-    Canon-is-== : (i : Idx Slc₁) (σ : Cns Slc₁ i)
-      → (ϕ : (p : Pos Slc₁ σ) → Idx↓ Slc↓₁ (Typ Slc₁ σ p))
-      → (a : Idx↓ Slc↓₁ i)
-      → CanonRel₂ ((i , a) , (σ , ϕ)) ≃ (slc-idx i σ ϕ == a)
-    Canon-is-== i σ ϕ a = fundamental-thm A P a₀ r (canon-is-fib i σ ϕ) a 
-
-      where A : Set
-            A = Idx↓ Slc↓₁ i 
-
-            P : A → Set
-            P a = CanonRel₂ ((i , a) , σ , ϕ)
-
-            a₀ : A
-            a₀ = slc-idx i σ ϕ
-
-            r : P a₀
-            r = (slc-idx i σ ϕ , idp) , slc-cns i σ ϕ , slc-typ i σ ϕ
-
-    --  We chose the hypothesis on R exactly so that the two
-    --  equality types given by the fundamental theorem come
-    --  out to be the same.  So now we can just compose these
-    --  two equivalences to obtain the theorem we want:
-
-    R-is-CanonRel : (i : Idx Slc₂) → R i ≃ CanonRel₂ i
-    R-is-CanonRel ((i , a) , σ , ϕ) = (Canon-is-== i σ ϕ a) ⁻¹ ∘e (R-is-== i σ ϕ a)  
-
-  -- The above argument shows that *if* we can prove that *any*
-  -- fibrant R over an algebraic extension which admits a fibrant
-  -- extension T necessarily satsifies our hypothesis, then we have
-  -- finished the uniqueness theorem.  (Modulo some playing around
-  -- with equivalences of monads and whatnot in the coinductive step.
-  -- But this will be routine, if a bit tedious).
-
-  -- In other words, I claim that the equivalence between Type and
-  -- oo-groupoid follows from the following statement:
-
-  postulate
-  
-    to-finish-the-theorem : (is-alg : is-algebraic M M↓)
-      → (R : Rel₂) (is-fib-R : unique-action Slc₁ (Idx↓ Slc↓₁) R)
-      → (T : Rel₃) (is-fib-T : unique-action Slc₂ (Idx↓ Slc↓₂) T)
-      → R-hypothesis R
-
-  -- For a long time, I thought this looked impossible without more
-  -- hypotheses on R.  But now I think we can actually do it. I'll
-  -- try and sketch why in SliceUnique1.agda.
