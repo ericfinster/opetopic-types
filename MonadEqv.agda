@@ -75,6 +75,12 @@ module MonadEqv where
     where spb-eqv : Slice (Pb M (Ob X ∘ –> (Idx≃ eqv))) ≃ₘ Slice (Pb N (Ob X))
           spb-eqv = Slice≃ (Pb≃ eqv (λ i → ide (Ob X (fst (Idx≃ eqv) i)))) 
 
+  postulate
+
+    op-transp-fib : {M N : 𝕄} (eqv : M ≃ₘ N)
+      → (X : OpetopicType N) (is-fib : is-fibrant X)
+      → is-fibrant (op-transp eqv X) 
+
   -- Equivalences of opetopic types
   record _≃ₒ_ {M : 𝕄} (X : OpetopicType M) (Y : OpetopicType M) : Set where
     coinductive
@@ -83,3 +89,4 @@ module MonadEqv where
       Ob≃ : (i : Idx M) → Ob X i ≃ Ob Y i
       Hom≃ : Hom X ≃ₒ op-transp (Slice≃ (Pb≃' Ob≃)) (Hom Y) 
 
+  open _≃ₒ_ public
