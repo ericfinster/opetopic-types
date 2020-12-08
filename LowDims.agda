@@ -166,41 +166,50 @@ module LowDims (A : Set) where
 
     open BinFT Q is-fib-Q refl-Q
     open BinComp Q is-fib-Q refl-Q
-    
-    -- Okay, we now have an identification of Q with the identity
-    -- type.  We now want to understand what exactly we need in
-    -- order to have the following:
 
     ϕ : {a₀ a₁ : A} → Q a₀ a₁ → IdRel a₀ a₁
     ϕ {a₀} {a₁} = –> (bin-ft a₀ a₁)
 
     postulate
-
-      -- I mean, you could also just *assert* this.  In this way,
-      -- it *is* just data and not any kind of function.
       
-      extreme : {a₀ a₁ : A} → (s : seq Q a₀ a₁) → R s (comp-Q s)
+      R-wit : {a₀ a₁ : A} → (s : seq Q a₀ a₁) → R s (comp-Q s)
       
-      -- does this have some kind of nice transfer properties?
 
-      -- id-comp-rel-extreme : {a₀ a₁ : A}
-      --   → (s : seq IdRel a₀ a₁)
-      --   → IdCompRel s (id-comp s)
-      -- id-comp-rel-extreme s = idp
-
-      -- Well, the identity relation's versions of this is idp!  so
-      -- this seems, in some sense, directly analagous to the case
-      -- before: we just choose an axiom about where to send idp, and
-      -- that's it.  And then it is in some sense tautological
-        -- (I think) that we can track the image of this element.
-
-    would-like : {a₀ a₁ : A} (s : seq Q a₀ a₁) (t : Q a₀ a₁)
+    R-is-id-comp : {a₀ a₁ : A} (s : seq Q a₀ a₁) (t : Q a₀ a₁)
       → R s t ≃ IdCompRel (map-seq ϕ s) (ϕ t)
-    would-like s t = R s t                         ≃⟨ {!!} ⟩  -- fibrancy, if R witnesses composition
-                     comp-Q s == t                 ≃⟨ {!!} ⟩  -- ϕ is an equivalence
-                     ϕ (comp-Q s) == ϕ t           ≃⟨ {!!} ⟩  -- ϕ preserves composition
-                     id-comp (map-seq ϕ s) == ϕ t  ≃⟨ {!!} ⟩  -- fibrancy 
-                     IdCompRel (map-seq ϕ s) (ϕ t) ≃∎
+    R-is-id-comp s t = R s t                         ≃⟨ {!!} ⟩  -- fibrancy, if R witnesses composition
+                       comp-Q s == t                 ≃⟨ {!!} ⟩  -- ϕ is an equivalence
+                       ϕ (comp-Q s) == ϕ t           ≃⟨ {!!} ⟩  -- ϕ preserves composition
+                       id-comp (map-seq ϕ s) == ϕ t  ≃⟨ {!!} ⟩  -- fibrancy 
+                       IdCompRel (map-seq ϕ s) (ϕ t) ≃∎
+
+  record FtDim1Data : Set₁ where
+    field
+
+      Q : BinRel
+      is-fib-Q : is-fib-bin Q
+      refl-Q : (a : A) → Q a a
+
+  record FtDim2Data : Set₁ where
+    field
+
+      Q : BinRel
+      is-fib-Q : is-fib-bin Q
+
+      R : SeqRel Q
+      is-fib-R : is-fib-seq R
+
+    module BC = BinComp Q is-fib-Q (λ a → fst (contr-center (is-fib-R (emp {Q} {a})))) 
+    open BC
+    
+    field
+    
+      wit-R : {a₀ a₁ : A} (s : seq Q a₀ a₁)
+        → R s (comp-Q s) 
+
+  postulate
+  
+    fundamental-thm-dim₂ : is-contr FtDim2Data
 
   module R-WitnessesComp (Q : BinRel) (is-fib-Q : is-fib-bin Q)
                          (R : SeqRel Q) (is-fib-R : is-fib-seq R) where
@@ -305,82 +314,4 @@ module LowDims (A : Set) where
             need : R (ext s (refl-Q a₁)) (comp-Q (ext s (refl-Q a₁)))
             need = {!!}
 
-
-  -- module _ (Q : BinRel) (is-fib-Q : is-fib-unary Q)
-  --          (R : SeqRel Q) (is-fib-R : is-fib-seq R) where
-
-  --   refl-Q : (a : A) → Q a a
-  --   refl-Q a = fst (contr-center (is-fib-R (emp {Q} {a}))) 
-
-  --   comp-Q : {a₀ a₁ : A} → seq Q a₀ a₁ → Q a₀ a₁
-  --   comp-Q = comp Q refl-Q is-fib-Q
-
-  --   -- What hypotheses do I need on R in order that it has
-  --   -- a composition?
-  --   postulate
-
-  --     R-unital : {a₀ a₁ : A} (q : Q a₀ a₁)
-  --       → R (ext emp q) q
-
-  --     R-is-comp : {a₀ a₁ a₂ : A}
-  --       → (s : seq Q a₀ a₁) (r : Q a₁ a₂)
-  --       → R (ext s r) {!comp-Q s!}
-
-  --   -- R-free : {a₀ a₁ a₂ : A}
-  --   --   → (s₀ : seq Q a₀ a₁) (s₁ : seq Q a₁ a₂)
-  --   --   → R (seqcat s₀ s₁) (comp-Q (ext (ext emp (comp-Q s₀)) (comp-Q s₁)))
-  --   -- R-free = {!!} 
-
-  --   R-free : {a₀ a₁ a₂ : A}
-  --     → (s₀ : seq Q a₀ a₁) (s₁ : seq Q a₁ a₂)
-  --     → R (seqcat s₀ s₁) (comp-Q (ext s₀ (comp-Q s₁)))
-  --   R-free = {!!} 
-
-  --   R-γ-elim : {a₀ a₁ a₂ : A}
-  --     → (s₀ : seq Q a₀ a₁) (s₁ : seq Q a₁ a₂)
-  --     → (q : Q a₁ a₂)
-  --     → R s₁ q
-  --     → R (seqcat s₀ s₁) (comp-Q (ext s₀ q))
-  --   R-γ-elim = {!!}
-
-  --   R-inv : {a₀ a₁ : A} (s : seq Q a₀ a₁)
-  --     → (δ : (p : plc s) → seq Q (src p) (tgt p))
-  --     -- → (ε : (p : plc s) → tr R (δ p) (inh p))
-  --     → (ε : (p : plc s) → R (δ p) (inh p))
-  --     → R (μ-seq s δ) (comp-Q s)
-  --   R-inv emp δ ε = snd (contr-center (is-fib-R (emp {Q}))) 
-  --   R-inv (ext s r) δ ε =
-  --     let δ' p = δ (inl p)
-  --         ε' p = ε (inl p)
-
-  --         ih : R (μ-seq s δ') (comp-Q s)
-  --         ih = R-inv s δ' ε'
-
-  --         ε-ih : R (δ false) r
-  --         ε-ih = ε false 
-
-  --         from-γ : R (seqcat (μ-seq s (λ p → δ (inl p))) (δ false))
-  --                  (comp-Q (ext (μ-seq s (λ p → δ (inl p))) (comp-Q (δ false))))
-  --         from-γ = R-free (μ-seq s δ') (δ false)
-
-  --     in {!R-γ-elim (μ-seq s δ') (δ false) r ε-ih!}
-
-
-  --   assoc : {a₀ a₁ : A}
-  --     → {s : seq Q a₀ a₁} {t : Q a₀ a₁}
-  --     → tr R s t
-  --     → R s t
-  --   assoc (lf-tr q) = R-unital q
-  --   assoc (nd-tr s δ ε t r) = {!!}
-
-  --     -- Oh.  So I can clearly suppose that t = the fibrant composite
-  --     -- of R.  But actually, in order to show this is comp S, I need
-  --     -- T itself in a non-trivial way.
-
-  --     -- So, here the idea would be that we can
-  --     -- suppose that t = comp s.  Then we are reduced
-  --     -- to showing that we always have:
-  --     --
-  --     --   R (μ-seq s δ) (comp s)
-  --     --
 
