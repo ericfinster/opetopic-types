@@ -188,6 +188,7 @@ module LowDims (A : Set) where
 
       Q : BinRel
       is-fib-Q : is-fib-bin Q
+      
       refl-Q : (a : A) → Q a a
 
   record FtDim2Data : Set₁ where
@@ -210,6 +211,8 @@ module LowDims (A : Set) where
   postulate
   
     fundamental-thm-dim₂ : is-contr FtDim2Data
+
+
 
   module R-WitnessesComp (Q : BinRel) (is-fib-Q : is-fib-bin Q)
                          (R : SeqRel Q) (is-fib-R : is-fib-seq R) where

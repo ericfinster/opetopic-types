@@ -53,11 +53,17 @@ module SliceAlgebraic where
             from-to : (x : alg-comp M M↓ i c ν)
               → from (to x) == x
             from-to ⟦ j ∣ d ∣ τ ⟧ = ap (λ x → ⟦ j ∣ d ∣ x ⟧) (! (λ=-η τ)) 
-            
+
     alg-mnd-has-unique-action : is-algebraic M M↓
       → unique-action M (Idx↓ M↓) (Idx↓ Slc↓) 
-    alg-mnd-has-unique-action is-alg i c ν =
-      equiv-preserves-level (alg-to-idx↓ i c ν) ⦃ is-alg i c ν ⦄ 
+    alg-mnd-has-unique-action is-alg i c ν = has-level-in (ctr , pth)
+
+      where ctr : Σ (Idx↓ M↓ i) (λ j → Idx↓ Slc↓ ((i , j) , (c , ν)))
+            ctr = –> (alg-to-idx↓ i c ν) (contr-center (is-alg i c ν))
+
+            pth : (y : Σ (Idx↓ M↓ i) (λ j → Idx↓ Slc↓ ((i , j) , (c , ν)))) → ctr == y
+            pth y = ap (–> (alg-to-idx↓ i c ν)) (contr-path (is-alg i c ν) (<– (alg-to-idx↓ i c ν) y)) ∙
+                    <–-inv-r (alg-to-idx↓ i c ν) y  
 
   --
   --  The opetopic type associated to an algebraic extension is fibrant
