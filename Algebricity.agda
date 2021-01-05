@@ -99,6 +99,6 @@ module Algebricity where
       singleton-equiv : Σ (Idx↓ M↓ i) (λ j → j == j') ≃ Cns↓ M↓ j' (η M i)
       singleton-equiv = equiv₃ ∘e equiv₂ ∘e equiv₁  
 
-      therefore : is-contr (Cns↓ M↓ j' (η M i))
-      therefore = equiv-preserves-level singleton-equiv ⦃ pathto-is-contr j' ⦄  
+      is-contr-cns↓ : is-contr (Cns↓ M↓ j' (η M i))
+      is-contr-cns↓ = equiv-preserves-level singleton-equiv ⦃ pathto-is-contr j' ⦄  
 
