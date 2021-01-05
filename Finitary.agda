@@ -72,23 +72,49 @@ module Finitary where
   SomeOrNone-⊔ A B D (inr _) (inl p) = inl (Trunc-rec Trunc-level (λ pr → [ inr (fst pr) , snd pr ]) p)
   SomeOrNone-⊔ A B D (inr ϕ) (inr ψ) = inr (Coprod-elim ϕ ψ)
 
+  SomeOrNone-Empty : (D : DecPred Empty) → SomeOrNone Empty D
+  SomeOrNone-Empty D = inr ⊥-elim
+
+  SomeOrNone-Unit : (D : DecPred Unit) → SomeOrNone Unit D
+  SomeOrNone-Unit D with P-is-dec D tt
+  SomeOrNone-Unit D | inl p = inl [ tt , p ]
+  SomeOrNone-Unit D | inr ϕ = inr (λ _ → ϕ)
+  
   -- First, show that SomeOrNone is compatible with ⊔  *CHECK*
-  -- Then show it always holds on empty.
-  -- Then show it always holds on unit.
+  -- Then show it always holds on empty.  *CHECK*
+  -- Then show it always holds on unit.   *CHECK*
   -- Then you get it for all Fin n
   -- Then you get it for all finite types.
 
+  -- Oh, you can also just do this ...
   fin-disc : {n : ℕ} (D : DecPred (Fin n))
     → SomeOrNone (Fin n) D
-  fin-disc D = {!!} 
+  fin-disc {O} D = inr (λ { () }) -- Use an elim?
+  fin-disc {S n} D with P-is-dec D (n , ltS)
+  fin-disc {S n} D | inl p = inl [ (n , ltS) , p ]
+  fin-disc {S n} D | inr ϕ with fin-disc {n}
+    (record { P = P D ∘ Fin-S ;
+              P-is-prop = P-is-prop D ∘ Fin-S ;
+              P-is-dec = P-is-dec D ∘ Fin-S })
+  fin-disc {S n} D | inr ϕ | inl p = inl (Trunc-rec Trunc-level bump p)
 
-  module _ (M : 𝕄) (M-fin : is-finitary M) where
+    where bump : Σ (Σ ℕ (_< n)) (λ x → P D (fst x , ltSR (snd x))) →
+                 Trunc (S ⟨-2⟩) (Σ (Σ ℕ (_< S n)) (P D))
+          bump ((d , <n) , q) = [ (d , ltSR <n) , q ]
+          
+  fin-disc {S n} D | inr ϕ | inr ψ = inr fin-elim
 
-    discrim : (i : Idx M) (c : Cns M i)
-      → (P : Pos M c → Type₀)
-      → (P-is-prop : (p : Pos M c) → is-prop (P p))
-      → (P-is-dec : (p : Pos M c) → Dec (P p))
-      → Σ (Pos M c) P ⊔ ((p : Pos M c) → ¬ (P p))
-    discrim i c P P-is-prop P-is-dec = {!!} 
+    where fin-elim : (a : Σ ℕ (_< S n)) → P D a → ⊥
+          fin-elim (d , ltS) = ϕ
+          fin-elim (d , ltSR l) = ψ (d , l)
+          
+  -- module _ (M : 𝕄) (M-fin : is-finitary M) where
+
+  --   discrim : (i : Idx M) (c : Cns M i)
+  --     → (P : Pos M c → Type₀)
+  --     → (P-is-prop : (p : Pos M c) → is-prop (P p))
+  --     → (P-is-dec : (p : Pos M c) → Dec (P p))
+  --     → Σ (Pos M c) P ⊔ ((p : Pos M c) → ¬ (P p))
+  --   discrim i c P P-is-prop P-is-dec = {!!} 
 
     -- This would be a proposition if you truncate.
