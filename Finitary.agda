@@ -49,42 +49,41 @@ module Finitary where
 
   SomeOrNone : ∀ {i} (A : Type i) (D : DecPred A) → Type i
   SomeOrNone A D = Trunc ⟨-1⟩ (Σ A (P D)) ⊔ ((a : A) → ¬ (P D a))
-  
+
+  DecPred-fmap : ∀ {i} {A B : Type i} (f : A → B)
+    → DecPred B → DecPred A
+  DecPred-fmap f D = record {
+    P = P D ∘ f ;
+    P-is-prop = P-is-prop D ∘ f ;
+    P-is-dec = P-is-dec D ∘ f } 
+
+  -- SomeOrNone-emap : ∀ {i} {A B : Type i} (e : A ≃ B)
+  --   → (D : DecPred B) (sn-D : SomeOrNone B D)
+  --   → SomeOrNone A (DecPred-fmap (fst e) D)
+  -- SomeOrNone-emap e D (inl p) = inl (Trunc-rec Trunc-level
+  --   (λ pr → [ <– e (fst pr) , transport (P D) (! (<–-inv-r e (fst pr))) (snd pr) ]) p)
+  -- SomeOrNone-emap e D (inr ϕ) = inr (λ a p → ϕ (fst e a) p)
+
+  SomeOrNone-emap : ∀ {i} {A B : Type i} (e : A ≃ B)
+    → (D : DecPred A) (sn-D : SomeOrNone B (DecPred-fmap (<– e) D))
+    → SomeOrNone A D
+  SomeOrNone-emap e D (inl p) = inl (Trunc-rec Trunc-level
+    (λ { (b , p) → [ <– e b , p ] }) p) 
+  SomeOrNone-emap e D (inr ϕ) = inr
+    (λ a p → ϕ (–> e a) (transport (P D) (! (<–-inv-l e a)) p)) 
+
   -- Need this so that we can extend to finite types
   SomeOrNone-is-prop : ∀ {i} (A : Type i) (D : DecPred A)
     → is-prop (SomeOrNone A D)
   SomeOrNone-is-prop A D = has-level-in sn-aux 
 
-    where sn-aux : (x y : Trunc ⟨-1⟩ (Σ A (P D)) ⊔ ((a : A) → ¬ (P D a))) → has-level ⟨-2⟩ (x == y)
+    where sn-aux : (x y : Trunc ⟨-1⟩ (Σ A (P D)) ⊔ ((a : A) → ¬ (P D a))) → has-level ⟨-2⟩ (x == y) 
           sn-aux (inl p₁) (inl p₂) = equiv-preserves-level (inl=inl-equiv p₁ p₂ ⁻¹)
             ⦃ has-level-apply Trunc-level p₁ p₂ ⦄ 
           sn-aux (inl p) (inr ϕ) = ⊥-rec (Trunc-rec {B = ⊥} Empty-is-prop (λ pr → ϕ (fst pr) (snd pr)) p)
           sn-aux (inr ϕ) (inl p) = ⊥-rec (Trunc-rec {B = ⊥} Empty-is-prop (λ pr → ϕ (fst pr) (snd pr)) p)
           sn-aux (inr ϕ₁) (inr ϕ₂) = equiv-preserves-level (inr=inr-equiv ϕ₁ ϕ₂ ⁻¹)
             ⦃ has-level-apply (Π-level (λ _ → Π-level (λ _ → Empty-is-prop))) ϕ₁ ϕ₂ ⦄ 
-
-  SomeOrNone-⊔ : ∀ {i} (A B : Type i) (D : DecPred (A ⊔ B))
-    → SomeOrNone A (record { P = P D ∘ inl ; P-is-prop = P-is-prop D ∘ inl ; P-is-dec = P-is-dec D ∘ inl })
-    → SomeOrNone B (record { P = P D ∘ inr ; P-is-prop = P-is-prop D ∘ inr ; P-is-dec = P-is-dec D ∘ inr })
-    → SomeOrNone (A ⊔ B) D
-  SomeOrNone-⊔ A B D (inl p) (inl _) = inl (Trunc-rec Trunc-level (λ pr → [ inl (fst pr) , snd pr ]) p)
-  SomeOrNone-⊔ A B D (inl p) (inr _) = inl (Trunc-rec Trunc-level (λ pr → [ inl (fst pr) , snd pr ]) p)
-  SomeOrNone-⊔ A B D (inr _) (inl p) = inl (Trunc-rec Trunc-level (λ pr → [ inr (fst pr) , snd pr ]) p)
-  SomeOrNone-⊔ A B D (inr ϕ) (inr ψ) = inr (Coprod-elim ϕ ψ)
-
-  SomeOrNone-Empty : (D : DecPred Empty) → SomeOrNone Empty D
-  SomeOrNone-Empty D = inr ⊥-elim
-
-  SomeOrNone-Unit : (D : DecPred Unit) → SomeOrNone Unit D
-  SomeOrNone-Unit D with P-is-dec D tt
-  SomeOrNone-Unit D | inl p = inl [ tt , p ]
-  SomeOrNone-Unit D | inr ϕ = inr (λ _ → ϕ)
-  
-  -- First, show that SomeOrNone is compatible with ⊔  *CHECK*
-  -- Then show it always holds on empty.  *CHECK*
-  -- Then show it always holds on unit.   *CHECK*
-  -- Then you get it for all Fin n
-  -- Then you get it for all finite types.
 
   -- Oh, you can also just do this ...
   fin-disc : {n : ℕ} (D : DecPred (Fin n))
@@ -107,7 +106,14 @@ module Finitary where
     where fin-elim : (a : Σ ℕ (_< S n)) → P D a → ⊥
           fin-elim (d , ltS) = ϕ
           fin-elim (d , ltSR l) = ψ (d , l)
-          
+
+  -- Could generalize the unverse here ...
+  is-fin-disc : (A : Type₀) (A-fin : is-finite A)
+    → (D : DecPred A)
+    → SomeOrNone A D
+  is-fin-disc A (n , e-trunc) D = Trunc-rec (SomeOrNone-is-prop A D)
+    (λ e → SomeOrNone-emap e D (fin-disc (DecPred-fmap (<– e) D))) e-trunc
+
   -- module _ (M : 𝕄) (M-fin : is-finitary M) where
 
   --   discrim : (i : Idx M) (c : Cns M i)
@@ -118,3 +124,27 @@ module Finitary where
   --   discrim i c P P-is-prop P-is-dec = {!!} 
 
     -- This would be a proposition if you truncate.
+
+
+  -- SomeOrNone-⊔ : ∀ {i} (A B : Type i) (D : DecPred (A ⊔ B))
+  --   → SomeOrNone A (record { P = P D ∘ inl ; P-is-prop = P-is-prop D ∘ inl ; P-is-dec = P-is-dec D ∘ inl })
+  --   → SomeOrNone B (record { P = P D ∘ inr ; P-is-prop = P-is-prop D ∘ inr ; P-is-dec = P-is-dec D ∘ inr })
+  --   → SomeOrNone (A ⊔ B) D
+  -- SomeOrNone-⊔ A B D (inl p) (inl _) = inl (Trunc-rec Trunc-level (λ pr → [ inl (fst pr) , snd pr ]) p)
+  -- SomeOrNone-⊔ A B D (inl p) (inr _) = inl (Trunc-rec Trunc-level (λ pr → [ inl (fst pr) , snd pr ]) p)
+  -- SomeOrNone-⊔ A B D (inr _) (inl p) = inl (Trunc-rec Trunc-level (λ pr → [ inr (fst pr) , snd pr ]) p)
+  -- SomeOrNone-⊔ A B D (inr ϕ) (inr ψ) = inr (Coprod-elim ϕ ψ)
+
+  -- SomeOrNone-Empty : (D : DecPred Empty) → SomeOrNone Empty D
+  -- SomeOrNone-Empty D = inr ⊥-elim
+
+  -- SomeOrNone-Unit : (D : DecPred Unit) → SomeOrNone Unit D
+  -- SomeOrNone-Unit D with P-is-dec D tt
+  -- SomeOrNone-Unit D | inl p = inl [ tt , p ]
+  -- SomeOrNone-Unit D | inr ϕ = inr (λ _ → ϕ)
+  
+  -- First, show that SomeOrNone is compatible with ⊔  *CHECK*
+  -- Then show it always holds on empty.  *CHECK*
+  -- Then show it always holds on unit.   *CHECK*
+  -- Then you get it for all Fin n
+  -- Then you get it for all finite types.
