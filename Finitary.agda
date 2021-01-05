@@ -27,17 +27,17 @@ module Finitary where
   is-finitary : 𝕄 → Type₀
   is-finitary M = {i : Idx M} (c : Cns M i) → is-finite (Pos M c)
 
-  is-leaf : (M : 𝕄) {i : Idx M} {c : Cns M i}
+  is-leaf : {M : 𝕄} {i : Idx M} {c : Cns M i}
      → Cns (Slice M) (i , c) → Type₀
-  is-leaf M σ = ¬ (has-pos (Slice M) σ) 
+  is-leaf {M} σ = ¬ (has-pos (Slice M) σ) 
 
-  is-node : (M : 𝕄) {i : Idx M} {c : Cns M i}
+  is-node : {M : 𝕄} {i : Idx M} {c : Cns M i}
      → Cns (Slice M) (i , c) → Type₀
-  is-node M σ = has-pos (Slice M) σ
+  is-node {M} σ = has-pos (Slice M) σ
 
-  slice-is-dec : (M : 𝕄) → DecMnd (Slice M)
-  slice-is-dec M (lf i) = inr (Trunc-rec Empty-is-prop (idf ⊥))
-  slice-is-dec M (nd c δ ε) = inl [ inl unit ]
+  slice-is-dec : {M : 𝕄} → DecMnd (Slice M)
+  slice-is-dec {M} (lf i) = inr (Trunc-rec Empty-is-prop (idf ⊥))
+  slice-is-dec {M} (nd c δ ε) = inl [ inl unit ]
 
   record DecPred {i} (A : Type i) : Type (lsucc i) where
     field
@@ -109,8 +109,7 @@ module Finitary where
 
   -- Could generalize the unverse here ...
   is-fin-disc : (A : Type₀) (A-fin : is-finite A)
-    → (D : DecPred A)
-    → SomeOrNone A D
+    → (D : DecPred A) → SomeOrNone A D
   is-fin-disc A (n , e-trunc) D = Trunc-rec (SomeOrNone-is-prop A D)
     (λ e → SomeOrNone-emap e D (fin-disc (DecPred-fmap (<– e) D))) e-trunc
 

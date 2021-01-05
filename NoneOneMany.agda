@@ -4,11 +4,12 @@ open import HoTT
 open import Monad
 open import MonadOver
 open import Pb
+open import Finitary
 
 module NoneOneMany where
 
 
-  module _ (M : 𝕄) (M↓ : 𝕄↓ M) (is-alg : is-algebraic M M↓) where
+  module _ (M : 𝕄) (M↓ : 𝕄↓ M) (is-alg : is-algebraic M M↓) (M-fin : is-finitary M) where
 
     open import SliceAlg M M↓ 
     open import SliceUnfold M 
@@ -37,7 +38,14 @@ module NoneOneMany where
         → (ϕ : (p : Pos ExtSlc₁ σ) → Idx↓ ExtSlc↓₁ (Typ ExtSlc₁ σ p))
         → X₂ ((i , slc-idx i σ ϕ) , σ , ϕ) 
       goal-test ((i , j) , ._ , ._) (lf .(i , j)) ϕ = η-nh i j ϕ
-      goal-test ((i , j) , ._ , ._) (nd c δ ε) ϕ = {!ε!}
+      goal-test ((i , j) , ._ , ._) (nd c δ ε) ϕ with is-fin-disc (Pos M (fst c)) (M-fin (fst c))
+        (record { P = λ p → is-node (ε p) ;
+                  P-is-prop = λ p → Trunc-level ;
+                  P-is-dec = λ p → slice-is-dec (ε p) })
+      goal-test ((i , j) , .(μ M (fst c) (fst ∘ δ)) , _) (nd c δ ε) ϕ | inl p = {!!} -- The multi-valued case
+      goal-test ((i , j) , .(μ M (fst c) (fst ∘ δ)) , _) (nd c δ ε) ϕ | inr ¬p = {!!} -- The corolla case
+
+
 
         -- And here is where we need to split: either we are looking at
         -- a corolla, or else there is a non-trivial gluing.  In the
