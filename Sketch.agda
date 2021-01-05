@@ -7,7 +7,6 @@ open import Pb
 open import Algebricity
 open import SliceUnfold
 
-
 module Sketch where
 
   module _ (M : 𝕄) (M↓ : 𝕄↓ M) (is-alg : is-algebraic M M↓) where
@@ -56,11 +55,26 @@ module Sketch where
       η-el : (i : Idx M) (j : Idx↓ M↓ i)
         → X₁ ((i , j) , η M i , cst j)
       η-el i j = <– (wit-equiv i j (η M i) (cst j)) ((j , idp) , η↓ M↓ j , cst idp) 
-      
-      postulate
-      
-        -- Now.  The goal is to show that we have a null-homotopy of
-        -- the image of η under the above equivalence.
-        goal : (i : Idx M) (j : Idx↓ M↓ i)
-          → X₂ ((((i , j) , η M i , cst j) , η-el i j) , lf (i , j) , ⊥-elim)
 
+      -- wit-equiv : (i : Idx M) (j : Idx↓ M↓ i) (c : Cns M i)
+      --     → (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
+      --     → X₁ ((i , j) , (c , ν)) ≃ ↓Rel₁ ((i , j) , (c , ν))
+
+      by-fib : (i : Idx M) (j : Idx↓ M↓ i)
+        → Σ (X₁ ((i , j) , η M i , cst j))
+          (λ x₁ → X₂ ((((i , j) , η M i , cst j) , x₁) , lf (i , j) , ⊥-elim))
+      by-fib i j = contr-center (is-fib-X₂ ((i , j) , η M i , cst j) (lf (i , j)) ⊥-elim) 
+
+      done-if : (i : Idx M) (j : Idx↓ M↓ i)
+        → fst (by-fib i j) == η-el i j
+      done-if i j = {!!} 
+
+      -- from-ft : (i : Idx M) (j j' : Idx↓ M↓ i)
+      --   → Σ (Cns↓ M↓ j' (η M i)) (λ d → Typ↓ M↓ d == cst j) ≃ (j == j')
+
+      -- Now.  The goal is to show that we have a null-homotopy of
+      -- the image of η under the above equivalence.
+      goal : (i : Idx M) (j : Idx↓ M↓ i)
+        → X₂ ((((i , j) , η M i , cst j) , η-el i j) , lf (i , j) , ⊥-elim)
+      goal i j = transport (λ x → X₂ ((((i , j) , η M i , cst j) , x) , lf (i , j) , ⊥-elim))
+                           (done-if i j) (snd (by-fib i j)) 

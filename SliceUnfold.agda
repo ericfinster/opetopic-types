@@ -62,6 +62,11 @@ module SliceUnfold (M : 𝕄) where
     Rel₃ : Set₁
     Rel₃ = Idx Slc₃ → Set 
 
+  is-fib₃ : {X₀ : Rel₀} {X₁ : Rel₁ X₀} {X₂ : Rel₂ X₁}
+    → Rel₃ X₂ → Set
+  is-fib₃ {X₀} {X₁} {X₂} X₃ =
+    unique-action (Slc₂ X₁) X₂ X₃  
+
   --
   --  Specializations for the case of an extension
   --
