@@ -10,268 +10,120 @@ open import MonadEqv
 open import SliceUnfold
 open import SliceAlgebraic
 
--- Can you fix this?
-open import lib.NType2
-
 module SliceUnique where
 
-  -- Hmm.  Can you maybe this the *whole* hypothesis in the base?
-  -- Because now the whole thing is only a statement about is-alg.
-  -- And after an iteration, this will become the proof that the
-  -- slice is algebraic, which will compute.  And since there is
-  -- no extra hypothesized data, we can *apply* this function
-  -- whenever we like.
+  -- The unit and multiplication induced by a fibrant 2-relation
+  module AlgStruct (M : 𝕄) (X₀ : Rel₀ M) (X₁ : Rel₁ M X₀)
+                   (X₂ : Rel₂ M X₁) (is-fib-X₂ : is-fib₂ M X₂) where
 
-  -- Nice.  So it's a little like you're idea of a "continuation".
-  -- Maybe this is the right way to axiomatize that idea?
-  
-  alg↓-unique' : (M : 𝕄) (M↓ : 𝕄↓ M) (is-alg : is-algebraic M M↓)
-    → (X : OpetopicType (Slice (Pb M (Idx↓ M↓)))) (is-fib : is-fibrant X)
-    -- We'll need to add that X is fibrant at the base level so that
-    -- we actually *have* elements of x to apply the function to.
-    → (κ : (i : Idx M) (c : Cns M i)
-         → (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
-         → (j : Idx↓ M↓ i) (x : Ob X (((i , j) , c , ν)))
-         → idx (contr-center (is-alg i c ν)) == j)
-    → ↓-to-OpType M M↓ ≃ₒ record { Ob = Idx↓ M↓ ; Hom = X }
-  alg↓-unique' = {!!} 
+    ηX : (i : Idx M) (x₀ : X₀ i)
+      → X₁ ((i , x₀) , η M i , cst x₀)
+    ηX i x₀ = fst (contr-center (is-fib-X₂ ((i , x₀) , η M i , cst x₀) (lf (i , x₀)) ⊥-elim)) 
 
-  -- This makes a lot of sense.  Now we are not hypothesizing any
-  -- extra data besides that which is given by the fibrant opetopic
-  -- type.  Rather, we are saying that if you *already know* a way
-  -- to transform the base of your opetopic type to be the correct,
-  -- then we can *find* a compatible way to transform the rest.
 
-  -- Moreover, in defining κ' (i.e. the next iteration), we will be
-  -- allowed to suppose that we are indeed looking at the composite.
-  -- Not sure exactly what this will give, but okay .....
+    module _ (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → X₀ (Typ M c p))
+             (δ : (p : Pos M c) → Cns (Pb M X₀) (Typ M c p , ν p))
+             (x₀ : X₀ i) (x₁ : X₁ ((i , x₀) , c , ν))
+             (δ↓ : (p : Pos M c) → X₁ ((Typ M c p , ν p) , (δ p))) where
+             
+      μX-tr : Pd (Pb M X₀) ((i , x₀) , μ (Pb M X₀) {i = i , x₀} (c , ν) δ)
+      μX-tr = nd (c , ν) δ (λ p →
+              nd (δ p) (λ q → η (Pb M X₀) (Typ (Pb M X₀) {i = Typ M c p , ν p} (δ p) q)) (λ q →
+              lf (Typ (Pb M X₀) {i = Typ M c p , ν p} (δ p) q)))
 
-  -- No, I think it's the other way around: the goal does not depend
-  -- on the x.  So what you can do is match on *j*, and in this case,
-  -- you'll actually be able to pattern match in the slice.  Moreover,
-  -- it somehow looks like it's going to come out completely trivially.
-  
-  -- This feels really, really good now.
+      θX : (p : Pos (Slice (Pb M X₀)) μX-tr) → X₁ (Typ (Slice (Pb M X₀)) μX-tr p)
+      θX true = x₁
+      θX (inr (p , true)) = δ↓ p
 
-  -- Yeah.  This seems to be exactly the idea of "looking back into the
-  -- past".  I.e., everything always reduces down to the base case.
+      μX : X₁ ((i , x₀) , μ (Pb M X₀) {i = i , x₀} (c , ν) δ)
+      μX = fst (contr-center (is-fib-X₂ ((i , x₀) , μ (Pb M X₀) {i = i , x₀} (c , ν) δ) μX-tr θX))
 
-  alg↓-unique : (M : 𝕄) (M↓ : 𝕄↓ M) (is-alg : is-algebraic M M↓)
-    → (X : OpetopicType M) (is-fib : is-fibrant X)
-    → (ob≃ : (i : Idx M) → Idx↓ M↓ i ≃ Ob X i)
-    → (witness : (i : Idx M) (c : Cns M i)
-               → (ν : (p : Pos M c) → Ob X (Typ M c p))
-               → Ob (Hom X) ((i , –> (ob≃ i) (idx (contr-center (is-alg i c (λ p → <– (ob≃ (Typ M c p)) (ν p)))))) , c , ν))
-    → ↓-to-OpType M M↓ ≃ₒ X 
-  Ob≃ (alg↓-unique M M↓ is-alg X is-fib ob≃ witness) = ob≃
-  Hom≃ (alg↓-unique M M↓ is-alg X is-fib ob≃ witness) =
-    let open ExtUnfold M M↓ in
-    alg↓-unique ExtSlc₁ ExtSlc↓₁ (slc-algebraic M M↓)
-      (op-transp (Slice≃ (Pb≃' ob≃)) (Hom X))
-      (op-transp-fib (Slice≃ (Pb≃' ob≃)) (Hom X) (hom-fibrant is-fib))
-      {!!}
-      {!!}
-
-  -- We are left with two proof obligations, which, after eliminating
-  -- away the equivalence by univalence, become the following:
-
-  module _ (M : 𝕄) (M↓ : 𝕄↓ M) (is-alg : is-algebraic M M↓)
-           -- (X₀ : Rel₀ M) (e : (i : Idx M) → Idx↓ M↓ i ≃ X₀ i)
-           (X₁ : Rel₁ M (Idx↓ M↓)) (is-fib-X₁ : is-fib₁ M X₁)
+    
+  module _ (M : 𝕄) (M↓ : 𝕄↓ M) (X₁ : Rel₁ M (Idx↓ M↓))
            (X₂ : Rel₂ M X₁) (is-fib-X₂ : is-fib₂ M X₂)
-           (witness : (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
-                    → X₁ ((i , idx (contr-center (is-alg i c ν))) , (c , ν)))
-           where
+            where
 
     open ExtUnfold M M↓
-    open import SliceAlg M M↓
-    
-    next-ob≃ : (i : Idx ExtSlc₁) → Idx↓ ExtSlc↓₁ i ≃ X₁ i
-    next-ob≃ ((i , j) , c , ν) = equiv to from to-from from-to
+    open AlgStruct M (Idx↓ M↓) X₁ X₂ is-fib-X₂
 
-      where to : Idx↓ ExtSlc↓₁ ((i , j) , c , ν) → X₁ ((i , j) , c , ν)
-            to ((j' , j'=j) , d , typ-d=ν) = transport (λ x → X₁ ((i , x) , c , ν)) (ap idx alg=α ∙' j'=j) (witness i c ν) 
+    record AlgEqv : Set where
+      field 
 
-              where α : alg-comp M M↓ i c ν
-                    α = ⟦ j' ∣ d ∣ λ= typ-d=ν ⟧ 
+        eqv : (i : Idx ExtSlc₁) → X₁ i ≃ Idx↓ ExtSlc↓₁ i
 
-                    alg=α : contr-center (is-alg i c ν) == α
-                    alg=α = contr-path (is-alg i c ν) α 
+        preserves-η : (i : Idx M) (j : Idx↓ M↓ i)
+          → –> (eqv ((i , j) , η M i , cst j)) (ηX i j)
+          == (j , idp) , η↓ M↓ j , cst idp  
+          
+        preserves-μ : (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
+          → (δ : (p : Pos M c) → Cns (Pb M (Idx↓ M↓)) (Typ M c p , ν p))
+          → (j : Idx↓ M↓ i) (x₁ : X₁ ((i , j) , c , ν))
+          → (δ↓ : (p : Pos M c) → X₁ ((Typ M c p , ν p) , (δ p))) → 
+          let ω = (–> (eqv ((i , j) , c , ν)) x₁)
+          in –> (eqv ((i , j) , μ (Pb M (Idx↓ M↓)) {i = i , j} (c , ν) δ)) (μX i c ν δ j x₁ δ↓)
+          
+             == (fst ω , μ↓ M↓ {δ = fst ∘ δ} (fst (snd ω))
+                  (λ p → transport (λ x → Cns↓ M↓ x (fst (δ p))) (snd (fst (–> (eqv ((Typ M c p , ν p) , δ p)) (δ↓ p))) ∙ ! (snd (snd ω) p))
+                         (fst (snd (–> (eqv ((Typ M c p , ν p) , δ p)) (δ↓ p))))) ,
+                  (λ p → {!!})) 
 
-            from : X₁ ((i , j) , c , ν) → Idx↓ ExtSlc↓₁ ((i , j) , c , ν)
-            from x₁ = (idx alg , fst= wit=x₁) , (cns alg , λ p → app= (typ alg) p) 
+  module _ (M : 𝕄) (M↓ : 𝕄↓ M) where
 
-              where alg : alg-comp M M↓ i c ν
-                    alg = contr-center (is-alg i c ν)
-                    
-                    wit=x₁ : (idx (contr-center (is-alg i c ν)) , witness i c ν) == (j , x₁) 
-                    wit=x₁ = contr-has-all-paths ⦃ is-fib-X₁ i c ν ⦄ (idx (contr-center (is-alg i c ν)) , witness i c ν) (j , x₁) 
+    open ExtUnfold M M↓
 
-            -- So this is clear, but annoying because of the funext....
-            to-from : (x₁ : X₁ ((i , j) , c , ν)) → to (from x₁) == x₁
-            to-from x₁ = to (from x₁) =⟨ idp ⟩                                                             -- defn
-                         transport P (ap idx alg=α ∙' fst= wit=x₁) (witness i c ν) =⟨ {!idp!} ⟩            -- split
-                         transport P (fst= wit=x₁) (transport P (ap idx alg=α) (witness i c ν)) =⟨ {!!} ⟩  -- because the first transport "is" the identity
-                         transport P (fst= wit=x₁) (witness i c ν) =⟨ to-transp (snd= wit=x₁) ⟩                               -- by wit=x₁ below
-                         x₁ =∎ 
-  
-                where P : Idx↓ M↓ i → Set
-                      P x = X₁ ((i , x) , c , ν)
-                      
-                      alg : alg-comp M M↓ i c ν
-                      alg = contr-center (is-alg i c ν)
-                      
-                      α : alg-comp M M↓ i c ν
-                      α = ⟦ idx alg ∣ cns alg ∣ λ= (λ p → app= (typ alg) p) ⟧ 
+    module _ (X₂ : Rel₂ M ↓Rel₁) (is-fib-X₂ : is-fib₂ M X₂) where
 
-                      alg=α : contr-center (is-alg i c ν) == α
-                      alg=α = contr-path (is-alg i c ν) α 
+      open AlgStruct M ↓Rel₀ ↓Rel₁ X₂ is-fib-X₂
 
-                      wit=x₁ : (idx (contr-center (is-alg i c ν)) , witness i c ν) == (j , x₁) 
-                      wit=x₁ = contr-has-all-paths ⦃ is-fib-X₁ i c ν ⦄ (idx (contr-center (is-alg i c ν)) , witness i c ν) (j , x₁) 
+      -- Okay. I guess it would come out to this ...
+      η= : (i : Idx M) (j : Idx↓ M↓ i) → Set
+      η= i j = ηX i j == 
+               (j , idp) , (η↓ M↓ j , cst idp)
 
-            from-to : (i₁ : Idx↓ ExtSlc↓₁ ((i , j) , c , ν)) → from (to i₁) == i₁
-            from-to ((j' , j'=j) , d , typ-d=ν) = (idx alg , fst= wit=x₁) , (cns alg , λ p → app= (typ alg) p) =⟨ {!!} ⟩ -- because wit=x₁ == with=x₁'
-                                                  (idx alg , ap idx alg=α ∙' j'=j) , (cns alg , λ p → app= (typ alg) p) =⟨ {!!} ⟩ -- should now be just from alg=α ...
-                                                  ((j' , j'=j) , d , typ-d=ν) =∎
-
-                -- Yeah, so already here we see that this is kind of non-trivial and you're
-                -- going to have to think about it a bit to make it work.  But, I mean, the
-                -- existence of this equivalence is not really in doubt.  So you just have
-                -- to work a bit more to unfold it and everything.
-
-                where P : Idx↓ M↓ i → Set
-                      P x = X₁ ((i , x) , c , ν)
-                      
-                      alg : alg-comp M M↓ i c ν
-                      alg = contr-center (is-alg i c ν)
-
-                      α : alg-comp M M↓ i c ν
-                      α = ⟦ j' ∣ d ∣ λ= typ-d=ν ⟧ 
-
-                      alg=α : contr-center (is-alg i c ν) == α
-                      alg=α = contr-path (is-alg i c ν) α 
-
-                      x₁ : X₁ ((i , j) , c , ν)
-                      x₁ = transport P (ap idx alg=α ∙' j'=j) (witness i c ν) 
-
-                      -- Okay, so this is an interesting idea.  Is it what you were looking for?
-                      
-                      wit=x₁ : (idx (contr-center (is-alg i c ν)) , witness i c ν) == (j , x₁) 
-                      wit=x₁ = contr-has-all-paths ⦃ is-fib-X₁ i c ν ⦄ (idx (contr-center (is-alg i c ν)) , witness i c ν) (j , x₁) 
-
-                      wit=x₁' : (idx (contr-center (is-alg i c ν)) , witness i c ν) == (j , x₁)
-                      wit=x₁' = pair= (ap idx alg=α ∙' j'=j) (from-transp P (ap idx alg=α ∙' j'=j) idp) 
+      -- Right.  So you can simplify by having the decorations be actual
+      -- constructors here, but you'll have to apply μX to something else
+      μ= : (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
+         → (δ : (p : Pos M c) → Cns (Pb M (Idx↓ M↓)) (Typ M c p , ν p))
+         → (j : Idx↓ M↓ i) (d : ↓Rel₁ ((i , j) , c , ν))
+         → (δ↓ : (p : Pos M c) → ↓Rel₁ ((Typ M c p , ν p) , (δ p)))
+         → Set
+      μ= i c ν δ j d δ↓ =
+        μX i c ν δ j d δ↓ ==
+        fst d , μ↓ ExtPlbk↓₁ (snd d) (λ p → {!snd (δ↓ p)!})
 
 
-    --
-    --  Relation between is-alg and is-fib-X₁
-    --
-
-    is-fib-X₁' : is-fib₁ M X₁
-    is-fib-X₁' i c ν = has-level-in (ctr , pth) 
-
-      where lcl≃ : (j : Idx↓ M↓ i) → Idx↓ ExtSlc↓₁ ((i , j) , c , ν) ≃ X₁ ((i , j) , c , ν)
-            lcl≃ j = next-ob≃ ((i , j) , c , ν)
-
-            the-eqv : alg-comp M M↓ i c ν ≃ Σ (Idx↓ M↓ i) (λ a → X₁ ((i , a) , c , ν))
-            the-eqv = Σ-emap-r lcl≃ ∘e (alg-to-idx↓ M M↓ i c ν) 
-
-            ctr : Σ (Idx↓ M↓ i) (λ j → X₁ ((i , j) , (c , ν)))
-            ctr = –> (the-eqv) (contr-center (is-alg i c ν))
-
-            pth : (y : Σ (Idx↓ M↓ i) (λ j → X₁ ((i , j) , (c , ν)))) → ctr == y
-            pth y = ap (–> (the-eqv)) (contr-path (is-alg i c ν) (<– (the-eqv) y)) ∙
-                    <–-inv-r (the-eqv) y  
-
-    -- And here's what you wanted....
-    two-fibs-agree : is-fib-X₁' == is-fib-X₁
-    two-fibs-agree = prop-has-all-paths
-      ⦃ Π-level (λ i → Π-level (λ c → Π-level (λ ν → is-contr-is-prop))) ⦄
-        is-fib-X₁' is-fib-X₁
-
-    module _ (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p)) where
-
-      lcl≃ : (j : Idx↓ M↓ i) → Idx↓ ExtSlc↓₁ ((i , j) , c , ν) ≃ X₁ ((i , j) , c , ν)
-      lcl≃ j = next-ob≃ ((i , j) , c , ν)
+      -- Annoying that this gets so muddy.  But we can probably use
+      -- the tools of SlcAlg to simplify things and whatnot.
       
-      ctr= : –> (Σ-emap-r lcl≃ ∘e (alg-to-idx↓ M M↓ i c ν)) (contr-center (is-alg i c ν)) ==
-             contr-center (is-fib-X₁ i c ν) 
-      ctr= = ap (λ x → contr-center (x i c ν)) two-fibs-agree 
+      -- Right.  So here is where I get confused a bit.  Clearly, if
+      -- X₂ is fibrant, and we hypothesize that it agrees with slc-idx
+      -- on the out put, then the fundamental theorem gets us and
+      -- equivalence with slc-cns.
 
-      wit=x₁ : (j : Idx↓ M↓ i) (x₁ : X₁ ((i , j) , c , ν))
-        → (idx (contr-center (is-alg i c ν)) , witness i c ν) == (j , x₁) 
-      wit=x₁ j x₁ = contr-has-all-paths ⦃ is-fib-X₁ i c ν ⦄ (idx (contr-center (is-alg i c ν)) , witness i c ν) (j , x₁) 
+      -- So could it really be that the only thing we need to show is
+      -- that the induced equivalence is a homomorphism?  It kind of
+      -- looks like it....
 
-      -- Equivalence between algebraic compositions and indices
-      -- alg-to-idx↓ : (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
-      --   → alg-comp M M↓ i c ν ≃ Σ (Idx↓ M↓ i) (λ j → Idx↓ Slc↓ ((i , j) , (c , ν)))
-      -- alg-to-idx↓ i c ν = equiv to from to-from from-to
+      -- But I simply do not see how to do this.  If X₃ is and
+      -- arbitrary next level, why must it be the case that the
+      -- element we obtain by composing the leaf coincides with the
+      -- one given here?  We've never been able to prove this before,
+      -- why should it work now?
 
-      --   where to : alg-comp M M↓ i c ν → Σ (Idx↓ M↓ i) (λ j → Idx↓ Slc↓ ((i , j) , (c , ν)))
-      --         to ⟦ j ∣ d ∣ τ ⟧ = j , (j , idp) , d , app= τ
+      -- What happens? We obtain an element of X₂ relating the corolla
+      -- on a constructor to itself.  I believe that we already *have*
+      -- such an element by our assumption on X₂.  It is not
+      -- immediately clear to me how we obtain it: it could either be
+      -- by just some transport, or else by composing a bunch of
+      -- leaves together.
 
-      --         from : Σ (Idx↓ M↓ i) (λ j → Idx↓ Slc↓ ((i , j) , (c , ν))) → alg-comp M M↓ i c ν
-      --         from (j , (.j , idp) , d , τ) = ⟦ j ∣ d ∣ λ= τ ⟧
+      -- But if we compose a bunch of leaves, we get this element of
+      -- X₃ witnessing the composite, but it has the wrong type, since
+      -- it's input has exactly the leaves we just composed.
 
-      --         to-from : (x : Σ (Idx↓ M↓ i) (λ j → Idx↓ Slc↓ ((i , j) , (c , ν))))
-      --           → to (from x) == x
-      --         to-from (j , (.j , idp) , d , τ) =
-      --           ap (λ x → j , (j , idp) , d , x) (λ= (λ p → app=-β τ p))
+      -- And if we just use naively the fact the X₂ is fibrant, we
+      -- seem to get an automorphism of the constructor, which is
+      -- exactly the problem we've been fighting this whole time.
 
-      --         from-to : (x : alg-comp M M↓ i c ν)
-      --           → from (to x) == x
-      --         from-to ⟦ j ∣ d ∣ τ ⟧ = ap (λ x → ⟦ j ∣ d ∣ x ⟧) (! (λ=-η τ)) 
-
-
-    --
-    --  Hmmm.  Now I'm starting to doubt that this approach will work.
-    --  Because it looks like one of the paths dependes on X₁-el,
-    --  while the other doesn't.  So how are you going to get a
-    --  congruence to relate them?
-    --
-
-    --  Shit.  Then what could be the backup plan? 
-
-
-    next-witness : (i : Idx ExtSlc₁) (σ : Cns ExtSlc₁ i)
-      → (θ : (p : Pos ExtSlc₁ σ) → X₁ (Typ ExtSlc₁ σ p))
-      → X₂ ((i , –> (next-ob≃ i) (slc-idx i σ (λ p → <– (next-ob≃ (Typ ExtSlc₁ σ p)) (θ p)))) , (σ , θ))
-    next-witness ((i , j) , ._ , ._) (lf .(i , j)) θ = transport (λ x → X₂ ((((i , j) , η M i , (λ _ → j)) , x) , lf (i , j) , θ)) hence-need X₂-el
-
-      where X₁-el : X₁ ((i , j) , η M i , (cst j))
-            X₁-el = fst (contr-center (is-fib-X₂ ((i , j) , _ , _) (lf (i , j)) θ))
-
-            X₂-el : X₂ ((((i , j) , η M i , (cst j)) , X₁-el) , lf (i , j) , θ)
-            X₂-el = snd (contr-center (is-fib-X₂ ((i , j) , _ , _) (lf (i , j)) θ))
-
-            j' : Idx↓ M↓ i
-            j' = idx (contr-center (is-alg i (η M i) (cst j)))
-
-            X₁-wit : X₁ ((i , j') , η M i , (cst j))
-            X₁-wit = witness i (η M i) (cst j)
-
-            fib-pth : (j' , X₁-wit) == (j , X₁-el)
-            fib-pth = contr-has-all-paths ⦃ is-fib-X₁ i (η M i) (cst j) ⦄
-              (idx (contr-center (is-alg i (η M i) (cst j))) , witness i (η M i) (cst j))
-              (j , X₁-el)
-
-            alg-pth : contr-center (is-alg i (η M i) (λ _ → j)) == ⟦ j ∣ η↓ M↓ j ∣ λ= (cst idp) ⟧
-            alg-pth = contr-path (is-alg i (η M i) (λ _ → j)) ⟦ j ∣ η↓ M↓ j ∣ λ= (cst idp) ⟧ 
-
-            -- alg-pth' : contr-center (is-alg i (η M i) (λ _ → j)) == ⟦ j ∣ η↓ M↓ j ∣ λ= (cst idp) ⟧
-            -- alg-pth' = contr-has-all-paths ⦃ is-alg i (η M i) (cst j) ⦄ (contr-center (is-alg i (η M i) (cst j))) ⟦ j ∣ η↓ M↓ j ∣ λ= (cst idp) ⟧  
-
-            P : Idx↓ M↓ i → Set
-            P x = X₁ ((i , x) , η M i , cst j)
-
-            hence-need : X₁-el == transport P (ap idx alg-pth) X₁-wit
-            hence-need = X₁-el =⟨ ! (to-transp (snd= fib-pth)) ⟩
-                         transport P (fst= fib-pth) X₁-wit
-                           =⟨ {!!} ⟩ 
-                         transport P (ap idx alg-pth) X₁-wit =∎
-
-
-    next-witness ((i , j) , ._ , ._) (nd c δ ε) θ = {!!}
-
-
+      -- Ummm.  Yeah.  I just simply do not see what to do.
+      

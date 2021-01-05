@@ -330,3 +330,19 @@ module MonadOver where
     alg-comp-= i c ν {j = j} idp {d = d} idp {r} {r'} ϕ =
       ap (λ x → ⟦ j ∣ d ∣ x ⟧) (λ=-η r ∙ ap λ= (λ= ϕ) ∙ ! (λ=-η r'))
 
+    alg-comp-Σ-eqv : (i : Idx M) (c : Cns M i)
+      → (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
+      → alg-comp i c ν ≃ Σ (Idx↓ M↓ i) (λ j → Σ (Cns↓ M↓ j c) (λ d → Typ↓ M↓ d == ν))
+    alg-comp-Σ-eqv i c ν = equiv to from to-from from-to 
+
+      where to : alg-comp i c ν → Σ (Idx↓ M↓ i) (λ j → Σ (Cns↓ M↓ j c) (λ d → Typ↓ M↓ d == ν))
+            to ⟦ j ∣ d ∣ t ⟧ = j , d , t
+
+            from : Σ (Idx↓ M↓ i) (λ j → Σ (Cns↓ M↓ j c) (λ d → Typ↓ M↓ d == ν)) → alg-comp i c ν
+            from (j , d , t) = ⟦ j ∣ d ∣ t ⟧ 
+
+            to-from : (β : Σ (Idx↓ M↓ i) (λ j → Σ (Cns↓ M↓ j c) (λ d → Typ↓ M↓ d == ν))) → to (from β) == β
+            to-from (j , d , t) = idp
+
+            from-to : (α : alg-comp i c ν) → from (to α) == α
+            from-to ⟦ j ∣ d ∣ t ⟧ = idp
