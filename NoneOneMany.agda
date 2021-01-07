@@ -5,6 +5,7 @@ open import Monad
 open import MonadOver
 open import Pb
 open import Finitary
+open import AlgEqvElim
 
 module NoneOneMany where
 
@@ -33,48 +34,47 @@ module NoneOneMany where
       lf-red ._ (nd c δ ε) ϕ is-lf = ⊥-rec (is-lf [ inl unit ])
 
 
-    module _ (X₂ : Rel₂ ↓Rel₁) (is-fib-X₂ : is-fib₂ X₂)
+    module _ (X₂ : Rel₂ ↓Rel₁) (is-fib-X₂ : is-fib₂ X₂) (alg-fib : AlgFib M M↓ X₂ is-fib-X₂)
              (X₃ : Rel₃ X₂) (is-fib-X₃ : is-fib₃ X₃) where
 
-      postulate
+      open AlgFib alg-fib
+      open AlgStruct M M↓ (Idx↓ M↓) (↓Rel₁) X₂ is-fib-X₂
+      
+      --
+      --  These are our hypotheses ...
+      --
 
-        η-hyp : (i : Idx M) (j : Idx↓ M↓ i)
-          → (ϕ : (p : Pos ExtSlc₁ (lf (i , j))) → Idx↓ ExtSlc↓₁ (Typ ExtSlc₁ (lf (i , j)) p))
-          → X₂ ((((i , j) , η M i , cst j) , (j , idp) , η↓ M↓ j , cst idp) , lf (i , j) , ϕ) 
+      --   lf-hyp : (i : Idx ExtPlbk₁) (j : Idx↓ ExtPlbk↓₁ i)
+      --     → (j , η↓ ExtPlbk↓₁ j) == ηX (fst i) (snd i)
 
-        μ-hyp : (i : Idx M) (j : Idx↓ M↓ i)
-          → (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
-          → (δ : (p : Pos ExtPlbk₁ {i = i , j} (c , ν)) → Cns ExtPlbk₁ (Typ ExtPlbk₁ {i = i , j} (c , ν) p))
-          → (ε : (p : Pos ExtPlbk₁ {i = i , j} (c , ν)) → Cns ExtSlc₁ (Typ ExtPlbk₁ {i = i , j} (c , ν) p , δ p))
-          → (ϕ : (p : Pos ExtSlc₁ (nd {i = i , j} (c , ν) δ ε)) → Idx↓ ExtSlc↓₁ (Typ ExtSlc₁ (nd {i = i , j} (c , ν) δ ε) p))
-          → X₂ {!!}
+      --   nd-hyp : (i : Idx ExtPlbk₁) (c : Cns ExtPlbk₁ i)
+      --     → (δ : (p : Pos ExtPlbk₁ {i = i} c) → Cns ExtPlbk₁ (Typ ExtPlbk₁ {i = i} c p))
+      --     → (j : Idx↓ ExtPlbk↓₁ i) (d : Cns↓ ExtPlbk↓₁ j c)
+      --     → (δ↓ : (p : Pos ExtPlbk₁ {i = i} c) → Cns↓ ExtPlbk↓₁ (Typ↓ ExtPlbk↓₁ {i↓ = j} d p) (δ p))
+      --     → (j , μ↓ ExtPlbk↓₁ {i↓ = j} d δ↓)
+      --       == μX (fst i) (fst c) (snd c) δ (snd i) (j , d)
+      --             (λ p → (Typ↓ M↓ (fst d) p , snd d p) , δ↓ p)
 
       X₃-lf : (i : Idx ExtSlc₁) (j : Idx↓ ExtSlc↓₁ i)
         → X₂ ((i , j) , η ExtPlbk₂ (i , j))
       X₃-lf i j = fst (contr-center (is-fib-X₃ ((i , j) , η ExtPlbk₂ (i , j)) (lf (i , j)) ⊥-elim)) 
 
-      -- This should simplify more ....
-      
-      -- nd (snd i)
-      -- (λ p → η M (Typ M (fst (snd i)) p) , (λ _ → snd (snd i) p))
-      -- (λ p → lf (Typ M (fst (snd i)) p , snd (snd i) p))
-      -- , (λ _ → j)
+      -- This can probably be cleaned up a bit ...
+      η-wit : (i : Idx M) (j : Idx↓ M↓ i)
+        → (ϕ : (p : Pos ExtSlc₁ (lf (i , j))) → Idx↓ ExtSlc↓₁ (Typ ExtSlc₁ (lf (i , j)) p))
+        → X₂ ((((i , j) , η M i , cst j) , (j , idp) , η↓ M↓ j , cst idp) , lf (i , j) , ϕ) 
+      η-wit i j ϕ = transport X₂ pth (snd (contr-center (is-fib-X₂ ((i , j) , η M i , cst j) (lf (i , j)) ⊥-elim)))  
 
-      -- X₃-lf : (i : Idx M) (j j' : Idx↓ M↓ i) (j'=j : j' == j) (c : Cns M i)
-      --   → (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
-      --   → (d : Cns↓ M↓ j' c) (typ-d=ν : (p : Pos M c) → Typ↓ M↓ d p == ν p)
-      --   → X₂ ((((i , j) , (c , ν)) , (j' , j'=j) , (d , typ-d=ν)) ,
-      --        nd (c , ν) (λ p → η M (Typ M c p) , cst (ν p))
-      --                   (λ p → lf (Typ M c p , ν p)) , {!!}) 
-      -- X₃-lf = {!!} 
+        where pth : (((i , j) , η M i , (λ _ → j)) , ηX i j) , lf (i , j) , ⊥-elim ==
+                    (((i , j) , η M i , cst j) , (j , idp) , η↓ M↓ j , cst idp) , lf (i , j) , ϕ
+              pth =   ap (λ x → (((i , j) , η M i , (λ _ → j)) , x) , lf (i , j) , ⊥-elim) (! (lf-hyp (i , j) (j , idp))) ∙
+                      ap (λ x → (((i , j) , η M i , cst j) , (j , idp) , η↓ M↓ j , cst idp) , lf (i , j) , x) (λ= (λ { () }))
 
-      -- What we will also need is that, under the above induced
-      -- equivalence, the "unit" *use* X₃'s lf hypothesis.
-        
+
       goal : (i : Idx ExtSlc₁) (σ : Cns ExtSlc₁ i)
         → (ϕ : (p : Pos ExtSlc₁ σ) → Idx↓ ExtSlc↓₁ (Typ ExtSlc₁ σ p))
         → X₂ ((i , slc-idx i σ ϕ) , σ , ϕ) 
-      goal ((i , j) , ._ , ._) (lf .(i , j)) ϕ = η-hyp i j ϕ
+      goal ((i , j) , ._ , ._) (lf .(i , j)) ϕ = η-wit i j ϕ
       goal ((i , j) , ._ , ._) (nd c δ ε) ϕ with is-fin-disc (Pos M (fst c)) (M-fin (fst c))
         (record { P = λ p → is-node (ε p) ;
                   P-is-prop = λ p → Trunc-level ;
@@ -86,7 +86,12 @@ module NoneOneMany where
 
               have : X₂ ((((i , j) , c , ν) , ϕ true) , η ExtPlbk₂ (((i , j) , c , ν) , ϕ true))
               have = X₃-lf ((i , j) , c , ν) (ϕ (inl unit))
-
+              
               need : X₂ ((((i , j) , μ M c (fst ∘ δ) , _) , (j' , j'=j) , (μ↓ M↓ d δ↓' , typ-μ↓=ν')) , nd (c , ν) δ ε , ϕ)
               need = {!!} 
+
+      alg-eqv : AlgEqv ExtSlc₁ ExtSlc↓₁ X₂ X₃ is-fib-X₃
+      AlgEqv.e alg-eqv = {!!}
+      AlgEqv.η-hyp alg-eqv = {!!}
+      AlgEqv.μ-hyp alg-eqv = {!!}
 
