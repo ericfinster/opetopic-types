@@ -49,8 +49,6 @@ module NoneOneMany where
           → (ϕ : (p : Pos ExtSlc₁ (nd {i = i , j} (c , ν) δ ε)) → Idx↓ ExtSlc↓₁ (Typ ExtSlc₁ (nd {i = i , j} (c , ν) δ ε) p))
           → X₂ {!!}
 
-
-
       X₃-lf : (i : Idx ExtSlc₁) (j : Idx↓ ExtSlc↓₁ i)
         → X₂ ((i , j) , η ExtPlbk₂ (i , j))
       X₃-lf i j = fst (contr-center (is-fib-X₃ ((i , j) , η ExtPlbk₂ (i , j)) (lf (i , j)) ⊥-elim)) 

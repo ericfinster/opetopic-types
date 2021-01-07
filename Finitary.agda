@@ -57,13 +57,6 @@ module Finitary where
     P-is-prop = P-is-prop D ∘ f ;
     P-is-dec = P-is-dec D ∘ f } 
 
-  -- SomeOrNone-emap : ∀ {i} {A B : Type i} (e : A ≃ B)
-  --   → (D : DecPred B) (sn-D : SomeOrNone B D)
-  --   → SomeOrNone A (DecPred-fmap (fst e) D)
-  -- SomeOrNone-emap e D (inl p) = inl (Trunc-rec Trunc-level
-  --   (λ pr → [ <– e (fst pr) , transport (P D) (! (<–-inv-r e (fst pr))) (snd pr) ]) p)
-  -- SomeOrNone-emap e D (inr ϕ) = inr (λ a p → ϕ (fst e a) p)
-
   SomeOrNone-emap : ∀ {i} {A B : Type i} (e : A ≃ B)
     → (D : DecPred A) (sn-D : SomeOrNone B (DecPred-fmap (<– e) D))
     → SomeOrNone A D
@@ -113,37 +106,22 @@ module Finitary where
   is-fin-disc A (n , e-trunc) D = Trunc-rec (SomeOrNone-is-prop A D)
     (λ e → SomeOrNone-emap e D (fin-disc (DecPred-fmap (<– e) D))) e-trunc
 
-  -- module _ (M : 𝕄) (M-fin : is-finitary M) where
-
-  --   discrim : (i : Idx M) (c : Cns M i)
-  --     → (P : Pos M c → Type₀)
-  --     → (P-is-prop : (p : Pos M c) → is-prop (P p))
-  --     → (P-is-dec : (p : Pos M c) → Dec (P p))
-  --     → Σ (Pos M c) P ⊔ ((p : Pos M c) → ¬ (P p))
-  --   discrim i c P P-is-prop P-is-dec = {!!} 
-
-    -- This would be a proposition if you truncate.
-
-
-  -- SomeOrNone-⊔ : ∀ {i} (A B : Type i) (D : DecPred (A ⊔ B))
-  --   → SomeOrNone A (record { P = P D ∘ inl ; P-is-prop = P-is-prop D ∘ inl ; P-is-dec = P-is-dec D ∘ inl })
-  --   → SomeOrNone B (record { P = P D ∘ inr ; P-is-prop = P-is-prop D ∘ inr ; P-is-dec = P-is-dec D ∘ inr })
-  --   → SomeOrNone (A ⊔ B) D
-  -- SomeOrNone-⊔ A B D (inl p) (inl _) = inl (Trunc-rec Trunc-level (λ pr → [ inl (fst pr) , snd pr ]) p)
-  -- SomeOrNone-⊔ A B D (inl p) (inr _) = inl (Trunc-rec Trunc-level (λ pr → [ inl (fst pr) , snd pr ]) p)
-  -- SomeOrNone-⊔ A B D (inr _) (inl p) = inl (Trunc-rec Trunc-level (λ pr → [ inr (fst pr) , snd pr ]) p)
-  -- SomeOrNone-⊔ A B D (inr ϕ) (inr ψ) = inr (Coprod-elim ϕ ψ)
-
-  -- SomeOrNone-Empty : (D : DecPred Empty) → SomeOrNone Empty D
-  -- SomeOrNone-Empty D = inr ⊥-elim
-
-  -- SomeOrNone-Unit : (D : DecPred Unit) → SomeOrNone Unit D
-  -- SomeOrNone-Unit D with P-is-dec D tt
-  -- SomeOrNone-Unit D | inl p = inl [ tt , p ]
-  -- SomeOrNone-Unit D | inr ϕ = inr (λ _ → ϕ)
+  -- Don't know if we need these...
   
-  -- First, show that SomeOrNone is compatible with ⊔  *CHECK*
-  -- Then show it always holds on empty.  *CHECK*
-  -- Then show it always holds on unit.   *CHECK*
-  -- Then you get it for all Fin n
-  -- Then you get it for all finite types.
+  SomeOrNone-⊔ : ∀ {i} (A B : Type i) (D : DecPred (A ⊔ B))
+    → SomeOrNone A (record { P = P D ∘ inl ; P-is-prop = P-is-prop D ∘ inl ; P-is-dec = P-is-dec D ∘ inl })
+    → SomeOrNone B (record { P = P D ∘ inr ; P-is-prop = P-is-prop D ∘ inr ; P-is-dec = P-is-dec D ∘ inr })
+    → SomeOrNone (A ⊔ B) D
+  SomeOrNone-⊔ A B D (inl p) (inl _) = inl (Trunc-rec Trunc-level (λ pr → [ inl (fst pr) , snd pr ]) p)
+  SomeOrNone-⊔ A B D (inl p) (inr _) = inl (Trunc-rec Trunc-level (λ pr → [ inl (fst pr) , snd pr ]) p)
+  SomeOrNone-⊔ A B D (inr _) (inl p) = inl (Trunc-rec Trunc-level (λ pr → [ inr (fst pr) , snd pr ]) p)
+  SomeOrNone-⊔ A B D (inr ϕ) (inr ψ) = inr (Coprod-elim ϕ ψ)
+
+  SomeOrNone-Empty : (D : DecPred Empty) → SomeOrNone Empty D
+  SomeOrNone-Empty D = inr ⊥-elim
+
+  SomeOrNone-Unit : (D : DecPred Unit) → SomeOrNone Unit D
+  SomeOrNone-Unit D with P-is-dec D tt
+  SomeOrNone-Unit D | inl p = inl [ tt , p ]
+  SomeOrNone-Unit D | inr ϕ = inr (λ _ → ϕ)
+  
