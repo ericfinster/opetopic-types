@@ -6,7 +6,7 @@ open import MonadOver
 open import Pb
 open import Algebricity
 
-module Sketch where
+module AlgEqvElim where
 
   module _ (M : 𝕄) (M↓ : 𝕄↓ M) where
 
@@ -39,7 +39,6 @@ module Sketch where
         μX : X₁ ((i , x₀) , μ (Pb M X₀) {i = i , x₀} (c , ν) δ)
         μX = fst (contr-center (is-fib-X₂ ((i , x₀) , μ (Pb M X₀) {i = i , x₀} (c , ν) δ) μX-tr θX))
 
-
     module _ (X₁ : Rel₁ (Idx↓ M↓)) (X₂ : Rel₂ X₁) (is-fib-X₂ : is-fib₂ X₂) where
 
       open AlgStruct (Idx↓ M↓) X₁ X₂ is-fib-X₂
@@ -62,6 +61,38 @@ module Sketch where
             → –> (e (i , μ ExtPlbk₁ {i = i} c δ)) (j , μ↓ ExtPlbk↓₁ {i↓ = j} d δ↓)
               == μX (fst i) (fst c) (snd c) δ (snd i) (–> (e (i , c)) (j , d))
                     (λ p → –> (e ((Typ M (fst c) p , snd c p) , δ p)) ((Typ↓ M↓ (fst d) p , snd d p) , δ↓ p ))
-        
 
+    module _ (X₂ : Rel₂ ↓Rel₁) (is-fib-X₂ : is-fib₂ X₂) where
+
+      open AlgStruct (Idx↓ M↓) (↓Rel₁) X₂ is-fib-X₂
+
+      record AlgFib : Set where
+        field
+
+          lf-hyp : (i : Idx ExtPlbk₁) (j : Idx↓ ExtPlbk↓₁ i)
+            → (j , η↓ ExtPlbk↓₁ j) == ηX (fst i) (snd i)
+
+          nd-hyp : (i : Idx ExtPlbk₁) (c : Cns ExtPlbk₁ i)
+            → (δ : (p : Pos ExtPlbk₁ {i = i} c) → Cns ExtPlbk₁ (Typ ExtPlbk₁ {i = i} c p))
+            → (j : Idx↓ ExtPlbk↓₁ i) (d : Cns↓ ExtPlbk↓₁ j c)
+            → (δ↓ : (p : Pos ExtPlbk₁ {i = i} c) → Cns↓ ExtPlbk↓₁ (Typ↓ ExtPlbk↓₁ {i↓ = j} d p) (δ p))
+            → (j , μ↓ ExtPlbk↓₁ {i↓ = j} d δ↓)
+              == μX (fst i) (fst c) (snd c) δ (snd i) (j , d)
+                    (λ p → (Typ↓ M↓ (fst d) p , snd d p) , δ↓ p)
+
+      open AlgFib
+      
+      to-alg-eqv : (alg-fib : AlgFib) → AlgEqv ↓Rel₁ X₂ is-fib-X₂
+      AlgEqv.e (to-alg-eqv alg-fib) i = ide (↓Rel₁ i)
+      AlgEqv.η-hyp (to-alg-eqv alg-fib) = lf-hyp alg-fib
+      AlgEqv.μ-hyp (to-alg-eqv alg-fib) = nd-hyp alg-fib
+
+    module AlgElim (P : (X₁ : Rel₁ (Idx↓ M↓)) (X₂ : Rel₂ X₁) (is-fib-X₂ : is-fib₂ X₂) (alg-eqv : AlgEqv X₁ X₂ is-fib-X₂) → Type₀)
+                   (id* : (X₂ : Rel₂ ↓Rel₁) (is-fib-X₂ : is-fib₂ X₂) (alg-fib : AlgFib X₂ is-fib-X₂)
+                      → P ↓Rel₁ X₂ is-fib-X₂ (to-alg-eqv X₂ is-fib-X₂ alg-fib)) where
+
+      postulate
+      
+        elim : (X₁ : Rel₁ (Idx↓ M↓)) (X₂ : Rel₂ X₁) (is-fib-X₂ : is-fib₂ X₂) (alg-eqv : AlgEqv X₁ X₂ is-fib-X₂)
+          → P X₁ X₂ is-fib-X₂ alg-eqv
 
