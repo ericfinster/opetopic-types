@@ -7,6 +7,86 @@ open import FundamentalThm
 
 module Algebricity where
 
+  --
+  --  Algebricity of an extension 
+  --
+
+  module _ (M : 𝕄) (M↓ : 𝕄↓ M) where
+
+    -- NOTE: I think switching the "typ" entry to be a function would
+    -- probably save a bunch of extra annoying funext problems later
+    -- on.   Is there a reason you opted for this?
+    record alg-comp (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p)) : Set where
+      constructor ⟦_∣_∣_⟧
+      field
+        idx : Idx↓ M↓ i 
+        cns : Cns↓ M↓ idx c
+        typ : Typ↓ M↓ cns == ν
+
+    is-algebraic : Set
+    is-algebraic = (i : Idx M) (c : Cns M i)
+      → (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
+      → is-contr (alg-comp i c ν) 
+    
+    open alg-comp public
+
+    alg-comp-idx-= : {i : Idx M} {c : Cns M i} {ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p)}
+      → {α α' : alg-comp i c ν} (p : α == α')
+      → idx α == idx α'
+    alg-comp-idx-= p = ap idx p 
+
+    alg-comp-cns-= : {i : Idx M} {c : Cns M i} {ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p)}
+      → {α α' : alg-comp i c ν} (p : α == α')
+      → cns α == cns α' [ (λ x → Cns↓ M↓ x c) ↓ alg-comp-idx-= p ]
+    alg-comp-cns-= idp = idp
+
+    alg-comp-typ-= : {i : Idx M} {c : Cns M i} {ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p)}
+      → {α α' : alg-comp i c ν} (p : α == α')
+      → (q : Pos M c) → app= (typ α) q ==
+        ap (λ x → Typ↓ M↓ (snd x) q) (pair= (alg-comp-idx-= p) (alg-comp-cns-= p)) ∙ app= (typ α') q 
+    alg-comp-typ-= idp q = idp
+    
+    alg-comp-= : (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
+      → {j j' : Idx↓ M↓ i} (m : j == j')
+      → {d : Cns↓ M↓ j c} {d' : Cns↓ M↓ j' c}
+      → (n : d == d' [ (λ x → Cns↓ M↓ x c) ↓ m ])
+      → {r : Typ↓ M↓ d == ν} {r' : Typ↓ M↓ d' == ν}
+      → (ϕ : (p : Pos M c) → app= r p == ap (λ x → Typ↓ M↓ (snd x) p) (pair= m n) ∙ app= r' p)
+      → ⟦ j ∣ d ∣ r ⟧ == ⟦ j' ∣ d' ∣ r' ⟧
+    alg-comp-= i c ν {j = j} idp {d = d} idp {r} {r'} ϕ =
+      ap (λ x → ⟦ j ∣ d ∣ x ⟧) (λ=-η r ∙ ap λ= (λ= ϕ) ∙ ! (λ=-η r'))
+
+    alg-comp-=-fst-β : (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
+      → {j j' : Idx↓ M↓ i} (m : j == j')
+      → {d : Cns↓ M↓ j c} {d' : Cns↓ M↓ j' c}
+      → (n : d == d' [ (λ x → Cns↓ M↓ x c) ↓ m ])
+      → {r : Typ↓ M↓ d == ν} {r' : Typ↓ M↓ d' == ν}
+      → (ϕ : (p : Pos M c) → app= r p == ap (λ x → Typ↓ M↓ (snd x) p) (pair= m n) ∙ app= r' p)
+      → ap idx (alg-comp-= i c ν m n ϕ) == m
+    alg-comp-=-fst-β i c ν {j = j} idp {d = d} idp {r} {r'} ϕ =
+      ap idx (ap (λ x → ⟦ j ∣ d ∣ x ⟧) (λ=-η r ∙ ap λ= (λ= ϕ) ∙ ! (λ=-η r')))
+        =⟨ ! (ap-∘ idx (λ x → ⟦ j ∣ d ∣ x ⟧) (λ=-η r ∙ ap λ= (λ= ϕ) ∙ ! (λ=-η r'))) ⟩
+      ap (λ x → j) (λ=-η r ∙ ap λ= (λ= ϕ) ∙ ! (λ=-η r'))
+        =⟨ ap-cst j (λ=-η r ∙ ap λ= (λ= ϕ) ∙ ! (λ=-η r')) ⟩ 
+      idp =∎
+
+    alg-comp-Σ-eqv : (i : Idx M) (c : Cns M i)
+      → (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
+      → alg-comp i c ν ≃ Σ (Idx↓ M↓ i) (λ j → Σ (Cns↓ M↓ j c) (λ d → Typ↓ M↓ d == ν))
+    alg-comp-Σ-eqv i c ν = equiv to from to-from from-to 
+
+      where to : alg-comp i c ν → Σ (Idx↓ M↓ i) (λ j → Σ (Cns↓ M↓ j c) (λ d → Typ↓ M↓ d == ν))
+            to ⟦ j ∣ d ∣ t ⟧ = j , d , t
+
+            from : Σ (Idx↓ M↓ i) (λ j → Σ (Cns↓ M↓ j c) (λ d → Typ↓ M↓ d == ν)) → alg-comp i c ν
+            from (j , d , t) = ⟦ j ∣ d ∣ t ⟧ 
+
+            to-from : (β : Σ (Idx↓ M↓ i) (λ j → Σ (Cns↓ M↓ j c) (λ d → Typ↓ M↓ d == ν))) → to (from β) == β
+            to-from (j , d , t) = idp
+
+            from-to : (α : alg-comp i c ν) → from (to α) == α
+            from-to ⟦ j ∣ d ∣ t ⟧ = idp
+
   module _ (M : 𝕄) (M↓ : 𝕄↓ M) (is-alg : is-algebraic M M↓) where
 
     is-alg' : (i : Idx M) (c : Cns M i)
