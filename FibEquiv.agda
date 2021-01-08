@@ -104,15 +104,26 @@ module FibEquiv where
                       α' : alg-comp M M↓ i c ν
                       α' = ⟦ j' ∣ d ∣ λ= t ⟧ 
 
-                      to-pth : idx (contr-center (is-alg i c ν)) == j
-                      to-pth = ap idx (contr-path (is-alg i c ν) α') ∙ j'=j 
-
-                      from-pth : idx α == j
-                      from-pth = fst= (contr-has-all-paths ⦃ is-fib-X i c ν ⦄ (idx α , X-is-alg i c ν)
-                        (j , transport (λ x → X ((i , x) , c , ν)) to-pth (X-is-alg i c ν)))  
-
                       α=α' : α == α'
                       α=α' = contr-path (is-alg i c ν) α'
 
-                      lemma : from-pth == ap idx α=α' ∙ j'=j
-                      lemma = {!!} 
+                      to-pth : idx α == j
+                      to-pth = ap idx α=α' ∙ j'=j 
+
+                      ctr-pth : (idx α , X-is-alg i c ν) == (j , transport (λ x → X ((i , x) , c , ν)) to-pth (X-is-alg i c ν))
+                      ctr-pth = (contr-has-all-paths ⦃ is-fib-X i c ν ⦄ (idx α , X-is-alg i c ν)
+                        (j , transport (λ x → X ((i , x) , c , ν)) to-pth (X-is-alg i c ν)))
+
+                      other-pth : (idx α , X-is-alg i c ν) == (j , transport (λ x → X ((i , x) , c , ν)) to-pth (X-is-alg i c ν))
+                      other-pth = pair= to-pth (from-transp (λ x → X ((i , x) , c , ν)) to-pth idp) 
+
+                      from-pth : idx α == j
+                      from-pth = fst= ctr-pth
+
+                      lemma : from-pth == to-pth 
+                      lemma = from-pth
+                                =⟨ contr-has-all-paths ⦃ =-preserves-contr (is-fib-X i c ν) ⦄
+                                   ctr-pth other-pth |in-ctx fst= ⟩
+                              fst= other-pth
+                                =⟨ fst=-β to-pth (from-transp (λ x → X ((i , x) , c , ν)) to-pth idp) ⟩ 
+                              to-pth =∎ 
