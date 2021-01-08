@@ -3,6 +3,7 @@
 open import HoTT
 open import Monad
 open import MonadOver
+open import Algebricity
 open import IdentityMonad
 open import Pb
 open import OpetopicType

@@ -3,9 +3,11 @@
 open import HoTT
 open import Monad
 open import MonadOver
+open import Algebricity
 open import Pb
 open import Finitary
 open import AlgEqvElim
+open import FibEquiv
 
 module NoneOneMany where
 
@@ -90,8 +92,10 @@ module NoneOneMany where
               need : X₂ ((((i , j) , μ M c (fst ∘ δ) , _) , (j' , j'=j) , (μ↓ M↓ d δ↓' , typ-μ↓=ν')) , nd (c , ν) δ ε , ϕ)
               need = {!!} 
 
+      open import SliceAlgebraic
+      
       alg-eqv : AlgEqv ExtSlc₁ ExtSlc↓₁ X₂ X₃ is-fib-X₃
-      AlgEqv.e alg-eqv = {!!}
+      AlgEqv.e alg-eqv = fib-eqv ExtSlc₁ ExtSlc↓₁ (slc-algebraic M M↓) X₂ is-fib-X₂ goal
       AlgEqv.η-hyp alg-eqv = {!!}
       AlgEqv.μ-hyp alg-eqv = {!!}
 
