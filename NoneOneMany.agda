@@ -41,6 +41,8 @@ module NoneOneMany where
 
       open AlgFib alg-fib
       open AlgStruct M M↓ (Idx↓ M↓) (↓Rel₁) X₂ is-fib-X₂
+
+      module X₃-struct = AlgStruct ExtSlc₁ ExtSlc↓₁ ↓Rel₁ X₂ X₃ is-fib-X₃
       
       --
       --  These are our hypotheses ...
@@ -60,6 +62,14 @@ module NoneOneMany where
       X₃-lf : (i : Idx ExtSlc₁) (j : Idx↓ ExtSlc↓₁ i)
         → X₂ ((i , j) , η ExtPlbk₂ (i , j))
       X₃-lf i j = fst (contr-center (is-fib-X₃ ((i , j) , η ExtPlbk₂ (i , j)) (lf (i , j)) ⊥-elim)) 
+
+
+    -- module AlgStruct (X₀ : Rel₀) (X₁ : Rel₁ X₀)
+    --                  (X₂ : Rel₂ X₁) (is-fib-X₂ : is-fib₂ X₂) where
+
+    --   ηX : (i : Idx M) (x₀ : X₀ i)
+    --     → X₁ ((i , x₀) , η M i , cst x₀)
+    --   ηX i x₀ = fst (contr-center (is-fib-X₂ ((i , x₀) , η M i , cst x₀) (lf (i , x₀)) ⊥-elim)) 
 
       -- This can probably be cleaned up a bit ...
       η-wit : (i : Idx M) (j : Idx↓ M↓ i)
@@ -81,9 +91,36 @@ module NoneOneMany where
         (record { P = λ p → is-node (ε p) ;
                   P-is-prop = λ p → Trunc-level ;
                   P-is-dec = λ p → slice-is-dec (ε p) })
-      goal ((i , j) , .(μ M (fst c) (fst ∘ δ)) , _) (nd c δ ε) ϕ | inl p = {!!} -- The multi-valued case
+      goal ((i , j) , .(μ M c (fst ∘ δ)) , _) (nd (c , ν) δ ε) ϕ | inl p = mv-goal
+
+        where open IdxIh i j c ν δ ε ϕ
+
+              mv-goal : X₂ ((((i , j) , μ M c (fst ∘ δ) , _) , (j' , j'=j) , (μ↓ M↓ d δ↓' , typ-μ↓=ν')) , nd (c , ν) δ ε , ϕ)
+              mv-goal = {!!} 
+
+              -- Okay, so the point is that we're going to use the multiplication
+              -- coming from the structure on X₃.
+
+              -- Mmm.
+              we-have : X₂ {!!}
+              we-have = X₃-struct.μX ((i , j) , c , ν) (η ExtSlc₁ ((i , j) , c , ν))
+                                     {!!} -- hmm. this is this reduction issue where I can't use constant ....
+                                     {!!} 
+                                     (ϕ (inl unit))  -- the constructor over at this point
+                                     (X₃-struct.ηX ((i , j) , c , ν) (ϕ (inl unit)))
+                                     {!!} -- the induction hypothesis
+              
+              -- module _ (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → X₀ (Typ M c p))
+              --          (δ : (p : Pos M c) → Cns (Pb M X₀) (Typ M c p , ν p))
+              --          (x₀ : X₀ i) (x₁ : X₁ ((i , x₀) , c , ν))
+              --          (δ↓ : (p : Pos M c) → X₁ ((Typ M c p , ν p) , (δ p))) where
+
+              --   μX : X₁ ((i , x₀) , μ (Pb M X₀) {i = i , x₀} (c , ν) δ)
+              --   μX = fst (contr-center (is-fib-X₂ ((i , x₀) , μ (Pb M X₀) {i = i , x₀} (c , ν) δ) μX-tr θX))
+
+
       goal ((i , j) , .(μ M c (fst ∘ δ)) , _) (nd (c , ν) δ ε) ϕ | inr ¬p =
-        transport X₂ claim (X₃-lf ((i , j) , c , ν) (ϕ (inl unit))) 
+        transport X₂ claim (X₃-struct.ηX ((i , j) , c , ν) (ϕ (inl unit)))
 
         where open IdxIh i j c ν δ ε ϕ
 
