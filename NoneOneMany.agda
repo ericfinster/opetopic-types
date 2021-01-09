@@ -82,20 +82,20 @@ module NoneOneMany where
                   P-is-prop = λ p → Trunc-level ;
                   P-is-dec = λ p → slice-is-dec (ε p) })
       goal ((i , j) , .(μ M (fst c) (fst ∘ δ)) , _) (nd c δ ε) ϕ | inl p = {!!} -- The multi-valued case
-      goal ((i , j) , .(μ M c (fst ∘ δ)) , _) (nd (c , ν) δ ε) ϕ | inr ¬p = {!ϕ true!} -- The corolla case
+      goal ((i , j) , .(μ M c (fst ∘ δ)) , _) (nd (c , ν) δ ε) ϕ | inr ¬p =
+        transport X₂ claim (X₃-lf ((i , j) , c , ν) (ϕ (inl unit))) 
 
         where open IdxIh i j c ν δ ε ϕ
 
-              have : X₂ ((((i , j) , c , ν) , ϕ true) , η ExtPlbk₂ (((i , j) , c , ν) , ϕ true))
-              have = X₃-lf ((i , j) , c , ν) (ϕ (inl unit))
-              
-              need : X₂ ((((i , j) , μ M c (fst ∘ δ) , _) , (j' , j'=j) , (μ↓ M↓ d δ↓' , typ-μ↓=ν')) , nd (c , ν) δ ε , ϕ)
-              need = {!!} 
+              claim : ((((i , j) , c , ν) , ϕ true) , η ExtPlbk₂ (((i , j) , c , ν) , ϕ true)) ==
+                      ((((i , j) , μ M c (fst ∘ δ) , _) , (j' , j'=j) , (μ↓ M↓ d δ↓' , typ-μ↓=ν')) , nd (c , ν) δ ε , ϕ)
+              claim = pair= {!!} {!!} 
 
       open import SliceAlgebraic
       
       alg-eqv : AlgEqv ExtSlc₁ ExtSlc↓₁ X₂ X₃ is-fib-X₃
       AlgEqv.e alg-eqv = fib-eqv ExtSlc₁ ExtSlc↓₁ (slc-algebraic M M↓) X₂ is-fib-X₂ goal
-      AlgEqv.η-hyp alg-eqv = {!!}
-      AlgEqv.μ-hyp alg-eqv = {!!}
+      AlgEqv.η-hyp alg-eqv i j = {!!}
+      AlgEqv.μ-hyp alg-eqv (._ , snd₁) (lf i , ν) δ j d δ↓ = {!!}
+      AlgEqv.μ-hyp alg-eqv (._ , snd₁) (nd c δ ε , ν) δ₁ ((fst₁ , ._ , ._) , snd₃) (nd↓ c↓ δ↓₁ ε↓ , snd₂) δ↓ = {!!}
 
