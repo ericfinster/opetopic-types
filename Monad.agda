@@ -423,18 +423,17 @@ module Monad where
       → μ-pos-snd (Slice M) c δ p ↦ μ-pos-sndₛ M c δ p
     {-# REWRITE μ-pos-snd-Slice #-}
 
-  -- μ-pos-fst-βₛ : (M : 𝕄) {i : Idxₛ M} (c : Cnsₛ M i)
-  --   → (δ : (p : Posₛ M c) → Cnsₛ M (Typₛ M c p))
-  --   → (p : Posₛ M c) (q : Posₛ M (δ p))
-  --   → μ-pos-fstₛ M c δ (μ-posₛ M c δ p q) == p
-  -- μ-pos-fst-βₛ M c δ p q = {!μ-pos-fstₛ M c δ (μ-posₛ M c δ p q)!}
-
-
-    -- μ-pos-fst-β : (M : 𝕄) {i : Idx M} (c : Cns M i)
-    --   → (δ : (p : Pos M c) → Cns M (Typ M c p))
-    --   → (p : Pos M c) (q : Pos M (δ p))
-    --   → μ-pos-fst M c δ (μ-pos M c δ p q) ↦ p
-    -- {-# REWRITE μ-pos-fst-β #-}
+    --
+    -- The following is an example of the kind of re-write which gets
+    -- struck when the generic rules are instantiated with a particular
+    -- monad.  In principle, each generic rule should be repeated for
+    -- each concrete monad so that we see it's most reduced form.
+    --
+    
+    η-pos-typ-slc : (M : 𝕄) (i : Idx M) (c : Cns M i) 
+      → (p : Pos (Slice M) (η (Slice M) (i , c)))
+      → Typₛ M (nd c (λ q → η M (Typ M c q)) (λ q → lf (Typ M c q))) p ↦ (i , c)
+    {-# REWRITE η-pos-typ-slc #-}
 
   --
   --  The induced monad on families
