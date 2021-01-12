@@ -21,14 +21,14 @@ module NoneOneMany where
              (X₃ : Rel₃ X₂) (is-fib-X₃ : is-fib₃ X₃) where
 
       open AlgFib alg-fib
-      open AlgStruct M M↓ (Idx↓ M↓) (↓Rel₁) X₂ is-fib-X₂
 
+      module X₂-struct = AlgStruct M M↓ (Idx↓ M↓) (↓Rel₁) X₂ is-fib-X₂
       module X₃-struct = AlgStruct ExtSlc₁ ExtSlc↓₁ ↓Rel₁ X₂ X₃ is-fib-X₃
 
-      -- is-fin-disc (Pos M (fst c)) (M-fin (fst c))
-      --   (record { P = λ p → is-node (ε p) ;
-      --             P-is-prop = λ p → Trunc-level ;
-      --             P-is-dec = λ p → slice-is-dec (ε p) })
+      -- This is a postulate for right now so I can inspect the induction hypothesis ...
+      postulate
+
+        alg-eqv-to : (i : Idx ExtSlc₂) → Idx↓ ExtSlc↓₂ i → X₂ i 
 
       module NdLemmas
           (i : Idx M)
@@ -47,7 +47,6 @@ module NoneOneMany where
           (ϕ↓ : (p : Pos ExtSlc₁ (nd {i = i , j} (c , ν) δ ε))
                 → Typ↓ ExtSlc↓₁ (nd↓ {i↓ = j , idp} (c↓ , ν↓) δ↓ ε↓) p == ϕ p) where
 
-
         open DecPred
         
         ε-has-node : DecPred (Pos M c) 
@@ -58,19 +57,49 @@ module NoneOneMany where
         ε-form : SomeOrNone (Pos M c) ε-has-node
         ε-form = is-fin-disc (Pos M c) (M-fin c) ε-has-node 
 
-        Goal : Set
-        Goal = X₂ ((((i , j) , μ ExtPlbk₁ {i = i , j} (c , ν) δ) ,
+        GoalIdx : Idx ExtSlc₂
+        GoalIdx = ((((i , j) , μ ExtPlbk₁ {i = i , j} (c , ν) δ) ,
                     ((j , idp) , μ↓ ExtPlbk↓₁ {i↓ = j , idp} (c↓ , ν↓) δ↓)) ,
-                    nd (c , ν) δ ε , ϕ) 
+                    nd (c , ν) δ ε , ϕ)
+                    
+        Goal : Set
+        Goal = X₂ GoalIdx 
 
-        corolla-case : (ε-is-lf : (p : Pos M c) → ¬ (is-node (ε p))) → Goal
-        corolla-case no-nds = {!!} 
+        module IsCorolla (ε-is-lf : (p : Pos M c) → ¬ (is-node (ε p))) where
 
-        binary-case : (ε-nd : Trunc ⟨-1⟩ (Σ (Pos M c) (λ p → is-node (ε p)))) → Goal
-        binary-case nd-pos = {!!} 
+          CorollaIdx : Idx ExtSlc₂
+          CorollaIdx = ((((i , j) , c , ν) , ϕ true) ,
+                         η ExtPlbk₂ (((i , j) , c , ν) ,
+                         ϕ true))
+
+          CorollaX₂ : X₂ CorollaIdx
+          CorollaX₂ = X₃-struct.ηX ((i , j) , c , ν) (ϕ (inl unit))
+          
+          postulate
+
+            corolla= : CorollaIdx == GoalIdx
+
+          corolla-case : Goal
+          corolla-case = transport X₂ corolla= CorollaX₂ 
+
+        module HasDescendent (ε-nd : Trunc ⟨-1⟩ (Σ (Pos M c) (λ p → is-node (ε p)))) where
+
+          -- Here are the elements we get from the induction hypothesis.
+          descendant-ih-idx : (p : Pos M c) → Idx ExtSlc₂
+          descendant-ih-idx p = (((Typ M c p , ν p) , δ p) ,
+                                  (Typ↓ M↓ c↓ p , ν↓ p) , δ↓ p) ,
+                                   ε p , λ q → ϕ (inr (p , q)) 
+
+          descendant-ih : (p : Pos M c) → X₂ (descendant-ih-idx p)
+          descendant-ih p = alg-eqv-to (descendant-ih-idx p)
+            ((((Typ↓ M↓ c↓ p , ν↓ p) , δ↓ p) , idp) , ε↓ p , λ q → ϕ↓ (inr (p , q)))
+          
+          descendant-case : Goal
+          descendant-case = {!!}
 
         goal : Goal
-        goal = Coprod-rec binary-case corolla-case ε-form
+        goal = Coprod-rec HasDescendent.descendant-case
+                          IsCorolla.corolla-case ε-form
 
       -- alg-eqv-to : (i : Idx ExtSlc₂) → Idx↓ ExtSlc↓₂ i → X₂ i 
       -- alg-eqv-to ((((i , j) , ._ , ._) , (.j , idp) , ._ , ._) , lf .(i , j) , ϕ) ((._ , idp) , lf↓ .(j , idp) , ϕ↓) = {!!}
