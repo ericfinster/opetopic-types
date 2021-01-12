@@ -434,7 +434,7 @@ module Monad where
       → (p : Pos (Slice M) (η (Slice M) (i , c)))
       → Typₛ M (nd c (λ q → η M (Typ M c q)) (λ q → lf (Typ M c q))) p ↦ (i , c)
     {-# REWRITE η-pos-typ-slc #-}
-
+    
   --
   --  The induced monad on families
   --

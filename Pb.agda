@@ -139,3 +139,17 @@ module Pb where
     --   → Posₚ M X {i = Typₚ M X {i = i} c (μ-pos-fstₚ M X {i = i} c δ p)} (δ (μ-pos-fstₚ M X {i = i} c δ p))
     -- μ-pos-sndₚ M X {i = i , x} (c , ν) δ p = μ-pos-snd M c (fst ∘ δ) p
 
+
+    --
+    -- This rewrite is to fix the interaction of η between the
+    -- slice and pullback.  A more general solution to this kind
+    -- of problem would be much more desirable, but for now I guess
+    -- we have to live with the hack ....
+    --
+
+    η-pos-typ-slc-pb : (M : 𝕄) (X : Idx M → Set) 
+      → (i : Idx M) (x : X i)
+      → (c : Cns M i) (ν : (p : Pos M c) → X (Typ M c p))
+      → (p : Pos (Slice (Pb M X)) (η (Slice (Pb M X)) ((i , x) , c , ν)))
+      → Typₛ (Pb M X) (nd {i = i , x} (c , ν) (λ q → η M (Typ M c q) , cst (ν q)) (λ q → lf (Typ M c q , ν q))) p ↦ ((i , x) , c , ν)
+    {-# REWRITE η-pos-typ-slc-pb #-} 
