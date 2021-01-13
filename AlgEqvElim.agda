@@ -21,6 +21,10 @@ module AlgEqvElim where
         → X₁ ((i , x₀) , η M i , cst x₀)
       ηX i x₀ = fst (contr-center (is-fib-X₂ ((i , x₀) , η M i , cst x₀) (lf (i , x₀)) ⊥-elim)) 
 
+      ηX-fill : (i : Idx M) (x₀ : X₀ i)
+        → X₂ ((((i , x₀) , η M i , cst x₀) , ηX i x₀) , lf (i , x₀) , ⊥-elim)
+      ηX-fill i x₀ = snd (contr-center (is-fib-X₂ ((i , x₀) , η M i , cst x₀) (lf (i , x₀)) ⊥-elim))  
+
       module _ (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → X₀ (Typ M c p))
                (δ : (p : Pos M c) → Cns (Pb M X₀) (Typ M c p , ν p))
                (x₀ : X₀ i) (x₁ : X₁ ((i , x₀) , c , ν))
@@ -37,6 +41,9 @@ module AlgEqvElim where
 
         μX : X₁ ((i , x₀) , μ (Pb M X₀) {i = i , x₀} (c , ν) δ)
         μX = fst (contr-center (is-fib-X₂ ((i , x₀) , μ (Pb M X₀) {i = i , x₀} (c , ν) δ) μX-tr θX))
+
+        μX-fill : X₂ ((((i , x₀) , μ (Pb M X₀) {i = i , x₀} (c , ν) δ) , μX) , μX-tr , θX)
+        μX-fill = snd (contr-center (is-fib-X₂ ((i , x₀) , μ (Pb M X₀) {i = i , x₀} (c , ν) δ) μX-tr θX)) 
 
     module _ (X₁ : Rel₁ (Idx↓ M↓)) (X₂ : Rel₂ X₁) (is-fib-X₂ : is-fib₂ X₂) where
 

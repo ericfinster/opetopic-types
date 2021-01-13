@@ -430,10 +430,9 @@ module Monad where
     -- each concrete monad so that we see it's most reduced form.
     --
     
-    η-pos-typ-slc : (M : 𝕄) (i : Idx M) (c : Cns M i) 
-      → (p : Pos (Slice M) (η (Slice M) (i , c)))
-      → Typₛ M (nd c (λ q → η M (Typ M c q)) (λ q → lf (Typ M c q))) p ↦ (i , c)
-    {-# REWRITE η-pos-typ-slc #-}
+    -- η-pos-typ-slc : (M : 𝕄) (i : Idx M) (c : Cns M i) 
+    --   → (p : Pos (Slice M) (η (Slice M) (i , c)))
+    --   → Typₛ M (nd c (λ q → η M (Typ M c q)) (λ q → lf (Typ M c q))) p ↦ (i , c)
     
   --
   --  The induced monad on families

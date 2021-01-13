@@ -147,9 +147,8 @@ module Pb where
     -- we have to live with the hack ....
     --
 
-    η-pos-typ-slc-pb : (M : 𝕄) (X : Idx M → Set) 
-      → (i : Idx M) (x : X i)
-      → (c : Cns M i) (ν : (p : Pos M c) → X (Typ M c p))
-      → (p : Pos (Slice (Pb M X)) (η (Slice (Pb M X)) ((i , x) , c , ν)))
-      → Typₛ (Pb M X) (nd {i = i , x} (c , ν) (λ q → η M (Typ M c q) , cst (ν q)) (λ q → lf (Typ M c q , ν q))) p ↦ ((i , x) , c , ν)
-    {-# REWRITE η-pos-typ-slc-pb #-} 
+    -- η-pos-typ-slc-pb : (M : 𝕄) (X : Idx M → Set) 
+    --   → (i : Idx M) (x : X i)
+    --   → (c : Cns M i) (ν : (p : Pos M c) → X (Typ M c p))
+    --   → (p : Pos (Slice (Pb M X)) (η (Slice (Pb M X)) ((i , x) , c , ν)))
+    --   → Typₛ (Pb M X) (nd {i = i , x} (c , ν) (λ q → η M (Typ M c q) , cst (ν q)) (λ q → lf (Typ M c q , ν q))) p ↦ ((i , x) , c , ν)
