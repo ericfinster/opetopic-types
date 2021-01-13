@@ -22,11 +22,10 @@ module Many where
 
       open AlgFib alg-fib
 
-      -- module X₂-struct = AlgStruct M M↓ (Idx↓ M↓) (↓Rel₁) X₂ is-fib-X₂
-      -- module X₃-struct = AlgStruct ExtSlc₁ ExtSlc↓₁ ↓Rel₁ X₂ X₃ is-fib-X₃
+      open Fibs M M↓ is-alg M-fin X₂ is-fib-X₂ alg-fib X₃ is-fib-X₃
 
       alg-eqv : AlgEqv ExtSlc₁ ExtSlc↓₁ X₂ X₃ is-fib-X₃
-      AlgEqv.e alg-eqv i = {!alg-eqv-to i , alg-eqv-is-equiv i!}
+      AlgEqv.e alg-eqv i = alg-eqv-to i , alg-eqv-is-equiv i
       AlgEqv.η-hyp alg-eqv (((i , j) , c , ν) , (j , idp) , (c↓ , ν↓)) (._ , idp) = {!!}
       AlgEqv.μ-hyp alg-eqv (._ , ._) (lf (i , j) , ϕ) κ (((.j , idp) , ._ , ._) , idp) (lf↓ .(j , idp) , ϕ↓) κ↓ = {!!}
       AlgEqv.μ-hyp alg-eqv (._ , ._) (nd {i = i , j} c δ ε , ϕ) κ (((.j , idp) , ._ , ._) , idp) (nd↓ c↓ δ↓ ε↓ , ϕ↓) κ↓ = {!!}

@@ -17,8 +17,8 @@ module NoneOneMany where
     open import SliceUnfold M 
     open ExtUnfold M↓
 
-    module _ (X₂ : Rel₂ ↓Rel₁) (is-fib-X₂ : is-fib₂ X₂) (alg-fib : AlgFib M M↓ X₂ is-fib-X₂)
-             (X₃ : Rel₃ X₂) (is-fib-X₃ : is-fib₃ X₃) where
+    module Fibs (X₂ : Rel₂ ↓Rel₁) (is-fib-X₂ : is-fib₂ X₂) (alg-fib : AlgFib M M↓ X₂ is-fib-X₂)
+                (X₃ : Rel₃ X₂) (is-fib-X₃ : is-fib₃ X₃) where
 
       open AlgFib alg-fib
 
