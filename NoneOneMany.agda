@@ -25,10 +25,7 @@ module NoneOneMany where
       module X₂-struct = AlgStruct M M↓ (Idx↓ M↓) (↓Rel₁) X₂ is-fib-X₂
       module X₃-struct = AlgStruct ExtSlc₁ ExtSlc↓₁ ↓Rel₁ X₂ X₃ is-fib-X₃
 
-      -- This is a postulate for right now so I can inspect the induction hypothesis ...
-      postulate
-
-        alg-eqv-to : (i : Idx ExtSlc₂) → Idx↓ ExtSlc↓₂ i → X₂ i 
+      alg-eqv-to : (i : Idx ExtSlc₂) → Idx↓ ExtSlc↓₂ i → X₂ i 
 
       module NdLemmas
           (i : Idx M)
@@ -146,19 +143,29 @@ module NoneOneMany where
                           IsCorolla.corolla-case ε-form
 
       -- alg-eqv-to : (i : Idx ExtSlc₂) → Idx↓ ExtSlc↓₂ i → X₂ i 
-      -- alg-eqv-to ((((i , j) , ._ , ._) , (.j , idp) , ._ , ._) , lf .(i , j) , ϕ) ((._ , idp) , lf↓ .(j , idp) , ϕ↓) = {!!}
-      -- alg-eqv-to ((((i , j) , ._ , ._) , (.j , idp) , ._ , ._) , nd (c , ν) δ ε , ϕ) ((._ , idp) , nd↓ (c↓ , ν↓) δ↓ ε↓ , ϕ↓) =  {!!} 
-        -- transport X₂ claim (X₃-struct.ηX ((i , j) , c , ν) (ϕ (inl unit)))
-        
-        -- where open IdxIh i j c ν δ ε ϕ
+      alg-eqv-to ((((i , j) , ._ , ._) , (.j , idp) , ._ , ._) , lf .(i , j) , ϕ) ((._ , idp) , lf↓ .(j , idp) , ϕ↓) =
+        transport! (λ h → X₂ ((iₛ , h) , lf (i , j) , ϕ)) jₛ=jₛ' (snd (contr-center (is-fib-X₂ iₛ (lf (i , j)) ϕ)))
 
-        --       claim : ((((i , j) , c , ν) , ϕ true) , η ExtPlbk₂ (((i , j) , c , ν) , ϕ true)) ==
-        --               ((((i , j) , μ ExtPlbk₁ {i = i , j} (c , ν) δ) , (j , idp) , μ↓ ExtPlbk↓₁ {i↓ = (j , idp)} (c↓ , ν↓) δ↓) , nd (c , ν) δ ε , ϕ)
-        --       claim = pair= {!!} {!!} 
+        where iₛ : Idx ExtSlc₁
+              iₛ = (i , j) , η M i , η-dec M (Idx↓ M↓) j
 
-      -- postulate
-      --   alg-eqv-to : (i : Idx ExtSlc₂) → Idx↓ ExtSlc↓₂ i → X₂ i 
-      --   alg-eqv-is-equiv : (i : Idx ExtSlc₂) → is-equiv (alg-eqv-to i)
+              jₛ : Idx↓ ExtSlc↓₁ iₛ
+              jₛ = (j , idp) , (η↓ M↓ j , η↓-dec M↓ (λ i j k → j == k) idp)
+
+              jₛ' : Idx↓ ExtSlc↓₁ iₛ
+              jₛ' = fst (contr-center (is-fib-X₂ iₛ (lf (i , j)) ϕ))
+
+              jₛ=jₛ' : jₛ == jₛ'
+              jₛ=jₛ' = lf-hyp (i , j) (j , idp) ∙
+                       -- have to fix the fact that ϕ ≠ ⊥-elim definitionally ...
+                       ap (λ h → fst (contr-center (is-fib-X₂ iₛ (lf (i , j)) h))) (λ= (λ { () })) 
+
+      alg-eqv-to ((((i , j) , ._ , ._) , (.j , idp) , ._ , ._) , nd (c , ν) δ ε , ϕ) ((._ , idp) , nd↓ (c↓ , ν↓) δ↓ ε↓ , ϕ↓) = goal
+        where open NdLemmas i j c ν δ ε ϕ c↓ ν↓ δ↓ ε↓ ϕ↓ 
+
+      postulate
+      
+        alg-eqv-is-equiv : (i : Idx ExtSlc₂) → is-equiv (alg-eqv-to i)
   
       -- alg-eqv : AlgEqv ExtSlc₁ ExtSlc↓₁ X₂ X₃ is-fib-X₃
       -- AlgEqv.e alg-eqv i = alg-eqv-to i , alg-eqv-is-equiv i
