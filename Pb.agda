@@ -48,7 +48,7 @@ module Pb where
 
     η-Pb : (M : 𝕄) (X : Idx M → Set) 
       → (i : Idx M) (x : X i) 
-      → η (Pb M X) (i , x) ↦ η M i , cst x
+      → η (Pb M X) (i , x) ↦ η M i , η-dec M X x
     {-# REWRITE η-Pb #-}
 
     -- ηₚ : (M : 𝕄) (X : Idx M → Set) (i : Idxₚ M X)
@@ -138,7 +138,6 @@ module Pb where
     --   → (p : Posₚ M X {i = i} (μₚ M X {i = i} c δ))
     --   → Posₚ M X {i = Typₚ M X {i = i} c (μ-pos-fstₚ M X {i = i} c δ p)} (δ (μ-pos-fstₚ M X {i = i} c δ p))
     -- μ-pos-sndₚ M X {i = i , x} (c , ν) δ p = μ-pos-snd M c (fst ∘ δ) p
-
 
     --
     -- This rewrite is to fix the interaction of η between the

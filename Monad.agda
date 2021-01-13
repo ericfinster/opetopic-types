@@ -433,7 +433,16 @@ module Monad where
     -- η-pos-typ-slc : (M : 𝕄) (i : Idx M) (c : Cns M i) 
     --   → (p : Pos (Slice M) (η (Slice M) (i , c)))
     --   → Typₛ M (nd c (λ q → η M (Typ M c q)) (λ q → lf (Typ M c q))) p ↦ (i , c)
-    
+
+  --
+  --  η-decoration helper
+  --
+
+  η-dec : (M : 𝕄) (X : Idx M → Set)
+    → {i : Idx M} (x : X i)
+    → (p : Pos M (η M i)) → X (Typ M (η M i) p)
+  η-dec M X {i} x = η-pos-elim M i (λ p → X (Typ M (η M i) p)) x 
+
   --
   --  The induced monad on families
   --

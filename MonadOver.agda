@@ -106,6 +106,16 @@ module MonadOver where
       → (δ↓ : (p : Pos M c) → Cns↓ (Ext M F↓) (Typ↓ (Ext M F↓) {i↓ = i↓} c↓ p) (δ p))
       → μ↓ (Ext M F↓) {i↓ = i↓} c↓ δ↓ ↦ (λ p → δ↓ (μ-pos-fst M c δ p) (μ-pos-snd M c δ p))
     {-# REWRITE μ↓-Ext #-}
+
+  --
+  --  Decoration for η↓ 
+  --
+
+  η↓-dec : {M : 𝕄} (M↓ : 𝕄↓ M)
+    → {X : Idx M → Set} (Y : (i : Idx M) → Idx↓ M↓ i → X i → Set)
+    → {i : Idx M} {x : X i} {j : Idx↓ M↓ i} (y : Y i j x)
+    → (p : Pos M (η M i)) → Y (Typ M (η M i) p) (Typ↓ M↓ (η↓ M↓ j) p) (η-dec M X x p)
+  η↓-dec {M} M↓ {X} Y {i} {x} {j} y = η-pos-elim M i (λ p → Y (Typ M (η M i) p) (Typ↓ M↓ (η↓ M↓ j) p) (η-dec M X x p)) y
   
   --
   -- Slice↓
@@ -231,10 +241,10 @@ module MonadOver where
       → {j : Idx↓ₚ i} (d : Cns↓ₚ j c)
       → (p : Pos (Pb M X) {i = i} c) → Idx↓ₚ (Typ (Pb M X) {i = i} c p)
     Typ↓ₚ (d , κ) p = Typ↓ M↓ d p , κ p 
-
+    
     η↓ₚ : {i : Idx (Pb M X)} 
       → (j : Idx↓ₚ i) → Cns↓ₚ j (η (Pb M X) i)
-    η↓ₚ (j , y) = η↓ M↓ j , λ _ → y
+    η↓ₚ (j , y) = η↓ M↓ j , η↓-dec M↓ Y y
 
     μ↓ₚ : {i : Idx (Pb M X)} {c : Cns (Pb M X) i}
       → {δ : (p : Pos (Pb M X) {i = i} c) → Cns (Pb M X) (Typ (Pb M X) {i = i} c p)}
