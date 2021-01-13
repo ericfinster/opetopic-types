@@ -109,7 +109,7 @@ module NoneOneMany where
           desc-ν = X₂-struct.θX i c ν δ j ((j , idp) , c↓ , ν↓) (λ p → (Typ↓ M↓ c↓ p , ν↓ p) , δ↓ p)
 
           desc-δ : (p : Pos ExtSlc₁ desc-c) → Cns ExtPlbk₂ (Typ ExtSlc₁ desc-c p , desc-ν p)
-          desc-δ true = η ExtSlc₁ ((i , j) , c , ν) , cst (ϕ (inl unit)) 
+          desc-δ true = η ExtSlc₁ ((i , j) , c , ν) , cst (ϕ true) 
           desc-δ (inr (p , true)) = ε p , λ q' → ϕ (inr (p , q')) 
 
           desc-x₀ : Idx↓ ExtSlc↓₁ ((i , j) , μ ExtPlbk₁ {i = i , j} (c , ν) δ)
@@ -119,7 +119,7 @@ module NoneOneMany where
           desc-x₁ = X₂-struct.μX-fill i c ν δ j ((j , idp) , c↓ , ν↓) (λ p → (Typ↓ M↓ c↓ p , ν↓ p) , δ↓ p)
 
           desc-δ↓ : (p : Pos ExtSlc₁ desc-c) → X₂ ((Typ ExtSlc₁ desc-c p , desc-ν p) , desc-δ p)
-          desc-δ↓ true = transport! (λ h → X₂ ((((i , j) , c , ν) , h) , ηₛ (Pb M ↓Rel₀) ((i , j) , c , ν) , cst (ϕ true)))
+          desc-δ↓ true = transport! (λ h → X₂ ((((i , j) , c , ν) , h) , η ExtSlc₁ ((i , j) , c , ν) , cst (ϕ true)))
                                     (ϕ↓ (inl unit)) (X₃-struct.ηX ((i , j) , c , ν) (ϕ true))
           desc-δ↓ (inr (p , true)) = descendant-ih p
 
