@@ -129,6 +129,7 @@ module NoneOneMany where
             --                             desc-x₀ desc-x₁ desc-δ↓
 
             -- This should be true generically because of the form of the substitution.
+            -- Question: do we need to use that there is a non-trivial attachment to make this true?
             desc-nd-eq : (nd (c , ν) δ ε , ϕ) == μ ExtPlbk₂ {i = desc-i , desc-x₀} (desc-c , desc-ν) desc-δ
 
           from-nd-hyp : (j , idp) , μ↓ ExtPlbk↓₁ {i↓ = j , idp} (c↓ , ν↓) δ↓ == desc-x₀
