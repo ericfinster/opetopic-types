@@ -45,10 +45,26 @@ module Many where
           (κ↓ : (p : Pos ExtPlbk₂ {i = _ , (j , idp) , μ↓ ExtPlbk↓₁ {i↓ = j , idp } (c↓ , ν↓) δ↓} (nd {i = i , j} (c , ν) δ ε , ϕ)) 
                 → Cns↓ ExtPlbk↓₂ (Typ↓ ExtPlbk↓₂ {i↓ = ((j , idp) , μ↓ ExtPlbk↓₁ {i↓ = j , idp } (c↓ , ν↓) δ↓) , idp} (nd↓ {i↓ = j , idp} (c↓ , ν↓) δ↓ ε↓ , ϕ↓) p) (κ p)) where 
 
+        iₛ : Idx ExtSlc₁
+        iₛ = (i , j) , (μ ExtPlbk₁ {i = i , j} (c , ν) δ) 
+
+        postulate
+        
+          we-need : alg-eqv-to {!!} ({!!} , μ↓ ExtPlbk↓₂ (nd↓ {i↓ = j , idp} (c↓ , ν↓) δ↓ ε↓ , ϕ↓) κ↓) == {!!}
+
+          -- μ-hyp : (i : Idx ExtPlbk₁) (c : Cns ExtPlbk₁ i)
+          --   → (δ : (p : Pos ExtPlbk₁ {i = i} c) → Cns ExtPlbk₁ (Typ ExtPlbk₁ {i = i} c p)) -- will be κ
+          --   → (j : Idx↓ ExtPlbk↓₁ i) (d : Cns↓ ExtPlbk↓₁ j c)
+          --   → (δ↓ : (p : Pos ExtPlbk₁ {i = i} c) → Cns↓ ExtPlbk↓₁ (Typ↓ ExtPlbk↓₁ {i↓ = j} d p) (δ p)) -- will be κ↓
+          --   → –> (e (i , μ ExtPlbk₁ {i = i} c δ)) (j , μ↓ ExtPlbk↓₁ {i↓ = j} d δ↓)
+          --     == μX (fst i) (fst c) (snd c) δ (snd i) (–> (e (i , c)) (j , d))
+          --           (λ p → –> (e ((Typ M (fst c) p , snd c p) , δ p)) ((Typ↓ M↓ (fst d) p , snd d p) , δ↓ p ))
+
+
       alg-eqv : AlgEqv ExtSlc₁ ExtSlc↓₁ X₂ X₃ is-fib-X₃
       AlgEqv.e alg-eqv i = alg-eqv-to i , alg-eqv-is-equiv i
       AlgEqv.η-hyp alg-eqv (((i , j) , c , ν) , (j , idp) , (c↓ , ν↓)) (._ , idp) = {!!}
       AlgEqv.μ-hyp alg-eqv (._ , ._) (lf (i , j) , ϕ) κ (((.j , idp) , ._ , ._) , idp) (lf↓ .(j , idp) , ϕ↓) κ↓ = {!!}
-      AlgEqv.μ-hyp alg-eqv (._ , ._) (nd {i = i , j} (c , ν) δ ε , ϕ) κ (((.j , idp) , ._ , ._) , idp) (nd↓ (c↓ , ν↓) δ↓ ε↓ , ϕ↓) κ↓ = {!κ!}
+      AlgEqv.μ-hyp alg-eqv (._ , ._) (nd {i = i , j} (c , ν) δ ε , ϕ) κ (((.j , idp) , ._ , ._) , idp) (nd↓ (c↓ , ν↓) δ↓ ε↓ , ϕ↓) κ↓ = {!!}
 
 
