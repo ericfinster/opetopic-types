@@ -105,7 +105,7 @@ module SliceAlg (M : 𝕄) (M↓ : 𝕄↓ M) where
       ε↓' = transport PdFib idx-ih-coh cns-ih
 
   slc-idx ((i , j) , ._ , ._) (lf .(i , j)) ϕ =
-    (j , idp) , (η↓ M↓ j , cst idp)
+    (j , idp) , (η↓ M↓ j , η↓-dec M↓ (λ i j k → j == k) idp)
   slc-idx ((i , j) , ._ , ._) (nd (c , ν) δ ε) ϕ =
     let open IdxIh i j c ν δ ε ϕ
     in (j' , j'=j) , (μ↓ M↓ d δ↓' , typ-μ↓=ν')

@@ -72,28 +72,32 @@ module OpetopicType where
     Obj = Ob X ttᵢ
 
     Arrow : (x y : Obj) → Set
-    Arrow x y = Ob (Hom X) ((ttᵢ , y) , (ttᵢ , cst x))
+    Arrow x y = Ob (Hom X) ((ttᵢ , y) , (ttᵢ , η-dec IdMnd (Ob X) x))
 
     NullHomotopy : {x : Obj} (f : Arrow x x) → Set
     NullHomotopy {x} f = Ob (Hom (Hom X))
-      ((((ttᵢ , x) , (ttᵢ , cst x)) , f) , lf (ttᵢ , x) , ⊥-elim) 
+      ((((ttᵢ , x) , (ttᵢ , η-dec IdMnd (Ob X) x)) , f) , lf (ttᵢ , x) , ⊥-elim) 
 
-    Disc : {x y : Obj}
-      → (f : Arrow x y) (g : Arrow x y)
-      → Set
-    Disc {x} {y} f g = Ob (Hom (Hom X))
-      ((((ttᵢ , y) , (ttᵢ , cst x)) , g) ,
-        (nd (ttᵢ , cst x) (cst (ttᵢ , (cst x))) (cst (lf (ttᵢ , x)))) , (λ { true → f }))
+    --
+    --  These need to be fixed to use η-decorations ...
+    -- 
 
-    Simplex : {x y z : Obj}
-      → (f : Arrow x y) (g : Arrow y z)
-      → (h : Arrow x z) → Set
-    Simplex {x} {y} {z} f g h = Ob (Hom (Hom X))
-      ((((ttᵢ , z) , (ttᵢ , cst x)) , h) ,
-        (nd (ttᵢ , cst y) (cst (ttᵢ , cst x)) (cst
-          (nd (ttᵢ , (cst x)) (cst (ttᵢ , cst x)) (cst (lf (ttᵢ , x)))))) ,
-        (λ { true → g ;
-             (inr (ttᵢ , true)) → f }))
+    -- Disc : {x y : Obj}
+    --   → (f : Arrow x y) (g : Arrow x y)
+    --   → Set
+    -- Disc {x} {y} f g = Ob (Hom (Hom X))
+    --   ((((ttᵢ , y) , (ttᵢ , cst x)) , g) ,
+    --     (nd (ttᵢ , cst x) (cst (ttᵢ , (cst x))) (cst (lf (ttᵢ , x)))) , (λ { true → f }))
+
+    -- Simplex : {x y z : Obj}
+    --   → (f : Arrow x y) (g : Arrow y z)
+    --   → (h : Arrow x z) → Set
+    -- Simplex {x} {y} {z} f g h = Ob (Hom (Hom X))
+    --   ((((ttᵢ , z) , (ttᵢ , cst x)) , h) ,
+    --     (nd (ttᵢ , cst y) (cst (ttᵢ , cst x)) (cst
+    --       (nd (ttᵢ , (cst x)) (cst (ttᵢ , cst x)) (cst (lf (ttᵢ , x)))))) ,
+    --     (λ { true → g ;
+    --          (inr (ttᵢ , true)) → f }))
 
   --
   -- Relative opetopic types

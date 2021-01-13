@@ -94,7 +94,6 @@ module NoneOneMany where
           descendant-ih p = alg-eqv-to (descendant-ih-idx p)
             ((((Typ↓ M↓ c↓ p , ν↓ p) , δ↓ p) , idp) , ε↓ p , λ q → ϕ↓ (inr (p , q)))
 
-          -- Open this as a module, since then you can use μX-tr and θX in the return type.
           --
           --  Arguments to X₃-struct.μX
           --
@@ -109,7 +108,7 @@ module NoneOneMany where
           desc-ν = X₂-struct.θX i c ν δ j ((j , idp) , c↓ , ν↓) (λ p → (Typ↓ M↓ c↓ p , ν↓ p) , δ↓ p)
 
           desc-δ : (p : Pos ExtSlc₁ desc-c) → Cns ExtPlbk₂ (Typ ExtSlc₁ desc-c p , desc-ν p)
-          desc-δ true = η ExtSlc₁ ((i , j) , c , ν) , cst (ϕ true) 
+          desc-δ true = η ExtSlc₁ ((i , j) , c , ν) , η-dec ExtSlc₁ (Idx↓ ExtSlc↓₁) (ϕ true) 
           desc-δ (inr (p , true)) = ε p , λ q' → ϕ (inr (p , q')) 
 
           desc-x₀ : Idx↓ ExtSlc↓₁ ((i , j) , μ ExtPlbk₁ {i = i , j} (c , ν) δ)
@@ -119,28 +118,28 @@ module NoneOneMany where
           desc-x₁ = X₂-struct.μX-fill i c ν δ j ((j , idp) , c↓ , ν↓) (λ p → (Typ↓ M↓ c↓ p , ν↓ p) , δ↓ p)
 
           desc-δ↓ : (p : Pos ExtSlc₁ desc-c) → X₂ ((Typ ExtSlc₁ desc-c p , desc-ν p) , desc-δ p)
-          desc-δ↓ true = transport! (λ h → X₂ ((((i , j) , c , ν) , h) , η ExtSlc₁ ((i , j) , c , ν) , cst (ϕ true)))
+          desc-δ↓ true = transport! (λ h → X₂ ((((i , j) , c , ν) , h) , desc-δ true ))
                                     (ϕ↓ (inl unit)) (X₃-struct.ηX ((i , j) , c , ν) (ϕ true))
           desc-δ↓ (inr (p , true)) = descendant-ih p
 
+
           postulate
-          
+
+            -- The actual definition here takes a super long time to typecheck ...
             descendant-μ : X₂ ((((i , j) , μ ExtPlbk₁ {i = i , j} (c , ν) δ) , desc-x₀) ,
                                     μ ExtPlbk₂ {i = desc-i , desc-x₀} (desc-c , desc-ν) desc-δ)
             -- descendant-μ = X₃-struct.μX desc-i desc-c desc-ν desc-δ
             --                             desc-x₀ desc-x₁ desc-δ↓
 
-          -- I see.  And the return type will be the tree substitution of your two-level guy.
-          -- you'll need to know that this gives you back the original pair of (nd (c , ν) δ ε , ϕ).
-          -- Not sure if this is supposed to be definitional or not.  And then you're done
-          -- as soon as you transport this element along that equality and the one given
-          -- by blorp.
+            -- This should be true generically because of the form of the substitution.
+            desc-nd-eq : (nd (c , ν) δ ε , ϕ) == μ ExtPlbk₂ {i = desc-i , desc-x₀} (desc-c , desc-ν) desc-δ
 
-          -- from-nd-hyp : (j , idp) , μ↓ ExtPlbk↓₁ {i↓ = j , idp} (c↓ , ν↓) δ↓ == blorp
-          -- from-nd-hyp = nd-hyp (i , j) (c , ν) δ (j , idp) (c↓ , ν↓) δ↓
+          from-nd-hyp : (j , idp) , μ↓ ExtPlbk↓₁ {i↓ = j , idp} (c↓ , ν↓) δ↓ == desc-x₀
+          from-nd-hyp = nd-hyp (i , j) (c , ν) δ (j , idp) (c↓ , ν↓) δ↓
 
           descendant-case : Goal
-          descendant-case = {!!}
+          descendant-case = transport! (λ h → X₂ ((((i , j) , μ ExtPlbk₁ {i = i , j} (c , ν) δ) , fst h) , snd h))
+                                      (pair×= from-nd-hyp desc-nd-eq) descendant-μ 
 
         goal : Goal
         goal = Coprod-rec HasDescendent.descendant-case

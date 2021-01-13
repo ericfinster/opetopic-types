@@ -18,12 +18,12 @@ module AlgEqvElim where
                      (X₂ : Rel₂ X₁) (is-fib-X₂ : is-fib₂ X₂) where
 
       ηX : (i : Idx M) (x₀ : X₀ i)
-        → X₁ ((i , x₀) , η M i , cst x₀)
-      ηX i x₀ = fst (contr-center (is-fib-X₂ ((i , x₀) , η M i , cst x₀) (lf (i , x₀)) ⊥-elim)) 
+        → X₁ ((i , x₀) , η M i , η-dec M X₀ x₀)
+      ηX i x₀ = fst (contr-center (is-fib-X₂ ((i , x₀) , η M i , η-dec M X₀ x₀) (lf (i , x₀)) ⊥-elim)) 
 
       ηX-fill : (i : Idx M) (x₀ : X₀ i)
-        → X₂ ((((i , x₀) , η M i , cst x₀) , ηX i x₀) , lf (i , x₀) , ⊥-elim)
-      ηX-fill i x₀ = snd (contr-center (is-fib-X₂ ((i , x₀) , η M i , cst x₀) (lf (i , x₀)) ⊥-elim))  
+        → X₂ ((((i , x₀) , η M i , η-dec M X₀ x₀) , ηX i x₀) , lf (i , x₀) , ⊥-elim)
+      ηX-fill i x₀ = snd (contr-center (is-fib-X₂ ((i , x₀) , η M i , η-dec M X₀ x₀) (lf (i , x₀)) ⊥-elim))  
 
       module _ (i : Idx M) (c : Cns M i) (ν : (p : Pos M c) → X₀ (Typ M c p))
                (δ : (p : Pos M c) → Cns (Pb M X₀) (Typ M c p , ν p))
@@ -31,9 +31,7 @@ module AlgEqvElim where
                (δ↓ : (p : Pos M c) → X₁ ((Typ M c p , ν p) , (δ p))) where
 
         μX-tr : Pd (Pb M X₀) ((i , x₀) , μ (Pb M X₀) {i = i , x₀} (c , ν) δ)
-        μX-tr = nd (c , ν) δ (λ p →
-                  nd (δ p) (λ q → η (Pb M X₀) (Typ (Pb M X₀) {i = Typ M c p , ν p} (δ p) q))
-                           (λ q → lf (Typ (Pb M X₀) {i = Typ M c p , ν p} (δ p) q)))
+        μX-tr = nd (c , ν) δ (λ p → η (Slice (Pb M X₀)) ((Typ M c p , ν p) , δ p))
 
         θX : (p : Pos (Slice (Pb M X₀)) μX-tr) → X₁ (Typ (Slice (Pb M X₀)) μX-tr p)
         θX true = x₁
