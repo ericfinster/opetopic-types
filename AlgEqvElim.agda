@@ -17,6 +17,10 @@ module AlgEqvElim where
     module AlgStruct (X₀ : Rel₀) (X₁ : Rel₁ X₀)
                      (X₂ : Rel₂ X₁) (is-fib-X₂ : is-fib₂ X₂) where
 
+
+      -- μX (ηX ...) ??? = μX ----
+      -- μX (μX .....) ??? = μx ... (λ → .....)
+
       ηX : (i : Idx M) (x₀ : X₀ i)
         → X₁ ((i , x₀) , η M i , η-dec M X₀ x₀)
       ηX i x₀ = fst (contr-center (is-fib-X₂ ((i , x₀) , η M i , η-dec M X₀ x₀) (lf (i , x₀)) ⊥-elim)) 
@@ -69,6 +73,11 @@ module AlgEqvElim where
     module _ (X₂ : Rel₂ ↓Rel₁) (is-fib-X₂ : is-fib₂ X₂) where
 
       open AlgStruct (Idx↓ M↓) (↓Rel₁) X₂ is-fib-X₂
+
+      -- postulate
+
+      --   lf-hyp' : (i : Idx M) (j : Idx↓ M↓ i)
+      --     → (j , idp) , η↓ M↓ j , η↓-dec M↓ (λ i j k → j == k) idp == ηX i j
 
       record AlgFib : Set where
         field

@@ -151,3 +151,11 @@ module Pb where
     --   → (c : Cns M i) (ν : (p : Pos M c) → X (Typ M c p))
     --   → (p : Pos (Slice (Pb M X)) (η (Slice (Pb M X)) ((i , x) , c , ν)))
     --   → Typₛ (Pb M X) (nd {i = i , x} (c , ν) (λ q → η M (Typ M c q) , cst (ν q)) (λ q → lf (Typ M c q , ν q))) p ↦ ((i , x) , c , ν)
+
+    γ-unit-r-pb : (M : 𝕄) (X : Idx M → Set)
+      → (i : Idx M) (x : X i)
+      → (c : Cns M i) (ν : (p : Pos M c) → X (Typ M c p))
+      → (ρ : Cnsₛ (Pb M X) ((i , x) , (c , ν)))
+      → γ (Pb M X) ρ (λ p → η M (Typ M c p) , η-dec M X (ν p))
+                     (λ p → lf (Typ M c p , ν p)) ↦ ρ
+    {-# REWRITE γ-unit-r-pb #-}

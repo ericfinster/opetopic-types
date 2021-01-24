@@ -45,26 +45,44 @@ module Many where
           (κ↓ : (p : Pos ExtPlbk₂ {i = _ , (j , idp) , μ↓ ExtPlbk↓₁ {i↓ = j , idp } (c↓ , ν↓) δ↓} (nd {i = i , j} (c , ν) δ ε , ϕ)) 
                 → Cns↓ ExtPlbk↓₂ (Typ↓ ExtPlbk↓₂ {i↓ = ((j , idp) , μ↓ ExtPlbk↓₁ {i↓ = j , idp } (c↓ , ν↓) δ↓) , idp} (nd↓ {i↓ = j , idp} (c↓ , ν↓) δ↓ ε↓ , ϕ↓) p) (κ p)) where 
 
+        open NdLemmas i j c ν δ ε ϕ c↓ ν↓ δ↓ ε↓ ϕ↓
+        
         iₛ : Idx ExtSlc₁
-        iₛ = (i , j) , (μ ExtPlbk₁ {i = i , j} (c , ν) δ) 
+        iₛ = (i , j) , μ ExtPlbk₁ {i = i , j} (c , ν) δ
 
+        jₛ : Idx↓ ExtSlc↓₁ iₛ
+        jₛ = (j , idp) , μ↓ ExtPlbk↓₁ {i↓ = j , idp} (c↓ , ν↓) δ↓
+        
         postulate
         
-          we-need : alg-eqv-to {!!} ({!!} , μ↓ ExtPlbk↓₂ (nd↓ {i↓ = j , idp} (c↓ , ν↓) δ↓ ε↓ , ϕ↓) κ↓) == {!!}
-
-          -- μ-hyp : (i : Idx ExtPlbk₁) (c : Cns ExtPlbk₁ i)
-          --   → (δ : (p : Pos ExtPlbk₁ {i = i} c) → Cns ExtPlbk₁ (Typ ExtPlbk₁ {i = i} c p)) -- will be κ
-          --   → (j : Idx↓ ExtPlbk↓₁ i) (d : Cns↓ ExtPlbk↓₁ j c)
-          --   → (δ↓ : (p : Pos ExtPlbk₁ {i = i} c) → Cns↓ ExtPlbk↓₁ (Typ↓ ExtPlbk↓₁ {i↓ = j} d p) (δ p)) -- will be κ↓
-          --   → –> (e (i , μ ExtPlbk₁ {i = i} c δ)) (j , μ↓ ExtPlbk↓₁ {i↓ = j} d δ↓)
-          --     == μX (fst i) (fst c) (snd c) δ (snd i) (–> (e (i , c)) (j , d))
-          --           (λ p → –> (e ((Typ M (fst c) p , snd c p) , δ p)) ((Typ↓ M↓ (fst d) p , snd d p) , δ↓ p ))
+          we-need : alg-eqv-to ((iₛ , jₛ) , (μ ExtPlbk₂ {i = iₛ , jₛ} (nd (c , ν) δ ε , ϕ) κ))  -- the μ computes
+                               ((jₛ , idp) , (μ↓ ExtPlbk↓₂ {i↓ = jₛ , idp} (nd↓ {i↓ = j , idp} (c↓ , ν↓) δ↓ ε↓ , ϕ↓) κ↓)) ==  -- the μ↓ computes
+                    X₃-struct.μX iₛ (nd {i = i , j} (c , ν) δ ε) ϕ κ jₛ goal
+                      -- (alg-eqv-to ((iₛ , jₛ) , nd (c , ν) δ ε , ϕ) ((jₛ , idp) , (nd↓ {i↓ = j , idp} (c↓ , ν↓) δ↓ ε↓ , ϕ↓)))  -- this computes to "goal" in NdLemmas
+                      (λ p → alg-eqv-to (Typ ExtPlbk₂ {i = iₛ , jₛ} (nd (c , ν) δ ε , ϕ) p , κ p)
+                                        (Typ↓ ExtPlbk↓₂ {i↓ = jₛ , idp} (nd↓ {i↓ = j , idp} (c↓ , ν↓) δ↓ ε↓ , ϕ↓) p , κ↓ p))
 
 
-      alg-eqv : AlgEqv ExtSlc₁ ExtSlc↓₁ X₂ X₃ is-fib-X₃
-      AlgEqv.e alg-eqv i = alg-eqv-to i , alg-eqv-is-equiv i
-      AlgEqv.η-hyp alg-eqv (((i , j) , c , ν) , (j , idp) , (c↓ , ν↓)) (._ , idp) = {!!}
-      AlgEqv.μ-hyp alg-eqv (._ , ._) (lf (i , j) , ϕ) κ (((.j , idp) , ._ , ._) , idp) (lf↓ .(j , idp) , ϕ↓) κ↓ = {!!}
-      AlgEqv.μ-hyp alg-eqv (._ , ._) (nd {i = i , j} (c , ν) δ ε , ϕ) κ (((.j , idp) , ._ , ._) , idp) (nd↓ (c↓ , ν↓) δ↓ ε↓ , ϕ↓) κ↓ = {!!}
+          -- okay. so. what we see quite immediately is that the two mu's are going to compute.
+          -- good. so now. this means that in order to get "goal" to reduce, we'll need to prove this
+          -- using a coproduct elim.  and we'll have one thing to prove in each case.
 
+          -- corolla case: the decorations κ/κ↓ are determined by their value on this unique node.
+          -- and so we just need to know that μX₃ is like, unital at the base element
+
+          -- many case: we'll have an induction hypothesis. and we'll
+          -- have to prove that alg-eqv is somehow compatible with γ.
+          -- why should this be?  we'll, I mean, I think the reason is
+          -- clear: it should be because the values of alg-eqv-to are
+          -- calculated by applying μX₃.  And *this* multiplication is
+          -- unital and associative provided it extends once more.
+
+          -- but what exactly is the *statement* which says in which sense it is compatible with γ?
+
+      -- alg-eqv : AlgEqv ExtSlc₁ ExtSlc↓₁ X₂ X₃ is-fib-X₃
+      -- AlgEqv.e alg-eqv i = alg-eqv-to i , alg-eqv-is-equiv i
+      -- AlgEqv.η-hyp alg-eqv (((i , j) , c , ν) , (j , idp) , (c↓ , ν↓)) (._ , idp) = {!!}
+      -- AlgEqv.μ-hyp alg-eqv (._ , ._) (lf (i , j) , ϕ) κ (((.j , idp) , ._ , ._) , idp) (lf↓ .(j , idp) , ϕ↓) κ↓ = {!!}
+      -- AlgEqv.μ-hyp alg-eqv (._ , ._) (nd {i = i , j} (c , ν) δ ε , ϕ) κ (((.j , idp) , ._ , ._) , idp) (nd↓ (c↓ , ν↓) δ↓ ε↓ , ϕ↓) κ↓ = we-need
+      --   where open NdCases i j c ν δ ε ϕ c↓ ν↓ δ↓ ε↓ ϕ↓ κ κ↓ 
 

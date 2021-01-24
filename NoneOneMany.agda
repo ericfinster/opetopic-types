@@ -71,7 +71,7 @@ module NoneOneMany where
 
           CorollaX₂ : X₂ CorollaIdx
           CorollaX₂ = X₃-struct.ηX ((i , j) , c , ν) (ϕ (inl unit))
-          
+                       
           postulate
 
             corolla= : CorollaIdx == GoalIdx
@@ -171,15 +171,6 @@ module NoneOneMany where
       -- alg-eqv : AlgEqv ExtSlc₁ ExtSlc↓₁ X₂ X₃ is-fib-X₃
       -- AlgEqv.e alg-eqv i = alg-eqv-to i , alg-eqv-is-equiv i
       -- AlgEqv.η-hyp alg-eqv (((i , j) , c , ν) , (j , idp) , (c↓ , ν↓)) (._ , idp) = {!!}
-
-      --   -- So. The proof here is that when ϕ is instantiated with a constant function
-      --   -- at the value give, then the "claim" equality from above evaluates to the
-      --   -- identity.  So we have to think about how to set this up as nicely as possible
-      --   -- so that this is true.
-
-      --   -- You should check with the given hypotheses that the endpoints are already
-      --   -- definitionally equal so that this has a chance of being true ...  but, yeah,
-      --   -- that's going to be the idea.
-
-      -- AlgEqv.μ-hyp alg-eqv i σ δ i↓ σ↓ δ↓ = {!!}
+      -- AlgEqv.μ-hyp alg-eqv (._ , snd₂) (lf i , snd₁) δ i↓ (fst₁ , snd₃) δ↓ = {!!}
+      -- AlgEqv.μ-hyp alg-eqv (._ , snd₂) (nd c δ₁ ε , snd₁) δ i↓ σ↓ δ↓ = {!!}
 

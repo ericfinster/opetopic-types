@@ -131,6 +131,11 @@ module Monad where
       → μ-pos-fst M c (λ p → η M (Typ M c p)) p ↦ p 
     {-# REWRITE μ-pos-fst-unit-right #-}
 
+    μ-pos-snd-unit-right : (M : 𝕄) {i : Idx M}
+      → (c : Cns M i) (p : Pos M c)
+      → μ-pos-snd M c (λ p → η M (Typ M c p)) p ↦ η-pos M (Typ M c p)
+    {-# REWRITE μ-pos-snd-unit-right #-}
+
     -- Hmmm.  This doesn't make much sense ...
     -- Really the expression we are rewriting
     -- here should be ill-typed
@@ -140,10 +145,6 @@ module Monad where
       → μ-pos-fst M (η M i) δ p ↦ η-pos M i
     {-# REWRITE μ-pos-fst-unit-left #-}
 
-    -- μ-pos-fst-assoc : (M : 𝕄) {i : Idx M} (c : Cns M i)
-    --   → (δ : (p : Pos M c) → Cns M (Typ M c p))
-    --   → (ε : (p : Pos M (μ M c δ)) → Cns M (Typ M (μ M c δ) p))
-    --   → μ-pos-fst M (μ M c δ) ε {!!} ↦ {!!}
 
   Idxₛ : (M : 𝕄) → Set
   Idxₛ M = Σ (Idx M) (Cns M)
@@ -236,6 +237,11 @@ module Monad where
     -- distributivity laws for γ to finish type checking.  But it
     -- seems likely that we will need them later when actually working
     -- with these objects ....
+
+    γ-unit-r : (M : 𝕄) {i : Idx M} {c : Cns M i} 
+      → (ρ : Cnsₛ M (i , c))
+      → γ M ρ (λ p → η M (Typ M c p)) (λ p → lf (Typ M c p)) ↦ ρ
+    {-# REWRITE γ-unit-r #-}
 
   --
   --  Slice implementation 

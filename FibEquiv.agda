@@ -127,3 +127,18 @@ module FibEquiv where
                               fst= other-pth
                                 =⟨ fst=-β to-pth (from-transp (λ x → X ((i , x) , c , ν)) to-pth idp) ⟩ 
                               to-pth =∎ 
+
+    -- Proof that it suffices to have a map in order to have an equivalence
+    module _ (X : Rel₁ (Idx↓ M↓)) (is-fib-X : is-fib₁ X)
+             (ϕ : (i : Idx ExtSlc₁) → Idx↓ ExtSlc↓₁ i → X i) where
+
+      X-is-alg : (i : Idx M) (c : Cns M i)
+        → (ν : (p : Pos M c) → Idx↓ M↓ (Typ M c p))
+        → X ((i , idx (contr-center (is-alg i c ν)) ) , c , ν)
+      X-is-alg i c ν = ϕ ((i , idx α) , c , ν) ((idx α , idp) , cns α , app= (typ α)) 
+
+        where α : alg-comp M M↓ i c ν
+              α = (contr-center (is-alg i c ν))
+
+      hence : (i : Idx ExtSlc₁) → Idx↓ ExtSlc↓₁ i ≃ X i
+      hence = fib-eqv X is-fib-X X-is-alg
