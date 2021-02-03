@@ -143,6 +143,7 @@ module NoneOneMany where
         goal = Coprod-rec HasDescendent.descendant-case
                           IsCorolla.corolla-case ε-form
 
+
       -- alg-eqv-to : (i : Idx ExtSlc₂) → Idx↓ ExtSlc↓₂ i → X₂ i 
       alg-eqv-to ((((i , j) , ._ , ._) , (.j , idp) , ._ , ._) , lf .(i , j) , ϕ) ((._ , idp) , lf↓ .(j , idp) , ϕ↓) =
         transport! (λ h → X₂ ((iₛ , h) , lf (i , j) , ϕ)) jₛ=jₛ' (snd (contr-center (is-fib-X₂ iₛ (lf (i , j)) ϕ)))

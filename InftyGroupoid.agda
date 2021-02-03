@@ -6,6 +6,7 @@ open import MonadOver
 open import IdentityMonad
 open import Pb
 open import OpetopicType
+open import Algebricity
 open import SliceAlgebraic
 
 module InftyGroupoid where
