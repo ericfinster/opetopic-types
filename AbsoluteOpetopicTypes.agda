@@ -25,7 +25,21 @@ module AbsoluteOpetopicTypes where
       cns : Cns X f pos typ
 
   open Opr public
-  
+
+  Opr= : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} {f : Frm X}
+    → (o₁ o₂ : Opr X f)
+    → Set ℓ
+  Opr= {X = X} {f} o₁ o₂ =
+    Σ (pos o₁ == pos o₂) λ pos= →
+    Σ (typ o₁ == typ o₂ [ (λ pos → El pos → Frm X) ↓ pos= ]) λ typ= →
+    cns o₁ == cns o₂ [ (λ (pos , typ) → Cns X f pos typ) ↓ pair= pos= typ= ]
+
+  Opr=-out : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} {f : Frm X}
+    → {o₁ o₂ : Opr X f}
+    → Opr= o₁ o₂
+    → o₁ == o₂
+  Opr=-out (idp , idp , idp) = idp
+    
   -- Custom recursors for Frm's to avoid positivity
   -- problems when naively using the corresponding
   -- eliminators.
@@ -161,7 +175,22 @@ module AbsoluteOpetopicTypes where
       dec : (p : El (pos opr)) → Xₛₙ (typ opr p)
 
   open Frmₛ public
-      
+
+  Frmₛ= : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
+    → {f : Frm Xₙ} {x : Xₛₙ f}
+    → (f₁ f₂ : Frmₛ Xₛₙ f x)
+    → Set ℓ
+  Frmₛ= {Xₙ = Xₙ} {Xₛₙ} {f} {x} f₁ f₂ =
+    Σ (opr f₁ == opr f₂) λ opr= →
+      dec f₁ == dec f₂ [ (λ opr → (p : El (pos opr)) → Xₛₙ (typ opr p)) ↓ opr= ] 
+
+  Frmₛ=-out : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
+    → {f : Frm Xₙ} {x : Xₛₙ f}
+    → {f₁ f₂ : Frmₛ Xₛₙ f x}
+    → Frmₛ= f₁ f₂
+    → f₁ == f₂
+  Frmₛ=-out (idp , idp) = idp
+
   --
   --  Opetopic Types and Frames
   --
@@ -305,3 +334,112 @@ module AbsoluteOpetopicTypes where
       Tail : 𝕆∞ {ℓ} {S n} (X , Head)
 
   open 𝕆∞ public 
+
+  is-multiplicative : {ℓ : ULevel} {n : ℕ} {o : 𝕆 ℓ n} (X : Frm o → Set ℓ) → Set ℓ
+  is-multiplicative {ℓ} {O} {A} X =
+    (pos : ℙ) (typ : El pos → A) → is-contr (Σ A λ f → X ⟪ f , pos , typ ⟫ )
+  is-multiplicative {ℓ} {S n} {(o , X)} Y = (f : Frm o) (opr : Opr o f) (dec : (p : El (pos opr)) → X (typ opr p)) → is-contr (Σ (X f) λ x → Y (f , x , ⟪ opr , dec ⟫f)) 
+
+  is-fibrant : (ℓ : ULevel) (n : ℕ) → 𝕆 ℓ (S n) → Set ℓ
+  is-fibrant ℓ n (o , X) = is-multiplicative X
+
+  Map : {ℓ : ULevel} {n : ℕ} (o o' : 𝕆 ℓ n) → Set ℓ 
+
+  MapFrm : {ℓ : ULevel} {n : ℕ} {o o' : 𝕆 ℓ n} (g : Map o o') (f : Frm o) → Frm o'
+
+  Map {n = O} o o' = o → o'
+  Map {n = S n} (o , X) (o' , X') =
+    Σ (Map o o') λ g →
+      (f : Frm o) → X f → X' (MapFrm g f)
+
+  MapFrmₛ : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
+    → {Xₙ' : 𝕆 ℓ n} {Xₛₙ' : Frm Xₙ' → Set ℓ}
+    → (g : Map (Xₙ , Xₛₙ) (Xₙ' , Xₛₙ')) {f : Frm Xₙ} {x : Xₛₙ f}
+    → Frmₛ Xₛₙ f x
+    → Frmₛ Xₛₙ' (MapFrm (fst g) f) (snd g f x)
+
+  frm (MapFrm {n = O} g f) = g (frm f)
+  pos (MapFrm {n = O} g f) = pos f
+  typ (MapFrm {n = O} g f) = g ∘ typ f
+  MapFrm {n = S n} {o = o , X} {o' , X'} (g , η) (f , α , f') = MapFrm g f , η f α , MapFrmₛ (g , η) f'
+
+  MapFrmₛ-η : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} (Xₛₙ : Frm Xₙ → Set ℓ)
+    → {Xₙ' : 𝕆 ℓ n} (Xₛₙ' : Frm Xₙ' → Set ℓ)
+    → (g : Map (Xₙ , Xₛₙ) (Xₙ' , Xₛₙ')) (f : Frm Xₙ) (x : Xₛₙ f)
+    → MapFrmₛ g (η-frm f x) == η-frm (MapFrm (fst g) f) (snd g f x) 
+
+  MapFrmₛ-μ : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
+    → {Xₙ' : 𝕆 ℓ n} {Xₛₙ' : Frm Xₙ' → Set ℓ}
+    → (g : Map (Xₙ , Xₛₙ) (Xₙ' , Xₛₙ'))
+    → {f : Frm Xₙ} {x : Xₛₙ f} (fₛ : Frmₛ Xₛₙ f x)
+    → (ϕ : (p : El (pos (opr fₛ))) → Frmₛ Xₛₙ (typ (opr fₛ) p) (dec fₛ p))
+    → MapFrmₛ g (μ-frm fₛ ϕ) == μ-frm (MapFrmₛ g fₛ) λ p → MapFrmₛ g (ϕ p) -- η-frm (MapFrm (fst g) f) (snd g f x) 
+  MapFrmₛ-μ = {!!}
+  
+  MapTree : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
+    → {Xₙ' : 𝕆 ℓ n} {Xₛₙ' : Frm Xₙ' → Set ℓ}
+    → (g : Map (Xₙ , Xₛₙ) (Xₙ' , Xₛₙ'))
+    → {f : Frm (Xₙ , Xₛₙ)} {P : ℙ} {t : El P → Frm (Xₙ , Xₛₙ)}
+    → Tree Xₙ Xₛₙ f P t
+    → Tree Xₙ' Xₛₙ' (MapFrm g f) P (MapFrm g ∘ t)
+  
+  MapCns : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} {X' : 𝕆 ℓ n} (g : Map X X')
+    → {f : Frm X} {P : ℙ} {t : El P → Frm X}
+    → Cns X f P t
+    → Cns X' (MapFrm g f) P (MapFrm g ∘ t)
+  MapCns {n = O} g x = x
+  MapCns {n = S n} = MapTree
+
+  {-# TERMINATING #-}
+  MapOpr : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} {X' : 𝕆 ℓ n} (g : Map X X') (f : Frm X)
+    → Opr X f → Opr X' (MapFrm g f)
+  pos (MapOpr g f x) = pos x
+  typ (MapOpr g f x) = MapFrm g ∘ typ x
+  cns (MapOpr g f x) = MapCns g (cns x)
+
+  opr (MapFrmₛ (g , _) {f} fₛₙ) = MapOpr g f (opr fₛₙ)
+  dec (MapFrmₛ (g , α) fₛₙ) p = α _ (dec fₛₙ p)
+
+  foo2 : ∀ {ℓ} {n : ℕ} {X Y : 𝕆 ℓ n}
+      → {U V : ℙ}
+      → (inlₚ* : El U → Frm X)
+      → (inrₚ* : El V → Frm X)
+      → (g : Frm X → Frm Y)
+      → g ∘ (⊔ₚ-Frm-rec inlₚ* inrₚ*) == ⊔ₚ-Frm-rec (g ∘ inlₚ*) (g ∘ inrₚ*)
+  foo2 = {!!}
+
+  foo3 : ∀ {ℓ} {n : ℕ} {X Y : 𝕆 ℓ n}
+      → {U : ℙ} {V : El U → ℙ}
+      → (ρ : (u : El U) → El (V u) → Frm X)
+      → (g : Frm X → Frm Y)
+      → g ∘ (Σₚ-Frm-rec ρ) == Σₚ-Frm-rec λ p q → g (ρ p q)
+  foo3 = {!!}
+
+  ⊤ₚ-Frm-rec-comm : ∀ {ℓ} {n : ℕ} {X Y : 𝕆 ℓ n}
+      → (f : Frm X)
+      → (g : Frm X → Frm Y)
+      → g ∘ (⊤ₚ-Frm-rec f) == ⊤ₚ-Frm-rec (g f)
+  ⊤ₚ-Frm-rec-comm f g = λ= (⊤ₚ-elim _ idp)
+
+  MapTree {Xₙ = Xₙ} {Xₛₙ} {Xₙ'} {Xₛₙ'} (g , α) (lf f x) =
+    transport! (λ (f , h) → Tree Xₙ' Xₛₙ' (MapFrm g _ , α _ x , f) ⊥ₚ h)
+               (pair×= (MapFrmₛ-η Xₛₙ Xₛₙ' (g , α) f x) (λ= (⊥ₚ-elim _)))
+               (lf (MapFrm g f) (α _ x))  
+  MapTree {Xₙ = Xₙ} {Xₛₙ} {Xₙ'} {Xₛₙ'} (g , α) (nd x fₛₙ δ ε) =
+    let δ' p = MapFrmₛ (g , α) (δ p)
+        ε' p = MapOpr (g , α) (_ , _ , δ p) (ε p)
+        foo = nd (α _ x) (MapFrmₛ (g , α) fₛₙ) δ' ε'
+
+        
+        pth = foo2 (⊤ₚ-Frm-rec (_ , x , fₛₙ)) (Σₚ-Frm-rec (λ p → typ (ε p))) (MapFrm (g , α))
+              ∙ ap (uncurry ⊔ₚ-Frm-rec) (pair×= (⊤ₚ-Frm-rec-comm (_ , x , fₛₙ) (MapFrm (g , α))) (foo3 (λ p → typ (ε p)) (MapFrm (g , α))))
+    in transport! (λ (f , h) → Tree Xₙ' Xₛₙ' (MapFrm g _ , α _ x , f) (⊤ₚ ⊔ₚ Σₚ (pos (opr fₛₙ)) (λ p → pos (ε p))) h) (pair×= (MapFrmₛ-μ {Xₛₙ' = Xₛₙ'} (g , α) fₛₙ δ) pth) foo 
+
+  MapCns-η : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} {X' : 𝕆 ℓ n} (g : Map X X')
+    → (f : Frm X)
+    → MapCns g (η-cns f) == η-cns (MapFrm g f) [ (Cns X' (MapFrm g f) ⊤ₚ) ↓ ⊤ₚ-Frm-rec-comm f (MapFrm g) ]
+  MapCns-η = {!!}
+
+  MapFrmₛ-η Xₛₙ Xₛₙ' (g , α) f x =
+    let opr= = Opr=-out (idp , λ= (⊤ₚ-elim _ idp) , {!MapCns-η g f!})
+    in Frmₛ=-out (opr= , {!!})
