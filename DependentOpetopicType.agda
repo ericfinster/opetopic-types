@@ -368,4 +368,14 @@ module DependentOpetopicType where
         ε↓' p = ⟪ _ , γ↓-cns (ε↓ p) (ϕ↓' p) (ψ↓' p) ⟫ₒₚ↓
     in nd↓ x↓ f↓ₛₙ δ↓' ε↓'
 
+  --
+  --  Dependent Opetopic Types
+  --
 
+  record 𝕆↓∞ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} (X∞ : 𝕆∞ X) (X↓ : 𝕆↓ ℓ↓ X)  : Set (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ↓)) where
+    coinductive
+    field
+      Head↓ : {f : Frm X} (f↓ : Frm↓ X↓ f) (x : Head X∞ f) → Set ℓ↓
+      Tail↓ : 𝕆↓∞ (Tail X∞) (X↓ , Head↓)
+
+  open 𝕆↓∞ public 

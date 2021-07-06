@@ -89,6 +89,7 @@ module OpetopicAlgebra where
   --  ∞-operads 
   --
 
+  -- I mean, really these are colored, so ...
   record ∞-Operad {ℓ} : Set (ℓ-suc ℓ) where
     field
       Obj : Set ℓ
@@ -96,3 +97,15 @@ module OpetopicAlgebra where
       M : Mult∞ Obj Hom
       U : UniqueMult∞ (h M)
       un : is-finitary (Obj , Hom)
+
+  --
+  --  Things to show:
+  --    1. the "homs" of any ∞-cat are ∞-groupids ...
+  --    2. extract the comosition operator and show it is associative
+  --    3. construct the ∞-cat structure on types
+  --    4. a presheaf is a map to the universe
+  --
+
+
+
+
