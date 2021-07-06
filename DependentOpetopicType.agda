@@ -1,6 +1,5 @@
 {-# OPTIONS --without-K --rewriting #-}
 
--- open import Prelude
 open import MiniHoTT
 open import MiniUniverse
 open import AbsoluteOpetopicTypes
@@ -227,14 +226,12 @@ module DependentOpetopicType where
   η↓-frm {Xₛₙ = Xₛₙ} {X↓ₛₙ = X↓ₛₙ} {f} {x} f↓ x↓ =
     ⟪ η↓ f↓ , ⊤ₚ-elim (λ p → X↓ₛₙ (typ↓ (η↓ f↓) p) (dec (η-frm {Xₛₙ = Xₛₙ} f x) p)) x↓ ⟫f↓ 
 
-  postulate
-  
-    μ↓-cns : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-      → {f : Frm X} {c : Opr X f}
-      → {δ : (p : El (pos c)) → Opr X (typ c p)}
-      → {f↓ : Frm↓ X↓ f} (c↓ : Opr↓ X↓ f↓ c)
-      → (δ↓ : (p : El (pos c)) → Opr↓ X↓ (typ↓ c↓ p) (δ p))
-      → Cns↓ X↓ (μ-cns c δ ) f↓ (Σₚ-Frm↓-rec (λ p q → typ↓ (δ↓ p) q)) 
+  μ↓-cns : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
+    → {f : Frm X} {c : Opr X f}
+    → {δ : (p : El (pos c)) → Opr X (typ c p)}
+    → {f↓ : Frm↓ X↓ f} (c↓ : Opr↓ X↓ f↓ c)
+    → (δ↓ : (p : El (pos c)) → Opr↓ X↓ (typ↓ c↓ p) (δ p))
+    → Cns↓ X↓ (μ-cns c δ ) f↓ (Σₚ-Frm↓-rec (λ p q → typ↓ (δ↓ p) q)) 
 
   μ↓ : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
     → {f : Frm X} {c : Opr X f}
@@ -331,45 +328,44 @@ module DependentOpetopicType where
   --  Dependent Grafting
   --
 
-  postulate
-  
-    γ↓-cns : ∀ {ℓ ℓ↓} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
-      → {X↓ₙ : 𝕆↓ ℓ↓ Xₙ} {X↓ₛₙ : {f : Frm Xₙ} (f↓ : Frm↓ X↓ₙ f) (x : Xₛₙ f) → Set ℓ↓}
-      → {fₙ : Frm Xₙ} {x : Xₛₙ fₙ} {fₛₙ : Frmₛ Xₛₙ fₙ x}
-      → {c : Opr (Xₙ , Xₛₙ) (fₙ , x , fₛₙ)}
-      → {δ : (p : El (pos (opr fₛₙ))) → Frmₛ Xₛₙ (typ (opr fₛₙ) p) (dec fₛₙ p)}
-      → {ε : (p : El (pos (opr fₛₙ))) → Opr (Xₙ , Xₛₙ) (typ (opr fₛₙ) p , dec fₛₙ p , δ p)}
-      → {f↓ₙ : Frm↓ X↓ₙ fₙ} (x↓ : X↓ₛₙ f↓ₙ x) (f↓ₛₙ : Frm↓ₛ X↓ₛₙ fₛₙ f↓ₙ x↓)
-      → (c↓ : Opr↓ (X↓ₙ , X↓ₛₙ) (f↓ₙ , x↓ , f↓ₛₙ) c)
-      → (δ↓ : (p : El (pos (opr fₛₙ))) → Frm↓ₛ X↓ₛₙ (δ p) (typ↓ (opr↓ f↓ₛₙ) p) (dec↓ f↓ₛₙ p))
-      → (ε↓ : (p : El (pos (opr fₛₙ))) → Opr↓ (X↓ₙ , X↓ₛₙ) (typ↓ (opr↓ f↓ₛₙ) p , dec↓ f↓ₛₙ p , δ↓ p) (ε p))
-      → Cns↓ (X↓ₙ , X↓ₛₙ) (γ-cns c δ ε) (f↓ₙ , x↓ , μ↓-frm f↓ₛₙ δ↓)
-          (⊔ₚ-Frm↓-rec {inlₚ* = typ c} {inrₚ* = Σₚ-Frm-rec (λ p q → typ (ε p) q)}
-            (typ↓ c↓) (Σₚ-Frm↓-rec {ρ = λ p q → typ (ε p) q} (λ p q → typ↓ (ε↓ p) q))) 
+  γ↓-cns : ∀ {ℓ ℓ↓} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
+    → {X↓ₙ : 𝕆↓ ℓ↓ Xₙ} {X↓ₛₙ : {f : Frm Xₙ} (f↓ : Frm↓ X↓ₙ f) (x : Xₛₙ f) → Set ℓ↓}
+    → {fₙ : Frm Xₙ} {x : Xₛₙ fₙ} {fₛₙ : Frmₛ Xₛₙ fₙ x}
+    → {c : Opr (Xₙ , Xₛₙ) (fₙ , x , fₛₙ)}
+    → {δ : (p : El (pos (opr fₛₙ))) → Frmₛ Xₛₙ (typ (opr fₛₙ) p) (dec fₛₙ p)}
+    → {ε : (p : El (pos (opr fₛₙ))) → Opr (Xₙ , Xₛₙ) (typ (opr fₛₙ) p , dec fₛₙ p , δ p)}
+    → {f↓ₙ : Frm↓ X↓ₙ fₙ} {x↓ : X↓ₛₙ f↓ₙ x} {f↓ₛₙ : Frm↓ₛ X↓ₛₙ fₛₙ f↓ₙ x↓}
+    → (c↓ : Opr↓ (X↓ₙ , X↓ₛₙ) (f↓ₙ , x↓ , f↓ₛₙ) c)
+    → (δ↓ : (p : El (pos (opr fₛₙ))) → Frm↓ₛ X↓ₛₙ (δ p) (typ↓ (opr↓ f↓ₛₙ) p) (dec↓ f↓ₛₙ p))
+    → (ε↓ : (p : El (pos (opr fₛₙ))) → Opr↓ (X↓ₙ , X↓ₛₙ) (typ↓ (opr↓ f↓ₛₙ) p , dec↓ f↓ₛₙ p , δ↓ p) (ε p))
+    → Cns↓ (X↓ₙ , X↓ₛₙ) (γ-cns c δ ε) (f↓ₙ , x↓ , μ↓-frm f↓ₛₙ δ↓)
+        (⊔ₚ-Frm↓-rec {inlₚ* = typ c} {inrₚ* = Σₚ-Frm-rec (λ p q → typ (ε p) q)}
+          (typ↓ c↓) (Σₚ-Frm↓-rec {ρ = λ p q → typ (ε p) q} (λ p q → typ↓ (ε↓ p) q))) 
 
   --
   --  Dependent Monadic Implementation
   --
 
-  -- Great!!!
   η↓-cns {n = O} f↓ = tt
   η↓-cns {n = S n} (f↓ , x↓ , μf↓ₛ) =
     nd↓ x↓ μf↓ₛ
       (λ p → η↓-frm (typ↓ (opr↓ μf↓ₛ) p) (dec↓ μf↓ₛ p))
       (λ p → ⟪ _ , lf↓ (typ↓ (opr↓ μf↓ₛ) p) (dec↓ μf↓ₛ p) ⟫ₒₚ↓)
 
-  -- μ-cns {n = O} _ _ = tt
-  -- μ-cns {n = S n} ⟪ _ , _ , lf f x ⟫ₒₚ κ = lf f x
-  -- μ-cns {n = S n} {X = Xₙ , Xₛₙ} ⟪ _ , _ , nd {fₙ} x fₛₙ δ ε ⟫ₒₚ κ = 
-  --   let w = κ (inlₚ (Σₚ (pos (opr fₛₙ)) (λ p₁ → pos (ε p₁))) ttₚ)
-  --       κ' p q = κ (inrₚ ⊤ₚ ⟦ pos (opr fₛₙ) , (λ p₁ → pos (ε p₁)) ∣ p , q ⟧ₚ) 
-  --       ϕ p = μ (ε p) (κ' p) 
-  --   in γ-cns w δ ϕ
+  μ↓-cns {n = O} _ _ = tt
+  μ↓-cns {n = S n} {c = ⟪ _ , _ , lf f x ⟫ₒₚ} {f↓ = f↓ₙ , x↓ , ._} ⟪ _ , (refl , refl) ⟫ₒₚ↓ κ↓ = lf↓ f↓ₙ x↓ 
+  μ↓-cns {n = S n} {c = ⟪ _ , _ , nd x fₛₙ δ ε ⟫ₒₚ} {f↓ = f↓ₙ , x↓ , ._} ⟪ _ , (f↓ₛₙ , δ↓ , ε↓ , refl , refl) ⟫ₒₚ↓ κ↓ =
+    let w↓ = κ↓ (inlₚ (Σₚ (pos (opr fₛₙ)) (λ p → pos (ε p))) ttₚ)
+        κ↓' p q = κ↓ (inrₚ ⊤ₚ ⟦ pos (opr fₛₙ) , (λ p₁ → pos (ε p₁)) ∣ p , q ⟧ₚ)
+        ϕ↓ p = μ↓ (ε↓ p) (κ↓' p)
+    in γ↓-cns w↓ δ↓ ϕ↓ 
 
-  -- γ-cns ⟪ _ , _ , lf f x ⟫ₒₚ δ ε = cns (ε ttₚ)
-  -- γ-cns {Xₙ = Xₙ} {Xₛₙ = Xₛₙ} ⟪ _ , _ , nd {fₙ} x c δ ε ⟫ₒₚ ϕ ψ =
-  --   let ϕ' p q = ϕ ⟦ pos (opr c) , (λ p' → pos (opr (δ p'))) ∣ p , q ⟧ₚ
-  --       ψ' p q = ψ ⟦ pos (opr c) , (λ p' → pos (opr (δ p'))) ∣ p , q ⟧ₚ
-  --       δ' p = μ-frm (δ p) (ϕ' p)
-  --       ε' p = ⟪ _ , _ , γ-cns (ε p) (ϕ' p) (ψ' p) ⟫ₒₚ
-  --   in nd x c δ' ε'
+  γ↓-cns {c = ⟪ _ , _ , lf _ _ ⟫ₒₚ} ⟪ _ , (refl , refl) ⟫ₒₚ↓ ϕ↓ ψ↓ = cns↓ (ψ↓ ttₚ)
+  γ↓-cns {c = ⟪ _ , _ , nd x fₛₙ δ ε ⟫ₒₚ} {x↓ = x↓} ⟪ _ , (f↓ₛₙ , δ↓ , ε↓ , refl , refl) ⟫ₒₚ↓ ϕ↓ ψ↓ =
+    let ϕ↓' p q = ϕ↓ ⟦ pos (opr fₛₙ) , (λ p' → pos (opr (δ p'))) ∣ p , q ⟧ₚ
+        ψ↓' p q = ψ↓ ⟦ pos (opr fₛₙ) , (λ p' → pos (opr (δ p'))) ∣ p , q ⟧ₚ
+        δ↓' p = μ↓-frm (δ↓ p) (ϕ↓' p)
+        ε↓' p = ⟪ _ , γ↓-cns (ε↓ p) (ϕ↓' p) (ψ↓' p) ⟫ₒₚ↓
+    in nd↓ x↓ f↓ₛₙ δ↓' ε↓'
+
+
