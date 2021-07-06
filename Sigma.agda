@@ -1,6 +1,6 @@
 {-# OPTIONS --without-K --rewriting #-}
 
-open import Prelude
+open import MiniHoTT
 open import MiniUniverse
 open import AbsoluteOpetopicTypes
 open import DependentOpetopicType

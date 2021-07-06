@@ -1,7 +1,6 @@
 {-# OPTIONS --without-K --rewriting #-}
 
--- open import Prelude
-open import HoTT
+open import MiniHoTT
 
 module MiniUniverse where
 
@@ -78,7 +77,7 @@ module MiniUniverse where
       → (P : El (Σₚ U V) → Set ℓ)
       → (ρ : (u : El U) (v : El (V u)) → P ⟦ U , V ∣ u , v ⟧ₚ)
       → (p : El (Σₚ U V)) → P p
-
+  
     Σₚ-elim-β : ∀ {ℓ} (U : ℙ) (V : El U → ℙ)
       → (P : El (Σₚ U V) → Set ℓ)
       → (ρ : (u : El U) (v : El (V u)) → P ⟦ U , V ∣ u , v ⟧ₚ)
@@ -307,7 +306,19 @@ module MiniUniverse where
           (Σₚ-elim U W (λ u → P (inrₚ (Σₚ U V) u))
                        (λ u w → ρ u (inrₚ (V u) w)))
     {-# REWRITE ⊔ₚ-Σₚ-distrib-l-elim #-}
+
+  --
+  --  Dependent projections
+  --
   
+  fstₚ : {U : ℙ} {V : El U → ℙ}
+    → El (Σₚ U V) → El U
+  fstₚ {U} {V} = Σₚ-elim U V (λ _ → El U) (λ u _ → u) 
+
+  sndₚ : {U : ℙ} {V : El U → ℙ}
+    → (uv : El (Σₚ U V)) → El (V (fstₚ {V = V} uv))
+  sndₚ {U} {V} = Σₚ-elim U V (λ uv → El (V (fstₚ {V = V} uv))) (λ u v → v)
+
   --
   --  Arities in the mini-universe
   --

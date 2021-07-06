@@ -1,7 +1,6 @@
 {-# OPTIONS --without-K --rewriting #-}
 
--- open import Prelude
-open import HoTT
+open import MiniHoTT
 open import MiniUniverse
 
 module AbsoluteOpetopicTypes where
@@ -10,7 +9,7 @@ module AbsoluteOpetopicTypes where
   --  The Universe of Opetopic Types
   --
 
-  𝕆 : (ℓ : ULevel) → ℕ → Set (lsucc ℓ)
+  𝕆 : (ℓ : Level) → ℕ → Set (ℓ-suc ℓ)
   Frm : ∀ {ℓ} {n : ℕ} → 𝕆 ℓ n → Set ℓ
   Cns : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
     → (f : Frm X) (P : ℙ) (t : El P → Frm X)
@@ -257,7 +256,7 @@ module AbsoluteOpetopicTypes where
                       (Σₚ-Frm-rec (λ p q → typ (ε p) q))) 
 
 
-  Cns {n = O} X _ _ _ = Lift ⊤
+  Cns {n = O} X _ _ _ = ⊤
   Cns {n = S n} (Xₙ , Xₛₙ) = Tree Xₙ Xₛₙ
 
   --
@@ -280,12 +279,12 @@ module AbsoluteOpetopicTypes where
   --  Monadic implementations
   --
 
-  η-cns {n = O} f = lift tt
+  η-cns {n = O} f = tt
   η-cns {n = S n} (fₙ , x , fₛₙ) = 
     nd x fₛₙ (λ p → η-frm (typ (opr fₛₙ) p) (dec fₛₙ p))
             (λ p → ⟪ _ , _ , lf (typ (opr fₛₙ) p) (dec fₛₙ p) ⟫ₒₚ)
 
-  μ-cns {n = O} _ _ = lift tt
+  μ-cns {n = O} _ _ = tt
   μ-cns {n = S n} ⟪ _ , _ , lf f x ⟫ₒₚ κ = lf f x
   μ-cns {n = S n} {X = Xₙ , Xₛₙ} ⟪ _ , _ , nd {fₙ} x fₛₙ δ ε ⟫ₒₚ κ = 
     let w = κ (inlₚ (Σₚ (pos (opr fₛₙ)) (λ p₁ → pos (ε p₁))) ttₚ)
@@ -305,7 +304,7 @@ module AbsoluteOpetopicTypes where
   --  Opetopic Types
   --
 
-  record 𝕆∞ {ℓ} {n : ℕ} (X : 𝕆 ℓ n) : Set (lsucc ℓ) where
+  record 𝕆∞ {ℓ} {n : ℕ} (X : 𝕆 ℓ n) : Set (ℓ-suc ℓ) where
     coinductive
     field
       Head : Frm X → Set ℓ

@@ -1,0 +1,3 @@
+name: opetopic-types
+include: .
+depend: mini-hott
