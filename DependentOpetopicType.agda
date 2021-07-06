@@ -253,7 +253,36 @@ module DependentOpetopicType where
     → Frm↓ₛ X↓ₛₙ (μ-frm fₛ ϕ) f↓ x↓
   μ↓-frm f↓ₛ ϕ↓ = ⟪ μ↓ (opr↓ f↓ₛ) (λ p → opr↓ (ϕ↓ p)) ,
     Σₚ-elim _ _ _ (λ p q → dec↓ (ϕ↓ p) q) ⟫f↓
-    
+
+  --
+  --  Dependent Monadic Laws
+  --
+
+  postulate
+
+    μ↓-unit-r : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
+      → {f : Frm X} {c : Opr X f}
+      → {f↓ : Frm↓ X↓ f} (c↓ : Opr↓ X↓ f↓ c)
+      → μ↓-cns c↓ (λ p → η↓ (typ↓ c↓ p)) ↦ cns↓ c↓
+    {-# REWRITE μ↓-unit-r #-}
+
+    μ↓-unit-l : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
+      → {f : Frm X} {δ : (p : El (pos (η f))) → Opr X (typ (η f) p)}
+      → (f↓ : Frm↓ X↓ f) (δ↓ : (p : El (pos (η f))) → Opr↓ X↓ (typ↓ (η↓ f↓) p) (δ p))
+      → μ↓-cns (η↓ f↓) δ↓ ↦ cns↓ (δ↓ ttₚ)
+    {-# REWRITE μ↓-unit-l #-}
+
+    μ↓-assoc : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
+      → {f : Frm X} {c : Opr X f}
+      → {δ : (p : El (pos c)) → Opr X (typ c p)}
+      → {ε : (p : El (pos (μ c δ))) → Opr X (typ (μ c δ) p)}
+      → {f↓ : Frm↓ X↓ f} (c↓ : Opr↓ X↓ f↓ c)
+      → (δ↓ : (p : El (pos c)) → Opr↓ X↓ (typ↓ c↓ p) (δ p))
+      → (ε↓ : (p : El (pos (μ c δ))) → Opr↓ X↓ (typ↓ (μ↓ c↓ δ↓) p) (ε p))
+      → μ↓-cns (μ↓ c↓ δ↓) ε↓ ↦
+          μ↓-cns c↓ (λ p → μ↓ (δ↓ p) (λ q → ε↓ ⟦ pos c , (λ p → pos (δ p)) ∣ p , q ⟧ₚ))
+    {-# REWRITE μ↓-assoc #-}
+
   --
   --  Dependent constructors
   --
@@ -278,18 +307,30 @@ module DependentOpetopicType where
     → {X↓ₙ : 𝕆↓ ℓ↓ Xₙ} {X↓ₛₙ : {f : Frm Xₙ} (f↓ : Frm↓ X↓ₙ f) (x : Xₛₙ f) → Set ℓ↓}
     → {f : Frm Xₙ} {x : Xₛₙ f}
     → (f↓ : Frm↓ X↓ₙ f) (x↓ : X↓ₛₙ f↓ x)
-    → Cns↓ (X↓ₙ , X↓ₛₙ) (lf f x) (f↓ , x↓ , η↓-frm f↓ x↓)
-      (⊥ₚ-Frm↓-rec {X↓ = X↓ₙ , X↓ₛₙ})
+    → Cns↓ (X↓ₙ , X↓ₛₙ) (lf f x)
+        (f↓ , x↓ , η↓-frm f↓ x↓)
+        (⊥ₚ-Frm↓-rec {X↓ = X↓ₙ , X↓ₛₙ})
   lf↓ f↓ x↓ = refl , refl 
 
+  nd↓ : ∀ {ℓ ℓ↓} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
+    → {X↓ₙ : 𝕆↓ ℓ↓ Xₙ} {X↓ₛₙ : {f : Frm Xₙ} (f↓ : Frm↓ X↓ₙ f) (x : Xₛₙ f) → Set ℓ↓}
+    → {fₙ : Frm Xₙ} {x : Xₛₙ fₙ} {fₛₙ : Frmₛ Xₛₙ fₙ x}
+    → {δ : (p : El (pos (opr fₛₙ))) → Frmₛ Xₛₙ (typ (opr fₛₙ) p) (dec fₛₙ p)}
+    → {ε : (p : El (pos (opr fₛₙ))) → Opr (Xₙ , Xₛₙ) (typ (opr fₛₙ) p , dec fₛₙ p , δ p)}
+    → {f↓ₙ : Frm↓ X↓ₙ fₙ} (x↓ : X↓ₛₙ f↓ₙ x) (f↓ₛₙ : Frm↓ₛ X↓ₛₙ fₛₙ f↓ₙ x↓)
+    → (δ↓ : (p : El (pos (opr fₛₙ))) → Frm↓ₛ X↓ₛₙ (δ p) (typ↓ (opr↓ f↓ₛₙ) p) (dec↓ f↓ₛₙ p))
+    → (ε↓ : (p : El (pos (opr fₛₙ))) → Opr↓ (X↓ₙ , X↓ₛₙ) (typ↓ (opr↓ f↓ₛₙ) p , dec↓ f↓ₛₙ p , δ↓ p) (ε p))
+    → Cns↓ (X↓ₙ , X↓ₛₙ) (nd x fₛₙ δ ε) (f↓ₙ , x↓ , μ↓-frm f↓ₛₙ δ↓)
+        (⊔ₚ-Frm↓-rec {inlₚ* = ⊤ₚ-Frm-rec (fₙ , x , fₛₙ)}
+                     {inrₚ* = Σₚ-Frm-rec (λ p q → typ (ε p) q)}
+                     (⊤ₚ-Frm↓-rec {X↓ = X↓ₙ , X↓ₛₙ} (f↓ₙ , x↓ , f↓ₛₙ) )
+                     (Σₚ-Frm↓-rec {X↓ = X↓ₙ , X↓ₛₙ} (λ p q → typ↓ (ε↓ p) q)))
+  nd↓ x↓ f↓ₛₙ δ↓ ε↓ = f↓ₛₙ , δ↓ , ε↓ , refl , refl
 
-  -- η↓-cns : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --   → {f : Frm X} (f↓ : Frm↓ X↓ f)
-  --   → Cns↓ X↓ (η-cns f) f↓ (⊤ₚ-Frm↓-rec f↓) 
+  -- Great!!!
   η↓-cns {n = O} f↓ = tt
   η↓-cns {n = S n} {X = Xₙ , Xₛₙ} {X↓ = X↓ₙ , X↓ₛₙ} {f = f , x , μfₛ} (f↓ , x↓ , μf↓ₛ) =
-    μf↓ₛ , (λ p → η↓-frm (typ↓ (opr↓ μf↓ₛ) p) (dec↓ μf↓ₛ p)) ,
-          (λ p → ⟪ ⊥ₚ-Frm↓-rec {X↓ = X↓ₙ , X↓ₛₙ} , lf↓ (typ↓ (opr↓ μf↓ₛ) p) (dec↓ μf↓ₛ p) ⟫ₒₚ↓) , {!!} , {!!}
+    nd↓ x↓ μf↓ₛ
+      (λ p → η↓-frm (typ↓ (opr↓ μf↓ₛ) p) (dec↓ μf↓ₛ p))
+      (λ p → ⟪ _ , lf↓ (typ↓ (opr↓ μf↓ₛ) p) (dec↓ μf↓ₛ p) ⟫ₒₚ↓)
 
-  -- I see.  And now we need the equations for the frame
-  -- eliminators and whatnot ...
