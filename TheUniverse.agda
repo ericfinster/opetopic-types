@@ -9,7 +9,7 @@ open import OpetopicAlgebra
 module TheUniverse where
 
   --
-  --  Infinitely interating the "fillers" construction ...
+  --  Infinitely iterating the "fillers" construction ...
   --
 
   𝕌∞ : ∀ {ℓ} {n : ℕ} (X : 𝕆 (ℓ-suc ℓ) n) (X↓ : 𝕆↓ ℓ X) → 𝕆∞ X

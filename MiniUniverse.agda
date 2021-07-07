@@ -323,7 +323,6 @@ module MiniUniverse where
   --  Arities in the mini-universe
   --
 
-  -- This probably belongs with the universe ...
   record Arity {ℓ} (X : Set ℓ) : Set ℓ where
     constructor ⟪_,_,_⟫
     field
@@ -333,20 +332,3 @@ module MiniUniverse where
 
   open Arity public
 
-  -- Dec : ∀ {ℓ} {X : Set ℓ} (A : Arity X) (P : X → Set ℓ) → Set ℓ
-  -- Dec A P = P (frm A) × ((p : El (pos A)) → P (typ A p)) 
-
-  -- record Arity↓ {ℓ} {X : Set ℓ} (A : Arity X) : Set ℓ where
-  --   constructor ⟪_,_⟫↓
-  --   field
-  --     pos↓ : (p : El (pos A)) → ℙ
-  --     typ↓ : (p : El (pos A)) → El (pos↓ p) → X
-
-  -- open Arity↓ public
-
-  -- infixr 50 _⊚_
-  
-  -- -- The arity at a position in a dependent arity
-  -- _⊚_ : ∀ {ℓ} {X : Set ℓ} {A : Arity X}
-  --   → (A↓ : Arity↓ A) (p : El (pos A)) → Arity X
-  -- _⊚_ {A = A} A↓ p = ⟪ typ A p , pos↓ A↓ p , typ↓ A↓ p ⟫ 

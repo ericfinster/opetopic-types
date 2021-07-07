@@ -3,6 +3,7 @@
 open import MiniHoTT
 open import MiniUniverse
 open import AbsoluteOpetopicTypes
+open import DependentOpetopicType
 
 module OpetopicAlgebra where
 
@@ -106,6 +107,20 @@ module OpetopicAlgebra where
   --    4. a presheaf is a map to the universe
   --
 
+  --
+  --  Dependent Definitions
+  --
 
+  is-fibration : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
+    → (f : Frm X) (R : Frm↓ X↓ f → Set ℓ↓)
+    → Set ℓ↓
+  is-fibration {n = O} {X↓ = X↓} A R =
+      (ν : (p : El (pos A)) → X↓ (typ A p))
+    → is-contr (Σ (X↓ (frm A)) (λ x↓ → R (x↓ , ν)))
+  is-fibration {n = S n} {X = Xₙ , Xₛₙ} {X↓ = X↓ₙ , X↓ₛₙ} (f , xₛₙ , fₛₙ) R =
+     (f↓ : Frm↓ X↓ₙ f) 
+     (o : Opr↓ X↓ₙ f↓ (opr fₛₙ))
+     (ν↓ : (p : El (pos (opr fₛₙ))) → X↓ₛₙ (typ↓ o p) (dec fₛₙ p)) → 
+     is-contr (Σ (X↓ₛₙ f↓ xₛₙ) (λ x↓ₛₙ → R (f↓ , x↓ₛₙ , ⟪ o , ν↓ ⟫f↓)))
 
 
