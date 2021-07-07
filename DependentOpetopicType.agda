@@ -187,7 +187,7 @@ module DependentOpetopicType where
       opr↓ : Opr↓ X↓ₙ f↓ (opr fₛ)
       dec↓ : (p : El (pos (opr fₛ))) → X↓ₛₙ (typ↓ opr↓ p) (dec fₛ p)
 
-  open Frm↓ₛ
+  open Frm↓ₛ public
       
   --
   --  Dependent Opetopic Types 
