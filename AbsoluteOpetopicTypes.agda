@@ -39,15 +39,9 @@ module AbsoluteOpetopicTypes where
       → El ⊤ₚ → Frm X
       
     ⊤ₚ-Frm-rec-β : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
-      → (f : Frm X)
-      → ⊤ₚ-Frm-rec f ttₚ ↦ f
+      → (p : El ⊤ₚ) (f : Frm X)
+      → ⊤ₚ-Frm-rec f p ↦ f
     {-# REWRITE ⊤ₚ-Frm-rec-β #-}
-
-    -- an η-expanding version
-    -- test-β : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
-    --   → (p : El ⊤ₚ) (f : Frm X)
-    --   → ⊤ₚ-Frm-rec f p ↦ f
-    -- {-# REWRITE test-β #-}
 
     ⊔ₚ-Frm-rec : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
       → {U V : ℙ}

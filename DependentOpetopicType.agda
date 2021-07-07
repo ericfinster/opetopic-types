@@ -51,8 +51,8 @@ module DependentOpetopicType where
       → (p : El ⊤ₚ) → Frm↓ X↓ (⊤ₚ-Frm-rec f p) 
 
     ⊤ₚ-Frm↓-rec-β : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-      → {f : Frm X} (f↓ : Frm↓ X↓ f)
-      → ⊤ₚ-Frm↓-rec f↓ ttₚ ↦ f↓
+      → {f : Frm X} (f↓ : Frm↓ X↓ f) (p : El ⊤ₚ)
+      → ⊤ₚ-Frm↓-rec f↓ p ↦ f↓
     {-# REWRITE ⊤ₚ-Frm↓-rec-β #-}
 
     ⊔ₚ-Frm↓-rec : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
