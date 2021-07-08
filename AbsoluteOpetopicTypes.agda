@@ -3,9 +3,6 @@
 open import MiniHoTT
 open import MiniUniverse
 
--- Typechecking seems to take a lot longer now that we have
--- removed the inductive records for Opr and Frm, etc.
--- should we put them back? 
 module AbsoluteOpetopicTypes where
 
   --
@@ -142,30 +139,30 @@ module AbsoluteOpetopicTypes where
     → (f : Frm X) (P : ℙ) (t : FrmDec X P)
     → Set ℓ
 
-  Opr : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n) (f : Frm X) → Set ℓ
-  Opr X f = Σ ℙ (λ pos → Σ (FrmDec X pos) (λ typ → Cns X f pos typ))
+  record Opr {ℓ} {n : ℕ} (X : 𝕆 ℓ n) (f : Frm X) : Set ℓ where
+    eta-equality
+    inductive
+    constructor ⟪_,_,_⟫ₒₚ
+    field
+      pos : ℙ
+      typ : FrmDec X pos
+      cns : Cns X f pos typ
 
-  posₒ : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} {f : Frm X}
-    → Opr X f → ℙ
-  posₒ (pos , _ , _) = pos
-
-  typₒ : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} {f : Frm X}
-    → (op : Opr X f) → FrmDec X (posₒ op)
-  typₒ (_ , typ , _) = typ
+  open Opr public
   
   --
   --  Higher Frames
   --
 
-  Frmₛ : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} (Xₛₙ : Frm Xₙ → Set ℓ)
-    → (f : Frm Xₙ) (x : Xₛₙ f) → Set ℓ
-  Frmₛ {Xₙ = Xₙ} Xₛₙ f x =
-    Σ (Opr Xₙ f) (λ o →
-    Π (El (posₒ o)) (λ p →
-      Xₛₙ (app (typₒ o) p)))
+  record Frmₛ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} (Xₛₙ : Frm Xₙ → Set ℓ) (f : Frm Xₙ) (x : Xₛₙ f) : Set ℓ where
+    eta-equality
+    inductive
+    constructor ⟪_,_⟫f
+    field
+      opr : Opr Xₙ f
+      dec : (p : El (pos opr)) → Xₛₙ (app (typ opr) p)
 
-  opr = fst
-  dec = snd
+  open Frmₛ public
   
   --
   --  Opetopic Types and Frames 
@@ -185,30 +182,30 @@ module AbsoluteOpetopicTypes where
     → Cns X f ⊤ₚ (⊤-dec f)
 
   η : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} (f : Frm X) → Opr X f
-  η f = (_ , _ , η-cns f)
+  η f = ⟪ _ , _ , η-cns f ⟫ₒₚ
 
   η-frm : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
     → (f : Frm Xₙ) (x : Xₛₙ f)
     → Frmₛ Xₛₙ f x 
-  η-frm {Xₛₙ = Xₛₙ} f x = η f , ⊤ₚ-elim (λ p → Xₛₙ (app (typₒ (η f)) p)) x 
+  η-frm {Xₛₙ = Xₛₙ} f x = ⟪ η f , ⊤ₚ-elim (λ p → Xₛₙ (app (typ (η f)) p)) x ⟫f
 
   μ-cns : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
     → {f : Frm X} (c : Opr X f)
-    → (δ : (p : El (posₒ c)) → Opr X (app (typₒ c) p))
-    → Cns X f (Σₚ (posₒ c) (λ p → posₒ (δ p)))
-              (Σ-dec (λ p → typₒ (δ p)))
+    → (δ : (p : El (pos c)) → Opr X (app (typ c) p))
+    → Cns X f (Σₚ (pos c) (λ p → pos (δ p)))
+              (Σ-dec (λ p → typ (δ p)))
 
   μ : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
     → {f : Frm X} (c : Opr X f)
-    → (δ : (p : El (posₒ c)) → Opr X (app (typₒ c) p))
+    → (δ : (p : El (pos c)) → Opr X (app (typ c) p))
     → Opr X f
-  μ c δ = (_ , _ , μ-cns c δ)
+  μ c δ = ⟪ _ , _ , μ-cns c δ ⟫ₒₚ
 
   μ-frm : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
     → {f : Frm Xₙ} {x : Xₛₙ f} (fₛ : Frmₛ Xₛₙ f x)
-    → (ϕ : (p : El (posₒ (opr fₛ))) → Frmₛ Xₛₙ (app (typₒ (opr fₛ)) p) (dec fₛ p)) 
+    → (ϕ : (p : El (pos (opr fₛ))) → Frmₛ Xₛₙ (app (typ (opr fₛ)) p) (dec fₛ p)) 
     → Frmₛ Xₛₙ f x
-  μ-frm fₛ ϕ = μ (opr fₛ) (λ p → opr (ϕ p)) , Σₚ-elim _ _ _ (λ p q → dec (ϕ p) q) 
+  μ-frm fₛ ϕ = ⟪ μ (opr fₛ) (λ p → opr (ϕ p)) , Σₚ-elim _ _ _ (λ p q → dec (ϕ p) q) ⟫f
     
   --
   --  Monadic Laws
@@ -218,20 +215,20 @@ module AbsoluteOpetopicTypes where
 
     μ-unit-r : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
       → {f : Frm X} (c : Opr X f)
-      → μ-cns c (λ p → η (app (typₒ c) p)) ↦ snd (snd c)
+      → μ-cns c (λ p → η (app (typ c) p)) ↦ cns c
     {-# REWRITE μ-unit-r #-}
 
     μ-unit-l : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
-      → (f : Frm X) (δ : (p : El (posₒ (η f))) → Opr X (app (typₒ (η f)) p))
-      → μ-cns (η f) δ ↦ snd (snd (δ ttₚ))
+      → (f : Frm X) (δ : (p : El (pos (η f))) → Opr X (app (typ (η f)) p))
+      → μ-cns (η f) δ ↦ cns (δ ttₚ)
     {-# REWRITE μ-unit-l #-}
 
     μ-assoc : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
       → {f : Frm X} (c : Opr X f)
-      → (δ : (p : El (posₒ c)) → Opr X (app (typₒ c) p))
-      → (ε : (p : El (posₒ (μ c δ))) → Opr X (app (typₒ (μ c δ)) p))
+      → (δ : (p : El (pos c)) → Opr X (app (typ c) p))
+      → (ε : (p : El (pos (μ c δ))) → Opr X (app (typ (μ c δ)) p))
       → μ-cns (μ c δ) ε ↦ μ-cns c (λ p → μ (δ p)
-          (λ q → ε ⟦ posₒ c , (λ p → posₒ (δ p)) ∣ p , q ⟧ₚ))
+          (λ q → ε ⟦ pos c , (λ p → pos (δ p)) ∣ p , q ⟧ₚ))
     {-# REWRITE μ-assoc #-}
 
   --
@@ -245,12 +242,12 @@ module AbsoluteOpetopicTypes where
       → Tree Xₙ Xₛₙ (f , x , η-frm {Xₛₙ = Xₛₙ} f x) ⊥ₚ ⊥-dec
 
     nd : {fₙ : Frm Xₙ} (x : Xₛₙ fₙ) (fₛₙ : Frmₛ Xₛₙ fₙ x)
-      → (δ : (p : El (posₒ (opr fₛₙ))) → Frmₛ Xₛₙ (app (typₒ (opr fₛₙ)) p) (dec fₛₙ p))
-      → (ε : (p : El (posₒ (opr fₛₙ))) → Opr (Xₙ , Xₛₙ) (app (typₒ (opr fₛₙ)) p , dec fₛₙ p , δ p)) 
+      → (δ : (p : El (pos (opr fₛₙ))) → Frmₛ Xₛₙ (app (typ (opr fₛₙ)) p) (dec fₛₙ p))
+      → (ε : (p : El (pos (opr fₛₙ))) → Opr (Xₙ , Xₛₙ) (app (typ (opr fₛₙ)) p , dec fₛₙ p , δ p)) 
       → Tree Xₙ Xₛₙ (fₙ , x , μ-frm {Xₛₙ = Xₛₙ} {x = x} fₛₙ δ) 
-          (⊤ₚ ⊔ₚ Σₚ (posₒ (opr fₛₙ)) (λ p → posₒ (ε p)))
+          (⊤ₚ ⊔ₚ Σₚ (pos (opr fₛₙ)) (λ p → pos (ε p)))
           (⊔-dec (⊤-dec (fₙ , x , fₛₙ))
-                 (Σ-dec (λ p → typₒ (ε p)))) 
+                 (Σ-dec (λ p → typ (ε p)))) 
 
   Cns {n = O} X _ _ _ = ⊤
   Cns {n = S n} (Xₙ , Xₛₙ) = Tree Xₙ Xₛₙ 
@@ -262,11 +259,11 @@ module AbsoluteOpetopicTypes where
   γ-cns : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
     → {fₙ : Frm Xₙ} {x : Xₛₙ fₙ} {fₛₙ : Frmₛ Xₛₙ fₙ x}
     → (c : Opr (Xₙ , Xₛₙ) (fₙ , x , fₛₙ))
-    → (δ : (p : El (posₒ (opr fₛₙ))) → Frmₛ Xₛₙ (app (typₒ (opr fₛₙ)) p) (dec fₛₙ p))
-    → (ε : (p : El (posₒ (opr fₛₙ))) → Opr (Xₙ , Xₛₙ) (app (typₒ (opr fₛₙ)) p , dec fₛₙ p , δ p))
+    → (δ : (p : El (pos (opr fₛₙ))) → Frmₛ Xₛₙ (app (typ (opr fₛₙ)) p) (dec fₛₙ p))
+    → (ε : (p : El (pos (opr fₛₙ))) → Opr (Xₙ , Xₛₙ) (app (typ (opr fₛₙ)) p , dec fₛₙ p , δ p))
     → Cns (Xₙ , Xₛₙ) (fₙ , x , μ-frm {Xₛₙ = Xₛₙ} {x = x} fₛₙ δ)
-        (posₒ c ⊔ₚ Σₚ (posₒ (opr fₛₙ)) (λ p → posₒ (ε p)))
-        (⊔-dec (typₒ c) (Σ-dec (λ p → typₒ (ε p)))) 
+        (pos c ⊔ₚ Σₚ (pos (opr fₛₙ)) (λ p → pos (ε p)))
+        (⊔-dec (typ c) (Σ-dec (λ p → typ (ε p)))) 
 
   -- Missing still: right unit (left is definitional), associativity
   -- and distributivity of γ ....
@@ -277,23 +274,23 @@ module AbsoluteOpetopicTypes where
 
   η-cns {n = O} f = tt
   η-cns {n = S n} {X = Xₙ , Xₛₙ} (fₙ , x , fₛₙ) = 
-    nd x fₛₙ (λ p → η-frm {Xₛₙ = Xₛₙ} (app (typₒ (opr fₛₙ)) p) (dec fₛₙ p))
-            (λ p → (_ , _ , lf (app (typₒ (opr fₛₙ)) p) (dec fₛₙ p)))
+    nd x fₛₙ (λ p → η-frm {Xₛₙ = Xₛₙ} (app (typ (opr fₛₙ)) p) (dec fₛₙ p))
+            (λ p → ⟪ _ , _ , lf (app (typ (opr fₛₙ)) p) (dec fₛₙ p) ⟫ₒₚ)
 
   μ-cns {n = O} _ _ = tt
-  μ-cns {n = S n} (_ , _ , lf f x) κ = lf f x
-  μ-cns {n = S n} {X = Xₙ , Xₛₙ} (_ , _ , nd {fₙ} x fₛₙ δ ε) κ = 
-    let w = κ (inlₚ (Σₚ (posₒ (opr fₛₙ)) (λ p₁ → posₒ (ε p₁))) ttₚ)
-        κ' p q = κ (inrₚ ⊤ₚ ⟦ posₒ (opr fₛₙ) , (λ p₁ → posₒ (ε p₁)) ∣ p , q ⟧ₚ) 
+  μ-cns {n = S n} ⟪ _ , _ , lf f x ⟫ₒₚ κ = lf f x
+  μ-cns {n = S n} {X = Xₙ , Xₛₙ} ⟪ _ , _ , nd {fₙ} x fₛₙ δ ε ⟫ₒₚ κ = 
+    let w = κ (inlₚ (Σₚ (pos (opr fₛₙ)) (λ p₁ → pos (ε p₁))) ttₚ)
+        κ' p q = κ (inrₚ ⊤ₚ ⟦ pos (opr fₛₙ) , (λ p₁ → pos (ε p₁)) ∣ p , q ⟧ₚ) 
         ϕ p = μ (ε p) (κ' p) 
     in γ-cns w δ ϕ
 
-  γ-cns (_ , _ , lf f x) δ ε = snd (snd (ε ttₚ))
-  γ-cns {Xₙ = Xₙ} {Xₛₙ = Xₛₙ} (_ , _ , nd {fₙ} x c δ ε) ϕ ψ =
-    let ϕ' p q = ϕ ⟦ posₒ (opr c) , (λ p' → posₒ (opr (δ p'))) ∣ p , q ⟧ₚ
-        ψ' p q = ψ ⟦ posₒ (opr c) , (λ p' → posₒ (opr (δ p'))) ∣ p , q ⟧ₚ
+  γ-cns ⟪ _ , _ , lf f x ⟫ₒₚ δ ε = cns (ε ttₚ)
+  γ-cns {Xₙ = Xₙ} {Xₛₙ = Xₛₙ} ⟪ _ , _ , nd {fₙ} x c δ ε ⟫ₒₚ ϕ ψ =
+    let ϕ' p q = ϕ ⟦ pos (opr c) , (λ p' → pos (opr (δ p'))) ∣ p , q ⟧ₚ
+        ψ' p q = ψ ⟦ pos (opr c) , (λ p' → pos (opr (δ p'))) ∣ p , q ⟧ₚ
         δ' p = μ-frm {Xₛₙ = Xₛₙ} {x = dec c p} (δ p) (ϕ' p)
-        ε' p = (_ , _ , γ-cns (ε p) (ϕ' p) (ψ' p))
+        ε' p = ⟪ _ , _ , γ-cns (ε p) (ϕ' p) (ψ' p) ⟫ₒₚ
     in nd x c δ' ε'
 
   --
