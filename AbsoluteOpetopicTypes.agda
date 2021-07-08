@@ -3,6 +3,9 @@
 open import MiniHoTT
 open import MiniUniverse
 
+-- Typechecking seems to take a lot longer now that we have
+-- removed the inductive records for Opr and Frm, etc.
+-- should we put them back? 
 module AbsoluteOpetopicTypes where
 
   --
