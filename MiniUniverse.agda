@@ -324,45 +324,4 @@ module MiniUniverse where
     → (uv : El (Σₚ U V)) → El (V (fstₚ {V = V} uv))
   sndₚ {U} {V} = Σₚ-elim U V (λ uv → El (V (fstₚ {V = V} uv))) (λ u v → v)
 
-  --
-  --  Decorations
-  --
-
-  -- Okay.  This doesn't quite work.  We'll need some kind of
-  -- "dependent" decorations.  But what does this mean? 
-
-  -- postulate
-
-  --   Σₚ' : (U : ℙ) (V : Decor ℙ U) → ℙ 
-
-  -- data Decor {ℓ} X where
-  --   null : Decor X ⊥ₚ
-  --   times : (U : ℙ) (V : Decor ℙ U)
-  --     -- → (ρ : {!!})
-  --     → Decor X (Σₚ' U V) 
-
-  -- data DepDec {ℓ} : (U : ℙ) (X : Decor (Set ℓ) U) → Set ℓ where
-  --   null↓ : (U : ℙ) (X : 
-
-     -- null : Decor X ⊥ₚ
-     -- term : (x : X) → Decor X ⊤ₚ
-     -- plus : {U V : ℙ} → Decor X U → Decor X V
-     --   → Decor X (U ⊔ₚ V)
-     -- times : {U : ℙ} {V : El U → ℙ}
-     --   → (ρ : (u : El U) → Decor X (V u))
-     --   → Decor X (Σₚ U V)
-
-
-  --
-  --  Arities in the mini-universe
-  --
-
-  record Arity {ℓ} (X : Set ℓ) : Set ℓ where
-    constructor ⟪_,_,_⟫
-    field
-      frm : X
-      pos : ℙ
-      typ : El pos → X
-
-  open Arity public
 
