@@ -15,15 +15,140 @@ module DependentOpetopicType where
     
   Frm↓ : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} (X↓ : 𝕆↓ ℓ↓ X)
     (f : Frm X) → Set ℓ↓
+
+  postulate
+
+    --
+    -- Dependent Frame Decorations
+    --
     
-  Cns↓ : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} (X↓ : 𝕆↓ ℓ↓ X)
-    → {f : Frm X} {P : ℙ} {t : El P → Frm X} (c : Cns X f P t)
-    → (f↓ : Frm↓ X↓ f) (t↓ : (p : El P) → Frm↓ X↓ (t p))
-    → Set ℓ↓
+    FrmDec↓ : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} 
+      → (X↓ : 𝕆↓ ℓ↓ X) {P : ℙ}
+      → FrmDec X P → Set ℓ↓
+
+    ⊥-dec↓ :  ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} 
+      → {X↓ : 𝕆↓ ℓ↓ X}
+      → FrmDec↓ X↓ ⊥-dec
+      
+    ⊤-dec↓ :  ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} 
+      → {X↓ : 𝕆↓ ℓ↓ X} {f : Frm X} (f↓ : Frm↓ X↓ f)
+      → FrmDec↓ X↓ (⊤-dec f)
+  
+    ⊔-dec↓ : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} 
+      → {X↓ : 𝕆↓ ℓ↓ X} {U V : ℙ}
+      → {l : FrmDec X U} {r : FrmDec X V}
+      → FrmDec↓ X↓ l → FrmDec↓ X↓ r
+      → FrmDec↓ X↓ (⊔-dec l r)
+
+    Σ-dec↓ : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} 
+      → {X↓ : 𝕆↓ ℓ↓ X} {U : ℙ} {V : El U → ℙ}
+      → {ρ : (u : El U) → FrmDec X (V u)}
+      → (ρ↓ : (u : El U) → FrmDec↓ X↓ (ρ u))
+      → FrmDec↓ X↓ (Σ-dec ρ)
+
+    --
+    --  Application for Dependent Frame Decorations
+    --
+    
+    app↓ : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
+      → {P : ℙ} {D : FrmDec X P}
+      → FrmDec↓ X↓ D → (p : El P) → Frm↓ X↓ (app D p)
+
+    app↓-⊤-β : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} 
+      → {X↓ : 𝕆↓ ℓ↓ X} {f : Frm X}
+      → (f↓ : Frm↓ X↓ f) (p : El ⊤ₚ)
+      → app↓ (⊤-dec↓ f↓) p ↦ f↓
+    {-# REWRITE app↓-⊤-β #-}
+
+    app↓-⊔-inl-β : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} 
+      → {X↓ : 𝕆↓ ℓ↓ X} {U V : ℙ}
+      → {l : FrmDec X U} {r : FrmDec X V}
+      → (l↓ : FrmDec↓ X↓ l) (r↓ : FrmDec↓ X↓ r)
+      → (u : El U)
+      → app↓ (⊔-dec↓ l↓ r↓) (inlₚ V u) ↦ app↓ l↓ u
+    {-# REWRITE app↓-⊔-inl-β #-}
+
+    app↓-⊔-inr-β : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} 
+      → {X↓ : 𝕆↓ ℓ↓ X} {U V : ℙ}
+      → {l : FrmDec X U} {r : FrmDec X V}
+      → (l↓ : FrmDec↓ X↓ l) (r↓ : FrmDec↓ X↓ r)
+      → (v : El V)
+      → app↓ (⊔-dec↓ l↓ r↓) (inrₚ U v) ↦ app↓ r↓ v
+    {-# REWRITE app↓-⊔-inr-β #-}
+
+    app↓-Σ-β : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} 
+      → {X↓ : 𝕆↓ ℓ↓ X} {U : ℙ} {V : El U → ℙ}
+      → {ρ : (u : El U) → FrmDec X (V u)}
+      → (ρ↓ : (u : El U) → FrmDec↓ X↓ (ρ u))
+      → (u : El U) (v : El (V u))
+      → app↓ (Σ-dec↓ ρ↓) ⟦ U , V ∣ u , v ⟧ₚ ↦ app↓ (ρ↓ u) v
+    {-# REWRITE app↓-Σ-β #-}
+
+    --
+    --  Laws for Dependent Frame Decorations
+    --
+
+    -- ⊔-dec-unit-l : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
+    --   → (V : ℙ) (DV : FrmDec X V)
+    --   → (D⊥ : FrmDec X ⊥ₚ)
+    --   → ⊔-dec D⊥ DV ↦ DV
+
+    -- ⊔-dec-unit-r : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
+    --   → (U : ℙ) (DU : FrmDec X U)
+    --   → (D⊥ : FrmDec X ⊥ₚ)
+    --   → ⊔-dec DU D⊥ ↦ DU
+
+    -- ⊔-dec-assoc : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
+    --   → (U V W : ℙ)(DU : FrmDec X U)
+    --   → (DV : FrmDec X V) (DW : FrmDec X W)
+    --   → ⊔-dec (⊔-dec DU DV) DW ↦
+    --     ⊔-dec DU (⊔-dec DV DW)
+
+    -- Σ-dec-unit-r : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
+    --   → (U : ℙ) (UD : FrmDec X U)
+    --   → Σ-dec (λ u → ⊤-dec (app UD u)) ↦ UD
+
+    -- Σ-dec-unit-l : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
+    --   → (V : El ⊤ₚ → ℙ) (DV : (t : El ⊤ₚ) → FrmDec X (V t))
+    --   → Σ-dec DV ↦ DV ttₚ
+
+    -- Σ-dec-zero-r : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n) (U : ℙ) 
+    --   → Σ-dec {X = X} {U = U} {V = λ _ → ⊥ₚ} (λ u → ⊥-dec) ↦ ⊥-dec
+
+    -- Σ-dec-zero-l : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
+    --   → (V : El ⊥ₚ → ℙ)
+    --   → (DV : (b : El ⊥ₚ) → FrmDec X (V b))
+    --   → Σ-dec DV ↦ ⊥-dec
+    
+    -- Σ-dec-assoc : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
+    --   → (U : ℙ) (V : El U → ℙ)
+    --   → (W : El (Σₚ U V) → ℙ)
+    --   → (DW : (uv : El (Σₚ U V)) → FrmDec X (W uv))
+    --   → Σ-dec DW ↦ Σ-dec (λ u → Σ-dec (λ v → DW ⟦ U , V ∣ u , v ⟧ₚ)) 
+
+    -- ⊔-Σ-dec-distrib-r : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
+    --   → (U V : ℙ) (W : El (U ⊔ₚ V) → ℙ)
+    --   → (DW : (uv : El (U ⊔ₚ V)) → FrmDec X (W uv))
+    --   → Σ-dec DW ↦ ⊔-dec (Σ-dec {U = U} (λ u → DW (inlₚ V u)))
+    --                       (Σ-dec {U = V} (λ v → DW (inrₚ U v)))
+    
+    -- ⊔-Σ-dec-distrib-l : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
+    --   → (U : ℙ) (V : El U → ℙ) (W : El U → ℙ)
+    --   → (DV : (u : El U) → FrmDec X (V u))
+    --   → (DW : (u : El U) → FrmDec X (W u))
+    --   → Σ-dec (λ u → ⊔-dec (DV u) (DW u)) ↦
+    --       ⊔-dec {U = Σₚ U V} {V = Σₚ U W} (Σ-dec DV) (Σ-dec DW)
+
 
   --
-  --  Dependent Operations 
+  --  Dependent Constructors and Operations 
   --
+
+  Cns↓ : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} (X↓ : 𝕆↓ ℓ↓ X)
+    → {f : Frm X} {P : ℙ} {t : FrmDec X P} (c : Cns X f P t)
+    → (f↓ : Frm↓ X↓ f) (t↓ : FrmDec↓ X↓ t)
+    → Set ℓ↓
+
   
   record Opr↓ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {f : Frm X}
       (X↓ : 𝕆↓ ℓ↓ X) (f↓ : Frm↓ X↓ f) (op : Opr X f) : Set ℓ↓ where
@@ -31,149 +156,13 @@ module DependentOpetopicType where
     inductive
     constructor ⟪_,_⟫ₒₚ↓
     field
-      typ↓ : (p : El (pos op)) → Frm↓ X↓ (typ op p)
+      typ↓ : FrmDec↓ X↓ (typ op) -- (p : El (pos op)) → Frm↓ X↓ (app (typ op) p)
       cns↓ : Cns↓ X↓ (cns op) f↓ typ↓ 
 
   open Opr↓ public
 
   --
-  --  Dependent Frame Eliminators
-  --
-
-  -- postulate
-
-  --   ⊥ₚ-Frm↓-rec : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n}
-  --     → {X↓ : 𝕆↓ ℓ↓ X} 
-  --     → (p : El ⊥ₚ) → Frm↓ X↓ (⊥ₚ-Frm-rec p)
-
-  --   ⊤ₚ-Frm↓-rec : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {f : Frm X} (f↓ : Frm↓ X↓ f)
-  --     → (p : El ⊤ₚ) → Frm↓ X↓ (⊤ₚ-Frm-rec f p) 
-
-  --   ⊤ₚ-Frm↓-rec-β : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {f : Frm X} (f↓ : Frm↓ X↓ f) (p : El ⊤ₚ)
-  --     → ⊤ₚ-Frm↓-rec f↓ p ↦ f↓
-  --   {-# REWRITE ⊤ₚ-Frm↓-rec-β #-}
-
-  --   ⊔ₚ-Frm↓-rec : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {U V : ℙ} {inlₚ* : El U → Frm X} {inrₚ* : El V → Frm X}
-  --     → (inl↓ₚ* : (u : El U) → Frm↓ X↓ (inlₚ* u))
-  --     → (inr↓ₚ* : (v : El V) → Frm↓ X↓ (inrₚ* v))
-  --     → (uv : El (U ⊔ₚ V)) → Frm↓ X↓ (⊔ₚ-Frm-rec inlₚ* inrₚ* uv) 
-
-  --   ⊔ₚ-Frm↓-rec-inl-β : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {U V : ℙ} {inlₚ* : El U → Frm X} {inrₚ* : El V → Frm X}
-  --     → (inl↓ₚ* : (u : El U) → Frm↓ X↓ (inlₚ* u))
-  --     → (inr↓ₚ* : (v : El V) → Frm↓ X↓ (inrₚ* v))
-  --     → (u : El U) → ⊔ₚ-Frm↓-rec inl↓ₚ* inr↓ₚ* (inlₚ V u) ↦ inl↓ₚ* u
-  --   {-# REWRITE ⊔ₚ-Frm↓-rec-inl-β #-}
-
-  --   ⊔ₚ-Frm↓-rec-inr-β : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {U V : ℙ} {inlₚ* : El U → Frm X} {inrₚ* : El V → Frm X}
-  --     → (inl↓ₚ* : (u : El U) → Frm↓ X↓ (inlₚ* u))
-  --     → (inr↓ₚ* : (v : El V) → Frm↓ X↓ (inrₚ* v))
-  --     → (v : El V) → ⊔ₚ-Frm↓-rec inl↓ₚ* inr↓ₚ* (inrₚ U v) ↦ inr↓ₚ* v
-  --   {-# REWRITE ⊔ₚ-Frm↓-rec-inr-β #-}
-
-  --   Σₚ-Frm↓-rec : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {U : ℙ} {V : El U → ℙ}
-  --     → {ρ : (u : El U) → El (V u) → Frm X}
-  --     → (ρ↓ : (u : El U) (v : El (V u)) → Frm↓ X↓ (ρ u v))
-  --     → (uv : El (Σₚ U V)) → Frm↓ X↓ (Σₚ-Frm-rec ρ uv)
-
-  --   Σₚ-Frm↓-rec-β : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {U : ℙ} {V : El U → ℙ}
-  --     → {ρ : (u : El U) → El (V u) → Frm X}
-  --     → (ρ↓ : (u : El U) (v : El (V u)) → Frm↓ X↓ (ρ u v))
-  --     → (u : El U) (v : El (V u))
-  --     → Σₚ-Frm↓-rec ρ↓ ⟦ U , V ∣ u , v ⟧ₚ ↦ ρ↓ u v
-  --   {-# REWRITE Σₚ-Frm↓-rec-β #-}
-
-  --   --
-  --   --  Dependent Frame Recursor Laws
-  --   --
-    
-  --   ⊔ₚ-Frm↓-rec-unit-r : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {U : ℙ} {inlₚ* : El U → Frm X} {inrₚ* : El ⊥ₚ → Frm X}
-  --     → (inl↓ₚ* : (u : El U) → Frm↓ X↓ (inlₚ* u))
-  --     → (inr↓ₚ* : (b : El ⊥ₚ) → Frm↓ X↓ (inrₚ* b))
-  --     → ⊔ₚ-Frm↓-rec inl↓ₚ* inr↓ₚ* ↦ inl↓ₚ* 
-  --   {-# REWRITE ⊔ₚ-Frm↓-rec-unit-r #-}
-    
-  --   ⊔ₚ-Frm↓-rec-unit-l : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {V : ℙ} {inlₚ* : El ⊥ₚ → Frm X} {inrₚ* : El V → Frm X}
-  --     → (inl↓ₚ* : (b : El ⊥ₚ) → Frm↓ X↓ (inlₚ* b))
-  --     → (inr↓ₚ* : (v : El V) → Frm↓ X↓ (inrₚ* v))
-  --     → ⊔ₚ-Frm↓-rec inl↓ₚ* inr↓ₚ* ↦ inr↓ₚ* 
-  --   {-# REWRITE ⊔ₚ-Frm↓-rec-unit-l #-}
-    
-  --   ⊔ₚ-Frm↓-rec-assoc : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {U V W : ℙ} {inlₚ* : El (U ⊔ₚ V) → Frm X}
-  --     → {inrₚ* : El W → Frm X}
-  --     → (inl↓ₚ* : (uv : El (U ⊔ₚ V)) → Frm↓ X↓ (inlₚ* uv))
-  --     → (inr↓ₚ* : (w : El W) → Frm↓ X↓ (inrₚ* w))
-  --     → ⊔ₚ-Frm↓-rec {U = U ⊔ₚ V} {V = W} inl↓ₚ* inr↓ₚ* ↦
-  --         ⊔ₚ-Frm↓-rec {U = U} {V = V ⊔ₚ W} (λ u → inl↓ₚ* (inlₚ V u))
-  --           (⊔ₚ-Frm↓-rec {U = V} {V = W} (λ v → inl↓ₚ* (inrₚ U v)) inr↓ₚ*) 
-  --   {-# REWRITE ⊔ₚ-Frm↓-rec-assoc #-}
-
-  --   Σₚ-Frm↓-rec-unit-r : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {U : ℙ} {ρ : (u : El U) (t : El ⊤ₚ) → Frm X}
-  --     → (ρ↓ : (u : El U) (t : El ⊤ₚ) → Frm↓ X↓ (ρ u t))
-  --     → Σₚ-Frm↓-rec ρ↓ ↦ (λ u → ρ↓ u ttₚ)
-  --   {-# REWRITE Σₚ-Frm↓-rec-unit-r #-}
-
-  --   Σₚ-Frm↓-rec-unit-l : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {V : El ⊤ₚ → ℙ} {ρ : (t : El ⊤ₚ) → El (V t) → Frm X}
-  --     → (ρ↓ : (t : El ⊤ₚ) (v : El (V t)) → Frm↓ X↓ (ρ t v))
-  --     → Σₚ-Frm↓-rec ρ↓ ↦ ρ↓ ttₚ
-  --   {-# REWRITE Σₚ-Frm↓-rec-unit-l #-}
-
-  --   Σₚ-Frm↓-rec-zero-r : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {U : ℙ} {ρ : (u : El U) → El ⊥ₚ → Frm X}
-  --     → (ρ↓ : (u : El U) (b : El ⊥ₚ) → Frm↓ X↓ (ρ u b))
-  --     → Σₚ-Frm↓-rec ρ↓ ↦ ⊥ₚ-Frm↓-rec 
-  --   {-# REWRITE Σₚ-Frm↓-rec-zero-r #-}
-
-  --   Σₚ-Frm↓-rec-zero-l : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {V : El ⊥ₚ → ℙ} {ρ : (b : El ⊥ₚ) → El (V b) → Frm X}
-  --     → (ρ↓ : (b : El ⊥ₚ) (v : El (V b)) → Frm↓ X↓ (ρ b v))
-  --     → Σₚ-Frm↓-rec ρ↓ ↦ ⊥ₚ-Frm↓-rec
-  --   {-# REWRITE Σₚ-Frm↓-rec-zero-l #-}
-
-  --   Σₚ-Frm↓-rec-assoc : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {U : ℙ} {V : El U → ℙ} {W : El (Σₚ U V) → ℙ}
-  --     → {ρ : (uv : El (Σₚ U V)) → El (W uv) → Frm X}
-  --     → (ρ↓ : (uv : El (Σₚ U V)) (w : El (W uv)) → Frm↓ X↓ (ρ uv w))
-  --     → Σₚ-Frm↓-rec {U = Σₚ U V} {V = W} ρ↓ ↦
-  --         Σₚ-Frm↓-rec {U = U} {V = λ u → Σₚ (V u) (λ v → W ⟦ U , V ∣ u , v ⟧ₚ)}
-  --           (λ u → Σₚ-Frm↓-rec {U = V u} {V = (λ v → W ⟦ U , V ∣ u , v ⟧ₚ)}
-  --                    (λ v w → ρ↓ ⟦ U , V ∣ u , v ⟧ₚ w))
-  --   {-# REWRITE Σₚ-Frm↓-rec-assoc #-}
-
-  --   ⊔ₚ-Σₚ-Frm↓-rec-distrib-r : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {U V : ℙ} {W : El (U ⊔ₚ V) → ℙ}
-  --     → {ρ : (uv : El (U ⊔ₚ V)) → El (W uv) → Frm X}
-  --     → (ρ↓ : (uv : El (U ⊔ₚ V)) (w : El (W uv)) → Frm↓ X↓ (ρ uv w))
-  --     → Σₚ-Frm↓-rec ρ↓ ↦
-  --         ⊔ₚ-Frm↓-rec {U = Σₚ U (λ u → W (inlₚ V u))}
-  --                     {V = Σₚ V (λ v → W (inrₚ U v))}
-  --           (Σₚ-Frm↓-rec {U = U} {V = (λ u → W (inlₚ V u))} (λ u w → ρ↓ (inlₚ V u) w))
-  --           (Σₚ-Frm↓-rec {U = V} {V = (λ v → W (inrₚ U v))} (λ v w → ρ↓ (inrₚ U v) w))
-  --   {-# REWRITE ⊔ₚ-Σₚ-Frm↓-rec-distrib-r #-}
-
-  --   ⊔ₚ-Σₚ-Frm↓-rec-distrib-l : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
-  --     → {U : ℙ} {V : El U → ℙ} {W : El U → ℙ}
-  --     → {ρ : (u : El U) (vw : El (V u ⊔ₚ W u)) → Frm X}
-  --     → (ρ↓ : (u : El U) (vw : El (V u ⊔ₚ W u)) → Frm↓ X↓ (ρ u vw))
-  --     → Σₚ-Frm↓-rec ρ↓ ↦
-  --         ⊔ₚ-Frm↓-rec {U = Σₚ U V} {V = Σₚ U W}
-  --           (Σₚ-Frm↓-rec {V = V} (λ u v → ρ↓ u (inlₚ (W u) v)))
-  --           (Σₚ-Frm↓-rec {V = W} (λ u w → ρ↓ u (inrₚ (V u) w))) 
-  --   {-# REWRITE ⊔ₚ-Σₚ-Frm↓-rec-distrib-l #-}
-
-  --
-  --  Dependent Frames
+  --  Higher Dependent Frames
   --
 
   record Frm↓ₛ {ℓ ℓ↓} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ} {X↓ₙ : 𝕆↓ ℓ↓ Xₙ}
@@ -185,7 +174,7 @@ module DependentOpetopicType where
     constructor ⟪_,_⟫f↓
     field
       opr↓ : Opr↓ X↓ₙ f↓ (opr fₛ)
-      dec↓ : (p : El (pos (opr fₛ))) → X↓ₛₙ (typ↓ opr↓ p) (dec fₛ p)
+      dec↓ : (p : El (pos (opr fₛ))) → X↓ₛₙ (app↓ (typ↓ opr↓) p) (dec fₛ p)
 
   open Frm↓ₛ public
       
@@ -198,7 +187,7 @@ module DependentOpetopicType where
     Σ (𝕆↓ ℓ↓ Xₙ) (λ X↓ₙ →
     {f : Frm Xₙ} (f↓ : Frm↓ X↓ₙ f) (x : Xₛₙ f) → Set ℓ↓)
   
-  Frm↓ {n = O} {X} X↓ ⟪ x , P , t ⟫ =
+  Frm↓ {n = O} {X} X↓ ( x , P , t ) =
     (X↓ x) × ((p : El P) → X↓ (t p))
   Frm↓ {n = S n} {Xₙ , Xₛₙ} (X↓ₙ , X↓ₛₙ) (f , x , fₛ) =
     Σ (Frm↓ X↓ₙ f) (λ f↓ →
@@ -284,7 +273,7 @@ module DependentOpetopicType where
   -- --  Dependent constructors
   -- --
 
-  Cns↓ = ? 
+  Cns↓ = {!!} 
   -- Cns↓ {n = O} X↓ _ _ _ = ⊤
   -- Cns↓ {n = S n} (X↓ₙ , X↓ₛₙ) (lf f x) (f↓ , x↓ , ηf↓ₛ) τ =
   --   (ηf↓ₛ ≡ η↓-frm f↓ x↓) ×
@@ -380,3 +369,5 @@ module DependentOpetopicType where
   --     Tail↓ : 𝕆↓∞ (Tail X∞) (X↓ , Head↓)
 
   -- open 𝕆↓∞ public 
+
+
