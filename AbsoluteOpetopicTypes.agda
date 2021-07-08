@@ -1,8 +1,7 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --no-positivity-check #-}
 
 open import MiniHoTT
 open import MiniUniverse
-open import Decorations
 
 module AbsoluteOpetopicTypes where
 
@@ -12,19 +11,26 @@ module AbsoluteOpetopicTypes where
 
   𝕆 : (ℓ : Level) → ℕ → Set (ℓ-suc ℓ)
   Frm : ∀ {ℓ} {n : ℕ} → 𝕆 ℓ n → Set ℓ
+  
+  data FrmDec {ℓ} {n : ℕ} (X : 𝕆 ℓ n) : ℙ → Set ℓ
+  FrmDec↓ : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
+    → (X↓ : Frm X → Set ℓ)
+    → {P : ℙ} (D : FrmDec X P)
+    → Set ℓ 
+
   Cns : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
-    → (f : Frm X) (P : ℙ) (t : Decor (Frm X) P)
+    → (f : Frm X) (P : ℙ) (t : FrmDec X P)
     → Set ℓ
 
   Opr : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n) (f : Frm X) → Set ℓ
-  Opr X f = Σ ℙ (λ pos → Σ (Decor (Frm X) pos) (λ typ → Cns X f pos typ))
+  Opr X f = Σ ℙ (λ pos → Σ (FrmDec X pos) (λ typ → Cns X f pos typ))
 
   posₒ : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} {f : Frm X}
     → Opr X f → ℙ
   posₒ (pos , _ , _) = pos
 
   typₒ : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} {f : Frm X}
-    → (op : Opr X f) → Decor (Frm X) (posₒ op)
+    → (op : Opr X f) → FrmDec X (posₒ op)
   typₒ (_ , typ , _) = typ
   
   --
@@ -32,7 +38,7 @@ module AbsoluteOpetopicTypes where
   --
 
   Frmₛ : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} (Xₛₙ : Frm Xₙ → Set ℓ) (f : Frm Xₙ) (x : Xₛₙ f) → Set ℓ
-  Frmₛ {Xₙ = Xₙ} Xₛₙ f x = Σ (Opr Xₙ f) (λ o → Decor↓ Xₛₙ (typₒ o))
+  Frmₛ {Xₙ = Xₙ} Xₛₙ f x = Σ (Opr Xₙ f) (λ o → FrmDec↓ Xₛₙ (typₒ o))
 
   opr = fst
   dec = snd
@@ -46,6 +52,32 @@ module AbsoluteOpetopicTypes where
 
   Frm {n = O} X = Arity X -- probably don't want to do this now ...
   Frm {n = S n} (Xₙ , Xₛₙ) = Σ (Frm Xₙ) (λ f → Σ (Xₛₙ f) (λ x → Frmₛ Xₛₙ f x))
+
+  data FrmDec {ℓ} {n} X where
+    null : FrmDec X ⊥ₚ
+    term : Frm X → FrmDec X ⊤ₚ
+    plus : {U V : ℙ} → FrmDec X U → FrmDec X V
+      → FrmDec X (U ⊔ₚ V)
+    times : {U : ℙ} {V : El U → ℙ}
+      → (ρ : (u : El U) → FrmDec X (V u))
+      → FrmDec X (Σₚ U V)
+
+  postulate
+  
+    app : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} {P : ℙ}
+      → FrmDec X P → El P → Frm X
+  
+    app↓ : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
+      → {X↓ : Frm X → Set ℓ} {P : ℙ}
+      → {D : FrmDec X P}
+      → FrmDec↓ X↓ D → (p : El P) → X↓ (app D p)
+
+  FrmDec↓ X↓ null = ⊤
+  FrmDec↓ X↓ (term x) = X↓ x
+  FrmDec↓ X↓ (plus DU DV) =
+    FrmDec↓ X↓ DU × FrmDec↓ X↓ DV
+  FrmDec↓ X↓ (times {U} ρ) =
+    (u : El U) → FrmDec↓ X↓ (ρ u)
 
   --
   --  Monadic Structure
@@ -113,27 +145,21 @@ module AbsoluteOpetopicTypes where
   --
 
   data Tree {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ) :
-      (f : Frm Xₙ) (x : Xₛₙ f) (U : ℙ) (t : Decor (Frm Xₙ) U) (c : Cns Xₙ f U t) (d : Decor↓ Xₛₙ t)
-      (V : ℙ) (s : Decor (Frm (Xₙ , Xₛₙ)) V)
-    → Set ℓ where
-    -- (f : Frm (Xₙ , Xₛₙ)) (P : ℙ) (D : Decor (Frm (Xₙ , Xₛₙ)) P) → Set ℓ where 
+    (f : Frm (Xₙ , Xₛₙ)) (P : ℙ) (D : FrmDec (Xₙ , Xₛₙ) P) → Set ℓ where 
 
-  --   lf : (f : Frm Xₙ) (x : Xₛₙ f)
-  --     → Tree Xₙ Xₛₙ (f , x , η-frm f x)
-  --         ⊥ₚ ⊥ₚ-Frm-rec 
+    lf : (f : Frm Xₙ) (x : Xₛₙ f)
+      → Tree Xₙ Xₛₙ (f , x , η-frm f x) ⊥ₚ null
 
-  --   nd : {fₙ : Frm Xₙ} (x : Xₛₙ fₙ) (fₛₙ : Frmₛ Xₛₙ fₙ x)
-  --     → (δ : (p : El (posₒ (opr fₛₙ))) → Frmₛ Xₛₙ (typₒ (opr fₛₙ) p) (dec fₛₙ p))
-  --     → (ε : (p : El (posₒ (opr fₛₙ))) → Opr (Xₙ , Xₛₙ) (typₒ (opr fₛₙ) p , dec fₛₙ p , δ p))
-  --     → Tree Xₙ Xₛₙ (fₙ , x , μ-frm fₛₙ δ) 
-  --         (⊤ₚ ⊔ₚ Σₚ (posₒ (opr fₛₙ)) (λ p → posₒ (ε p)))
-  --         (⊔ₚ-Frm-rec (⊤ₚ-Frm-rec (fₙ , x , fₛₙ))
-  --                     (Σₚ-Frm-rec (λ p q → typₒ (ε p) q))) 
-
+    nd : {fₙ : Frm Xₙ} (x : Xₛₙ fₙ) (fₛₙ : Frmₛ Xₛₙ fₙ x)
+      → (δ : (p : El (posₒ (opr fₛₙ))) → Frmₛ Xₛₙ (app (typₒ (opr fₛₙ)) p) (app↓ {D = typₒ (opr fₛₙ)} (dec fₛₙ) p))
+      → (ε : (p : El (posₒ (opr fₛₙ))) → Opr (Xₙ , Xₛₙ) (app (typₒ (opr fₛₙ)) p , app↓ {D = typₒ (opr fₛₙ)} (dec fₛₙ) p , δ p))
+      → Tree Xₙ Xₛₙ (fₙ , x , μ-frm {x = x} fₛₙ δ) 
+          (⊤ₚ ⊔ₚ Σₚ (posₒ (opr fₛₙ)) (λ p → posₒ (ε p)))
+          (plus (term (fₙ , x , fₛₙ))
+                (times λ p → typₒ (ε p))) 
 
   Cns {n = O} X _ _ _ = ⊤
-  Cns {n = S n} (Xₙ , Xₛₙ) (f , x , ((U , t , c) , d)) V s =
-    Tree Xₙ Xₛₙ f x U t c d V s 
+  Cns {n = S n} (Xₙ , Xₛₙ) = Tree Xₙ Xₛₙ 
 
   --
   --  Grafting of trees

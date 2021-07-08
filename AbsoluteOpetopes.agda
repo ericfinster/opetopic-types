@@ -2,7 +2,6 @@
 
 open import MiniHoTT
 open import MiniUniverse
-open import Decorations
 
 module AbsoluteOpetopes where
 
@@ -19,27 +18,27 @@ module AbsoluteOpetopes where
 
   postulate
   
-    appₒ : {n : ℕ} {P : ℙ}
+    app : {n : ℕ} {P : ℙ}
       → 𝕆Dec n P → El P → 𝕆 n
 
     app₀-term : (n : ℕ) 
       → (o : 𝕆 n) (p : El ⊤ₚ)
-      → appₒ (term o) p ↦ o
+      → app (term o) p ↦ o
 
-    appₒ-plus-inl : (n : ℕ) (U V : ℙ)
+    app-plus-inl : (n : ℕ) (U V : ℙ)
       → (du : 𝕆Dec n U) (dv : 𝕆Dec n V)
       → (u : El U)
-      → appₒ (plus du dv) (inlₚ V u) ↦ appₒ du u 
+      → app (plus du dv) (inlₚ V u) ↦ app du u 
 
-    appₒ-plus-inr : (n : ℕ) (U V : ℙ)
+    app-plus-inr : (n : ℕ) (U V : ℙ)
       → (du : 𝕆Dec n U) (dv : 𝕆Dec n V)
       → (v : El V)
-      → appₒ (plus du dv) (inrₚ U v) ↦ appₒ dv v
+      → app (plus du dv) (inrₚ U v) ↦ app dv v
 
-    appₒ-times : (n : ℕ) (U : ℙ) (V : El U → ℙ)
+    app-times : (n : ℕ) (U : ℙ) (V : El U → ℙ)
        → (ρ : (u : El U) → 𝕆Dec n (V u))
        → (u : El U) (v : El (V u))
-       → appₒ (times ρ) ⟦ U , V ∣ u , v ⟧ₚ ↦ appₒ (ρ u) v 
+       → app (times ρ) ⟦ U , V ∣ u , v ⟧ₚ ↦ app (ρ u) v 
     
   data 𝕋 : {n : ℕ} → 𝕆 n → (P : ℙ) → (τ : 𝕆Dec n P) → Set
 
@@ -57,7 +56,7 @@ module AbsoluteOpetopes where
       → (t : 𝕋 o P τ)
       → {Q : El P → ℙ}
       → {ω : (p : El P) → 𝕆Dec n (Q p)}
-      → (κ : (p : El P) → 𝕋 (appₒ τ p) (Q p) (ω p))
+      → (κ : (p : El P) → 𝕋 (app τ p) (Q p) (ω p))
       → 𝕋 o (Σₚ P Q) (times ω)
 
   data 𝕋 where
@@ -72,8 +71,8 @@ module AbsoluteOpetopes where
       → (t : 𝕋 o P τ)
       → {Q : El P → ℙ}
       → {ω : (p : El P) → 𝕆Dec n (Q p)}
-      → (κ : (p : El P) → 𝕋 (appₒ τ p) (Q p) (ω p))
+      → (κ : (p : El P) → 𝕋 (app τ p) (Q p) (ω p))
       → {R : (p : El P) → ℙ}
       → {ζ : (p : El P) → 𝕆Dec (S n) (R p)}
-      → (ε : (p : El P) → 𝕋 (appₒ τ p ▸ κ p) (R p) (ζ p))
+      → (ε : (p : El P) → 𝕋 (app τ p ▸ κ p) (R p) (ζ p))
       → 𝕋 (o ▸ μ t κ) (⊤ₚ ⊔ₚ Σₚ P R) (plus (term (o ▸ t)) (times ζ)) 
