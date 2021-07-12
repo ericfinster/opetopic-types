@@ -9,11 +9,48 @@ module MiniUniverse where
   postulate
 
     ℙ : Set 
+    El : ℙ → Set
 
     Decor : ∀ {ℓ} → Set ℓ → ℙ → Set ℓ
     Decor↓ : ∀ {ℓ ℓ↓} {P : ℙ} {X : Set ℓ}
       → (X↓ : X → Set ℓ↓) (δ : Decor X P)
       → Set ℓ↓
+
+    app : ∀ {ℓ} {X : Set ℓ} {P : ℙ}
+      → Decor X P → El P → X
+    app↓ : ∀ {ℓ ℓ↓} {P : ℙ} {X : Set ℓ}
+      → {X↓ : X → Set ℓ↓} {δ : Decor X P}
+      → Decor↓ X↓ δ → (p : El P) → X↓ (app δ p)
+
+    cst-dec : ∀ {ℓ} {X : Set ℓ}
+      → (P : ℙ) → X → Decor X P
+
+    map-dec : ∀ {ℓ ℓ'} {X : Set ℓ} {Y : Set ℓ'} {P : ℙ}
+      → (f : X → Y) → Decor X P → Decor Y P 
+
+    map2-dec : ∀ {ℓ ℓ' ℓ''} {X : Set ℓ}
+      → {Y : Set ℓ'} {Z : Set ℓ''}
+      → (f : X → Y → Z)
+      → {P : ℙ} → Decor X P → Decor Y P
+      → Decor Z P
+
+  fst-dec' : ∀ {ℓ ℓ↓} {X : Set ℓ} {X↓ : X → Set ℓ↓}
+    → {P : ℙ} (δ : Decor (Σ X X↓) P)
+    → Decor X P
+  fst-dec' δ = map-dec fst δ 
+
+  -- We have to be able to apply the constructions
+  -- "inside" decorations ...
+  Σ-in-dec : {U : ℙ} (V : Decor ℙ U)
+    → (W : Decor↓ (Decor ℙ) V)
+    → Decor ℙ U
+  Σ-in-dec V W = {!!} 
+
+  ⊔-in-dec : {U : ℙ} (V : Decor ℙ U)
+    → (W : Decor ℙ U) → Decor ℙ U
+  ⊔-in-dec V W = map2-dec {!_⊔ₚ_!} V W 
+
+  postulate
 
     --
     --  Decorations with values in Σ 
@@ -40,7 +77,8 @@ module MiniUniverse where
     fst-dec↓ : ∀ {ℓ ℓ↓ ℓ↓↓} {X : Set ℓ} {X↓ : X → Set ℓ↓}
       → {X↓↓ : (x : X) → X↓ x → Set ℓ↓↓}
       → {P : ℙ} {δ : Decor X P}
-      → Decor↓ (λ x → Σ (X↓ x) (X↓↓ x)) δ → Decor↓ X↓ δ
+      → Decor↓ (λ x → Σ (X↓ x) (X↓↓ x)) δ
+      → Decor↓ X↓ δ
 
     snd-dec↓ : ∀ {ℓ ℓ↓ ℓ↓↓} {X : Set ℓ} {X↓ : X → Set ℓ↓}
       → {X↓↓ : (x : X) → X↓ x → Set ℓ↓↓}
@@ -63,6 +101,7 @@ module MiniUniverse where
     --
     
     ⊤ₚ : ℙ
+    ttₚ : El ⊤ₚ
 
     ⊤-dec : ∀ {ℓ} {X : Set ℓ}
       → X → Decor X ⊤ₚ
@@ -100,6 +139,70 @@ module MiniUniverse where
       → {U : ℙ} {V : Decor ℙ U}
       → (δ↓ : Decor↓ (λ P → Σ (Decor X P) (λ δ → Decor↓ X↓ δ)) V)
       → Decor↓ X↓ (Σ-dec (fst-dec↓ δ↓))
+
+    --
+    --  Laws for Positions
+    --
+
+    -- Additive right unit
+    ⊔ₚ-unit-r : (U : ℙ)
+      → U ⊔ₚ ⊥ₚ ↦ U
+    {-# REWRITE ⊔ₚ-unit-r #-}
+
+    -- Additive left unit
+    ⊔ₚ-unit-l : (V : ℙ)
+      → ⊥ₚ ⊔ₚ V ↦ V
+    {-# REWRITE ⊔ₚ-unit-l #-}
+
+    -- Additive associativity
+    ⊔ₚ-assoc : (U V W : ℙ)
+      → (U ⊔ₚ V) ⊔ₚ W ↦ U ⊔ₚ V ⊔ₚ W
+    {-# REWRITE ⊔ₚ-assoc #-}
+
+    -- Multiplicative right unit
+    Σₚ-unit-r : (U : ℙ)
+      → Σₚ U (cst-dec U ⊤ₚ) ↦ U
+    {-# REWRITE Σₚ-unit-r #-}
+
+    -- Multiplicative left unit
+    Σₚ-unit-l : (V : Decor ℙ ⊤ₚ)
+      → Σₚ ⊤ₚ V ↦ app V ttₚ
+    {-# REWRITE Σₚ-unit-l #-}
+
+    -- Multiplicative left zero
+    Σₚ-zero-r : (U : ℙ)
+      → Σₚ U (cst-dec U ⊥ₚ) ↦ ⊥ₚ
+    {-# REWRITE Σₚ-zero-r #-}
+
+    -- Multiplicative right zero
+    Σₚ-zero-l : (V : Decor ℙ ⊥ₚ)
+      → Σₚ ⊥ₚ V ↦ ⊥ₚ
+    {-# REWRITE Σₚ-zero-l #-}
+
+
+    -- Hmmm.  But what's not so satisfying about this is that the
+    -- decoration is required to have a specific form, whereas
+    -- for a rewrite rule, we would expect it to somehow be
+    -- arbitrary....
+
+    Σₚ-assoc' : (U : ℙ) (V : Decor ℙ U)
+      → (W : Decor ℙ (Σₚ U V))
+      → Σₚ (Σₚ U V) W ↦ Σₚ U (Σ-in-dec V {!!})
+
+    -- Multiplicative associativity
+    Σₚ-assoc : (U : ℙ) (V : Decor ℙ U)
+      → (W : Decor↓ (Decor ℙ) V)
+      → Σₚ (Σₚ U V) (Σ-dec W) ↦ Σₚ U (Σ-in-dec V W)
+
+    -- Right Distributivity
+    ⊔ₚ-Σₚ-distrib-r : (U V : ℙ)
+      → (Wl : Decor ℙ U) (Wr : Decor ℙ V)
+      → Σₚ (U ⊔ₚ V) (⊔-dec Wl Wr) ↦ Σₚ U Wl ⊔ₚ Σₚ V Wr 
+
+    -- Left Distributivity
+    ⊔ₚ-Σₚ-distrib-l : {U : ℙ}
+      → (V : Decor ℙ U) (W : Decor ℙ U)
+      → Σₚ U (⊔-in-dec V W) ↦ Σₚ U V ⊔ₚ Σₚ U W
 
   --
   --  Elements
