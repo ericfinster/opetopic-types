@@ -51,11 +51,19 @@ module PiUniverse where
     
     π-Σ : ∀ {ℓ} (U : ℙ) (V : πₚ U (cst ℙ))
       → (X : El (Σₚ U V) → Set ℓ)
-      → πₚ U (λ u → πₚ (app V u) (λ v → X ⟦ u , v ⟧ₚ))
+      -- → πₚ U (λ u → πₚ (app V u) (λ v → X ⟦ u , v ⟧ₚ))
+      → (ϕ : (u : El U) → πₚ (app V u) (λ v → X ⟦ u , v ⟧ₚ))
       → πₚ (Σₚ U V) X 
 
+    -- So the only way I can find to escape this infinite loop here is
+    -- to actually allow a function type here when introducing a Σ.
+    -- Otherwise, we just seem to get stuck in every direction...
+
+    -- Is this a problem?  In priciple, this thing will still need
+    -- to be constructed using elminators, so ....
+
     --
-    --  Required operators
+    --  Constant decorations
     --
     
     cstₚ : ∀ {ℓ} {X : Set ℓ} (P : ℙ) (x : X)
@@ -71,11 +79,46 @@ module PiUniverse where
       → {U V : ℙ}
       → cstₚ (U ⊔ₚ V) x ↦ π-⊔ (cst X) (cstₚ U x) (cstₚ V x)
 
-    -- Well shit.  How to make sense of this one? 
     cst-Σ : ∀ {ℓ} {X : Set ℓ} (x : X)
       → (U : ℙ) (V : πₚ U (cst ℙ))
-      → cstₚ (Σₚ U V) x ↦ π-Σ U V (cst X) {!!}
+      → cstₚ (Σₚ U V) x ↦ π-Σ U V (cst X) (λ u → cstₚ (app V u) x)
 
+    --
+    --  First projection  (these could really go in the Sigma module ...)
+    --
+
+    fst-π : ∀ {ℓ ℓ↓} {P : ℙ} {X : El P → Set ℓ}
+      → {X↓ : (p : El P) → X p → Set ℓ↓} 
+      → πₚ P (λ p → Σ (X p) (X↓ p))
+      → πₚ P X
+
+    fst-π-⊥ : ∀ {ℓ ℓ↓} {X : El ⊥ₚ → Set ℓ}
+      → {X↓ : (b : El ⊥ₚ) → X b → Set ℓ↓}
+      → (σ : πₚ ⊥ₚ (λ b → Σ (X b) (X↓ b)))
+      → fst-π σ ↦ π-⊥ X 
+
+    fst-π-⊤ : ∀ {ℓ ℓ↓} {X : El ⊤ₚ → Set ℓ}
+      → {X↓ : (b : El ⊤ₚ) → X b → Set ℓ↓}
+      → (σ : πₚ ⊤ₚ (λ b → Σ (X b) (X↓ b)))
+      → fst-π σ ↦ π-⊤ X (fst (app σ ttₚ))
+
+    fst-π-⊔ : ∀ {ℓ ℓ↓} {U V : ℙ} {X : El (U ⊔ₚ V) → Set ℓ}
+      → {X↓ : (uv : El (U ⊔ₚ V)) → X uv → Set ℓ↓}
+      → (σl : πₚ U (λ u → Σ (X (inlₚ u)) (X↓ (inlₚ u))))
+      → (σr : πₚ V (λ v → Σ (X (inrₚ v)) (X↓ (inrₚ v))))
+      → fst-π (π-⊔ (λ uv → Σ (X uv) (X↓ uv)) σl σr) ↦
+          π-⊔ X (fst-π σl) (fst-π σr)
+
+    fst-π-Σ : ∀ {ℓ ℓ↓} (U : ℙ) (V : πₚ U (cst ℙ))
+      → (X : El (Σₚ U V) → Set ℓ)
+      → (X↓ : (uv : El (Σₚ U V)) → X uv → Set ℓ↓)
+      → (ϕ : (u : El U) → πₚ (app V u) (λ v → Σ (X ⟦ u , v ⟧ₚ) (X↓ ⟦ u , v ⟧ₚ)))
+      → fst-π {X = X} {X↓ = X↓} (π-Σ U V _ ϕ) ↦ π-Σ U V X (λ u → fst-π (ϕ u))
+
+    --
+    --  More operators
+    -- 
+    
     Σ↓ₚ : {U : ℙ} {V : πₚ U (cst ℙ)}
       → πₚ (Σₚ U V) (cst ℙ)
       → πₚ U (cst ℙ)
