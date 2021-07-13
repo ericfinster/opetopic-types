@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --no-positivity-check #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 open import MiniHoTT
 open import PiUniverse
@@ -18,37 +18,26 @@ module OpetopicType where
       → (f : Frm X) (P : ℙ) (t : πₚ P (cst (Frm X)))
       → Set ℓ
 
-  record Opr {ℓ} {n : ℕ} (X : 𝕆 ℓ n) (f : Frm X) : Set ℓ where
-    eta-equality
-    inductive
-    constructor ⟪_,_,_⟫ₒₚ
-    field
-      pos : ℙ
-      typ : πₚ pos (cst (Frm X))
-      cns : Cns X f pos typ
-
-  open Opr public
-
-  record Frmₛ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} (Xₛₙ : Frm Xₙ → Set ℓ) (f : Frm Xₙ) (x : Xₛₙ f) : Set ℓ where
-    eta-equality
-    inductive
-    constructor ⟪_,_⟫f
-    field
-      opr : Opr Xₙ f
-      dec : πₚ (pos opr) (λ p → Xₛₙ (app (typ opr) p))
-      
-  open Frmₛ public
-
-  𝕆 ℓ O = Set ℓ
+  -- These should be reindexed to start at -1 ...
+  𝕆 ℓ O = ⊤ 
   𝕆 ℓ (S n) = Σ (𝕆 ℓ n) (λ X → (f : Frm X) → Set ℓ)
 
-  Frm {n = O} X = Σ X (λ x → Σ ℙ (λ P → πₚ P (cst X)))
-  Frm {n = S n} (Xₙ , Xₛₙ) = Σ (Frm Xₙ) (λ f → Σ (Xₛₙ f) (λ x → Frmₛ Xₛₙ f x))
+  Frm {n = O} X = ⊤
+  Frm {n = S n} (Xₙ , Xₛₙ) =
+    Σ (Frm Xₙ) (λ f →
+    Σ (Xₛₙ f) (λ x → 
+    Σ ℙ (λ P →
+    Σ (πₚ P (cst (Frm Xₙ))) (λ δf →
+    Σ (πₚ P (λ p → Xₛₙ (app δf p))) (λ δx → 
+    Cns Xₙ f P δf)))))
 
   postulate
 
-    obj : ∀ {ℓ} {X : Set ℓ}
-      → (x : X) {P : ℙ} (δ : πₚ P (cst X))
-      → Cns {n = O} X (x , P , δ) {!!} {!!}
+    η-cns : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} (f : Frm X)
+      → Cns X f ⊤ₚ (π-⊤ (cst (Frm X)) f)
+
+    -- the trivial object constructor...
+    obj : ∀ {ℓ} (P : ℙ) → Cns {ℓ = ℓ} {n = O} tt tt P (cstₚ P tt)
+
 
 
