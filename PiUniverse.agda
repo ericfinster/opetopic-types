@@ -29,9 +29,9 @@ module PiUniverse where
     inrₚ : {U V : ℙ} → El V → El (U ⊔ₚ V)
 
     -- Binary multiplication 
-    Σₚ : (U : ℙ) → πₚ U (cst ℙ) → ℙ
-    ⟦_,_⟧ₚ : {U : ℙ} {V : πₚ U (cst ℙ)}
-      → (u : El U) (v : El (app V u))
+    Σₚ : (U : ℙ) (V : El U → ℙ ) → ℙ
+    ⟦_,_∣_,_⟧ₚ : (U : ℙ) (V : El U → ℙ)
+      → (u : El U) (v : El (V u))
       → El (Σₚ U V) 
 
     --
@@ -49,39 +49,35 @@ module PiUniverse where
       → πₚ V (λ v → X (inrₚ v))
       → πₚ (U ⊔ₚ V) X 
     
-    π-Σ : ∀ {ℓ} (U : ℙ) (V : πₚ U (cst ℙ))
+    π-Σ : ∀ {ℓ} (U : ℙ) (V : El U → ℙ)
       → (X : El (Σₚ U V) → Set ℓ)
-      -- → πₚ U (λ u → πₚ (app V u) (λ v → X ⟦ u , v ⟧ₚ))
-      → (ϕ : (u : El U) → πₚ (app V u) (λ v → X ⟦ u , v ⟧ₚ))
+      → (ϕ : (u : El U) → πₚ (V u) (λ v → X ⟦ U , V ∣ u , v ⟧ₚ))
       → πₚ (Σₚ U V) X 
 
-    -- So the only way I can find to escape this infinite loop here is
-    -- to actually allow a function type here when introducing a Σ.
-    -- Otherwise, we just seem to get stuck in every direction...
-
-    -- Is this a problem?  In priciple, this thing will still need
-    -- to be constructed using elminators, so ....
-
     --
-    --  Constant decorations
+    --  Definition of App
     --
-    
-    cstₚ : ∀ {ℓ} {X : Set ℓ} (P : ℙ) (x : X)
-      → πₚ P (cst X)
 
-    cst-⊥ : ∀ {ℓ} {X : Set ℓ} (x : X)
-      → cstₚ ⊥ₚ x ↦ π-⊥ (cst X)
-      
-    cst-⊤ : ∀ {ℓ} {X : Set ℓ} (x : X)
-      → cstₚ ⊤ₚ x ↦ π-⊤ (cst X) x
+    app-⊤ : ∀ {ℓ} {X : El ⊤ₚ → Set ℓ} {x : X ttₚ}
+      → app (π-⊤ X x) ttₚ ↦ x
 
-    cst-⊔ : ∀ {ℓ} {X : Set ℓ} (x : X)
-      → {U V : ℙ}
-      → cstₚ (U ⊔ₚ V) x ↦ π-⊔ (cst X) (cstₚ U x) (cstₚ V x)
+    app-⊔-inl : ∀ {ℓ} {U V : ℙ} (X : El (U ⊔ₚ V) → Set ℓ)
+      → (σl : πₚ U (λ u → X (inlₚ u)))
+      → (σr : πₚ V (λ v → X (inrₚ v)))
+      → (u : El U)
+      → app (π-⊔ X σl σr) (inlₚ u) ↦ app σl u
 
-    cst-Σ : ∀ {ℓ} {X : Set ℓ} (x : X)
-      → (U : ℙ) (V : πₚ U (cst ℙ))
-      → cstₚ (Σₚ U V) x ↦ π-Σ U V (cst X) (λ u → cstₚ (app V u) x)
+    app-⊔-inr : ∀ {ℓ} {U V : ℙ} (X : El (U ⊔ₚ V) → Set ℓ)
+      → (σl : πₚ U (λ u → X (inlₚ u)))
+      → (σr : πₚ V (λ v → X (inrₚ v)))
+      → (v : El V)
+      → app (π-⊔ X σl σr) (inrₚ v) ↦ app σr v
+
+    app-Σ : ∀ {ℓ} (U : ℙ) (V : El U → ℙ)
+      → (X : El (Σₚ U V) → Set ℓ)
+      → (ϕ : (u : El U) → πₚ (V u) (λ v → X ⟦ U , V ∣ u , v ⟧ₚ))
+      → (u : El U) (v : El (V u))
+      → app (π-Σ U V X ϕ) ⟦ U , V ∣ u , v ⟧ₚ ↦ app (ϕ u) v
 
     --
     --  First projection  (these could really go in the Sigma module ...)
@@ -109,23 +105,11 @@ module PiUniverse where
       → fst-π (π-⊔ (λ uv → Σ (X uv) (X↓ uv)) σl σr) ↦
           π-⊔ X (fst-π σl) (fst-π σr)
 
-    fst-π-Σ : ∀ {ℓ ℓ↓} (U : ℙ) (V : πₚ U (cst ℙ))
+    fst-π-Σ : ∀ {ℓ ℓ↓} (U : ℙ) (V : El U → ℙ)
       → (X : El (Σₚ U V) → Set ℓ)
       → (X↓ : (uv : El (Σₚ U V)) → X uv → Set ℓ↓)
-      → (ϕ : (u : El U) → πₚ (app V u) (λ v → Σ (X ⟦ u , v ⟧ₚ) (X↓ ⟦ u , v ⟧ₚ)))
+      → (ϕ : (u : El U) → πₚ (V u) (λ v → Σ (X ⟦ U , V ∣ u , v ⟧ₚ) (X↓ ⟦ U , V ∣ u , v ⟧ₚ)))
       → fst-π {X = X} {X↓ = X↓} (π-Σ U V _ ϕ) ↦ π-Σ U V X (λ u → fst-π (ϕ u))
-
-    --
-    --  More operators
-    -- 
-    
-    Σ↓ₚ : {U : ℙ} {V : πₚ U (cst ℙ)}
-      → πₚ (Σₚ U V) (cst ℙ)
-      → πₚ U (cst ℙ)
-
-    ⊔↓ₚ : {U : ℙ} 
-      → (V : πₚ U (cst ℙ)) (W : πₚ U (cst ℙ))
-      → πₚ U (cst ℙ)
       
     --
     --  Laws for Positions
@@ -135,6 +119,17 @@ module PiUniverse where
     ⊔ₚ-unit-r : (U : ℙ)
       → U ⊔ₚ ⊥ₚ ↦ U
     {-# REWRITE ⊔ₚ-unit-r #-}
+
+    ⊔ₚ-unit-r-intro : (U : ℙ) (u : El U)
+      → inlₚ {V = ⊥ₚ} u ↦ u 
+    {-# REWRITE ⊔ₚ-unit-r-intro #-}
+
+    ⊔ₚ-unit-r-π : ∀ {ℓ} {U : ℙ}
+      → (X : El (U ⊔ₚ ⊥ₚ) → Set ℓ)
+      → (σl : πₚ U (λ u → X (inlₚ {V = ⊥ₚ} u)))
+      → (σr : πₚ ⊥ₚ (λ b → X (inrₚ {U = U} b)))
+      → π-⊔ X σl σr ↦ σl
+    {-# REWRITE ⊔ₚ-unit-r-π #-}
 
     -- Additive left unit
     ⊔ₚ-unit-l : (V : ℙ)
@@ -148,38 +143,38 @@ module PiUniverse where
 
     -- Multiplicative right unit
     Σₚ-unit-r : (U : ℙ)
-      → Σₚ U (cstₚ U ⊤ₚ) ↦ U
+      → Σₚ U (cst ⊤ₚ) ↦ U
     {-# REWRITE Σₚ-unit-r #-}
     
     -- Multiplicative left unit
-    Σₚ-unit-l : (V : πₚ ⊤ₚ (cst ℙ))
-      → Σₚ ⊤ₚ V ↦ app V ttₚ
+    Σₚ-unit-l : (V : El ⊤ₚ → ℙ)
+      → Σₚ ⊤ₚ V ↦ V ttₚ
     {-# REWRITE Σₚ-unit-l #-}
 
     -- Multiplicative left zero
     Σₚ-zero-r : (U : ℙ)
-      → Σₚ U (cstₚ U ⊥ₚ) ↦ ⊥ₚ
+      → Σₚ U (cst ⊥ₚ) ↦ ⊥ₚ
     {-# REWRITE Σₚ-zero-r #-}
 
     -- Multiplicative right zero
-    Σₚ-zero-l : (V : πₚ ⊥ₚ (cst ℙ))
+    Σₚ-zero-l : (V : El ⊥ₚ → ℙ)
       → Σₚ ⊥ₚ V ↦ ⊥ₚ
     {-# REWRITE Σₚ-zero-l #-}
 
     -- Multiplicative associativity
-    Σₚ-assoc : (U : ℙ) (V : πₚ U (cst ℙ))
-      → (W : πₚ (Σₚ U V) (cst ℙ))
-      → Σₚ (Σₚ U V) W ↦ Σₚ U (Σ↓ₚ {V = V} W)
+    Σₚ-assoc : (U : ℙ) (V : El U → ℙ)
+      → (W : El (Σₚ U V) → ℙ)
+      → Σₚ (Σₚ U V) W ↦ Σₚ U (λ u → Σₚ (V u) (λ v → W ⟦ U , V ∣ u , v ⟧ₚ))
     {-# REWRITE Σₚ-assoc #-}
 
     -- Right Distributivity
     ⊔ₚ-Σₚ-distrib-r : (U V : ℙ)
-      → (W : πₚ U (cst ℙ)) (Z : πₚ V (cst ℙ))
-      → Σₚ (U ⊔ₚ V) (π-⊔ (cst ℙ) W Z) ↦ Σₚ U W ⊔ₚ Σₚ V Z
+      → (W : El (U ⊔ₚ V) → ℙ)
+      → Σₚ (U ⊔ₚ V) W ↦ Σₚ U (λ u → W (inlₚ {V = V} u)) ⊔ₚ Σₚ V (λ v → W (inrₚ {U = U} v))
     {-# REWRITE ⊔ₚ-Σₚ-distrib-r #-}
 
     -- Left Distributivity
     ⊔ₚ-Σₚ-distrib-l : {U : ℙ}
-      → (V : πₚ U (cst ℙ)) (W : πₚ U (cst ℙ))
-      → Σₚ U (⊔↓ₚ V W) ↦ Σₚ U V ⊔ₚ Σₚ U W
+      → (V : El U → ℙ) (W : El U → ℙ)
+      → Σₚ U (λ u → V u ⊔ₚ W u) ↦ Σₚ U V ⊔ₚ Σₚ U W
     {-# REWRITE ⊔ₚ-Σₚ-distrib-l #-}
