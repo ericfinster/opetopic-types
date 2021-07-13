@@ -61,6 +61,21 @@ module PiUniverse where
     cstₚ : ∀ {ℓ} {X : Set ℓ} (P : ℙ) (x : X)
       → πₚ P (cst X)
 
+    cst-⊥ : ∀ {ℓ} {X : Set ℓ} (x : X)
+      → cstₚ ⊥ₚ x ↦ π-⊥ (cst X)
+      
+    cst-⊤ : ∀ {ℓ} {X : Set ℓ} (x : X)
+      → cstₚ ⊤ₚ x ↦ π-⊤ (cst X) x
+
+    cst-⊔ : ∀ {ℓ} {X : Set ℓ} (x : X)
+      → {U V : ℙ}
+      → cstₚ (U ⊔ₚ V) x ↦ π-⊔ (cst X) (cstₚ U x) (cstₚ V x)
+
+    -- Well shit.  How to make sense of this one? 
+    cst-Σ : ∀ {ℓ} {X : Set ℓ} (x : X)
+      → (U : ℙ) (V : πₚ U (cst ℙ))
+      → cstₚ (Σₚ U V) x ↦ π-Σ U V (cst X) {!!}
+
     Σ↓ₚ : {U : ℙ} {V : πₚ U (cst ℙ)}
       → πₚ (Σₚ U V) (cst ℙ)
       → πₚ U (cst ℙ)
