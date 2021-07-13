@@ -80,6 +80,27 @@ module PiUniverse where
       → app (π-Σ U V X ϕ) ⟦ U , V ∣ u , v ⟧ₚ ↦ app (ϕ u) v
 
     --
+    --  Constant decorations
+    --
+    
+    cstₚ : ∀ {ℓ} {X : Set ℓ} (P : ℙ) (x : X)
+      → πₚ P (cst X)
+
+    cst-⊥ : ∀ {ℓ} {X : Set ℓ} (x : X)
+      → cstₚ ⊥ₚ x ↦ π-⊥ (cst X)
+      
+    cst-⊤ : ∀ {ℓ} {X : Set ℓ} (x : X)
+      → cstₚ ⊤ₚ x ↦ π-⊤ (cst X) x
+
+    cst-⊔ : ∀ {ℓ} {X : Set ℓ} (x : X)
+      → {U V : ℙ}
+      → cstₚ (U ⊔ₚ V) x ↦ π-⊔ (cst X) (cstₚ U x) (cstₚ V x)
+
+    cst-Σ : ∀ {ℓ} {X : Set ℓ} (x : X)
+      → (U : ℙ) (V : El U → ℙ)
+      → cstₚ (Σₚ U V) x ↦ π-Σ U V (cst X) (λ u → cstₚ (V u) x)
+
+    --
     --  First projection  (these could really go in the Sigma module ...)
     --
 

@@ -50,9 +50,8 @@ module OpetopicType where
     μ-cns : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
       → {f : Frm X} (c : Opr X f)
       → (δ : πₚ (pos c) (λ p → Opr X (app (typ c) p)))
-      → Cns X f (Σₚ (pos c) {!!})
-          {!!}
-
+      → Cns X f (Σₚ (pos c) (λ p → pos (app δ p)))
+          (π-Σ (pos c) (λ p → pos (app δ p)) (cst (Frm X)) (λ p → typ (app δ p)))
 
     -- the trivial object constructor...
     obj : ∀ {ℓ} (P : ℙ) → Cns {ℓ = ℓ} {n = O} tt tt P (cstₚ P tt)
