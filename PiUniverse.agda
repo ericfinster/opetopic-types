@@ -60,24 +60,44 @@ module PiUniverse where
 
     app-⊤ : ∀ {ℓ} {X : El ⊤ₚ → Set ℓ} {x : X ttₚ}
       → app (π-⊤ X x) ttₚ ↦ x
+    {-# REWRITE app-⊤ #-}
 
     app-⊔-inl : ∀ {ℓ} {U V : ℙ} (X : El (U ⊔ₚ V) → Set ℓ)
       → (σl : πₚ U (λ u → X (inlₚ V u)))
       → (σr : πₚ V (λ v → X (inrₚ U v)))
       → (u : El U)
       → app (π-⊔ X σl σr) (inlₚ V u) ↦ app σl u
+    {-# REWRITE app-⊔-inl #-}
 
     app-⊔-inr : ∀ {ℓ} {U V : ℙ} (X : El (U ⊔ₚ V) → Set ℓ)
       → (σl : πₚ U (λ u → X (inlₚ V u)))
       → (σr : πₚ V (λ v → X (inrₚ U v)))
       → (v : El V)
       → app (π-⊔ X σl σr) (inrₚ U v) ↦ app σr v
+    {-# REWRITE app-⊔-inr #-}
 
     app-Σ : ∀ {ℓ} (U : ℙ) (V : El U → ℙ)
       → (X : El (Σₚ U V) → Set ℓ)
       → (ϕ : (u : El U) → πₚ (V u) (λ v → X ⟦ U , V ∣ u , v ⟧ₚ))
       → (u : El U) (v : El (V u))
       → app (π-Σ U V X ϕ) ⟦ U , V ∣ u , v ⟧ₚ ↦ app (ϕ u) v
+    {-# REWRITE app-Σ #-}
+  
+    --
+    --  Functorial Action
+    --
+
+    map : ∀ {ℓ₀ ℓ₁} {P : ℙ} {X : El P → Set ℓ₀}
+      → {Y : El P → Set ℓ₁}
+      → (f : (p : El P) → X p → Y p)
+      → πₚ P X → πₚ P Y 
+
+    app-map : ∀ {ℓ₀ ℓ₁} {P : ℙ} {X : El P → Set ℓ₀}
+      → {Y : El P → Set ℓ₁}
+      → (f : (p : El P) → X p → Y p)
+      → (σ : πₚ P X) (p : El P) 
+      → app (map f σ) p ↦ f p (app σ p) 
+    {-# REWRITE app-map #-}
 
     --
     --  Constant decorations
