@@ -121,6 +121,25 @@ module PiUniverse where
       → cstₚ (Σₚ U V) x ↦ π-Σ U V (cst X) (λ u → cstₚ (V u) x)
 
     --
+    --  Trying some other stuff ...
+    --
+
+    π-Σ' : ∀ {ℓ} (U : ℙ) (V : El U → ℙ)
+      → (X : El (Σₚ U V) → Set ℓ)
+      → (ϕ : πₚ U (λ u → πₚ (V u) (λ v → X ⟦ U , V ∣ u , v ⟧ₚ)))
+      → πₚ (Σₚ U V) X
+
+    cst-Σ' : ∀ {ℓ} {X : Set ℓ} (x : X)
+      → (U : ℙ) (V : El U → ℙ)
+      → cstₚ (Σₚ U V) x ↦ {!cstₚ U x!}
+      -- π-Σ U V (cst X) (λ u → cstₚ (V u) x)
+
+    -- Yeah, so this could be done we a two-argument map, right?
+    -- You first take the constant decoration at U with x.  And
+    -- you have Σ's given by a decoration.  Then you map over
+    -- the pair, recursively applying the constant function.
+
+    --
     --  First projection  (these could really go in the Sigma module ...)
     --
 
@@ -181,6 +200,13 @@ module PiUniverse where
       → inrₚ ⊥ₚ v ↦ v
     {-# REWRITE ⊔ₚ-unit-l-intro #-}
 
+    ⊔ₚ-unit-l-π : ∀ {ℓ} {V : ℙ}
+      → (X : El (⊥ₚ ⊔ₚ V) → Set ℓ)
+      → (σl : πₚ ⊥ₚ (λ u → X (inlₚ V u)))
+      → (σr : πₚ V (λ v → X (inrₚ ⊥ₚ v)))
+      → π-⊔ X σl σr ↦ σr
+    {-# REWRITE ⊔ₚ-unit-l-π #-}
+
     -- Additive associativity
     ⊔ₚ-assoc : (U V W : ℙ)
       → (U ⊔ₚ V) ⊔ₚ W ↦ U ⊔ₚ V ⊔ₚ W
@@ -198,14 +224,34 @@ module PiUniverse where
       → inrₚ (U ⊔ₚ V) w ↦ inrₚ U (inrₚ V w)
     {-# REWRITE ⊔ₚ-assoc-intro-r #-}
 
+    ⊔ₚ-assoc-π : ∀ {ℓ} (U V W : ℙ)
+      → (X : El ((U ⊔ₚ V) ⊔ₚ W) → Set ℓ)
+      → (in-u* : πₚ U (λ u → X (inlₚ W (inlₚ V u))))
+      → (in-v* : πₚ V (λ v → X (inlₚ W (inrₚ U v))))
+      → (in-w* : πₚ W (λ w → X (inrₚ (U ⊔ₚ V) w)))
+      → π-⊔ {U = U ⊔ₚ V} {V = W} X
+          (π-⊔ {U = U} {V = V} (λ uv → X (inlₚ W uv)) in-u* in-v*) in-w*
+          ↦ π-⊔ {U = U} {V = V ⊔ₚ W} X in-u*
+              (π-⊔ {U = V} {V = W} (λ vw → X (inrₚ U vw)) in-v* in-w*)
+    {-# REWRITE ⊔ₚ-assoc-π #-}
+
     -- Multiplicative right unit
     Σₚ-unit-r : (U : ℙ)
       → Σₚ U (cst ⊤ₚ) ↦ U
     {-# REWRITE Σₚ-unit-r #-}
 
     Σₚ-unit-r-intro : (U : ℙ) (u : El U) (t : El ⊤ₚ)
-      → ⟦ U , (λ _ → ⊤ₚ) ∣ u , t ⟧ₚ ↦ u
+      → ⟦ U , cst ⊤ₚ ∣ u , t ⟧ₚ ↦ u
     {-# REWRITE Σₚ-unit-r-intro #-}
+
+    -- shit.  so this doesn't work unless we
+    -- can turn a function into a decoration, which
+    -- is exactly the thing we don't want ...
+    Σₚ-unit-r-π : ∀ {ℓ} (U : ℙ)
+      → (X : El (Σₚ U (cst ⊤ₚ)) → Set ℓ)
+      → (ϕ : (u : El U) → πₚ ⊤ₚ (λ t → X ⟦ U , (λ _ → ⊤ₚ) ∣ u , t ⟧ₚ))
+      → π-Σ U (cst ⊤ₚ) X ϕ ↦ {! !} -- (λ u → ρ u ttₚ)
+
 
     -- Multiplicative left unit
     Σₚ-unit-l : (V : El ⊤ₚ → ℙ)
@@ -292,3 +338,9 @@ module PiUniverse where
       → ⟦ U , (λ u → V u ⊔ₚ W u) ∣ u , inrₚ (V u) w ⟧ₚ ↦
         inrₚ (Σₚ U V) ⟦ U , W ∣ u , w ⟧ₚ
     {-# REWRITE ⊔ₚ-Σₚ-distrib-l-intro-r #-}
+
+    --
+    --  Question: given that we have added the relations to π, do we
+    --  *also* need to add them to app?  Or should they just compute
+    --  to the same thing?  Does this introduce confluence problems?
+    -- 

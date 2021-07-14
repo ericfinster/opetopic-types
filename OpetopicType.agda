@@ -85,14 +85,6 @@ module OpetopicType where
     → Opr X f
   μ c δ = ⟪ _ , _ , μ-cns c δ ⟫ₒₚ
 
-  μ-frm : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
-    → {f : Frm Xₙ} {x : Xₛₙ f} (fₛ : Frmₛ Xₛₙ f x)
-    → (ϕ : (p : El (pos (opr fₛ))) → Frmₛ Xₛₙ (app (typ (opr fₛ)) p) (app (dec fₛ) p))
-    → Frmₛ Xₛₙ f x
-  μ-frm fₛ ϕ = ⟪ μ (opr fₛ) {!!} , {!!} ⟫f 
-   -- (λ p → opr (ϕ p))
-   -- Σₚ-elim _ _ _ (λ p q → dec (ϕ p) q)
-
   -- Nice.  So mapping works essentially as expected.
   -- Just have to clean this up a bit and put it into place....
   μ-frm' : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
@@ -112,14 +104,14 @@ module OpetopicType where
       → Cns (Xₙ , Xₛₙ) (f , x , η-frm {Xₛₙ = Xₛₙ} f x) ⊥ₚ (π-⊥ _)
 
     -- Have to finish converting to decoration style ...
-    nd : ∀ {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ)
-      → {fₙ : Frm Xₙ} (x : Xₛₙ fₙ) (fₛₙ : Frmₛ Xₛₙ fₙ x)
-      → (δ : (p : El (pos (opr fₛₙ))) → Frmₛ Xₛₙ (app (typ (opr fₛₙ)) p) (app (dec fₛₙ) p))
-      → (ε : (p : El (pos (opr fₛₙ))) → Opr (Xₙ , Xₛₙ) (app (typ (opr fₛₙ)) p , app (dec fₛₙ) p , δ p)) 
-      → Cns (Xₙ , Xₛₙ) (fₙ , x , μ-frm {Xₛₙ = Xₛₙ} {x = x} fₛₙ δ) 
-          (⊤ₚ ⊔ₚ Σₚ (pos (opr fₛₙ)) (λ p → pos (ε p))) {!!} 
-          -- (⊔-dec (⊤-dec (fₙ , x , fₛₙ))
-          --        (Σ-dec (λ p → typ (ε p)))) 
+    -- nd : ∀ {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ)
+    --   → {fₙ : Frm Xₙ} (x : Xₛₙ fₙ) (fₛₙ : Frmₛ Xₛₙ fₙ x)
+    --   → (δ : (p : El (pos (opr fₛₙ))) → Frmₛ Xₛₙ (app (typ (opr fₛₙ)) p) (app (dec fₛₙ) p))
+    --   → (ε : (p : El (pos (opr fₛₙ))) → Opr (Xₙ , Xₛₙ) (app (typ (opr fₛₙ)) p , app (dec fₛₙ) p , δ p)) 
+    --   → Cns (Xₙ , Xₛₙ) (fₙ , x , μ-frm {Xₛₙ = Xₛₙ} {x = x} fₛₙ δ) 
+    --       (⊤ₚ ⊔ₚ Σₚ (pos (opr fₛₙ)) (λ p → pos (ε p))) {!!} 
+    --       -- (⊔-dec (⊤-dec (fₙ , x , fₛₙ))
+    --       --        (Σ-dec (λ p → typ (ε p)))) 
 
 
 
