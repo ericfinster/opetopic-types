@@ -86,25 +86,17 @@ module PositionUniverse where
     --  Functorial Action
     --
 
-    -- Okay.  This seems to really be the one you want...
-    -- The previous is a special case....
     map-dep : ∀ {ℓ₀ ℓ₁} {P : ℙ} {X : El P → Set ℓ₀}
       → {Y : (p : El P) → X p → Set ℓ₁}
       → (f : (p : El P) (x : X p) → Y p x)
       → (δ : πₚ P X) → πₚ P (λ p → Y p (app δ p))
 
-    -- I guess the next two are definable in terms
-    -- of the previous guy?
-    -- map : ∀ {ℓ₀ ℓ₁} {P : ℙ} {X : El P → Set ℓ₀}
-    --   → {Y : El P → Set ℓ₁}
-    --   → (f : (p : El P) → X p → Y p)
-    --   → πₚ P X → πₚ P Y 
-
-    -- map2 : ∀ {ℓ₀ ℓ₁ ℓ₂} {P : ℙ} {X : El P → Set ℓ₀}
-    --   → {Y : El P → Set ℓ₁} {Z : El P → Set ℓ₂}
-    --   → (f : (p : El P) → X p → Y p → Z p)
-    --   → πₚ P X → πₚ P Y → πₚ P Z  
-
+    app-map-dep : ∀ {ℓ₀ ℓ₁} {P : ℙ} {X : El P → Set ℓ₀}
+      → {Y : (p : El P) → X p → Set ℓ₁}
+      → (f : (p : El P) (x : X p) → Y p x)
+      → (δ : πₚ P X) (p : El P)
+      → app (map-dep f δ) p ↦ f p (app δ p)
+    {-# REWRITE app-map-dep #-}
 
     --
     --  Constant decorations  (is this "return" for the monad?)
@@ -112,6 +104,11 @@ module PositionUniverse where
     
     cstₚ : ∀ {ℓ} {X : Set ℓ} (P : ℙ) (x : X)
       → πₚ P (cst X)
+
+    cst-app : ∀ {ℓ} {X : Set ℓ} (P : ℙ)
+      → (x : X) (p : El P)
+      → app (cstₚ P x) p ↦ x
+    {-# REWRITE cst-app #-} 
 
     cst-⊥ : ∀ {ℓ} {X : Set ℓ} (x : X)
       → cstₚ ⊥ₚ x ↦ π-⊥ (cst X)
@@ -127,11 +124,6 @@ module PositionUniverse where
       → (U : ℙ) (V : πₚ U (cst ℙ))
       → cstₚ (Σₚ U V) x ↦ π-Σ U V (cst X)
         (map-dep {X = cst ℙ} {Y = λ p P → πₚ P (cst X)} (λ _ P → cstₚ P x) V) 
-
-    cst-app : ∀ {ℓ} {X : Set ℓ} (P : ℙ)
-      → (x : X) (p : El P)
-      → app (cstₚ P x) p ↦ x
-    {-# REWRITE cst-app #-} 
   
     --
     --  Laws for Positions
@@ -263,20 +255,23 @@ module PositionUniverse where
       → π-Σ ⊥ₚ V X ϕ ↦ π-⊥ X 
     {-# REWRITE Σₚ-zero-l-π #-}
 
-    -- -- Multiplicative associativity
-    -- Σₚ-assoc : (U : ℙ) (V : El U → ℙ)
-    --   → (W : El (Σₚ U V) → ℙ)
-    --   → Σₚ (Σₚ U V) W ↦ Σₚ U (λ u → Σₚ (V u) (λ v → W ⟦ U , V ∣ u , v ⟧ₚ))
-    -- {-# REWRITE Σₚ-assoc #-}
+    -- Multiplicative associativity
+    Σₚ-assoc : (U : ℙ) (V : πₚ U (cst ℙ))
+      → (W : πₚ U (λ u → πₚ (app V u) (cst ℙ)))
+      → Σₚ (Σₚ U V) (π-Σ U V (cst ℙ) W) ↦
+          Σₚ U (map-dep (λ u δ → Σₚ (app V u) δ) W)
+    {-# REWRITE Σₚ-assoc #-}
 
-    -- Σₚ-assoc-intro : (U : ℙ) (V : El U → ℙ)
-    --   → (W : El (Σₚ U V) → ℙ)
-    --   → (u : El U) (v : El (V u))
-    --   → (w : El (W ⟦ U , V ∣ u , v ⟧ₚ))
-    --   → ⟦ Σₚ U V , W ∣ ⟦ U , V ∣ u , v ⟧ₚ , w ⟧ₚ ↦
-    --     ⟦ U , (λ u → Σₚ (V u) (λ v → W ⟦ U , V ∣ u , v ⟧ₚ)) ∣
-    --       u , ⟦ V u , (λ v → W ⟦ U , V ∣ u , v ⟧ₚ) ∣ v , w ⟧ₚ ⟧ₚ
-    -- {-# REWRITE Σₚ-assoc-intro #-}
+    Σₚ-assoc-intro : (U : ℙ) (V : πₚ U (cst ℙ))
+      → (W : πₚ U (λ u → πₚ (app V u) (cst ℙ)))
+      → (u : El U) (v : El (app V u))
+      → (w : El (app (app W u) v))
+      → ⟦ Σₚ U V , π-Σ U V (cst ℙ) W ∣ ⟦ U , V ∣ u , v ⟧ₚ , w ⟧ₚ ↦
+          ⟦ U , map-dep (λ u δ → Σₚ (app V u) δ) W ∣
+              u , ⟦ app V u , app W u ∣ v , w ⟧ₚ ⟧ₚ
+    {-# REWRITE Σₚ-assoc-intro #-}
+
+    -- Now we need the elim ....
 
     -- -- Right Distributivity
     -- ⊔ₚ-Σₚ-distrib-r : (U V : ℙ)
