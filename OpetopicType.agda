@@ -1,7 +1,7 @@
 {-# OPTIONS --without-K --rewriting --no-positivity #-}
 
 open import MiniHoTT
-open import PiUniverse
+open import PositionUniverse
 
 module OpetopicType where
 
@@ -18,42 +18,18 @@ module OpetopicType where
       → (f : Frm X) (P : ℙ) (t : πₚ P (cst (Frm X)))
       → Set ℓ
 
-  record Opr {ℓ} {n : ℕ} (X : 𝕆 ℓ n) (f : Frm X) : Set ℓ where
-    eta-equality
-    inductive
-    constructor ⟪_,_,_⟫ₒₚ
-    field
-      pos : ℙ
-      typ : πₚ pos (cst (Frm X))
-      cns : Cns X f pos typ
-
-  open Opr public
-
-  record Frmₛ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} (Xₛₙ : Frm Xₙ → Set ℓ) (f : Frm Xₙ) (x : Xₛₙ f) : Set ℓ where
-    eta-equality
-    inductive
-    constructor ⟪_,_⟫f
-    field
-      opr : Opr Xₙ f
-      dec : πₚ (pos opr) (λ p → Xₛₙ (app (typ opr) p))
-
-  open Frmₛ public
-
   -- These should be reindexed to start at -1 ...
   𝕆 ℓ O = ⊤ 
   𝕆 ℓ (S n) = Σ (𝕆 ℓ n) (λ X → (f : Frm X) → Set ℓ)
 
   Frm {n = O} X = ⊤
   Frm {n = S n} (Xₙ , Xₛₙ) =
-    Σ (Frm Xₙ) (λ f → Σ (Xₛₙ f) (λ x → Frmₛ Xₛₙ f x))
-
-    -- Or, without the records ...
-    -- Σ (Frm Xₙ) (λ f →
-    -- Σ (Xₛₙ f) (λ x → 
-    -- Σ ℙ (λ P →
-    -- Σ (πₚ P (cst (Frm Xₙ))) (λ δf →
-    -- Σ (πₚ P (λ p → Xₛₙ (app δf p))) (λ δx → 
-    -- Cns Xₙ f P δf)))))
+    Σ (Frm Xₙ) (λ f →
+    Σ (Xₛₙ f) (λ x → 
+    Σ ℙ (λ P →
+    Σ (πₚ P (cst (Frm Xₙ))) (λ δf →
+    Σ (πₚ P (λ p → Xₛₙ (app δf p))) (λ δx → 
+    Cns Xₙ f P δf)))))
 
   postulate
 
@@ -61,47 +37,52 @@ module OpetopicType where
       → Cns X f ⊤ₚ (π-⊤ (cst (Frm X)) f)
 
     μ-cns : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
-      → {f : Frm X} (c : Opr X f)
-      → (δ : πₚ (pos c) (λ p → Opr X (app (typ c) p)))
-      → Cns X f (Σₚ (pos c) (λ p → pos (app δ p)))
-          (π-Σ (pos c) (λ p → pos (app δ p)) (cst (Frm X)) (λ p → typ (app δ p)))
+      → {frm : Frm X} {pos : ℙ} {typ : πₚ pos (cst (Frm X))}
+      → (c : Cns X frm pos typ)
+      → (δ : πₚ pos (λ p → Σ ℙ (λ δpos →
+                           Σ (πₚ δpos (cst (Frm X))) (λ δtyp →
+                           Cns X (app typ p) δpos δtyp))))
+      → Cns X frm (Σₚ pos (map {Y = λ _ _ → ℙ} (λ _ → fst) δ))
+                  (π-Σ pos (map (λ _ → fst) δ) (cst (Frm X))
+                      (map {Y = λ u opr → πₚ (fst opr) (cst (Frm X))}
+                        (λ u opr → fst (snd opr)) δ))
 
   --
   --  Monadic helpers
   --
 
-  η : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} (f : Frm X) → Opr X f
-  η f = ⟪ _ , _ , η-cns f ⟫ₒₚ
+  -- η : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} (f : Frm X) → Opr X f
+  -- η f = ⟪ _ , _ , η-cns f ⟫ₒₚ
 
-  η-frm : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
-    → (f : Frm Xₙ) (x : Xₛₙ f)
-    → Frmₛ Xₛₙ f x 
-  η-frm {Xₛₙ = Xₛₙ} f x = ⟪ η f , π-⊤ (λ p → Xₛₙ (app (typ (η f)) p)) x ⟫f
+  -- η-frm : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
+  --   → (f : Frm Xₙ) (x : Xₛₙ f)
+  --   → Frmₛ Xₛₙ f x 
+  -- η-frm {Xₛₙ = Xₛₙ} f x = ⟪ η f , π-⊤ (λ p → Xₛₙ (app (typ (η f)) p)) x ⟫f
 
-  μ : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
-    → {f : Frm X} (c : Opr X f)
-    → (δ : πₚ (pos c) (λ p → Opr X (app (typ c) p)))
-    -- → (δ : (p : El (pos c)) → Opr X (app (typ c) p))
-    → Opr X f
-  μ c δ = ⟪ _ , _ , μ-cns c δ ⟫ₒₚ
+  -- μ : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
+  --   → {f : Frm X} (c : Opr X f)
+  --   → (δ : πₚ (pos c) (λ p → Opr X (app (typ c) p)))
+  --   -- → (δ : (p : El (pos c)) → Opr X (app (typ c) p))
+  --   → Opr X f
+  -- μ c δ = ⟪ _ , _ , μ-cns c δ ⟫ₒₚ
 
-  -- Nice.  So mapping works essentially as expected.
-  -- Just have to clean this up a bit and put it into place....
-  μ-frm' : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
-    → {f : Frm Xₙ} {x : Xₛₙ f} (P : ℙ) (δf : πₚ P (cst (Frm Xₙ))) (δx : πₚ P (λ p → Xₛₙ (app δf p))) (c : Cns Xₙ f P δf)
-    → (ϕ : πₚ P (λ p → Σ ℙ (λ Q → Σ (πₚ Q (cst (Frm Xₙ))) (λ δf' → Σ (πₚ Q (λ q → Xₛₙ (app δf' q))) (λ δx' → Cns Xₙ (app δf p) Q δf')))))
-    → Frmₛ Xₛₙ f x
-  μ-frm' P δf δx c ϕ  = ⟪ μ ⟪ P , δf , c ⟫ₒₚ (map (λ { p (Q , δf' , δx' , c') → ⟪ Q , δf' , c' ⟫ₒₚ } ) ϕ) ,
-    π-Σ P (λ p → fst (app ϕ p)) _ (λ p → fst (snd (snd (app ϕ p)))) ⟫f
+  -- -- Nice.  So mapping works essentially as expected.
+  -- -- Just have to clean this up a bit and put it into place....
+  -- μ-frm' : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
+  --   → {f : Frm Xₙ} {x : Xₛₙ f} (P : ℙ) (δf : πₚ P (cst (Frm Xₙ))) (δx : πₚ P (λ p → Xₛₙ (app δf p))) (c : Cns Xₙ f P δf)
+  --   → (ϕ : πₚ P (λ p → Σ ℙ (λ Q → Σ (πₚ Q (cst (Frm Xₙ))) (λ δf' → Σ (πₚ Q (λ q → Xₛₙ (app δf' q))) (λ δx' → Cns Xₙ (app δf p) Q δf')))))
+  --   → Frmₛ Xₛₙ f x
+  -- μ-frm' P δf δx c ϕ  = ⟪ μ ⟪ P , δf , c ⟫ₒₚ (map (λ { p (Q , δf' , δx' , c') → ⟪ Q , δf' , c' ⟫ₒₚ } ) ϕ) ,
+  --   π-Σ P (λ p → fst (app ϕ p)) _ (λ p → fst (snd (snd (app ϕ p)))) ⟫f
 
-  postulate
+  -- postulate
   
-    -- the trivial object constructor...
-    obj : ∀ {ℓ} (P : ℙ) → Cns {ℓ = ℓ} {n = O} tt tt P (cstₚ P tt)
+  --   -- the trivial object constructor...
+  --   obj : ∀ {ℓ} (P : ℙ) → Cns {ℓ = ℓ} {n = O} tt tt P (cstₚ P tt)
 
-    lf : ∀ {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ)
-      → (f : Frm Xₙ) (x : Xₛₙ f)
-      → Cns (Xₙ , Xₛₙ) (f , x , η-frm {Xₛₙ = Xₛₙ} f x) ⊥ₚ (π-⊥ _)
+  --   lf : ∀ {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ)
+  --     → (f : Frm Xₙ) (x : Xₛₙ f)
+  --     → Cns (Xₙ , Xₛₙ) (f , x , η-frm {Xₛₙ = Xₛₙ} f x) ⊥ₚ (π-⊥ _)
 
     -- Have to finish converting to decoration style ...
     -- nd : ∀ {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ)

@@ -361,8 +361,10 @@ module PositionUniverse where
       → π-Σ (U ⊔ₚ V) W X ϕ ↦
           π-⊔ {U = Σₚ U (restrict-l V W)}
               {V = Σₚ V (restrict-r U W)} X
-              (π-Σ U (restrict-l V W) (λ u → X (inlₚ (Σₚ V (restrict-r U W)) u)) (restrict-l {U = U} V ϕ))
-              (π-Σ V (restrict-r U W) (λ v → X (inrₚ (Σₚ U (restrict-l V W)) v)) (restrict-r U {V = V} ϕ)) 
+              (π-Σ U (restrict-l V W) (λ u →
+                X (inlₚ (Σₚ V (restrict-r U W)) u)) (restrict-l {U = U} V ϕ))
+              (π-Σ V (restrict-r U W) (λ v →
+                X (inrₚ (Σₚ U (restrict-l V W)) v)) (restrict-r U {V = V} ϕ)) 
     {-# REWRITE ⊔ₚ-Σₚ-distrib-r-π #-}
 
     -- Left Distributivity
