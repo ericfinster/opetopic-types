@@ -37,62 +37,47 @@ module OpetopicType where
       → Cns X f ⊤ₚ (π-⊤ (cst (Frm X)) f)
 
     μ-cns : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
-      → {frm : Frm X} {pos : ℙ} {typ : πₚ pos (cst (Frm X))}
-      → (c : Cns X frm pos typ)
-      → (δ : πₚ pos (λ p → Σ ℙ (λ δpos →
-                           Σ (πₚ δpos (cst (Frm X))) (λ δtyp →
-                           Cns X (app typ p) δpos δtyp))))
-      → Cns X frm (Σₚ pos (map {Y = λ _ _ → ℙ} (λ _ → fst) δ))
-                  (π-Σ pos (map (λ _ → fst) δ) (cst (Frm X))
-                      (map {Y = λ u opr → πₚ (fst opr) (cst (Frm X))}
-                        (λ u opr → fst (snd opr)) δ))
+      → {c-frm : Frm X} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm X))}
+      → (c : Cns X c-frm c-pos c-typ)
+      → (δ : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
+                             Σ (πₚ δ-pos (cst (Frm X))) (λ δ-typ →
+                             Cns X (app c-typ p) δ-pos δ-typ))))
+      → Cns X c-frm (Σₚ c-pos (map {Y = λ _ _ → ℙ} (λ _ → fst) δ))
+                    (π-Σ c-pos (map (λ _ → fst) δ) (cst (Frm X))
+                       (map {Y = λ u opr → πₚ (fst opr) (cst (Frm X))}
+                         (λ u opr → fst (snd opr)) δ))
 
-  --
-  --  Monadic helpers
-  --
+    -- objects
+    obj : ∀ {ℓ} (P : ℙ) → Cns {ℓ = ℓ} {n = O} tt tt P (cstₚ P tt)
 
-  -- η : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} (f : Frm X) → Opr X f
-  -- η f = ⟪ _ , _ , η-cns f ⟫ₒₚ
+    -- leaves
+    lf : ∀ {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ)
+      → (f : Frm Xₙ) (x : Xₛₙ f)
+      -- Can we make the fibration implicit for ⊤ and ⊥? 
+      → Cns (Xₙ , Xₛₙ) (f , x , _ , _ , π-⊤ (λ t → Xₛₙ (app (π-⊤ (cst (Frm Xₙ)) f) t)) x , η-cns f) ⊥ₚ (π-⊥ _)
 
-  -- η-frm : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
-  --   → (f : Frm Xₙ) (x : Xₛₙ f)
-  --   → Frmₛ Xₛₙ f x 
-  -- η-frm {Xₛₙ = Xₛₙ} f x = ⟪ η f , π-⊤ (λ p → Xₛₙ (app (typ (η f)) p)) x ⟫f
+    -- nodes
+    nd : ∀ {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ)
+      → {c-frm : Frm Xₙ} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm Xₙ))}
+      → (c : Cns Xₙ c-frm c-pos c-typ)
+      → (δ : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
+                             Σ (πₚ δ-pos (cst (Frm Xₙ))) (λ δ-typ →
+                             Cns Xₙ (app c-typ p) δ-pos δ-typ))))
+                             
+      → (x : Xₛₙ c-frm) (x' : πₚ c-pos (λ p → Xₛₙ (app c-typ p)))
+      → (x'' : πₚ c-pos (λ p → πₚ (fst (app δ p)) (λ q → Xₛₙ (app (fst (snd (app δ p))) q))))
 
-  -- μ : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
-  --   → {f : Frm X} (c : Opr X f)
-  --   → (δ : πₚ (pos c) (λ p → Opr X (app (typ c) p)))
-  --   -- → (δ : (p : El (pos c)) → Opr X (app (typ c) p))
-  --   → Opr X f
-  -- μ c δ = ⟪ _ , _ , μ-cns c δ ⟫ₒₚ
+      → (ε : πₚ c-pos (λ p → Σ ℙ (λ ε-pos →
+                             Σ (πₚ ε-pos (cst (Frm (Xₙ , Xₛₙ)))) (λ ε-typ →
+                             Cns (Xₙ , Xₛₙ) (app c-typ p , app x' p , fst (app δ p) , fst (snd (app δ p)) , app x'' p , snd (snd (app δ p))) ε-pos ε-typ))))
+                             
+      → Cns (Xₙ , Xₛₙ) (c-frm , x , _ , _ , π-Σ c-pos (map (λ _ → fst) δ) _ x'' , μ-cns c δ)
+          (⊤ₚ ⊔ₚ Σₚ c-pos (map {Y = λ _ _ → ℙ} (λ _ → fst) ε))
+          (π-⊔ {U = ⊤ₚ} {V = Σₚ c-pos (map {Y = λ _ _ → ℙ} (λ _ → fst) ε)}
+            (cst (Frm (Xₙ , Xₛₙ))) (π-⊤ _ (c-frm , x , c-pos , c-typ , x' , c))
+                                  (π-Σ c-pos (map (λ _ → fst) ε) (cst (Frm (Xₙ , Xₛₙ)))
+                                         (map (λ u opr → fst (snd opr)) ε )))
 
-  -- -- Nice.  So mapping works essentially as expected.
-  -- -- Just have to clean this up a bit and put it into place....
-  -- μ-frm' : ∀ {ℓ} {n : ℕ} {Xₙ : 𝕆 ℓ n} {Xₛₙ : Frm Xₙ → Set ℓ}
-  --   → {f : Frm Xₙ} {x : Xₛₙ f} (P : ℙ) (δf : πₚ P (cst (Frm Xₙ))) (δx : πₚ P (λ p → Xₛₙ (app δf p))) (c : Cns Xₙ f P δf)
-  --   → (ϕ : πₚ P (λ p → Σ ℙ (λ Q → Σ (πₚ Q (cst (Frm Xₙ))) (λ δf' → Σ (πₚ Q (λ q → Xₛₙ (app δf' q))) (λ δx' → Cns Xₙ (app δf p) Q δf')))))
-  --   → Frmₛ Xₛₙ f x
-  -- μ-frm' P δf δx c ϕ  = ⟪ μ ⟪ P , δf , c ⟫ₒₚ (map (λ { p (Q , δf' , δx' , c') → ⟪ Q , δf' , c' ⟫ₒₚ } ) ϕ) ,
-  --   π-Σ P (λ p → fst (app ϕ p)) _ (λ p → fst (snd (snd (app ϕ p)))) ⟫f
-
-  -- postulate
-  
-  --   -- the trivial object constructor...
-  --   obj : ∀ {ℓ} (P : ℙ) → Cns {ℓ = ℓ} {n = O} tt tt P (cstₚ P tt)
-
-  --   lf : ∀ {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ)
-  --     → (f : Frm Xₙ) (x : Xₛₙ f)
-  --     → Cns (Xₙ , Xₛₙ) (f , x , η-frm {Xₛₙ = Xₛₙ} f x) ⊥ₚ (π-⊥ _)
-
-    -- Have to finish converting to decoration style ...
-    -- nd : ∀ {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ)
-    --   → {fₙ : Frm Xₙ} (x : Xₛₙ fₙ) (fₛₙ : Frmₛ Xₛₙ fₙ x)
-    --   → (δ : (p : El (pos (opr fₛₙ))) → Frmₛ Xₛₙ (app (typ (opr fₛₙ)) p) (app (dec fₛₙ) p))
-    --   → (ε : (p : El (pos (opr fₛₙ))) → Opr (Xₙ , Xₛₙ) (app (typ (opr fₛₙ)) p , app (dec fₛₙ) p , δ p)) 
-    --   → Cns (Xₙ , Xₛₙ) (fₙ , x , μ-frm {Xₛₙ = Xₛₙ} {x = x} fₛₙ δ) 
-    --       (⊤ₚ ⊔ₚ Σₚ (pos (opr fₛₙ)) (λ p → pos (ε p))) {!!} 
-    --       -- (⊔-dec (⊤-dec (fₙ , x , fₛₙ))
-    --       --        (Σ-dec (λ p → typ (ε p)))) 
 
 
 
