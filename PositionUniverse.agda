@@ -95,14 +95,15 @@ module PositionUniverse where
     map-⊥ : ∀ {ℓ₀ ℓ₁} {X : El ⊥ₚ → Set ℓ₀}
       → {Y : (p : El ⊥ₚ) → X p → Set ℓ₁}
       → (f : (p : El ⊥ₚ) (x : X p) → Y p x)
-      → map f (π-⊥ _) ↦ π-⊥ _ 
+      → (δ : πₚ ⊥ₚ X)
+      → map f δ ↦ π-⊥ _ 
     {-# REWRITE map-⊥ #-}
 
     map-⊤ : ∀ {ℓ₀ ℓ₁} {X : El ⊤ₚ → Set ℓ₀}
       → {Y : (p : El ⊤ₚ) → X p → Set ℓ₁}
       → (f : (p : El ⊤ₚ) (x : X p) → Y p x)
-      → (x : X ttₚ)
-      → map f (π-⊤ _ x) ↦ π-⊤ _ (f ttₚ x)
+      → (δ  : πₚ ⊤ₚ X)
+      → map f δ ↦ π-⊤ _ (f ttₚ (app δ ttₚ))
     {-# REWRITE map-⊤ #-}
 
     map-⊔ : ∀ {ℓ₀ ℓ₁ U V} {X : El (U ⊔ₚ V) → Set ℓ₀}
@@ -192,62 +193,58 @@ module PositionUniverse where
       → map g (map f δ) ↦ map (λ p _ → g p (f p (app δ p))) δ 
     {-# REWRITE map-map #-}
 
+    --
+    --  Laws for Positions
+    --
 
+    -- Additive right unit
+    ⊔ₚ-unit-r : (U : ℙ)
+      → U ⊔ₚ ⊥ₚ ↦ U
+    {-# REWRITE ⊔ₚ-unit-r #-}
 
+    ⊔ₚ-unit-r-intro : (U : ℙ) (u : El U)
+      → inlₚ ⊥ₚ u ↦ u 
+    {-# REWRITE ⊔ₚ-unit-r-intro #-}
 
+    ⊔ₚ-unit-r-π : ∀ {ℓ} {U : ℙ}
+      → (X : El (U ⊔ₚ ⊥ₚ) → Set ℓ)
+      → (σl : πₚ U (λ u → X (inlₚ ⊥ₚ u)))
+      → (σr : πₚ ⊥ₚ (λ b → X (inrₚ U b)))
+      → π-⊔ X σl σr ↦ σl
+    {-# REWRITE ⊔ₚ-unit-r-π #-}
 
---     --
---     --  Laws for Positions
---     --
+    -- Additive left unit
+    ⊔ₚ-unit-l : (V : ℙ)
+      → ⊥ₚ ⊔ₚ V ↦ V
+    {-# REWRITE ⊔ₚ-unit-l #-}
 
---     -- Additive right unit
---     ⊔ₚ-unit-r : (U : ℙ)
---       → U ⊔ₚ ⊥ₚ ↦ U
---     {-# REWRITE ⊔ₚ-unit-r #-}
+    ⊔ₚ-unit-l-intro : (V : ℙ) (v : El V)
+      → inrₚ ⊥ₚ v ↦ v
+    {-# REWRITE ⊔ₚ-unit-l-intro #-}
 
---     ⊔ₚ-unit-r-intro : (U : ℙ) (u : El U)
---       → inlₚ ⊥ₚ u ↦ u 
---     {-# REWRITE ⊔ₚ-unit-r-intro #-}
+    ⊔ₚ-unit-l-π : ∀ {ℓ} {V : ℙ}
+      → (X : El (⊥ₚ ⊔ₚ V) → Set ℓ)
+      → (σl : πₚ ⊥ₚ (λ u → X (inlₚ V u)))
+      → (σr : πₚ V (λ v → X (inrₚ ⊥ₚ v)))
+      → π-⊔ X σl σr ↦ σr
+    {-# REWRITE ⊔ₚ-unit-l-π #-}
 
---     ⊔ₚ-unit-r-π : ∀ {ℓ} {U : ℙ}
---       → (X : El (U ⊔ₚ ⊥ₚ) → Set ℓ)
---       → (σl : πₚ U (λ u → X (inlₚ ⊥ₚ u)))
---       → (σr : πₚ ⊥ₚ (λ b → X (inrₚ U b)))
---       → π-⊔ X σl σr ↦ σl
---     {-# REWRITE ⊔ₚ-unit-r-π #-}
+    -- Additive associativity
+    ⊔ₚ-assoc : (U V W : ℙ)
+      → (U ⊔ₚ V) ⊔ₚ W ↦ U ⊔ₚ V ⊔ₚ W
+    {-# REWRITE ⊔ₚ-assoc #-}
 
---     -- Additive left unit
---     ⊔ₚ-unit-l : (V : ℙ)
---       → ⊥ₚ ⊔ₚ V ↦ V
---     {-# REWRITE ⊔ₚ-unit-l #-}
+    ⊔ₚ-assoc-intro-l : (U V W : ℙ) (u : El U) 
+      → inlₚ W (inlₚ V u) ↦ inlₚ (V ⊔ₚ W) u
+    {-# REWRITE ⊔ₚ-assoc-intro-l #-}
 
---     ⊔ₚ-unit-l-intro : (V : ℙ) (v : El V)
---       → inrₚ ⊥ₚ v ↦ v
---     {-# REWRITE ⊔ₚ-unit-l-intro #-}
+    ⊔ₚ-assoc-intro-m : (U V W : ℙ) (v : El V)
+      → inlₚ W (inrₚ U v) ↦ inrₚ U (inlₚ W v)
+    {-# REWRITE ⊔ₚ-assoc-intro-m #-}
 
---     ⊔ₚ-unit-l-π : ∀ {ℓ} {V : ℙ}
---       → (X : El (⊥ₚ ⊔ₚ V) → Set ℓ)
---       → (σl : πₚ ⊥ₚ (λ u → X (inlₚ V u)))
---       → (σr : πₚ V (λ v → X (inrₚ ⊥ₚ v)))
---       → π-⊔ X σl σr ↦ σr
---     {-# REWRITE ⊔ₚ-unit-l-π #-}
-
---     -- Additive associativity
---     ⊔ₚ-assoc : (U V W : ℙ)
---       → (U ⊔ₚ V) ⊔ₚ W ↦ U ⊔ₚ V ⊔ₚ W
---     {-# REWRITE ⊔ₚ-assoc #-}
-
---     ⊔ₚ-assoc-intro-l : (U V W : ℙ) (u : El U) 
---       → inlₚ W (inlₚ V u) ↦ inlₚ (V ⊔ₚ W) u
---     {-# REWRITE ⊔ₚ-assoc-intro-l #-}
-
---     ⊔ₚ-assoc-intro-m : (U V W : ℙ) (v : El V)
---       → inlₚ W (inrₚ U v) ↦ inrₚ U (inlₚ W v)
---     {-# REWRITE ⊔ₚ-assoc-intro-m #-}
-
---     ⊔ₚ-assoc-intro-r : (U V W : ℙ) (w : El W)
---       → inrₚ (U ⊔ₚ V) w ↦ inrₚ U (inrₚ V w)
---     {-# REWRITE ⊔ₚ-assoc-intro-r #-}
+    ⊔ₚ-assoc-intro-r : (U V W : ℙ) (w : El W)
+      → inrₚ (U ⊔ₚ V) w ↦ inrₚ U (inrₚ V w)
+    {-# REWRITE ⊔ₚ-assoc-intro-r #-}
 
 --     ⊔ₚ-assoc-π : ∀ {ℓ} (U V W : ℙ)
 --       → (X : El ((U ⊔ₚ V) ⊔ₚ W) → Set ℓ)
@@ -258,96 +255,96 @@ module PositionUniverse where
 --             (π-⊔ {U = V} {V = W} _ (restrict-r U in-uv) in-w)
 --     {-# REWRITE ⊔ₚ-assoc-π #-}
 
---     -- Multiplicative right unit
---     Σₚ-unit-r : (U : ℙ)
---       → Σₚ U (cstₚ U ⊤ₚ) ↦ U
---     {-# REWRITE Σₚ-unit-r #-}
+    -- Multiplicative right unit
+    Σₚ-unit-r : (U : ℙ)
+      → Σₚ U (cstₚ U ⊤ₚ) ↦ U
+    {-# REWRITE Σₚ-unit-r #-}
 
---     Σₚ-unit-r-intro : (U : ℙ) (u : El U) (t : El ⊤ₚ)
---       → ⟦ U , cstₚ U ⊤ₚ ∣ u , t ⟧ₚ ↦ u
---     {-# REWRITE Σₚ-unit-r-intro #-}
+    Σₚ-unit-r-intro : (U : ℙ) (u : El U) (t : El ⊤ₚ)
+      → ⟦ U , cstₚ U ⊤ₚ ∣ u , t ⟧ₚ ↦ u
+    {-# REWRITE Σₚ-unit-r-intro #-}
 
---     Σₚ-unit-r-π : ∀ {ℓ} (U : ℙ)
---       → (X : El (Σₚ U (cstₚ U ⊤ₚ)) → Set ℓ)
---       → (ϕ : πₚ U (λ u → πₚ ⊤ₚ (λ t → X ⟦ U , cstₚ U ⊤ₚ ∣ u , t ⟧ₚ)))
---       → π-Σ U (cstₚ U ⊤ₚ) X ϕ ↦
---           map (λ _ δ → app δ ttₚ) ϕ
---     {-# REWRITE Σₚ-unit-r-π #-}
+    Σₚ-unit-r-π : ∀ {ℓ} (U : ℙ)
+      → (X : El (Σₚ U (cstₚ U ⊤ₚ)) → Set ℓ)
+      → (ϕ : πₚ U (λ u → πₚ ⊤ₚ (λ t → X ⟦ U , cstₚ U ⊤ₚ ∣ u , t ⟧ₚ)))
+      → π-Σ U (cstₚ U ⊤ₚ) X ϕ ↦
+          map (λ _ δ → app δ ttₚ) ϕ
+    {-# REWRITE Σₚ-unit-r-π #-}
 
---     -- Multiplicative left unit
---     Σₚ-unit-l : (V : πₚ ⊤ₚ (cst ℙ))
---       → Σₚ ⊤ₚ V ↦ app V ttₚ
---     {-# REWRITE Σₚ-unit-l #-}
+    -- Multiplicative left unit
+    Σₚ-unit-l : (V : πₚ ⊤ₚ (cst ℙ))
+      → Σₚ ⊤ₚ V ↦ app V ttₚ
+    {-# REWRITE Σₚ-unit-l #-}
 
---     Σₚ-unit-l-intro : (V : πₚ ⊤ₚ (cst ℙ)) (v : El (app V ttₚ))
---       → ⟦ ⊤ₚ , V ∣ ttₚ , v ⟧ₚ ↦ v
---     {-# REWRITE Σₚ-unit-l-intro #-}
+    Σₚ-unit-l-intro : (V : πₚ ⊤ₚ (cst ℙ)) (v : El (app V ttₚ))
+      → ⟦ ⊤ₚ , V ∣ ttₚ , v ⟧ₚ ↦ v
+    {-# REWRITE Σₚ-unit-l-intro #-}
 
---     Σₚ-unit-l-π : ∀ {ℓ} (V : πₚ ⊤ₚ (cst ℙ))
---       → (X : El (Σₚ ⊤ₚ V) → Set ℓ)
---       → (ϕ : πₚ ⊤ₚ (λ t → πₚ (app V t) (λ v → X ⟦ ⊤ₚ , V ∣ t , v ⟧ₚ)))
---       → π-Σ ⊤ₚ V X ϕ ↦ app ϕ ttₚ 
---     {-# REWRITE Σₚ-unit-l-π #-}
+    Σₚ-unit-l-π : ∀ {ℓ} (V : πₚ ⊤ₚ (cst ℙ))
+      → (X : El (Σₚ ⊤ₚ V) → Set ℓ)
+      → (ϕ : πₚ ⊤ₚ (λ t → πₚ (app V t) (λ v → X ⟦ ⊤ₚ , V ∣ t , v ⟧ₚ)))
+      → π-Σ ⊤ₚ V X ϕ ↦ app ϕ ttₚ 
+    {-# REWRITE Σₚ-unit-l-π #-}
 
---     -- Multiplicative left zero
---     Σₚ-zero-r : (U : ℙ)
---       → Σₚ U (cstₚ U ⊥ₚ) ↦ ⊥ₚ
---     {-# REWRITE Σₚ-zero-r #-}
+    -- Multiplicative left zero
+    Σₚ-zero-r : (U : ℙ)
+      → Σₚ U (cstₚ U ⊥ₚ) ↦ ⊥ₚ
+    {-# REWRITE Σₚ-zero-r #-}
 
---     Σₚ-zero-r-intro : (U : ℙ)
---       → (u : El U) (v : El ⊥ₚ)
---       → ⟦ U , cstₚ U ⊥ₚ ∣ u , v ⟧ₚ ↦ v
---     {-# REWRITE Σₚ-zero-r-intro #-}
+    Σₚ-zero-r-intro : (U : ℙ)
+      → (u : El U) (v : El ⊥ₚ)
+      → ⟦ U , cstₚ U ⊥ₚ ∣ u , v ⟧ₚ ↦ v
+    {-# REWRITE Σₚ-zero-r-intro #-}
 
---     Σₚ-zero-r-π : ∀ {ℓ} (U : ℙ)
---       → (X : El (Σₚ U (cstₚ U ⊥ₚ)) → Set ℓ)
---       → (ϕ : πₚ U (λ u → πₚ ⊥ₚ (λ v → X ⟦ U , cstₚ U ⊥ₚ ∣ u , v ⟧ₚ)))
---       → π-Σ U (cstₚ U ⊥ₚ) X ϕ ↦ π-⊥ X 
---     {-# REWRITE Σₚ-zero-r-π #-}
+    Σₚ-zero-r-π : ∀ {ℓ} (U : ℙ)
+      → (X : El (Σₚ U (cstₚ U ⊥ₚ)) → Set ℓ)
+      → (ϕ : πₚ U (λ u → πₚ ⊥ₚ (λ v → X ⟦ U , cstₚ U ⊥ₚ ∣ u , v ⟧ₚ)))
+      → π-Σ U (cstₚ U ⊥ₚ) X ϕ ↦ π-⊥ X 
+    {-# REWRITE Σₚ-zero-r-π #-}
 
---     -- Multiplicative right zero
---     Σₚ-zero-l : (V : πₚ ⊥ₚ (cst ℙ))
---       → Σₚ ⊥ₚ V ↦ ⊥ₚ
---     {-# REWRITE Σₚ-zero-l #-}
+    -- Multiplicative right zero
+    Σₚ-zero-l : (V : πₚ ⊥ₚ (cst ℙ))
+      → Σₚ ⊥ₚ V ↦ ⊥ₚ
+    {-# REWRITE Σₚ-zero-l #-}
 
---     Σₚ-zero-l-intro : (V : πₚ ⊥ₚ (cst ℙ))
---       → (u : El ⊥ₚ) (v : El (app V u))
---       → ⟦ ⊥ₚ , V ∣ u , v ⟧ₚ ↦ u
---     {-# REWRITE Σₚ-zero-l-intro #-}
+    Σₚ-zero-l-intro : (V : πₚ ⊥ₚ (cst ℙ))
+      → (u : El ⊥ₚ) (v : El (app V u))
+      → ⟦ ⊥ₚ , V ∣ u , v ⟧ₚ ↦ u
+    {-# REWRITE Σₚ-zero-l-intro #-}
 
---     Σₚ-zero-l-π : ∀ {ℓ} (V : πₚ ⊥ₚ (cst ℙ))
---       → (X : El (Σₚ ⊥ₚ V) → Set ℓ)
---       → (ϕ : πₚ ⊥ₚ (λ u → πₚ (app V u) (λ v → X ⟦ ⊥ₚ , V ∣ u , v ⟧ₚ)))
---       → π-Σ ⊥ₚ V X ϕ ↦ π-⊥ X 
---     {-# REWRITE Σₚ-zero-l-π #-}
+    Σₚ-zero-l-π : ∀ {ℓ} (V : πₚ ⊥ₚ (cst ℙ))
+      → (X : El (Σₚ ⊥ₚ V) → Set ℓ)
+      → (ϕ : πₚ ⊥ₚ (λ u → πₚ (app V u) (λ v → X ⟦ ⊥ₚ , V ∣ u , v ⟧ₚ)))
+      → π-Σ ⊥ₚ V X ϕ ↦ π-⊥ X 
+    {-# REWRITE Σₚ-zero-l-π #-}
 
---     -- Multiplicative associativity
---     Σₚ-assoc : (U : ℙ) (V : πₚ U (cst ℙ))
---       → (W : πₚ (Σₚ U V) (cst ℙ))
---       → Σₚ (Σₚ U V) W ↦
---         Σₚ U (map (λ u → Σₚ (app V u)) (uncurryₚ U V W))
---     {-# REWRITE Σₚ-assoc #-}
-    
---     Σₚ-assoc-intro : (U : ℙ) (V : πₚ U (cst ℙ))
---       → (W : πₚ U (λ u → πₚ (app V u) (cst ℙ)))
---       → (W : πₚ (Σₚ U V) (cst ℙ))
---       → (u : El U) (v : El (app V u))
---       → (w : El (app W ⟦ U , V ∣ u , v ⟧ₚ))
---       → ⟦ Σₚ U V , W ∣ ⟦ U , V ∣ u , v ⟧ₚ , w ⟧ₚ ↦
---           ⟦ U , map (λ u → Σₚ (app V u)) (uncurryₚ U V W) ∣ u ,
---             ⟦ app V u , app (uncurryₚ U V W) u ∣ v , w ⟧ₚ ⟧ₚ
---     {-# REWRITE Σₚ-assoc-intro #-}
+    -- Multiplicative associativity
+    Σₚ-assoc : (U : ℙ) (V : πₚ U (cst ℙ))
+      → (W : πₚ U (λ u → πₚ (app V u) (cst ℙ)))
+      → Σₚ (Σₚ U V) (π-Σ U V (cst ℙ) W) ↦
+          Σₚ U (map (λ u δ → Σₚ (app V u) δ) W)
+    {-# REWRITE Σₚ-assoc #-}
 
---     Σₚ-assoc-π : ∀ {ℓ} (U : ℙ) (V : πₚ U (cst ℙ))
---       → (W : πₚ (Σₚ U V) (cst ℙ))
---       → (X : El (Σₚ (Σₚ U V) W) → Set ℓ)
---       → (ϕ : πₚ (Σₚ U V) (λ uv → πₚ (app W uv) (λ w → X ⟦ Σₚ U V , W ∣ uv , w ⟧ₚ)))
---       → π-Σ (Σₚ U V) W X ϕ ↦
---           π-Σ U (map (λ u → Σₚ (app V u)) (uncurryₚ U V W)) X
---                 (map (λ u δ → π-Σ (app V u) (app (uncurryₚ U V W) u)
---                      (λ v → X ⟦ U , map (λ u₁ → Σₚ (app V u₁)) (uncurryₚ U V W) ∣ u , v ⟧ₚ) δ)
---                 (uncurryₚ U V ϕ))
---     {-# REWRITE Σₚ-assoc-π #-}
+    Σₚ-assoc-intro : (U : ℙ) (V : πₚ U (cst ℙ))
+      → (W : πₚ U (λ u → πₚ (app V u) (cst ℙ)))
+      → (u : El U) (v : El (app V u))
+      → (w : El (app (app W u) v))
+      → ⟦ Σₚ U V , π-Σ U V (cst ℙ) W ∣ ⟦ U , V ∣ u , v ⟧ₚ , w ⟧ₚ ↦
+          ⟦ U , map (λ u δ → Σₚ (app V u) δ) W ∣
+              u , ⟦ app V u , app W u ∣ v , w ⟧ₚ ⟧ₚ
+    {-# REWRITE Σₚ-assoc-intro #-}
+
+    Σₚ-assoc-π : ∀ {ℓ} (U : ℙ) (V : πₚ U (cst ℙ))
+      → (W : πₚ U (λ u → πₚ (app V u) (cst ℙ)))
+      → (X : El (Σₚ (Σₚ U V) (π-Σ U V (cst ℙ) W)) → Set ℓ)
+      → (ϕ : πₚ U (λ u → πₚ (app V u) (λ v → πₚ (app (app W u) v) (λ w →
+               X ⟦ U , map (λ u₁ → Σₚ (app V u₁)) W ∣ u ,
+                   ⟦ app V u , app W u ∣ v , w ⟧ₚ ⟧ₚ))))
+      → π-Σ (Σₚ U V) (π-Σ U V (cst ℙ) W) X
+          (π-Σ U V (λ uv → πₚ (app (π-Σ U V (cst ℙ) W) uv) (λ w → X ⟦ Σₚ U V , π-Σ U V (cst ℙ) W ∣ uv , w ⟧ₚ)) ϕ) ↦
+        π-Σ U (map (λ u → Σₚ (app V u)) W) X
+          (map (λ u δ → π-Σ (app V u) (app W u) (λ vw → X ⟦ U , map (λ u₁ → Σₚ (app V u₁)) W ∣ u , vw ⟧ₚ) δ) ϕ)
+    {-# REWRITE Σₚ-assoc-π #-} 
 
 --     -- Right Distributivity
 --     ⊔ₚ-Σₚ-distrib-r : (U V : ℙ)

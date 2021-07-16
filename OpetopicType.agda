@@ -61,16 +61,17 @@ module OpetopicType where
       → (c : Cns X c-frm c-pos c-typ)
       → μ c (map {Y = λ p f → Σ ℙ (λ δ-pos →
                               Σ (πₚ δ-pos (cst (Frm X)))
-                              (Cns X f δ-pos))} (λ p f → _ , _ , η f) c-typ)
-        ↦ c
-
+                              (Cns X f δ-pos))}
+                 (λ p f → _ , _ , η f) c-typ) ↦ c
+    {-# REWRITE μ-unit-r #-}
+    
     μ-unit-l : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
       → (c-frm : Frm X)       
       → (δ : πₚ ⊤ₚ (λ p → Σ ℙ (λ δ-pos → Σ (πₚ δ-pos (cst (Frm X)))
                           (Cns X (app (π-⊤ (cst (Frm X)) c-frm) p) δ-pos))))
-      → μ (η c-frm) δ ↦ snd (snd (app δ ttₚ))
-    {-# REWRITE μ-unit-l #-}
+      → μ (η c-frm) δ ↦ {!snd (snd (app δ ttₚ))!} -- 
 
+-- fst (snd (app δ ttₚ))
 
     μ-assoc : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
       → {c-frm : Frm X} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm X))}
@@ -78,39 +79,22 @@ module OpetopicType where
       → (δ : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
                              Σ (πₚ δ-pos (cst (Frm X))) (λ δ-typ →
                              Cns X (app c-typ p) δ-pos δ-typ))))
-      → (ε : πₚ (Σₚ c-pos (map (λ _ → fst) δ)) (λ pq →
-                Σ ℙ (λ ε-pos →
-                Σ (πₚ ε-pos (cst (Frm X)))
-                (Cns X (app (π-Σ c-pos (map (λ _ → fst) δ) (cst (Frm X))
-                       (map (λ u opr → fst (snd opr)) δ)) pq) ε-pos)))) → 
+      → (ε : πₚ c-pos (λ p → πₚ (fst (app δ p)) (λ q →
+                  Σ ℙ (λ ε-pos →
+                  Σ (πₚ ε-pos (cst (Frm X)))
+                  (Cns X (app (fst (snd (app δ p))) q) ε-pos))))) →
+                  
         let δ' : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
-                             Σ (πₚ δ-pos (cst (Frm X))) (λ δ-typ →
-                             Cns X (app c-typ p) δ-pos δ-typ)))
-            δ' = {!!} 
-       in μ (μ c δ) ε ↦ μ c δ'
-
-
--- Goal: Cns X c-frm
---       (Σₚ c-pos
---        (map (λ u → Σₚ (fst (app δ u)))
---         (uncurryₚ c-pos (map (λ _ → fst) δ) (map (λ _ → fst) ε))))
---       (π-Σ c-pos
---        (map (λ u → Σₚ (fst (app δ u)))
---         (uncurryₚ c-pos (map (λ _ → fst) δ) (map (λ _ → fst) ε)))
---        (λ _ → Frm X)
---        (map
---         (λ u →
---            π-Σ (fst (app δ u))
---            (app (uncurryₚ c-pos (map (λ _ → fst) δ) (map (λ _ → fst) ε)) u)
---            (λ v → Frm X))
---         (uncurryₚ c-pos (map (λ _ → fst) δ)
---          (map (λ u opr → fst (snd opr)) ε))))
-
--- Have: Cns X c-frm (Σₚ c-pos (map (λ _ → fst) ?0))
---       (π-Σ c-pos (map (λ _ → fst) ?0) (cst (Frm X))
---        (map (λ u opr → fst (snd opr)) ?0))
-
-
+                             Σ (πₚ δ-pos (cst (Frm X))) 
+                             (Cns X (app c-typ p) δ-pos)))
+            δ' = map {Y = λ p _ → Σ ℙ (λ δ-pos → Σ (πₚ δ-pos (cst (Frm X))) (Cns X (app c-typ p) δ-pos))}
+                     -- This looks really suspicious.  How can we possibly ignore the
+                     -- actual operation during the map?
+                     -- But on the other hand, without doing this, type type of ε
+                     -- is too specific.  Very strange....
+                     (λ p opr → _ , _ , μ (snd (snd (app δ p))) (app ε p)) δ
+            
+       in μ (μ c δ) (π-Σ c-pos (map (λ _ → fst) δ) _ ε) ↦ {!μ c δ'!}
 
     -- μ-assoc : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
     --   → {f : Frm X} (c : Opr X f)
@@ -130,7 +114,6 @@ module OpetopicType where
     -- leaves
     lf : ∀ {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ)
       → (f : Frm Xₙ) (x : Xₛₙ f)
-      -- Can we make the fibration implicit for ⊤ and ⊥? 
       → Cns (Xₙ , Xₛₙ) (f , x , _ , _ , π-⊤ _ x , η f) ⊥ₚ (π-⊥ _)
 
     -- nodes
