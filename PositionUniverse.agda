@@ -83,6 +83,40 @@ module PositionUniverse where
       → app (π-Σ U V X ϕ) ⟦ U , V ∣ u , v ⟧ₚ ↦ app (app ϕ u) v
     {-# REWRITE app-Σ #-}
 
+    --
+    --  Lambdas (yikes)
+    --
+
+    lam : ∀ {ℓ} (P : ℙ) {X : El P → Set ℓ}
+      → (σ : (p : El P) → X p)
+      → πₚ P X
+
+    lam-⊥ : ∀ {ℓ} {X : El ⊥ₚ → Set ℓ}
+      → (σ : (p : El ⊥ₚ) → X p)
+      → lam ⊥ₚ σ ↦ π-⊥ _
+    {-# REWRITE lam-⊥ #-}
+  
+    lam-⊤ : ∀ {ℓ} {X : El ⊤ₚ → Set ℓ}
+      → (σ : (p : El ⊤ₚ) → X p)
+      → lam ⊤ₚ σ ↦ π-⊤ _ (σ ttₚ)
+    {-# REWRITE lam-⊤ #-}
+
+    lam-⊔ : ∀ {ℓ U V} {X : El (U ⊔ₚ V) → Set ℓ}
+      → (l : πₚ U (λ u → X (inlₚ V u)))
+      → (r : πₚ V (λ v → X (inrₚ U v)))
+      → (σ : (p : El (U ⊔ₚ V)) → X p)
+      → lam (U ⊔ₚ V) σ ↦ π-⊔ X
+          (lam U (λ u → σ (inlₚ V u)))
+          (lam V (λ v → σ (inrₚ U v)))
+    {-# REWRITE lam-⊔ #-}
+
+    lam-Σ : ∀ {ℓ} {U : ℙ} {V : πₚ U (cst ℙ)}
+      → {X : El (Σₚ U V) → Set ℓ}
+      → (σ : (p : El (Σₚ U V)) → X p)
+      → lam (Σₚ U V) σ ↦ π-Σ U V X (lam U (λ u →
+          lam (app V u) (λ v → σ ⟦ U , V ∣ u , v ⟧ₚ)))
+    {-# REWRITE lam-Σ #-}
+      
     -- 
     --  Functorial Action
     --
@@ -91,7 +125,7 @@ module PositionUniverse where
       → {Y : (p : El P) → X p → Set ℓ₁}
       → (f : (p : El P) (x : X p) → Y p x)
       → (δ : πₚ P X) → πₚ P (λ p → Y p (app δ p))
-
+  
     map-⊥ : ∀ {ℓ₀ ℓ₁} {X : El ⊥ₚ → Set ℓ₀}
       → {Y : (p : El ⊥ₚ) → X p → Set ℓ₁}
       → (f : (p : El ⊥ₚ) (x : X p) → Y p x)
@@ -102,8 +136,9 @@ module PositionUniverse where
     map-⊤ : ∀ {ℓ₀ ℓ₁} {X : El ⊤ₚ → Set ℓ₀}
       → {Y : (p : El ⊤ₚ) → X p → Set ℓ₁}
       → (f : (p : El ⊤ₚ) (x : X p) → Y p x)
-      → (δ  : πₚ ⊤ₚ X)
-      → map f δ ↦ π-⊤ _ (f ttₚ (app δ ttₚ))
+      → (x : X ttₚ)
+      -- → (δ  : πₚ ⊤ₚ X)
+      → map f (π-⊤ _ x) ↦ π-⊤ _ (f ttₚ x)
     {-# REWRITE map-⊤ #-}
 
     map-⊔ : ∀ {ℓ₀ ℓ₁ U V} {X : El (U ⊔ₚ V) → Set ℓ₀}

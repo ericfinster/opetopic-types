@@ -69,9 +69,8 @@ module OpetopicType where
       → (c-frm : Frm X)       
       → (δ : πₚ ⊤ₚ (λ p → Σ ℙ (λ δ-pos → Σ (πₚ δ-pos (cst (Frm X)))
                           (Cns X (app (π-⊤ (cst (Frm X)) c-frm) p) δ-pos))))
-      → μ (η c-frm) δ ↦ {!snd (snd (app δ ttₚ))!} -- 
-
--- fst (snd (app δ ttₚ))
+      → μ (η c-frm) δ ↦ snd (snd (app δ ttₚ))
+    {-# REWRITE μ-unit-l #-}
 
     μ-assoc : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
       → {c-frm : Frm X} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm X))}
@@ -88,13 +87,28 @@ module OpetopicType where
                              Σ (πₚ δ-pos (cst (Frm X))) 
                              (Cns X (app c-typ p) δ-pos)))
             δ' = map {Y = λ p _ → Σ ℙ (λ δ-pos → Σ (πₚ δ-pos (cst (Frm X))) (Cns X (app c-typ p) δ-pos))}
+            
                      -- This looks really suspicious.  How can we possibly ignore the
                      -- actual operation during the map?
+                     
                      -- But on the other hand, without doing this, type type of ε
                      -- is too specific.  Very strange....
+                     
                      (λ p opr → _ , _ , μ (snd (snd (app δ p))) (app ε p)) δ
             
        in μ (μ c δ) (π-Σ c-pos (map (λ _ → fst) δ) _ ε) ↦ {!μ c δ'!}
+
+    -- Okay.  So let's think again. Is this somehow saying that the dependent
+    -- map can be defined in terms of the non-dependent? Because during the map,
+    -- we can always just use this trick.
+
+    -- Hmmm.  Or maybe what it's saying is that, by introducing map, we have
+    -- already, in effect, introduced λ, but just in a convoluted way.
+
+    -- map : ∀ {ℓ₀ ℓ₁} {P : ℙ} {X : El P → Set ℓ₀}
+    --   → {Y : (p : El P) → X p → Set ℓ₁}
+    --   → (f : (p : El P) (x : X p) → Y p x)
+    --   → (δ : πₚ P X) → πₚ P (λ p → Y p (app δ p))
 
     -- μ-assoc : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
     --   → {f : Frm X} (c : Opr X f)
