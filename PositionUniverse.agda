@@ -99,6 +99,34 @@ module PositionUniverse where
       → app (map f δ) p ↦ f p (app δ p)
     {-# REWRITE app-map #-}
 
+    map-app : ∀ {ℓ₀ ℓ₁} {P : ℙ} {X : El P → Set ℓ₀}
+      → {Y : (p : El P) → X p → Set ℓ₁}
+      → (f : (p : El P) (x : X p) → Y p x)
+      → (δ : πₚ P X) (p : El P)
+      → map (λ p _ → app δ p) δ ↦ δ 
+    {-# REWRITE map-app #-}
+
+    -- Oddly, the *fully* dependent version of this rule is not a
+    -- valid rewrite.  Can you do something about this?
+    -- map-map : ∀ {ℓ₀ ℓ₁ ℓ₂} {P : ℙ} {X : El P → Set ℓ₀}
+    --   → {Y : (p : El P) → Set ℓ₁}
+    --   → (f : (p : El P) → X p → Y p)
+    --   → {Z : (p : El P) → Y p → Set ℓ₂}
+    --   → (g : (p : El P) (y : Y p) → Z p y)
+    --   → (δ : πₚ P X)
+    --   → map g (map f δ) ↦ map (λ p x → g p (f p x)) δ
+    -- {-# REWRITE map-map #-}
+
+    map-map' : ∀ {ℓ₀ ℓ₁ ℓ₂} {P : ℙ} {X : El P → Set ℓ₀}
+      → {Y : (p : El P) → X p → Set ℓ₁}
+      → (f : (p : El P) (x : X p) → Y p x)
+      → {Z : (p : El P) → Set ℓ₂}
+      → (δ : πₚ P X)
+      → (g : (p : El P) → Y p (app δ p) → Z p)
+      → map g (map f δ) ↦ map (λ p _ → g p (f p (app δ p))) δ 
+    {-# REWRITE map-map' #-}
+
+
     -- TODO: Definitions
 
     --
@@ -116,6 +144,37 @@ module PositionUniverse where
       → (u : El U) (v : El (app V u))
       → app (app (uncurryₚ U V δ) u) v ↦ app δ ⟦ U , V ∣ u , v ⟧ₚ
     {-# REWRITE app-uncurry #-}
+
+    -- could this be related to what you were seeing above with
+    -- the general version of map-map?
+    -- uncurry-map : ∀ {ℓ₀ ℓ₁} (U : ℙ) (V : πₚ U (cst ℙ))
+    --   → {X : El (Σₚ U V) → Set ℓ₀}
+    --   → {Y : (p : El (Σₚ U V)) (x : X p) → Set ℓ₁}
+    --   → (f : (p : El (Σₚ U V)) (x : X p) → Y p x)
+    --   → (δ : πₚ (Σₚ U V) X)
+    --   → uncurryₚ U V (map f δ) ↦ map (λ u δ' → map (λ v x → f ⟦ U , V ∣ u , v ⟧ₚ x) δ') (uncurryₚ U V δ)
+    -- {-# REWRITE uncurry-map #-}
+
+-- Goal: πₚ U
+--       (λ u →
+--          πₚ (app V u)
+--          (λ v → Y ⟦ U , V ∣ u , v ⟧ₚ (app δ ⟦ U , V ∣ u , v ⟧ₚ)))
+
+-- Goal: Cns X c-frm
+--       (Σₚ c-pos
+--        (map (λ u → Σₚ (fst (app δ u)))
+--         (uncurryₚ c-pos (map (λ _ → fst) δ) (map (λ _ → fst) ε))))
+--       (π-Σ c-pos
+--        (map (λ u → Σₚ (fst (app δ u)))
+--         (uncurryₚ c-pos (map (λ _ → fst) δ) (map (λ _ → fst) ε)))
+--        (λ _ → Frm X)
+--        (map
+--         (λ u →
+--            π-Σ (fst (app δ u))
+--            (app (uncurryₚ c-pos (map (λ _ → fst) δ) (map (λ _ → fst) ε)) u)
+--            (λ v → Frm X))
+--         (uncurryₚ c-pos (map (λ _ → fst) δ)
+--          (map (λ u opr → fst (snd opr)) ε))))
 
     -- TODO: β/η rules
 
@@ -179,6 +238,15 @@ module PositionUniverse where
       → cstₚ (Σₚ U V) x ↦ π-Σ U V (cst X)
         (map (λ _ P → cstₚ P x) V)
     {-# REWRITE cst-Σ #-}
+
+
+    --  Yikes, this is starting to get scary ...
+    map-cst : ∀ {ℓ₀ ℓ₁} {P : ℙ} {X : El P → Set ℓ₀}
+      → {Y : Set ℓ₁} (y : Y)
+      → (δ : πₚ P X)
+      → map (λ _ _ → y) δ ↦ cstₚ P y
+    {-# REWRITE map-cst #-}
+
 
     --
     --  Laws for Positions
