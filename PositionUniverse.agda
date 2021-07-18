@@ -11,10 +11,15 @@ module PositionUniverse where
     ℙ : Set
     El : ℙ → Set
 
-    -- Small π types and application
+    -- Small elim
     πₚ : ∀ {ℓ} (P : ℙ) (X : El P → Set ℓ) → Set ℓ
+
+    -- Conversion to functions
     app : ∀ {ℓ} {P : ℙ} {X : El P → Set ℓ}
       → πₚ P X → (p : El P) → X p
+    lam : ∀ {ℓ} (P : ℙ) {X : El P → Set ℓ}
+      → (σ : (p : El P) → X p)
+      → πₚ P X
 
     -- Empty
     ⊥ₚ : ℙ
@@ -48,14 +53,15 @@ module PositionUniverse where
       → πₚ U (λ u → X (inlₚ V u))
       → πₚ V (λ v → X (inrₚ U v))
       → πₚ (U ⊔ₚ V) X 
-    
+
+    -- Can we make U and V implicit here?
     π-Σ : ∀ {ℓ} (U : ℙ) (V : πₚ U (cst ℙ))
       → (X : El (Σₚ U V) → Set ℓ)
       → (ϕ : πₚ U (λ u → πₚ (app V u) (λ v → X ⟦ U , V ∣ u , v ⟧ₚ)))
       → πₚ (Σₚ U V) X
 
     --
-    --  Definition of App
+    --  App 
     --
 
     app-⊤ : ∀ {ℓ} {X : El ⊤ₚ → Set ℓ} {x : X ttₚ}
@@ -84,12 +90,8 @@ module PositionUniverse where
     {-# REWRITE app-Σ #-}
 
     --
-    --  Lambdas (yikes)
+    --  Lam
     --
-
-    lam : ∀ {ℓ} (P : ℙ) {X : El P → Set ℓ}
-      → (σ : (p : El P) → X p)
-      → πₚ P X
 
     lam-⊥ : ∀ {ℓ} {X : El ⊥ₚ → Set ℓ}
       → (σ : (p : El ⊥ₚ) → X p)
@@ -117,116 +119,19 @@ module PositionUniverse where
           lam (app V u) (λ v → σ ⟦ U , V ∣ u , v ⟧ₚ)))
     {-# REWRITE lam-Σ #-}
       
-    -- 
-    --  Functorial Action
+    --
+    --  App/Lam Laws
     --
 
-    map : ∀ {ℓ₀ ℓ₁} {P : ℙ} {X : El P → Set ℓ₀}
-      → {Y : (p : El P) → X p → Set ℓ₁}
-      → (f : (p : El P) (x : X p) → Y p x)
-      → (δ : πₚ P X) → πₚ P (λ p → Y p (app δ p))
-  
-    map-⊥ : ∀ {ℓ₀ ℓ₁} {X : El ⊥ₚ → Set ℓ₀}
-      → {Y : (p : El ⊥ₚ) → X p → Set ℓ₁}
-      → (f : (p : El ⊥ₚ) (x : X p) → Y p x)
-      → (δ : πₚ ⊥ₚ X)
-      → map f δ ↦ π-⊥ _ 
-    {-# REWRITE map-⊥ #-}
+    app-lam : ∀ {ℓ} (P : ℙ) {X : El P → Set ℓ}
+      → (σ : (p : El P) → X p)
+      → app (lam P σ) ↦ σ
+    {-# REWRITE app-lam #-}
 
-    map-⊤ : ∀ {ℓ₀ ℓ₁} {X : El ⊤ₚ → Set ℓ₀}
-      → {Y : (p : El ⊤ₚ) → X p → Set ℓ₁}
-      → (f : (p : El ⊤ₚ) (x : X p) → Y p x)
-      → (x : X ttₚ)
-      -- → (δ  : πₚ ⊤ₚ X)
-      → map f (π-⊤ _ x) ↦ π-⊤ _ (f ttₚ x)
-    {-# REWRITE map-⊤ #-}
-
-    map-⊔ : ∀ {ℓ₀ ℓ₁ U V} {X : El (U ⊔ₚ V) → Set ℓ₀}
-      → {Y : (p : El (U ⊔ₚ V)) → X p → Set ℓ₁}
-      → (f : (p : El (U ⊔ₚ V)) (x : X p) → Y p x)
-      → (l : πₚ U (λ u → X (inlₚ V u)))
-      → (r : πₚ V (λ v → X (inrₚ U v)))
-      → map f (π-⊔ _ l r) ↦
-          π-⊔ _ (map (λ u x → f (inlₚ V u) x) l)
-                 (map (λ v x → f (inrₚ U v) x) r)
-    {-# REWRITE map-⊔ #-} 
-
-    map-Σ : ∀ {ℓ₀ ℓ₁} {U : ℙ} {V : πₚ U (cst ℙ)}
-      → {X : El (Σₚ U V) → Set ℓ₀}
-      → {Y : (p : El (Σₚ U V)) → X p → Set ℓ₁}
-      → (f : (p : El (Σₚ U V)) (x : X p) → Y p x)
-      → (ϕ : πₚ U (λ u → πₚ (app V u) (λ v → X ⟦ U , V ∣ u , v ⟧ₚ)))
-      → map f (π-Σ U V X ϕ) ↦
-          π-Σ U V (λ p → Y p (app (π-Σ U V X ϕ) p))
-            (map (λ u δ → map (λ v x → f ⟦ U , V ∣ u , v ⟧ₚ x) δ) ϕ)
-    {-# REWRITE map-Σ #-}
-      
-    --
-    --  Constant decorations 
-    --
-    
-    cstₚ : ∀ {ℓ} {X : Set ℓ} (P : ℙ) (x : X)
-      → πₚ P (cst X)
-
-    cst-⊥ : ∀ {ℓ} {X : Set ℓ} (x : X)
-      → cstₚ ⊥ₚ x ↦ π-⊥ (cst X)
-    {-# REWRITE cst-⊥ #-}
-      
-    cst-⊤ : ∀ {ℓ} {X : Set ℓ} (x : X)
-      → cstₚ ⊤ₚ x ↦ π-⊤ (cst X) x
-    {-# REWRITE cst-⊤ #-}
-
-    cst-⊔ : ∀ {ℓ} {X : Set ℓ} (x : X)
-      → {U V : ℙ}
-      → cstₚ (U ⊔ₚ V) x ↦ π-⊔ (cst X) (cstₚ U x) (cstₚ V x)
-    {-# REWRITE cst-⊔ #-}
-
-    cst-Σ : ∀ {ℓ} {X : Set ℓ} (x : X)
-      → (U : ℙ) (V : πₚ U (cst ℙ))
-      → cstₚ (Σₚ U V) x ↦ π-Σ U V (cst X)
-        (map (λ _ P → cstₚ P x) V)
-    {-# REWRITE cst-Σ #-}
-
-    --
-    --  Combinator Laws
-    --
-
-    app-cst : ∀ {ℓ} {X : Set ℓ} (P : ℙ)
-      → (x : X) (p : El P)
-      → app (cstₚ P x) p ↦ x
-    {-# REWRITE app-cst #-} 
-
-    map-cst : ∀ {ℓ₀ ℓ₁} {P : ℙ} {X : El P → Set ℓ₀}
-      → {Y : Set ℓ₁} (y : Y)
+    lam-app : ∀ {ℓ} (P : ℙ) {X : El P → Set ℓ}
       → (δ : πₚ P X)
-      → map (λ _ _ → y) δ ↦ cstₚ P y
-    {-# REWRITE map-cst #-}
-
-    app-map : ∀ {ℓ₀ ℓ₁} {P : ℙ} {X : El P → Set ℓ₀}
-      → {Y : (p : El P) → X p → Set ℓ₁}
-      → (f : (p : El P) (x : X p) → Y p x)
-      → (δ : πₚ P X) (p : El P)
-      → app (map f δ) p ↦ f p (app δ p)
-    {-# REWRITE app-map #-}
-
-    map-app : ∀ {ℓ₀ ℓ₁} {P : ℙ} {X : El P → Set ℓ₀}
-      → {Y : (p : El P) → X p → Set ℓ₁}
-      → (f : (p : El P) (x : X p) → Y p x)
-      → (δ : πₚ P X) (p : El P)
-      → map (λ p _ → app δ p) δ ↦ δ 
-    {-# REWRITE map-app #-}
-
-    -- This version is non-dependent in the second factor.  It
-    -- seems that the full, doubly dependent version does not
-    -- give a valid rewrite rule.  Is this a problem?
-    map-map : ∀ {ℓ₀ ℓ₁ ℓ₂} {P : ℙ} {X : El P → Set ℓ₀}
-      → {Y : (p : El P) → X p → Set ℓ₁}
-      → (f : (p : El P) (x : X p) → Y p x)
-      → {Z : (p : El P) → Set ℓ₂}
-      → (δ : πₚ P X)
-      → (g : (p : El P) → Y p (app δ p) → Z p)
-      → map g (map f δ) ↦ map (λ p _ → g p (f p (app δ p))) δ 
-    {-# REWRITE map-map #-}
+      → lam P (λ p → app δ p) ↦ δ
+    {-# REWRITE lam-app #-}
 
     --
     --  Laws for Positions
@@ -281,29 +186,29 @@ module PositionUniverse where
       → inrₚ (U ⊔ₚ V) w ↦ inrₚ U (inrₚ V w)
     {-# REWRITE ⊔ₚ-assoc-intro-r #-}
 
---     ⊔ₚ-assoc-π : ∀ {ℓ} (U V W : ℙ)
---       → (X : El ((U ⊔ₚ V) ⊔ₚ W) → Set ℓ)
---       → (in-uv : πₚ (U ⊔ₚ V) (λ uv → X (inlₚ W uv)))
---       → (in-w : πₚ W (λ w → X (inrₚ (U ⊔ₚ V) w)))
---       → π-⊔ {U = U ⊔ₚ V} {V = W} X in-uv in-w ↦
---           π-⊔ {U = U} {V = V ⊔ₚ W} X (restrict-l V in-uv)
---             (π-⊔ {U = V} {V = W} _ (restrict-r U in-uv) in-w)
---     {-# REWRITE ⊔ₚ-assoc-π #-}
+    ⊔ₚ-assoc-π : ∀ {ℓ} (U V W : ℙ)
+      → (X : El ((U ⊔ₚ V) ⊔ₚ W) → Set ℓ)
+      → (in-uv : πₚ (U ⊔ₚ V) (λ uv → X (inlₚ W uv)))
+      → (in-w : πₚ W (λ w → X (inrₚ (U ⊔ₚ V) w)))
+      → π-⊔ {U = U ⊔ₚ V} {V = W} X in-uv in-w ↦
+          π-⊔ {U = U} {V = V ⊔ₚ W} X (lam U (λ u → app in-uv (inlₚ V u)))
+            (π-⊔ {U = V} {V = W} _ (lam V (λ v → app in-uv (inrₚ U v))) in-w)
+    {-# REWRITE ⊔ₚ-assoc-π #-}
 
     -- Multiplicative right unit
     Σₚ-unit-r : (U : ℙ)
-      → Σₚ U (cstₚ U ⊤ₚ) ↦ U
+      → Σₚ U (lam U (cst ⊤ₚ)) ↦ U
     {-# REWRITE Σₚ-unit-r #-}
 
     Σₚ-unit-r-intro : (U : ℙ) (u : El U) (t : El ⊤ₚ)
-      → ⟦ U , cstₚ U ⊤ₚ ∣ u , t ⟧ₚ ↦ u
+      → ⟦ U , lam U (cst ⊤ₚ) ∣ u , t ⟧ₚ ↦ u
     {-# REWRITE Σₚ-unit-r-intro #-}
 
     Σₚ-unit-r-π : ∀ {ℓ} (U : ℙ)
-      → (X : El (Σₚ U (cstₚ U ⊤ₚ)) → Set ℓ)
-      → (ϕ : πₚ U (λ u → πₚ ⊤ₚ (λ t → X ⟦ U , cstₚ U ⊤ₚ ∣ u , t ⟧ₚ)))
-      → π-Σ U (cstₚ U ⊤ₚ) X ϕ ↦
-          map (λ _ δ → app δ ttₚ) ϕ
+      → (X : El (Σₚ U (lam U (cst ⊤ₚ))) → Set ℓ)
+      → (ϕ : πₚ U (λ u → πₚ ⊤ₚ (λ t → X ⟦ U , lam U (cst ⊤ₚ) ∣ u , t ⟧ₚ)))
+      → π-Σ U (lam U (cst ⊤ₚ)) X ϕ ↦
+          lam U (λ u → app (app ϕ u) ttₚ) 
     {-# REWRITE Σₚ-unit-r-π #-}
 
     -- Multiplicative left unit
@@ -323,18 +228,18 @@ module PositionUniverse where
 
     -- Multiplicative left zero
     Σₚ-zero-r : (U : ℙ)
-      → Σₚ U (cstₚ U ⊥ₚ) ↦ ⊥ₚ
+      → Σₚ U (lam U (cst ⊥ₚ)) ↦ ⊥ₚ
     {-# REWRITE Σₚ-zero-r #-}
 
     Σₚ-zero-r-intro : (U : ℙ)
       → (u : El U) (v : El ⊥ₚ)
-      → ⟦ U , cstₚ U ⊥ₚ ∣ u , v ⟧ₚ ↦ v
+      → ⟦ U , lam U (cst ⊥ₚ) ∣ u , v ⟧ₚ ↦ v
     {-# REWRITE Σₚ-zero-r-intro #-}
 
     Σₚ-zero-r-π : ∀ {ℓ} (U : ℙ)
-      → (X : El (Σₚ U (cstₚ U ⊥ₚ)) → Set ℓ)
-      → (ϕ : πₚ U (λ u → πₚ ⊥ₚ (λ v → X ⟦ U , cstₚ U ⊥ₚ ∣ u , v ⟧ₚ)))
-      → π-Σ U (cstₚ U ⊥ₚ) X ϕ ↦ π-⊥ X 
+      → (X : El (Σₚ U (lam U (cst ⊥ₚ))) → Set ℓ)
+      → (ϕ : πₚ U (λ u → πₚ ⊥ₚ (λ v → X ⟦ U , lam U (cst ⊥ₚ) ∣ u , v ⟧ₚ)))
+      → π-Σ U (lam U (cst ⊥ₚ)) X ϕ ↦ π-⊥ X 
     {-# REWRITE Σₚ-zero-r-π #-}
 
     -- Multiplicative right zero
@@ -355,111 +260,114 @@ module PositionUniverse where
 
     -- Multiplicative associativity
     Σₚ-assoc : (U : ℙ) (V : πₚ U (cst ℙ))
-      → (W : πₚ U (λ u → πₚ (app V u) (cst ℙ)))
-      → Σₚ (Σₚ U V) (π-Σ U V (cst ℙ) W) ↦
-          Σₚ U (map (λ u δ → Σₚ (app V u) δ) W)
+      → (W : πₚ (Σₚ U V) (cst ℙ))
+      → Σₚ (Σₚ U V) W ↦
+          Σₚ U (lam U (λ u →
+            Σₚ (app V u) (lam (app V u) (λ v →
+               app W ⟦ U , V ∣ u , v ⟧ₚ))))
     {-# REWRITE Σₚ-assoc #-}
 
     Σₚ-assoc-intro : (U : ℙ) (V : πₚ U (cst ℙ))
-      → (W : πₚ U (λ u → πₚ (app V u) (cst ℙ)))
+      → (W : πₚ (Σₚ U V) (cst ℙ))
       → (u : El U) (v : El (app V u))
-      → (w : El (app (app W u) v))
-      → ⟦ Σₚ U V , π-Σ U V (cst ℙ) W ∣ ⟦ U , V ∣ u , v ⟧ₚ , w ⟧ₚ ↦
-          ⟦ U , map (λ u δ → Σₚ (app V u) δ) W ∣
-              u , ⟦ app V u , app W u ∣ v , w ⟧ₚ ⟧ₚ
+      → (w : El (app W ⟦ U , V ∣ u , v ⟧ₚ))
+      → ⟦ Σₚ U V , W ∣ ⟦ U , V ∣ u , v ⟧ₚ , w ⟧ₚ ↦
+          ⟦ U , lam U (λ u →
+            Σₚ (app V u) (lam (app V u) (λ v →
+               app W ⟦ U , V ∣ u , v ⟧ₚ))) ∣ u ,
+            ⟦ app V u , lam (app V u) (λ v → app W ⟦ U , V ∣ u , v ⟧ₚ) ∣
+              v , w ⟧ₚ ⟧ₚ
     {-# REWRITE Σₚ-assoc-intro #-}
 
     Σₚ-assoc-π : ∀ {ℓ} (U : ℙ) (V : πₚ U (cst ℙ))
-      → (W : πₚ U (λ u → πₚ (app V u) (cst ℙ)))
-      → (X : El (Σₚ (Σₚ U V) (π-Σ U V (cst ℙ) W)) → Set ℓ)
-      → (ϕ : πₚ U (λ u → πₚ (app V u) (λ v → πₚ (app (app W u) v) (λ w →
-               X ⟦ U , map (λ u₁ → Σₚ (app V u₁)) W ∣ u ,
-                   ⟦ app V u , app W u ∣ v , w ⟧ₚ ⟧ₚ))))
-      → π-Σ (Σₚ U V) (π-Σ U V (cst ℙ) W) X
-          (π-Σ U V (λ uv → πₚ (app (π-Σ U V (cst ℙ) W) uv) (λ w → X ⟦ Σₚ U V , π-Σ U V (cst ℙ) W ∣ uv , w ⟧ₚ)) ϕ) ↦
-        π-Σ U (map (λ u → Σₚ (app V u)) W) X
-          (map (λ u δ → π-Σ (app V u) (app W u) (λ vw → X ⟦ U , map (λ u₁ → Σₚ (app V u₁)) W ∣ u , vw ⟧ₚ) δ) ϕ)
-    {-# REWRITE Σₚ-assoc-π #-} 
+      → (W : πₚ (Σₚ U V) (cst ℙ))
+      → (X : El (Σₚ (Σₚ U V) W) → Set ℓ)
+      → (ϕ : πₚ (Σₚ U V) (λ uv → πₚ (app W uv) (λ w → X ⟦ Σₚ U V , W ∣ uv , w ⟧ₚ)))
+      → π-Σ (Σₚ U V) W X ϕ ↦ π-Σ U (lam U (λ u →
+            Σₚ (app V u) (lam (app V u) (λ v →
+               app W ⟦ U , V ∣ u , v ⟧ₚ)))) X
+         (lam U (λ u → π-Σ (app V u) (lam (app V u) (λ v → app W ⟦ U , V ∣ u , v ⟧ₚ)) _
+           (lam (app V u) (λ v → lam (app W ⟦ U , V ∣ u , v ⟧ₚ) (λ w →
+             app (app ϕ ⟦ U , V ∣ u , v ⟧ₚ) w)))))
+    {-# REWRITE Σₚ-assoc-π #-}
 
---     -- Right Distributivity
---     ⊔ₚ-Σₚ-distrib-r : (U V : ℙ)
---       → (W : πₚ (U ⊔ₚ V) (cst ℙ))
---       → Σₚ (U ⊔ₚ V) W ↦
---           Σₚ U (restrict-l V W) ⊔ₚ Σₚ V (restrict-r U W)
---     {-# REWRITE ⊔ₚ-Σₚ-distrib-r #-}
+    -- Right Distributivity
+    ⊔ₚ-Σₚ-distrib-r : (U V : ℙ)
+      → (W : πₚ (U ⊔ₚ V) (cst ℙ))
+      → Σₚ (U ⊔ₚ V) W ↦
+          Σₚ U (lam U (λ u → app W (inlₚ V u))) ⊔ₚ
+          Σₚ V (lam V (λ v → app W (inrₚ U v)))
+    {-# REWRITE ⊔ₚ-Σₚ-distrib-r #-}
 
---     ⊔ₚ-Σₚ-distrib-r-intro-l : (U V : ℙ)
---       → (W : πₚ (U ⊔ₚ V) (cst ℙ))
---       → (u : El U) (w : El (app W (inlₚ V u)))
---       → ⟦ U ⊔ₚ V , W ∣ inlₚ V u , w ⟧ₚ ↦
---           inlₚ (Σₚ V (restrict-r U W)) ⟦ U , restrict-l V W ∣ u , w ⟧ₚ
---     {-# REWRITE ⊔ₚ-Σₚ-distrib-r-intro-l #-}
+    ⊔ₚ-Σₚ-distrib-r-intro-l : (U V : ℙ)
+      → (W : πₚ (U ⊔ₚ V) (cst ℙ))
+      → (u : El U) (w : El (app W (inlₚ V u)))
+      → ⟦ U ⊔ₚ V , W ∣ inlₚ V u , w ⟧ₚ ↦
+          inlₚ (Σₚ V (lam V (λ v → app W (inrₚ U v))))
+            ⟦ U , lam U (λ u → app W (inlₚ V u)) ∣ u , w ⟧ₚ
+    {-# REWRITE ⊔ₚ-Σₚ-distrib-r-intro-l #-}
 
---     ⊔ₚ-Σₚ-distrib-r-intro-r : (U V : ℙ)
---       → (W : πₚ (U ⊔ₚ V) (cst ℙ))
---       → (v : El V) (w : El (app W (inrₚ U v)))
---       → ⟦ U ⊔ₚ V , W ∣ inrₚ U v , w ⟧ₚ ↦
---           inrₚ (Σₚ U (restrict-l V W)) ⟦ V , restrict-r U W ∣ v , w ⟧ₚ 
---     {-# REWRITE ⊔ₚ-Σₚ-distrib-r-intro-r #-}
+    ⊔ₚ-Σₚ-distrib-r-intro-r : (U V : ℙ)
+      → (W : πₚ (U ⊔ₚ V) (cst ℙ))
+      → (v : El V) (w : El (app W (inrₚ U v)))
+      → ⟦ U ⊔ₚ V , W ∣ inrₚ U v , w ⟧ₚ ↦
+          inrₚ (Σₚ U (lam U (λ u → app W (inlₚ V u))))
+            ⟦ V , (lam V (λ v → app W (inrₚ U v))) ∣ v , w ⟧ₚ
+    {-# REWRITE ⊔ₚ-Σₚ-distrib-r-intro-r #-}
     
---     ⊔ₚ-Σₚ-distrib-r-π : ∀ {ℓ} (U V : ℙ)
---       → (W : πₚ (U ⊔ₚ V) (cst ℙ))
---       → (X : El (Σₚ (U ⊔ₚ V) W) → Set ℓ)
---       → (ϕ : πₚ (U ⊔ₚ V) (λ uv → πₚ (app W uv) (λ w → X ⟦ U ⊔ₚ V , W ∣ uv , w ⟧ₚ)))
---       → π-Σ (U ⊔ₚ V) W X ϕ ↦
---           π-⊔ {U = Σₚ U (restrict-l V W)}
---               {V = Σₚ V (restrict-r U W)} X
---               (π-Σ U (restrict-l V W) (λ u →
---                 X (inlₚ (Σₚ V (restrict-r U W)) u)) (restrict-l {U = U} V ϕ))
---               (π-Σ V (restrict-r U W) (λ v →
---                 X (inrₚ (Σₚ U (restrict-l V W)) v)) (restrict-r U {V = V} ϕ)) 
---     {-# REWRITE ⊔ₚ-Σₚ-distrib-r-π #-}
+    ⊔ₚ-Σₚ-distrib-r-π : ∀ {ℓ} (U V : ℙ)
+      → (W : πₚ (U ⊔ₚ V) (cst ℙ))
+      → (X : El (Σₚ (U ⊔ₚ V) W) → Set ℓ)
+      → (ϕ : πₚ (U ⊔ₚ V) (λ uv → πₚ (app W uv) (λ w → X ⟦ U ⊔ₚ V , W ∣ uv , w ⟧ₚ)))
+      → π-Σ (U ⊔ₚ V) W X ϕ ↦
+          π-⊔ {U = Σₚ U (lam U (λ u → app W (inlₚ V u)))}
+              {V = Σₚ V (lam V (λ v → app W (inrₚ U v)))} X
+              (π-Σ U (lam U (λ u → app W (inlₚ V u)))
+                (λ uw → X (inlₚ (Σₚ V (lam V (λ v → app W (inrₚ U v)))) uw))
+                (lam U (λ u → lam (app W (inlₚ V u)) (λ w → app (app ϕ (inlₚ V u)) w))))
+              (π-Σ V (lam V (λ v → app W (inrₚ U v)))
+                (λ vw → X (inrₚ (Σₚ U (lam U (λ u → app W (inlₚ V u)))) vw))
+                (lam V (λ v → lam (app W (inrₚ U v)) (λ w → app (app ϕ (inrₚ U v)) w))))
+    {-# REWRITE ⊔ₚ-Σₚ-distrib-r-π #-}
 
---     -- Left Distributivity
---     ⊔ₚ-Σₚ-distrib-l : {U : ℙ}
---       → (V : πₚ U (cst ℙ)) (W : πₚ U (cst ℙ))
---       → Σₚ U (map (λ u ϕ → ϕ (app W u))
---                (map (λ _ P Q → P ⊔ₚ Q) V))
---          ↦ Σₚ U V ⊔ₚ Σₚ U W
---     {-# REWRITE ⊔ₚ-Σₚ-distrib-l #-}
+    -- Left Distributivity
+    ⊔ₚ-Σₚ-distrib-l : {U : ℙ}
+      → (V : πₚ U (cst ℙ)) (W : πₚ U (cst ℙ))
+      → Σₚ U (lam U (λ u → app V u ⊔ₚ app W u))
+         ↦ Σₚ U V ⊔ₚ Σₚ U W
+    {-# REWRITE ⊔ₚ-Σₚ-distrib-l #-}
 
---     ⊔ₚ-Σₚ-distrib-l-intro-l : {U : ℙ}
---       → (V : πₚ U (cst ℙ)) (W : πₚ U (cst ℙ))
---       → (u : El U) (v : El (app V u))
---       → ⟦ U , (map (λ u ϕ → ϕ (app W u))
---                (map (λ _ P Q → P ⊔ₚ Q) V)) ∣ u , inlₚ (app W u) v ⟧ₚ ↦
---           inlₚ (Σₚ U W) ⟦ U , V ∣ u , v ⟧ₚ
---     {-# REWRITE ⊔ₚ-Σₚ-distrib-l-intro-l #-}
+    ⊔ₚ-Σₚ-distrib-l-intro-l : {U : ℙ}
+      → (V : πₚ U (cst ℙ)) (W : πₚ U (cst ℙ))
+      → (u : El U) (v : El (app V u))
+      → ⟦ U , lam U (λ u → app V u ⊔ₚ app W u) ∣
+          u , inlₚ (app W u) v ⟧ₚ ↦
+          inlₚ (Σₚ U W) ⟦ U , V ∣ u , v ⟧ₚ
+    {-# REWRITE ⊔ₚ-Σₚ-distrib-l-intro-l #-}
 
---     ⊔ₚ-Σₚ-distrib-l-intro-r : {U : ℙ}
---       → (V : πₚ U (cst ℙ)) (W : πₚ U (cst ℙ))
---       → (u : El U) (w : El (app W u))
---       → ⟦ U , (map (λ u ϕ → ϕ (app W u))
---                (map (λ _ P Q → P ⊔ₚ Q) V)) ∣ u , inrₚ (app V u) w ⟧ₚ ↦
---           inrₚ (Σₚ U V) ⟦ U , W ∣ u , w ⟧ₚ
---     {-# REWRITE ⊔ₚ-Σₚ-distrib-l-intro-r #-}
+    ⊔ₚ-Σₚ-distrib-l-intro-r : {U : ℙ}
+      → (V : πₚ U (cst ℙ)) (W : πₚ U (cst ℙ))
+      → (u : El U) (w : El (app W u))
+      → ⟦ U , lam U (λ u → app V u ⊔ₚ app W u) ∣
+          u , inrₚ (app V u) w ⟧ₚ ↦
+          inrₚ (Σₚ U V) ⟦ U , W ∣ u , w ⟧ₚ
+    {-# REWRITE ⊔ₚ-Σₚ-distrib-l-intro-r #-}
 
---     -- Perhaps define the fiberwise application
---     -- of _⊔_ separately to clean this up ...
---     ⊔ₚ-Σₚ-distrib-l-π : ∀ {ℓ} {U : ℙ}
---       → (V : πₚ U (cst ℙ)) (W : πₚ U (cst ℙ))
---       → (X : El (Σₚ U (map (λ u ϕ → ϕ (app W u))
---                       (map (λ _ P Q → P ⊔ₚ Q) V))) → Set ℓ)
---       → (ϕ : πₚ U (λ u → πₚ (app V u ⊔ₚ app W u)
---                  (λ vw → X ⟦ U , map (λ u ϕ → ϕ (app W u)) (map (λ _ P Q → P ⊔ₚ Q) V) ∣ u , vw ⟧ₚ)))
---       → π-Σ U (map (λ u ϕ → ϕ (app W u))
---                       (map (λ _ P Q → P ⊔ₚ Q) V)) X ϕ ↦
---         π-⊔ {U = Σₚ U V} {V = Σₚ U W} X
---           (π-Σ U V (λ u → X (inlₚ (Σₚ U W) u))
---             (map {Y = λ u _ → πₚ (app V u) (λ v → X (inlₚ (Σₚ U W) ⟦ U , V ∣ u , v ⟧ₚ))}
---               (λ u δ → restrict-l {U = app V u} (app W u) δ) ϕ))
---           (π-Σ U W (λ v → X (inrₚ (Σₚ U V) v))
---             (map {Y = λ u _ → πₚ (app W u) (λ v → X (inrₚ (Σₚ U V) ⟦ U , W ∣ u , v ⟧ₚ))}
---               (λ u δ → restrict-r (app V u) {V = app W u} δ) ϕ))
---     {-# REWRITE ⊔ₚ-Σₚ-distrib-l-π #-}
+    ⊔ₚ-Σₚ-distrib-l-π : ∀ {ℓ} {U : ℙ}
+      → (V : πₚ U (cst ℙ)) (W : πₚ U (cst ℙ))
+      → (X : El (Σₚ U (lam U (λ u → app V u ⊔ₚ app W u))) → Set ℓ)
+      → (ϕ : πₚ U (λ u → πₚ (app V u ⊔ₚ app W u)
+                 (λ vw → X ⟦ U , lam U (λ u → app V u ⊔ₚ app W u) ∣ u , vw ⟧ₚ)))
+      → π-Σ U (lam U (λ u → app V u ⊔ₚ app W u)) X ϕ ↦
+          π-⊔ {U = Σₚ U V} {V = Σₚ U W} X
+            (π-Σ U V (λ uv → X (inlₚ (Σₚ U W) uv) )
+              (lam U (λ u → lam (app V u) (λ v → app (app ϕ u) (inlₚ (app W u) v)))))
+            (π-Σ U W (λ uw → X (inrₚ (Σₚ U V) uw))
+              (lam U (λ u → lam (app W u) (λ w → app (app ϕ u) (inrₚ (app V u) w)))))
+    {-# REWRITE ⊔ₚ-Σₚ-distrib-l-π #-}
     
---     --
---     --  Question: given that we have added the relations to π, do we
---     --  *also* need to add them to app?  Or should they just compute
---     --  to the same thing?  Does this introduce confluence problems?
---     -- 
+    --
+    --  Question: given that we have added the relations to π, do we
+    --  *also* need to add them to app?  Or should they just compute
+    --  to the same thing?  Does this introduce confluence problems?
+    -- 
