@@ -68,23 +68,21 @@ module OpetopicType where
       → μ (η c-frm) δ ↦ snd (snd (app δ ttₚ))
     {-# REWRITE μ-unit-l #-}
 
-    μ-assoc : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
-      → {c-frm : Frm X} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm X))}
-      → (c : Web X c-frm c-pos c-typ)
-      → (δ : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
-                             Σ (πₚ δ-pos (cst (Frm X))) (λ δ-typ →
-                             Web X (app c-typ p) δ-pos δ-typ))))
-                             
-      → (ε : πₚ (Σₚ c-pos (lam c-pos (λ p → fst (app δ p))))
-                (λ pq → Σ ℙ (λ ε-pos →
-                        Σ (πₚ ε-pos (cst (Frm X)))
-                        (Web X (app (π-Σ c-pos (lam c-pos (λ p → fst (app δ p))) (cst (Frm X))
-                                    (lam c-pos (λ p → fst (snd (app δ p))))) pq) ε-pos))))
-
-      → μ (μ c δ) ε ↦ μ c (lam c-pos (λ p → _ , _ ,
-                       μ (snd (snd (app δ p))) (lam (fst (app δ p)) (λ q →
-                         app ε ⟦ c-pos , lam (c-pos) (λ p → fst (app δ p)) ∣ p , q ⟧ₚ)))) 
-    {-# REWRITE μ-assoc #-}
+    -- μ-assoc : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
+    --   → {c-frm : Frm X} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm X))}
+    --   → (c : Web X c-frm c-pos c-typ)
+    --   → (δ : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
+    --                          Σ (πₚ δ-pos (cst (Frm X))) (λ δ-typ →
+    --                          Web X (app c-typ p) δ-pos δ-typ))))
+    --   → (ε : πₚ (Σₚ c-pos (lam c-pos (λ p → fst (app δ p))))
+    --             (λ pq → Σ ℙ (λ ε-pos →
+    --                     Σ (πₚ ε-pos (cst (Frm X)))
+    --                     (Web X (app (π-Σ c-pos (lam c-pos (λ p → fst (app δ p))) (cst (Frm X))
+    --                                 (lam c-pos (λ p → fst (snd (app δ p))))) pq) ε-pos))))
+    --   → μ (μ c δ) ε ↦ μ c (lam c-pos (λ p → _ , _ ,
+    --                    μ (snd (snd (app δ p))) (lam (fst (app δ p)) (λ q →
+    --                      app ε ⟦ c-pos , lam (c-pos) (λ p → fst (app δ p)) ∣ p , q ⟧ₚ))))
+    -- {-# REWRITE μ-assoc #-}
 
     --
     --  Web Constructors
@@ -98,29 +96,28 @@ module OpetopicType where
       → (f : Frm Xₙ) (x : Xₛₙ f)
       → Web (Xₙ , Xₛₙ) (f , x , _ , _ , π-⊤ _ x , η f) ⊥ₚ (π-⊥ _)
 
-    -- -- nodes
-    -- nd : ∀ {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ)
-    --   → {c-frm : Frm Xₙ} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm Xₙ))}
-    --   → (c : Web Xₙ c-frm c-pos c-typ)
-    --   → (δ : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
-    --                          Σ (πₚ δ-pos (cst (Frm Xₙ))) (λ δ-typ →
-    --                          Web Xₙ (app c-typ p) δ-pos δ-typ))))
+    -- nodes
+    nd : ∀ {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ)
+      → {c-frm : Frm Xₙ} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm Xₙ))}
+      → (c : Web Xₙ c-frm c-pos c-typ)
+      → (δ : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
+                             Σ (πₚ δ-pos (cst (Frm Xₙ))) (λ δ-typ →
+                             Web Xₙ (app c-typ p) δ-pos δ-typ))))
                              
-    --   → (x : Xₛₙ c-frm) (x' : πₚ c-pos (λ p → Xₛₙ (app c-typ p)))
-    --   → (x'' : πₚ c-pos (λ p → πₚ (fst (app δ p)) (λ q → Xₛₙ (app (fst (snd (app δ p))) q))))
+      → (x : Xₛₙ c-frm) (x' : πₚ c-pos (λ p → Xₛₙ (app c-typ p)))
+      → (x'' : πₚ c-pos (λ p → πₚ (fst (app δ p)) (λ q → Xₛₙ (app (fst (snd (app δ p))) q))))
 
-    --   → (ε : πₚ c-pos (λ p → Σ ℙ (λ ε-pos →
-    --                          Σ (πₚ ε-pos (cst (Frm (Xₙ , Xₛₙ)))) (λ ε-typ →
-    --                          Web (Xₙ , Xₛₙ) (app c-typ p , app x' p , fst (app δ p) ,
-    --                                         fst (snd (app δ p)) , app x'' p ,
-    --                                         snd (snd (app δ p))) ε-pos ε-typ))))
+      → (ε : πₚ c-pos (λ p → Σ ℙ (λ ε-pos →
+                             Σ (πₚ ε-pos (cst (Frm (Xₙ , Xₛₙ)))) (λ ε-typ →
+                             Web (Xₙ , Xₛₙ) (app c-typ p , app x' p , fst (app δ p) ,
+                                            fst (snd (app δ p)) , app x'' p ,
+                                            snd (snd (app δ p))) ε-pos ε-typ))))
                              
-    --   → Web (Xₙ , Xₛₙ) (c-frm , x , _ , _ , π-Σ c-pos (map (λ _ → fst) δ) _ x'' , μ c δ)
-    --       (⊤ₚ ⊔ₚ Σₚ c-pos (map {Y = λ _ _ → ℙ} (λ _ → fst) ε))
-    --       (π-⊔ {U = ⊤ₚ} {V = Σₚ c-pos (map {Y = λ _ _ → ℙ} (λ _ → fst) ε)}
-    --         (cst (Frm (Xₙ , Xₛₙ))) (π-⊤ _ (c-frm , x , c-pos , c-typ , x' , c))
-    --                               (π-Σ c-pos (map (λ _ → fst) ε) (cst (Frm (Xₙ , Xₛₙ)))
-    --                                      (map (λ u opr → fst (snd opr)) ε )))
+      → Web (Xₙ , Xₛₙ) (c-frm , x , _ , _ , π-Σ c-pos (lam c-pos (λ p → fst (app δ p))) _ x'' , μ c δ)
+          (⊤ₚ ⊔ₚ Σₚ c-pos (lam c-pos (λ p → fst (app ε p))))
+          (π-⊔ (cst (Frm (Xₙ , Xₛₙ))) (π-⊤ _ (c-frm , x , c-pos , c-typ , x' , c))
+                                      (π-Σ c-pos (lam c-pos (λ p → fst (app ε p))) (cst (Frm (Xₙ , Xₛₙ)))
+                                        (lam c-pos (λ p → lam (fst (app ε p)) (λ q → app (fst (snd (app ε p))) q)))))
 
 
 
