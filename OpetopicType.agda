@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --no-positivity #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 open import MiniHoTT
 open import PositionUniverse
@@ -14,7 +14,7 @@ module OpetopicType where
 
   postulate 
 
-    Cns : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
+    Web : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
       → (f : Frm X) (P : ℙ) (t : πₚ P (cst (Frm X)))
       → Set ℓ
 
@@ -29,7 +29,7 @@ module OpetopicType where
     Σ ℙ (λ P →
     Σ (πₚ P (cst (Frm Xₙ))) (λ δf →
     Σ (πₚ P (λ p → Xₛₙ (app δf p))) (λ δx → 
-    Cns Xₙ f P δf)))))
+    Web Xₙ f P δf)))))
 
   postulate
 
@@ -38,19 +38,18 @@ module OpetopicType where
     -- 
 
     η : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n} (f : Frm X)
-      → Cns X f ⊤ₚ (π-⊤ (cst (Frm X)) f)
+      → Web X f ⊤ₚ (π-⊤ (cst (Frm X)) f)
 
     μ : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
       → {c-frm : Frm X} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm X))}
-      → (c : Cns X c-frm c-pos c-typ)
+      → (c : Web X c-frm c-pos c-typ)
       → (δ : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
                              Σ (πₚ δ-pos (cst (Frm X))) (λ δ-typ →
-                             Cns X (app c-typ p) δ-pos δ-typ))))
-      → Cns X c-frm (Σₚ c-pos (map {Y = λ _ _ → ℙ} (λ _ → fst) δ))
-                    (π-Σ c-pos (map (λ _ → fst) δ) (cst (Frm X))
-                       (map {Y = λ u opr → πₚ (fst opr) (cst (Frm X))}
-                         (λ u opr → fst (snd opr)) δ))
-
+                             Web X (app c-typ p) δ-pos δ-typ))))
+      → Web X c-frm (Σₚ c-pos (lam c-pos (λ p → fst (app δ p))))
+                    (π-Σ c-pos (lam c-pos (λ p → fst (app δ p))) (cst (Frm X))
+                      (lam c-pos (λ p → lam (fst (app δ p))
+                                 (λ q → app (fst (snd (app δ p))) q))))
 
     --
     --  Monadic laws
@@ -58,101 +57,70 @@ module OpetopicType where
 
     μ-unit-r : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
       → {c-frm : Frm X} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm X))}
-      → (c : Cns X c-frm c-pos c-typ)
-      → μ c (map {Y = λ p f → Σ ℙ (λ δ-pos →
-                              Σ (πₚ δ-pos (cst (Frm X)))
-                              (Cns X f δ-pos))}
-                 (λ p f → _ , _ , η f) c-typ) ↦ c
+      → (c : Web X c-frm c-pos c-typ)
+      → μ c (lam c-pos (λ p → _ , _ , η (app c-typ p))) ↦ c
     {-# REWRITE μ-unit-r #-}
     
     μ-unit-l : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
       → (c-frm : Frm X)       
       → (δ : πₚ ⊤ₚ (λ p → Σ ℙ (λ δ-pos → Σ (πₚ δ-pos (cst (Frm X)))
-                          (Cns X (app (π-⊤ (cst (Frm X)) c-frm) p) δ-pos))))
+                          (Web X (app (π-⊤ (cst (Frm X)) c-frm) p) δ-pos))))
       → μ (η c-frm) δ ↦ snd (snd (app δ ttₚ))
     {-# REWRITE μ-unit-l #-}
 
     μ-assoc : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
       → {c-frm : Frm X} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm X))}
-      → (c : Cns X c-frm c-pos c-typ)
+      → (c : Web X c-frm c-pos c-typ)
       → (δ : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
                              Σ (πₚ δ-pos (cst (Frm X))) (λ δ-typ →
-                             Cns X (app c-typ p) δ-pos δ-typ))))
-      → (ε : πₚ c-pos (λ p → πₚ (fst (app δ p)) (λ q →
-                  Σ ℙ (λ ε-pos →
-                  Σ (πₚ ε-pos (cst (Frm X)))
-                  (Cns X (app (fst (snd (app δ p))) q) ε-pos))))) →
-                  
-        let δ' : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
-                             Σ (πₚ δ-pos (cst (Frm X))) 
-                             (Cns X (app c-typ p) δ-pos)))
-            δ' = map {Y = λ p _ → Σ ℙ (λ δ-pos → Σ (πₚ δ-pos (cst (Frm X))) (Cns X (app c-typ p) δ-pos))}
-            
-                     -- This looks really suspicious.  How can we possibly ignore the
-                     -- actual operation during the map?
-                     
-                     -- But on the other hand, without doing this, type type of ε
-                     -- is too specific.  Very strange....
-                     
-                     (λ p opr → _ , _ , μ (snd (snd (app δ p))) (app ε p)) δ
-            
-       in μ (μ c δ) (π-Σ c-pos (map (λ _ → fst) δ) _ ε) ↦ {!μ c δ'!}
+                             Web X (app c-typ p) δ-pos δ-typ))))
+                             
+      → (ε : πₚ (Σₚ c-pos (lam c-pos (λ p → fst (app δ p))))
+                (λ pq → Σ ℙ (λ ε-pos →
+                        Σ (πₚ ε-pos (cst (Frm X)))
+                        (Web X (app (π-Σ c-pos (lam c-pos (λ p → fst (app δ p))) (cst (Frm X))
+                                    (lam c-pos (λ p → fst (snd (app δ p))))) pq) ε-pos))))
 
-    -- Okay.  So let's think again. Is this somehow saying that the dependent
-    -- map can be defined in terms of the non-dependent? Because during the map,
-    -- we can always just use this trick.
-
-    -- Hmmm.  Or maybe what it's saying is that, by introducing map, we have
-    -- already, in effect, introduced λ, but just in a convoluted way.
-
-    -- map : ∀ {ℓ₀ ℓ₁} {P : ℙ} {X : El P → Set ℓ₀}
-    --   → {Y : (p : El P) → X p → Set ℓ₁}
-    --   → (f : (p : El P) (x : X p) → Y p x)
-    --   → (δ : πₚ P X) → πₚ P (λ p → Y p (app δ p))
-
-    -- μ-assoc : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
-    --   → {f : Frm X} (c : Opr X f)
-    --   → (δ : (p : El (pos c)) → Opr X (app (typ c) p))
-    --   → (ε : (p : El (pos (μ c δ))) → Opr X (app (typ (μ c δ)) p))
-    --   → μ-cns (μ c δ) ε ↦ μ-cns c (λ p → μ (δ p)
-    --       (λ q → ε ⟦ pos c , (λ p → pos (δ p)) ∣ p , q ⟧ₚ))
-    -- {-# REWRITE μ-assoc #-}
+      → μ (μ c δ) ε ↦ μ c (lam c-pos (λ p → _ , _ ,
+                       μ (snd (snd (app δ p))) (lam (fst (app δ p)) (λ q →
+                         app ε ⟦ c-pos , lam (c-pos) (λ p → fst (app δ p)) ∣ p , q ⟧ₚ)))) 
+    {-# REWRITE μ-assoc #-}
 
     --
-    --  Tree constructors  (should we say Web????)
+    --  Web Constructors
     --
 
     -- objects
-    obj : ∀ {ℓ} (P : ℙ) → Cns {ℓ = ℓ} {n = O} tt tt P (cstₚ P tt)
+    obj : ∀ {ℓ} (P : ℙ) → Web {ℓ = ℓ} {n = O} tt tt P (lam P (cst tt))
 
     -- leaves
     lf : ∀ {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ)
       → (f : Frm Xₙ) (x : Xₛₙ f)
-      → Cns (Xₙ , Xₛₙ) (f , x , _ , _ , π-⊤ _ x , η f) ⊥ₚ (π-⊥ _)
+      → Web (Xₙ , Xₛₙ) (f , x , _ , _ , π-⊤ _ x , η f) ⊥ₚ (π-⊥ _)
 
-    -- nodes
-    nd : ∀ {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ)
-      → {c-frm : Frm Xₙ} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm Xₙ))}
-      → (c : Cns Xₙ c-frm c-pos c-typ)
-      → (δ : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
-                             Σ (πₚ δ-pos (cst (Frm Xₙ))) (λ δ-typ →
-                             Cns Xₙ (app c-typ p) δ-pos δ-typ))))
+    -- -- nodes
+    -- nd : ∀ {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ)
+    --   → {c-frm : Frm Xₙ} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm Xₙ))}
+    --   → (c : Web Xₙ c-frm c-pos c-typ)
+    --   → (δ : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
+    --                          Σ (πₚ δ-pos (cst (Frm Xₙ))) (λ δ-typ →
+    --                          Web Xₙ (app c-typ p) δ-pos δ-typ))))
                              
-      → (x : Xₛₙ c-frm) (x' : πₚ c-pos (λ p → Xₛₙ (app c-typ p)))
-      → (x'' : πₚ c-pos (λ p → πₚ (fst (app δ p)) (λ q → Xₛₙ (app (fst (snd (app δ p))) q))))
+    --   → (x : Xₛₙ c-frm) (x' : πₚ c-pos (λ p → Xₛₙ (app c-typ p)))
+    --   → (x'' : πₚ c-pos (λ p → πₚ (fst (app δ p)) (λ q → Xₛₙ (app (fst (snd (app δ p))) q))))
 
-      → (ε : πₚ c-pos (λ p → Σ ℙ (λ ε-pos →
-                             Σ (πₚ ε-pos (cst (Frm (Xₙ , Xₛₙ)))) (λ ε-typ →
-                             Cns (Xₙ , Xₛₙ) (app c-typ p , app x' p , fst (app δ p) ,
-                                            fst (snd (app δ p)) , app x'' p ,
-                                            snd (snd (app δ p))) ε-pos ε-typ))))
+    --   → (ε : πₚ c-pos (λ p → Σ ℙ (λ ε-pos →
+    --                          Σ (πₚ ε-pos (cst (Frm (Xₙ , Xₛₙ)))) (λ ε-typ →
+    --                          Web (Xₙ , Xₛₙ) (app c-typ p , app x' p , fst (app δ p) ,
+    --                                         fst (snd (app δ p)) , app x'' p ,
+    --                                         snd (snd (app δ p))) ε-pos ε-typ))))
                              
-      → Cns (Xₙ , Xₛₙ) (c-frm , x , _ , _ , π-Σ c-pos (map (λ _ → fst) δ) _ x'' , μ c δ)
-          (⊤ₚ ⊔ₚ Σₚ c-pos (map {Y = λ _ _ → ℙ} (λ _ → fst) ε))
-          (π-⊔ {U = ⊤ₚ} {V = Σₚ c-pos (map {Y = λ _ _ → ℙ} (λ _ → fst) ε)}
-            (cst (Frm (Xₙ , Xₛₙ))) (π-⊤ _ (c-frm , x , c-pos , c-typ , x' , c))
-                                  (π-Σ c-pos (map (λ _ → fst) ε) (cst (Frm (Xₙ , Xₛₙ)))
-                                         (map (λ u opr → fst (snd opr)) ε )))
+    --   → Web (Xₙ , Xₛₙ) (c-frm , x , _ , _ , π-Σ c-pos (map (λ _ → fst) δ) _ x'' , μ c δ)
+    --       (⊤ₚ ⊔ₚ Σₚ c-pos (map {Y = λ _ _ → ℙ} (λ _ → fst) ε))
+    --       (π-⊔ {U = ⊤ₚ} {V = Σₚ c-pos (map {Y = λ _ _ → ℙ} (λ _ → fst) ε)}
+    --         (cst (Frm (Xₙ , Xₛₙ))) (π-⊤ _ (c-frm , x , c-pos , c-typ , x' , c))
+    --                               (π-Σ c-pos (map (λ _ → fst) ε) (cst (Frm (Xₙ , Xₛₙ)))
+    --                                      (map (λ u opr → fst (snd opr)) ε )))
 
 
 
