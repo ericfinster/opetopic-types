@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --type-in-type #-}
+{-# OPTIONS --without-K --rewriting --type-in-type --guardedness #-}
 
 open import MiniHoTT
 open import MiniUniverse
@@ -30,7 +30,6 @@ module Sigma where
     fst-η : ∀ {ℓ ℓ↓} {n : ℕ} {X : 𝕆 ℓ n} {X↓ : 𝕆↓ ℓ↓ X}
       → (f : Frm (Σₒ X X↓))
       → η-cns (fst-frm f) ↦ fst-cns (η-cns f) 
-    {-# REWRITE fst-η #-}
 
   Σₒ {n = O} X X↓ = Σ X X↓
   Σₒ {n = S n} (Xₙ , Xₛₙ) (X↓ₙ , X↓ₛₙ) =
