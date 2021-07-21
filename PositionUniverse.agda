@@ -104,8 +104,6 @@ module PositionUniverse where
     {-# REWRITE lam-⊤ #-}
 
     lam-⊔ : ∀ {ℓ U V} {X : El (U ⊔ₚ V) → Set ℓ}
-      → (l : πₚ U (λ u → X (inlₚ V u)))
-      → (r : πₚ V (λ v → X (inrₚ U v)))
       → (σ : (p : El (U ⊔ₚ V)) → X p)
       → lam (U ⊔ₚ V) σ ↦ π-⊔ X
           (lam U (λ u → σ (inlₚ V u)))
