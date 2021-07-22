@@ -128,8 +128,8 @@ module AbsoluteOpetopicTypes where
   -- data Tree {ℓ} {n : ℕ} (Xₙ : 𝕆 ℓ n) (Xₛₙ : Frm Xₙ → Set ℓ) :
   --   (f : Frm (Xₙ , Xₛₙ)) (P : ℙ) (D : FrmDec (Xₙ , Xₛₙ) P) → Set ℓ where 
 
-  --   lf : (f : Frm Xₙ) (x : Xₛₙ f)
-  --     → Tree Xₙ Xₛₙ (f , x , η-frm {Xₛₙ = Xₛₙ} f x) ⊥ₚ ⊥-dec
+    -- lf : (f : Frm Xₙ) (x : Xₛₙ f)
+    --   → Tree Xₙ Xₛₙ (f , x , η-frm {Xₛₙ = Xₛₙ} f x) ⊥ₚ ⊥-dec
 
   --   nd : {fₙ : Frm Xₙ} (x : Xₛₙ fₙ) (fₛₙ : Frmₛ Xₛₙ fₙ x)
   --     → (δ : (p : El (pos (opr fₛₙ))) → Frmₛ Xₛₙ (app (typ (opr fₛₙ)) p) (dec fₛₙ p))
