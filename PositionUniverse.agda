@@ -225,58 +225,55 @@ module PositionUniverse where
       → π-Σ ⊤ₚ V X ϕ ↦ app ϕ ttₚ 
     {-# REWRITE Σₚ-unit-l-π #-}
 
-    -- -- Multiplicative left zero
-    -- Σₚ-zero-r : (U : ℙ)
-    --   → Σₚ U (lam U (cst ⊥ₚ)) ↦ ⊥ₚ
-    -- {-# REWRITE Σₚ-zero-r #-}
+    -- Multiplicative left zero
+    Σₚ-zero-r : (U : ℙ)
+      → Σₚ U (cst ⊥ₚ) ↦ ⊥ₚ
+    {-# REWRITE Σₚ-zero-r #-}
 
-    -- Σₚ-zero-r-intro : (U : ℙ)
-    --   → (u : El U) (v : El ⊥ₚ)
-    --   → ⟦ U , lam U (cst ⊥ₚ) ∣ u , v ⟧ₚ ↦ v
-    -- {-# REWRITE Σₚ-zero-r-intro #-}
+    Σₚ-zero-r-intro : (U : ℙ)
+      → (u : El U) (v : El ⊥ₚ)
+      → ⟦ U , cst ⊥ₚ ∣ u , v ⟧ₚ ↦ v
+    {-# REWRITE Σₚ-zero-r-intro #-}
 
-    -- Σₚ-zero-r-π : ∀ {ℓ} (U : ℙ)
-    --   → (X : El (Σₚ U (lam U (cst ⊥ₚ))) → Set ℓ)
-    --   → (ϕ : πₚ U (λ u → πₚ ⊥ₚ (λ v → X ⟦ U , lam U (cst ⊥ₚ) ∣ u , v ⟧ₚ)))
-    --   → π-Σ U (lam U (cst ⊥ₚ)) X ϕ ↦ π-⊥ X 
-    -- {-# REWRITE Σₚ-zero-r-π #-}
+    Σₚ-zero-r-π : ∀ {ℓ} (U : ℙ)
+      → (X : El (Σₚ U (cst ⊥ₚ)) → Set ℓ)
+      → (ϕ : πₚ U (λ u → πₚ ⊥ₚ (λ v → X ⟦ U , cst ⊥ₚ ∣ u , v ⟧ₚ)))
+      → π-Σ U (cst ⊥ₚ) X ϕ ↦ π-⊥ X 
+    {-# REWRITE Σₚ-zero-r-π #-}
 
-    -- -- Multiplicative right zero
-    -- Σₚ-zero-l : (V : πₚ ⊥ₚ (cst ℙ))
-    --   → Σₚ ⊥ₚ V ↦ ⊥ₚ
-    -- {-# REWRITE Σₚ-zero-l #-}
+    -- Multiplicative right zero
+    Σₚ-zero-l : (V : El ⊥ₚ → ℙ)
+      → Σₚ ⊥ₚ V ↦ ⊥ₚ
+    {-# REWRITE Σₚ-zero-l #-}
 
-    -- Σₚ-zero-l-intro : (V : πₚ ⊥ₚ (cst ℙ))
-    --   → (u : El ⊥ₚ) (v : El (app V u))
-    --   → ⟦ ⊥ₚ , V ∣ u , v ⟧ₚ ↦ u
-    -- {-# REWRITE Σₚ-zero-l-intro #-}
+    Σₚ-zero-l-intro : (V : El ⊥ₚ → ℙ)
+      → (u : El ⊥ₚ) (v : El (V u))
+      → ⟦ ⊥ₚ , V ∣ u , v ⟧ₚ ↦ u
+    {-# REWRITE Σₚ-zero-l-intro #-}
 
-    -- Σₚ-zero-l-π : ∀ {ℓ} (V : πₚ ⊥ₚ (cst ℙ))
-    --   → (X : El (Σₚ ⊥ₚ V) → Set ℓ)
-    --   → (ϕ : πₚ ⊥ₚ (λ u → πₚ (app V u) (λ v → X ⟦ ⊥ₚ , V ∣ u , v ⟧ₚ)))
-    --   → π-Σ ⊥ₚ V X ϕ ↦ π-⊥ X 
-    -- {-# REWRITE Σₚ-zero-l-π #-}
+    Σₚ-zero-l-π : ∀ {ℓ} (V : El ⊥ₚ → ℙ)
+      → (X : El (Σₚ ⊥ₚ V) → Set ℓ)
+      → (ϕ : πₚ ⊥ₚ (λ u → πₚ (V u) (λ v → X ⟦ ⊥ₚ , V ∣ u , v ⟧ₚ)))
+      → π-Σ ⊥ₚ V X ϕ ↦ π-⊥ X 
+    {-# REWRITE Σₚ-zero-l-π #-}
 
-    -- -- Multiplicative associativity
-    -- Σₚ-assoc : (U : ℙ) (V : El U → ℙ)
-    --   → (W : πₚ (Σₚ U V) (cst ℙ))
-    --   → Σₚ (Σₚ U V) W ↦
-    --       Σₚ U (lam U (λ u →
-    --         Σₚ (app V u) (lam (app V u) (λ v →
-    --            app W ⟦ U , V ∣ u , v ⟧ₚ))))
-    -- {-# REWRITE Σₚ-assoc #-}
+    -- Multiplicative associativity
+    Σₚ-assoc : (U : ℙ) (V : El U → ℙ)
+      → (W : El (Σₚ U V) → ℙ)
+      → Σₚ (Σₚ U V) W ↦
+          Σₚ U λ u → Σₚ (V u) λ v →
+            W ⟦ U , V ∣ u , v ⟧ₚ
+    {-# REWRITE Σₚ-assoc #-}
 
-    -- Σₚ-assoc-intro : (U : ℙ) (V : El U → ℙ)
-    --   → (W : πₚ (Σₚ U V) (cst ℙ))
-    --   → (u : El U) (v : El (app V u))
-    --   → (w : El (app W ⟦ U , V ∣ u , v ⟧ₚ))
-    --   → ⟦ Σₚ U V , W ∣ ⟦ U , V ∣ u , v ⟧ₚ , w ⟧ₚ ↦
-    --       ⟦ U , lam U (λ u →
-    --         Σₚ (app V u) (lam (app V u) (λ v →
-    --            app W ⟦ U , V ∣ u , v ⟧ₚ))) ∣ u ,
-    --         ⟦ app V u , lam (app V u) (λ v → app W ⟦ U , V ∣ u , v ⟧ₚ) ∣
-    --           v , w ⟧ₚ ⟧ₚ
-    -- {-# REWRITE Σₚ-assoc-intro #-}
+    Σₚ-assoc-intro : (U : ℙ) (V : El U → ℙ)
+      → (W : El (Σₚ U V) → ℙ)
+      → (u : El U) (v : El (V u))
+      → (w : El (W ⟦ U , V ∣ u , v ⟧ₚ))
+      → ⟦ Σₚ U V , W ∣ ⟦ U , V ∣ u , v ⟧ₚ , w ⟧ₚ ↦
+          ⟦ U , (λ u → Σₚ (V u) (λ v →
+               W ⟦ U , V ∣ u , v ⟧ₚ)) ∣
+            u , ⟦ V u , (λ v → W ⟦ U , V ∣ u , v ⟧ₚ) ∣ v , w ⟧ₚ ⟧ₚ
+    {-# REWRITE Σₚ-assoc-intro #-}
 
     -- Σₚ-assoc-π : ∀ {ℓ} (U : ℙ) (V : El U → ℙ)
     --   → (W : πₚ (Σₚ U V) (cst ℙ))
@@ -365,8 +362,8 @@ module PositionUniverse where
     --           (lam U (λ u → lam (app W u) (λ w → app (app ϕ u) (inrₚ (app V u) w)))))
     -- {-# REWRITE ⊔ₚ-Σₚ-distrib-l-π #-}
     
-    -- --
-    -- --  Question: given that we have added the relations to π, do we
-    -- --  *also* need to add them to app?  Or should they just compute
-    -- --  to the same thing?  Does this introduce confluence problems?
-    -- -- 
+    --
+    --  Question: given that we have added the relations to π, do we
+    --  *also* need to add them to app?  Or should they just compute
+    --  to the same thing?  Does this introduce confluence problems?
+    -- 
