@@ -77,6 +77,41 @@ module NewOpetopicType where
                (lam c-pos λ p → lam (fst (app ε p)) λ q →
                  app (fst (snd (app ε p))) q)))
 
+
+    --
+    --  Monadic laws
+    --
+
+    μ-unit-r : ∀ {ℓ} (X : 𝕆 ℓ)
+      → {c-frm : Frm X} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm X))}
+      → (c : Web X c-frm c-pos c-typ)
+      → μ c (lam c-pos (λ p → _ , _ , η (app c-typ p))) ↦ c
+    {-# REWRITE μ-unit-r #-}
+    
+    μ-unit-l : ∀ {ℓ} (X : 𝕆 ℓ)
+      → (c-frm : Frm X)       
+      → (δ : πₚ ⊤ₚ (λ p → Σ ℙ (λ δ-pos → Σ (πₚ δ-pos (cst (Frm X)))
+                          (Web X (app (π-⊤ (cst (Frm X)) c-frm) p) δ-pos))))
+      → μ (η c-frm) δ ↦ snd (snd (app δ ttₚ))
+    {-# REWRITE μ-unit-l #-}
+
+    μ-assoc : ∀ {ℓ} {X : 𝕆 ℓ}
+      → {c-frm : Frm X} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm X))}
+      → (c : Web X c-frm c-pos c-typ)
+      → (δ : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
+                             Σ (πₚ δ-pos (cst (Frm X))) (λ δ-typ →
+                             Web X (app c-typ p) δ-pos δ-typ))))
+      → (ε : πₚ (Σₚ c-pos (λ p → fst (app δ p)))
+                (λ pq → Σ ℙ (λ ε-pos →
+                        Σ (πₚ ε-pos (cst (Frm X)))
+                        (Web X (app (π-Σ c-pos (λ p → fst (app δ p)) (cst (Frm X))
+                                    (lam c-pos (λ p → fst (snd (app δ p))))) pq) ε-pos))))
+      → μ (μ c δ) ε ↦ μ c (lam c-pos (λ p → _ , _ ,
+                       μ (snd (snd (app δ p))) (lam (fst (app δ p)) (λ q →
+                         app ε ⟦ c-pos , (λ p → fst (app δ p)) ∣ p , q ⟧ₚ))))
+    {-# REWRITE μ-assoc #-}
+
+
   --
   --  The data of a next dim'l web tree
   --
