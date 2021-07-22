@@ -76,8 +76,8 @@ module AbsoluteOpetopicTypes where
     μ-web : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
       → {f : Frm X} (c : Opr X f)
       → (δ : πₚ (pos c) (λ p → Opr X (app (typ c) p)))
-      → Web X f (Σₚ (pos c) (lam (pos c) (λ p → pos (app δ p))))
-                (π-Σ (pos c) (lam (pos c) (λ p → pos (app δ p))) (cst (Frm X))
+      → Web X f (Σₚ (pos c) (λ p → pos (app δ p)))
+                (π-Σ (pos c) (λ p → pos (app δ p)) (cst (Frm X))
                   (lam (pos c) (λ p → typ (app δ p)))) 
 
   μ : ∀ {ℓ} {n : ℕ} {X : 𝕆 ℓ n}
@@ -91,7 +91,7 @@ module AbsoluteOpetopicTypes where
     → (ϕ : πₚ (pos (opr fₛ)) (λ p → Frmₛ Xₛₙ (app (typ (opr fₛ)) p) (app (dec fₛ) p)))
     → Frmₛ Xₛₙ f x
   μ-frm fₛ ϕ = ⟪ μ (opr fₛ) (lam (pos (opr fₛ)) (λ p → opr (app ϕ p))) ,
-                π-Σ (pos (opr fₛ)) (lam (pos (opr fₛ)) (λ p → pos (opr (app ϕ p)))) _
+                π-Σ (pos (opr fₛ)) (λ p → pos (opr (app ϕ p))) _
                 (lam (pos (opr fₛ)) (λ p → lam (pos (opr (app ϕ p))) (λ q → app (dec (app ϕ p)) q))) ⟫f
     
   --
@@ -110,14 +110,14 @@ module AbsoluteOpetopicTypes where
       → μ-web (η f) δ ↦ web (app δ ttₚ)
     {-# REWRITE μ-unit-l #-}
 
-    -- μ-assoc : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
-    --   → {f : Frm X} (c : Opr X f)
-    --   → (δ : πₚ (pos c) (λ p → Opr X (app (typ c) p)))
-    --   → (ε : πₚ (pos (μ c δ)) (λ p → Opr X (app (typ (μ c δ)) p)))
-    --   → μ-web (μ c δ) ε ↦ μ-web c (lam (pos c)
-    --       (λ p → μ (app δ p) (lam (pos (app δ p))
-    --       (λ q → app ε ⟦ pos c , lam (pos c) (λ p → pos (app δ p)) ∣ p , q ⟧ₚ))))
-    -- {-# REWRITE μ-assoc #-}
+    μ-assoc : ∀ {ℓ} {n : ℕ} (X : 𝕆 ℓ n)
+      → {f : Frm X} (c : Opr X f)
+      → (δ : πₚ (pos c) (λ p → Opr X (app (typ c) p)))
+      → (ε : πₚ (pos (μ c δ)) (λ p → Opr X (app (typ (μ c δ)) p)))
+      → μ-web (μ c δ) ε ↦ μ-web c (lam (pos c)
+          (λ p → μ (app δ p) (lam (pos (app δ p))
+          (λ q → app ε ⟦ pos c , (λ p → pos (app δ p)) ∣ p , q ⟧ₚ))))
+    {-# REWRITE μ-assoc #-}
 
   --
   --  The slice construction
