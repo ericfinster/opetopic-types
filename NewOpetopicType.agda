@@ -30,15 +30,16 @@ module NewOpetopicType where
     Σ (πₚ P (λ p → Y (app δf p))) (λ δx → 
     Web X f P δf)))))
 
+
+  --
+  --  Monadic signature
+  -- 
+
+  η : ∀ {ℓ} {X : 𝕆 ℓ} (f : Frm X)
+    → Web X f ⊤ₚ (π-⊤ (cst (Frm X)) f)
+
   postulate
-
-    --
-    --  Monadic signature
-    -- 
-
-    η : ∀ {ℓ} {X : 𝕆 ℓ} (f : Frm X)
-      → Web X f ⊤ₚ (π-⊤ (cst (Frm X)) f)
-
+  
     μ : ∀ {ℓ} {X : 𝕆 ℓ}
       → {c-frm : Frm X} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm X))}
       → (c : Web X c-frm c-pos c-typ)
@@ -77,7 +78,6 @@ module NewOpetopicType where
                (lam c-pos λ p → lam (fst (app ε p)) λ q →
                  app (fst (snd (app ε p))) q)))
 
-
     --
     --  Monadic laws
     --
@@ -95,22 +95,21 @@ module NewOpetopicType where
       → μ (η c-frm) δ ↦ snd (snd (app δ ttₚ))
     {-# REWRITE μ-unit-l #-}
 
-    μ-assoc : ∀ {ℓ} {X : 𝕆 ℓ}
-      → {c-frm : Frm X} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm X))}
-      → (c : Web X c-frm c-pos c-typ)
-      → (δ : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
-                             Σ (πₚ δ-pos (cst (Frm X))) (λ δ-typ →
-                             Web X (app c-typ p) δ-pos δ-typ))))
-      → (ε : πₚ (Σₚ c-pos (λ p → fst (app δ p)))
-                (λ pq → Σ ℙ (λ ε-pos →
-                        Σ (πₚ ε-pos (cst (Frm X)))
-                        (Web X (app (π-Σ c-pos (λ p → fst (app δ p)) (cst (Frm X))
-                                    (lam c-pos (λ p → fst (snd (app δ p))))) pq) ε-pos))))
-      → μ (μ c δ) ε ↦ μ c (lam c-pos (λ p → _ , _ ,
-                       μ (snd (snd (app δ p))) (lam (fst (app δ p)) (λ q →
-                         app ε ⟦ c-pos , (λ p → fst (app δ p)) ∣ p , q ⟧ₚ))))
-    {-# REWRITE μ-assoc #-}
-
+    -- μ-assoc : ∀ {ℓ} {X : 𝕆 ℓ}
+    --   → {c-frm : Frm X} {c-pos : ℙ} {c-typ : πₚ c-pos (cst (Frm X))}
+    --   → (c : Web X c-frm c-pos c-typ)
+    --   → (δ : πₚ c-pos (λ p → Σ ℙ (λ δ-pos →
+    --                          Σ (πₚ δ-pos (cst (Frm X))) (λ δ-typ →
+    --                          Web X (app c-typ p) δ-pos δ-typ))))
+    --   → (ε : πₚ (Σₚ c-pos (λ p → fst (app δ p)))
+    --             (λ pq → Σ ℙ (λ ε-pos →
+    --                     Σ (πₚ ε-pos (cst (Frm X)))
+    --                     (Web X (app (π-Σ c-pos (λ p → fst (app δ p)) (cst (Frm X))
+    --                                 (lam c-pos (λ p → fst (snd (app δ p))))) pq) ε-pos))))
+    --   → μ (μ c δ) ε ↦ μ c (lam c-pos (λ p → _ , _ ,
+    --                    μ (snd (snd (app δ p))) (lam (fst (app δ p)) (λ q →
+    --                      app ε ⟦ c-pos , (λ p → fst (app δ p)) ∣ p , q ⟧ₚ))))
+    -- {-# REWRITE μ-assoc #-}
 
   --
   --  The data of a next dim'l web tree
@@ -148,6 +147,77 @@ module NewOpetopicType where
   Web ● tt P δ = ⊤
   Web (X ∣ Y) = Webₛ X Y
 
+  --
+  --  Monadic implementations
+  --
+
+  -- This is an η-expansion problem for ⊤ₚ ....
+  η {X = ●} _ = tt
+  η {X = X ∣ Y} (f , y , c-pos , c-typ , y'' , c) = {!y''!} 
+    -- nd c  (lam c-pos (λ p → _ , _ , η (app c-typ p))) y y'' (lam c-pos (λ p → π-⊤ _ (app y'' p))) (lam c-pos (λ p → ⊥ₚ , π-⊥ _ , lf (app c-typ p) (app y'' p)))
+
+     where fred : πₚ c-pos (λ p → Y (app c-typ p))
+           fred = lam c-pos (λ u →
+                      app (app (lam c-pos (λ p →
+                        π-⊤ (λ q → Y (app (fst (snd
+                            (app (lam c-pos {X = λ p → Σ ℙ (λ δ-pos →
+                                                       Σ (πₚ δ-pos (cst (Frm X))) (λ δ-typ →
+                                                       Web X (app c-typ p) δ-pos δ-typ))}
+                              (λ p₁ → ⊤ₚ , π-⊤ (cst (Frm X)) (app c-typ p₁) , η (app c-typ p₁)))
+                             p))) q))
+                      (app y'' p))) u) ttₚ)
+
+           claim : fred ≡ y''
+           claim = refl
+
+           δ : πₚ c-pos (λ p → Σ ℙ (λ δ-pos → Σ (πₚ δ-pos (cst (Frm X))) (Web X (app c-typ p) δ-pos)))
+           δ = lam c-pos (λ p → ⊤ₚ , π-⊤ (cst (Frm X)) (app c-typ p) , η (app c-typ p))
+
+           y''' : πₚ c-pos (λ p → πₚ (fst (app δ p)) (λ q → Y (app (fst (snd (app δ p))) q)))
+           y''' = lam c-pos (λ p → π-⊤ _ (app y'' p)) 
+
+
+           ε : πₚ c-pos (λ p → Σ ℙ (λ ε-pos →
+                             Σ (πₚ ε-pos (cst (Frm (X ∣ Y)))) (λ ε-typ →
+                             Webₛ X Y (app c-typ p , app y'' p , fst (app δ p) ,
+                                            fst (snd (app δ p)) , app y''' p ,
+                                            snd (snd (app δ p))) ε-pos ε-typ)))
+           ε = lam c-pos (λ p → ⊥ₚ , π-⊥ _ , lf (app c-typ p) (app y'' p))
+           
+           attempt : Webₛ X Y (f , y , c-pos , c-typ ,  y'' , c)
+                       ⊤ₚ (π-⊤ _ (f , y , c-pos , c-typ , y'' , c))
+           attempt = {! nd c δ y y'' y''' ε  !}
+
+           ive-got : Webₛ X Y (f , y , c-pos ,  c-typ ,
+                                     lam c-pos (λ u → app (app
+                                       (lam c-pos
+                                        (λ p →
+                                           π-⊤ (λ q → Y (app (π-⊤ (cst (Frm X)) (app c-typ p)) q))
+                                           (app y'' p))) u) ttₚ) , c)
+                     ⊤ₚ (π-⊤ _ (f , y , c-pos , c-typ , y'' , c))
+           ive-got = {!nd c δ y y'' y''' ε!} -- 
+           
+
+  -- η-cns {n = O} f = tt
+  -- η-cns {n = S n} {X = Xₙ , Xₛₙ} (fₙ , x , fₛₙ) = 
+  --   nd x fₛₙ (λ p → η-frm {Xₛₙ = Xₛₙ} (app (typ (opr fₛₙ)) p) (dec fₛₙ p))
+  --           (λ p → ⟪ _ , _ , lf (app (typ (opr fₛₙ)) p) (dec fₛₙ p) ⟫ₒₚ)
+
+  -- μ-cns {n = O} _ _ = tt
+  -- μ-cns {n = S n} ⟪ _ , _ , lf f x ⟫ₒₚ κ = lf f x
+  -- μ-cns {n = S n} {X = Xₙ , Xₛₙ} ⟪ _ , _ , nd {fₙ} x fₛₙ δ ε ⟫ₒₚ κ = 
+  --   let w = κ (inlₚ (Σₚ (pos (opr fₛₙ)) (λ p₁ → pos (ε p₁))) ttₚ)
+  --       κ' p q = κ (inrₚ ⊤ₚ ⟦ pos (opr fₛₙ) , (λ p₁ → pos (ε p₁)) ∣ p , q ⟧ₚ) 
+  --       ϕ p = μ (ε p) (κ' p) 
+  --   in γ-cns w δ ϕ
+
+  -- γ-cns ⟪ _ , _ , lf f x ⟫ₒₚ δ ε = cns (ε ttₚ)
+  -- γ-cns {Xₙ = Xₙ} {Xₛₙ = Xₛₙ} ⟪ _ , _ , nd {fₙ} x c δ ε ⟫ₒₚ ϕ ψ =
+  --   let ϕ' p q = ϕ ⟦ pos (opr c) , (λ p' → pos (opr (δ p'))) ∣ p , q ⟧ₚ
+  --       ψ' p q = ψ ⟦ pos (opr c) , (λ p' → pos (opr (δ p'))) ∣ p , q ⟧ₚ
+  --       δ' p = μ-frm {Xₛₙ = Xₛₙ} {x = dec c p} (δ p) (ϕ' p)
+  --       ε' p = ⟪ _ , _ , γ-cns (ε p) (ϕ' p) (ψ' p) ⟫ₒₚ
+  --   in nd x c δ' ε'
   --
   --  Infinite Opetopic Types
   --
