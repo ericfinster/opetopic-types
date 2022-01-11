@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --no-positivity-check #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 open import MiniHoTT
 
