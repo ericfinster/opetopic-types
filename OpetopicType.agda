@@ -25,29 +25,24 @@ module OpetopicType where
     Σ (Cns Xₙ f ρ) (λ c →
     Σ (Xₛₙ f) (λ x →
     (p : Pos ρ) → Xₛₙ (Shp Xₙ f c p))))
-  
+
+  data Pd {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : {o : 𝒪 n} → Frm Xₙ o → Set ℓ)
+    : {o : 𝒪 n} {ρ : 𝒫 o}
+    → (f : Frm Xₙ o) (c : Cns Xₙ f ρ)
+    → (x : Xₛₙ f) (ν : (p : Pos ρ) → Xₛₙ (Shp Xₙ f c p))
+    → 𝒯r o ρ 
+    → Set ℓ where
+
+    pd-lf : {o : 𝒪 n} (f : Frm Xₙ o) (x : Xₛₙ f)
+      → Pd Xₙ Xₛₙ f {!η!} x {!!} (lf o) 
+
   Cns {n = O} _ _ _ = ⊤ 
-  Cns {n = S n} X f ρ = {!!}
+  Cns {n = S n} (Xₙ , Xₛₙ) {o , ρ} (f , c , x , ν) τ =
+    Pd Xₙ Xₛₙ f c x ν τ
   
   Shp {n = O} _ _ _ _ = tt
-  Shp {n = S n} X f c p = {!!}
+  Shp {n = S n} X {o , ρ} f c p = {!!}
 
-  -- I mean, I guess what I would like to formalize is
-  -- the n-th pullback monad.  Maybe that's the right way to say it.
-
-  -- Oh!  Then I think this weird definition that the cns is of a
-  -- different dimension is actually correct.
-
-  -- Finally!
-
-  -- data 𝒯r {n : ℕ} : (o : 𝒪 n) (ρ : 𝒫 o) → Set where
-
-  --   lf : (o : 𝒪 n) → 𝒯r o (ηₒ o)
-    
-  --   nd : (o : 𝒪 n) (ρ : 𝒫 o) 
-  --     → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
-  --     → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
-  --     → 𝒯r o (μₒ ρ δ)
 
 
 
