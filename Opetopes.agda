@@ -2,7 +2,7 @@
 
 open import MiniHoTT
 
-module NewOpetopes where
+module Opetopes where
 
   --
   --  The Opetopic Polynomials

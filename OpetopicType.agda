@@ -6,92 +6,48 @@ open import Opetopes
 module OpetopicType where
 
   𝕆 : (ℓ : Level) → ℕ → Set (ℓ-suc ℓ)
-  Frm : ∀ {ℓ n} (X : 𝕆 ℓ n) → 𝒪 n → Set ℓ
-  Cell : ∀ {ℓ n} (X : 𝕆 ℓ n) (o : 𝒪 n) → Frm X o → Set ℓ
-  Pd : ∀ {ℓ n} (X : 𝕆 ℓ n) {o : 𝒪 n} (f : Frm X o) → 𝒯r o → Set ℓ 
-
-  𝕆 ℓ O = Set ℓ
-  𝕆 ℓ (S n) =
-    Σ (𝕆 ℓ n) (λ Xₙ →
-      (o : 𝒪 n) (f : Frm Xₙ o) → Set ℓ)
   
-  Frm X ● = X × X
-  Frm X (o ▸ τ) = {!!}
+  Frm : ∀ {ℓ n} → 𝕆 ℓ n → 𝒪 n → Set ℓ
+  Cns : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    → {o : 𝒪 n} (f : Frm X o)
+    → 𝒫 o → Set ℓ 
+  Shp : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    → {o : 𝒪 n} (f : Frm X o)
+    → {ρ : 𝒫 o} (c : Cns X f ρ)
+    → (p : Pos ρ) → Frm X (Typ ρ p) 
+
+  𝕆 ℓ O = ⊤ 
+  𝕆 ℓ (S n) = Σ (𝕆 ℓ n) (λ Xₙ → {o : 𝒪 n} → Frm Xₙ o → Set ℓ)
   
-  Cell = {!!}
+  Frm {n = O} X tt = ⊤
+  Frm {n = S n} (Xₙ , Xₛₙ) (o , ρ) =
+    Σ (Frm Xₙ o) (λ f →
+    Σ (Cns Xₙ f ρ) (λ c →
+    Σ (Xₛₙ f) (λ x →
+    (p : Pos ρ) → Xₛₙ (Shp Xₙ f c p))))
   
-  Pd = {!!} 
-
-
-  postulate
-
-    η : ∀ {ℓ n} (X : 𝕆 ℓ n)
-      → {o : 𝒪 n} (f : Frm X o) (x : Cell X o f) 
-      → Pd X f (ηₒ o) 
-
-    μ : ∀ {ℓ n} {X : 𝕆 ℓ n} 
-      → {o : 𝒪 n} (f : Frm X o) (τ : 𝒯r o)
-      → (ρ : Pd X f τ)
-      → {κ : (p : Pos τ) → 𝒯r (Typ τ p)}
-      → (δ : (p : Pos τ) → Frm X (Typ τ p))
-      → (ε : (p : Pos τ) → Pd X (δ p) (κ p))
-      → Pd X f (μₒ τ κ) 
-
-  -- 𝕆 : (ℓ : Level) → ℕ → Set (ℓ-suc ℓ)
-  -- Frm : ∀ {ℓ n} (X : 𝕆 ℓ n) → 𝒪 n → Set ℓ
-  -- Pd : ∀ {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : (o : 𝒪 n) (f : Frm Xₙ o) → Set ℓ) 
-  --   → {o : 𝒪 n} (f : Frm Xₙ o) (τ : 𝒯r o) → Set ℓ 
-
-  -- 𝕆 ℓ O = Set ℓ
-  -- 𝕆 ℓ (S n) =
-  --   Σ (𝕆 ℓ n) (λ Xₙ →
-  --     (o : 𝒪 n) (f : Frm Xₙ o) → Set ℓ)
+  Cns {n = O} _ _ _ = ⊤ 
+  Cns {n = S n} X f ρ = {!!}
   
-  -- Frm X ● = X × X 
-  -- Frm (Xₙ , Xₛₙ) (o ▸ τ) =
-  --   Σ (Frm Xₙ o) (λ f →
-  --     Pd Xₙ Xₛₙ f τ × Xₛₙ o f)
+  Shp {n = O} _ _ _ _ = tt
+  Shp {n = S n} X f c p = {!!}
 
-  -- postulate
+  -- I mean, I guess what I would like to formalize is
+  -- the n-th pullback monad.  Maybe that's the right way to say it.
 
-  --   η : ∀ {ℓ n} {Xₙ : 𝕆 ℓ n} {Xₛₙ : (o : 𝒪 n) (f : Frm Xₙ o) → Set ℓ} 
-  --     → {o : 𝒪 n} {f : Frm Xₙ o} (x : Xₛₙ o f) 
-  --     → Pd Xₙ Xₛₙ f (ηₒ o) 
+  -- Oh!  Then I think this weird definition that the cns is of a
+  -- different dimension is actually correct.
 
-  --   μ : ∀ {ℓ n} {Xₙ : 𝕆 ℓ n} {Xₛₙ : (o : 𝒪 n) (f : Frm Xₙ o) → Set ℓ}
-  --     → {o : 𝒪 n} (f : Frm Xₙ o) (τ : 𝒯r o)
-  --     → (ρ : Pd Xₙ Xₛₙ f τ)
-  --     → {κ : (p : Pos τ) → 𝒯r (Typ τ p)}
-  --     → (δ : (p : Pos τ) → Frm Xₙ (Typ τ p))
-  --     → (ε : (p : Pos τ) → Pd Xₙ Xₛₙ (δ p) (κ p))
-  --     → Pd Xₙ Xₛₙ f (μₒ τ κ) 
+  -- Finally!
 
+  -- data 𝒯r {n : ℕ} : (o : 𝒪 n) (ρ : 𝒫 o) → Set where
 
-  -- data Pd' {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : (o : 𝒪 n) (f : Frm Xₙ o) → Set ℓ) : 
-  --   {o : 𝒪 n} (f : Frm Xₙ o) (τ : 𝒯r o) → Set ℓ where
+  --   lf : (o : 𝒪 n) → 𝒯r o (ηₒ o)
+    
+  --   nd : (o : 𝒪 n) (ρ : 𝒫 o) 
+  --     → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+  --     → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
+  --     → 𝒯r o (μₒ ρ δ)
 
-  --   lf' : {o : 𝒪 n} (f : Frm Xₙ o) (x : Xₛₙ o f)
-  --     → Pd' Xₙ Xₛₙ {!!} {!!} 
-
-  -- -- No.  This is certainly wrong ...
-  -- -- Okay.  What if we add a "cell" fibration, which trivially computes
-  -- -- back to the given one.  Maybe this will let us give these guys
-  -- -- simpler types? 
-
-  -- -- data 𝒯r where
-  -- --   arr : 𝒯r ●
-  -- --   lf : {n : ℕ} (o : 𝒪 n) → 𝒯r (o ▸ ηₒ o)
-  -- --   nd : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o)
-  -- --     → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-  -- --     → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-  -- --     → 𝒯r (o ▸ μₒ τ δ)
-
-
-  -- Pd Xₙ Xₛₙ {o = ●} f τ = Xₛₙ ● f
-  -- Pd Xₙ Xₛₙ {o = o ▸ τ} f υ = {!!}
-
-  -- -- But now we have too many, which is weird!
-  -- -- Again, problem is that we don't want to put the whole opetopic type
-  -- -- in the index.
 
 
