@@ -2,20 +2,22 @@
 
 open import MiniHoTT
 
-module Opetopes where
+module NewOpetopes where
 
-  data 𝒪 : ℕ → Set
-  data 𝒯r : {n : ℕ} (o : 𝒪 n) → Set
-  Pos : {n : ℕ} {o : 𝒪 n} → 𝒯r o → Set 
-  Typ : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o) (p : Pos τ) → 𝒪 n
-
-  infixl 40 _▸_
+  --
+  --  The Opetopic Polynomials
+  --
   
-  data 𝒪 where
-    ● : 𝒪 O
-    _▸_ : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) → 𝒪 (S n)
+  𝒪 : ℕ → Set
+  𝒫 : {n : ℕ} → 𝒪 n → Set
+  Pos : {n : ℕ} {o : 𝒪 n} → 𝒫 o → Set 
+  Typ : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o) (p : Pos ρ) → 𝒪 n
 
-  ηₒ : {n : ℕ} (o : 𝒪 n) → 𝒯r o
+  --
+  --  Monadic signature
+  --
+
+  ηₒ : {n : ℕ} (o : 𝒪 n) → 𝒫 o
 
   ηₒ-pos : {n : ℕ} (o : 𝒪 n)
     → Pos (ηₒ o)
@@ -25,67 +27,34 @@ module Opetopes where
     → (ηₒ-pos* : X (ηₒ-pos o))
     → (p : Pos (ηₒ o)) → X p
 
-  μₒ : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
-    → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
-    → 𝒯r o
+  -- To fix the termination issue, you should define "subst"
+  -- independently of dimension as you have now done for 𝒯rPos and
+  -- 𝒯rTyp.
+  
+  {-# TERMINATING #-}
+  μₒ : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+    → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+    → 𝒫 o
 
-  μₒ-pos : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
-    → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
-    → (p : Pos τ) (q : Pos (κ p))
-    → Pos (μₒ τ κ)
+  μₒ-pos : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+    → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+    → (p : Pos ρ) (q : Pos (κ p))
+    → Pos (μₒ ρ κ)
 
-  μₒ-pos-fst : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
-    → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
-    → Pos (μₒ τ κ) → Pos τ
+  μₒ-pos-fst : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+    → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+    → Pos (μₒ ρ κ) → Pos ρ
 
-  μₒ-pos-snd : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
-    → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
-    → (p : Pos (μₒ τ κ)) → Pos (κ (μₒ-pos-fst τ κ p))
+  μₒ-pos-snd : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+    → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+    → (p : Pos (μₒ ρ κ)) → Pos (κ (μₒ-pos-fst ρ κ p))
 
-  γₒ : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (υ : 𝒯r (o ▸ τ))
-    → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-    → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-    → 𝒯r (o ▸ μₒ τ δ)
-
-  γₒ-pos-inl : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (υ : 𝒯r (o ▸ τ))
-    → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-    → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-    → Pos υ → Pos (γₒ o τ υ δ ε)
-
-  γₒ-pos-inr : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (υ : 𝒯r (o ▸ τ))
-    → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-    → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-    → (p : Pos τ) (q : Pos (ε p))
-    → Pos (γₒ o τ υ δ ε)
-
-  γₒ-pos-elim : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (υ : 𝒯r (o ▸ τ))
-    → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-    → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-    → (X : Pos (γₒ o τ υ δ ε) → Set)
-    → (left : (p : Pos υ) → X (γₒ-pos-inl o τ υ δ ε p))
-    → (right : (p : Pos τ) (q : Pos (ε p)) → X (γₒ-pos-inr o τ υ δ ε p q))
-    → (p : Pos (γₒ o τ υ δ ε)) → X p
-
-  data 𝒯r where
-    arr : 𝒯r ●
-    lf : {n : ℕ} (o : 𝒪 n) → 𝒯r (o ▸ ηₒ o)
-    nd : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o)
-      → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-      → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-      → 𝒯r (o ▸ μₒ τ δ)
-
-  -- Pos : {n : ℕ} {o : 𝒪 n} → 𝒯r o → Set
-  Pos arr = ⊤
-  Pos (lf o) = ∅
-  Pos (nd o τ δ ε) = ⊤ ⊔ Σ (Pos τ) (λ p → Pos (ε p))
-
-  -- Typ : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o) (p : Pos τ) → 𝒪 n
-  Typ arr p = ●
-  Typ (nd o τ δ ε) (inl tt) = o ▸ τ
-  Typ (nd o τ δ ε) (inr (p , q)) = Typ (ε p) q
-
+  -- 
+  --  Monadic Laws
+  --
+  
   postulate
-
+  
     -- ηₒ-pos laws
     ηₒ-pos-typ : {n : ℕ} (o : 𝒪 n)
       → (p : Pos (ηₒ o))
@@ -99,229 +68,272 @@ module Opetopes where
     {-# REWRITE ηₒ-pos-elim-β #-}
 
     -- μₒ-pos laws
-    μₒ-pos-fst-β : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
-      → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
-      → (p : Pos τ) (q : Pos (κ p))
-      → μₒ-pos-fst τ κ (μₒ-pos τ κ p q) ↦ p
+    μₒ-pos-fst-β : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+      → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+      → (p : Pos ρ) (q : Pos (κ p))
+      → μₒ-pos-fst ρ κ (μₒ-pos ρ κ p q) ↦ p
     {-# REWRITE μₒ-pos-fst-β #-}
 
-    μₒ-pos-snd-β : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
-      → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
-      → (p : Pos τ) (q : Pos (κ p))
-      → μₒ-pos-snd τ κ (μₒ-pos τ κ p q) ↦ q
+    μₒ-pos-snd-β : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+      → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+      → (p : Pos ρ) (q : Pos (κ p))
+      → μₒ-pos-snd ρ κ (μₒ-pos ρ κ p q) ↦ q
     {-# REWRITE μₒ-pos-snd-β #-}
     
-    μₒ-pos-ηₒ : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
-      → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
-      → (p : Pos (μₒ τ κ))
-      → μₒ-pos τ κ (μₒ-pos-fst τ κ p) (μₒ-pos-snd τ κ p) ↦ p
+    μₒ-pos-ηₒ : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+      → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+      → (p : Pos (μₒ ρ κ))
+      → μₒ-pos ρ κ (μₒ-pos-fst ρ κ p) (μₒ-pos-snd ρ κ p) ↦ p
     {-# REWRITE μₒ-pos-ηₒ #-}
 
-    μₒ-pos-typ : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
-      → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
-      → (p : Pos (μₒ τ κ))
-      → Typ (μₒ τ κ) p ↦ Typ (κ (μₒ-pos-fst τ κ p)) (μₒ-pos-snd τ κ p)
+    μₒ-pos-typ : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+      → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+      → (p : Pos (μₒ ρ κ))
+      → Typ (μₒ ρ κ) p ↦ Typ (κ (μₒ-pos-fst ρ κ p)) (μₒ-pos-snd ρ κ p)
     {-# REWRITE μₒ-pos-typ #-}
 
     -- μₒ laws
-    μₒ-unit-r : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
-      → μₒ τ (λ p → ηₒ (Typ τ p)) ↦ τ
+    μₒ-unit-r : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+      → μₒ ρ (λ p → ηₒ (Typ ρ p)) ↦ ρ
     {-# REWRITE μₒ-unit-r #-}
 
-    μₒ-unit-l : {n : ℕ} {o : 𝒪 n} (ϕ : (p : Pos (ηₒ o)) → 𝒯r o)
+    μₒ-unit-l : {n : ℕ} {o : 𝒪 n}
+      → (ϕ : (p : Pos (ηₒ o)) → 𝒫 (Typ (ηₒ o) p))
       → μₒ (ηₒ o) ϕ ↦ ϕ (ηₒ-pos o)
     {-# REWRITE μₒ-unit-l #-}
 
-    μₒ-assoc : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
-      → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
-      → (θ : (p : Pos (μₒ τ κ)) → 𝒯r (Typ (μₒ τ κ) p))
-      → μₒ (μₒ τ κ) θ ↦ μₒ τ (λ p → μₒ (κ p) (λ t → θ (μₒ-pos τ κ p t)))
+    μₒ-assoc : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+      → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+      → (θ : (p : Pos (μₒ ρ κ)) → 𝒫 (Typ (μₒ ρ κ) p))
+      → μₒ (μₒ ρ κ) θ ↦ μₒ ρ (λ p → μₒ (κ p) (λ t → θ (μₒ-pos ρ κ p t)))
     {-# REWRITE μₒ-assoc #-}
 
+
+  --
+  --  Trees and Grafting 
+  --
+
+  data 𝒯r {n : ℕ} : (o : 𝒪 n) (ρ : 𝒫 o) → Set where
+
+    lf : (o : 𝒪 n) → 𝒯r o (ηₒ o)
+    
+    nd : (o : 𝒪 n) (ρ : 𝒫 o) 
+      → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+      → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
+      → 𝒯r o (μₒ ρ δ)
+
+  𝒯rPos : {n : ℕ} {o : 𝒪 n} {ρ : 𝒫 o} → 𝒯r o ρ → Set 
+  𝒯rPos (lf o) = ∅
+  𝒯rPos (nd o ρ δ ε) =
+    ⊤ ⊔ (Σ (Pos ρ) (λ p → 𝒯rPos (ε p)))
+
+  𝒯rTyp : {n : ℕ} {o : 𝒪 n} {ρ : 𝒫 o} (σ : 𝒯r o ρ) (p : 𝒯rPos σ) → Σ (𝒪 n) 𝒫
+  𝒯rTyp (lf _) ()
+  𝒯rTyp (nd o ρ δ ε) (inl tt) = o , ρ
+  𝒯rTyp (nd o ρ δ ε) (inr (p , q)) = 𝒯rTyp (ε p) q
+
+  γₒ : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (τ : 𝒯r o ρ)
+    → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+    → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
+    → 𝒯r o (μₒ ρ δ)
+  γₒ o .(ηₒ o) (lf .o) ϕ ψ = ψ (ηₒ-pos o)
+  γₒ o .(μₒ ρ δ) (nd .o ρ δ ε) ϕ ψ = 
+    let ϕ' p q = ϕ (μₒ-pos ρ δ p q)
+        ψ' p q = ψ (μₒ-pos ρ δ p q)
+        δ' p = μₒ (δ p) (ϕ' p)
+        ε' p = γₒ (Typ ρ p) (δ p) (ε p) (ϕ' p) (ψ' p) 
+    in nd o ρ δ' ε'
+
+  γₒ-pos-inl : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (τ : 𝒯r o ρ)
+    → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+    → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
+    → 𝒯rPos τ → 𝒯rPos (γₒ o ρ τ δ ε)
+  γₒ-pos-inl o .(μₒ ρ δ) (nd .o ρ δ ε) ϕ ψ (inl tt) = inl tt
+  γₒ-pos-inl o .(μₒ ρ δ) (nd .o ρ δ ε) ϕ ψ (inr (u , v)) = 
+    let ϕ' p q = ϕ (μₒ-pos ρ δ p q)
+        ψ' p q = ψ (μₒ-pos ρ δ p q)
+        δ' p = μₒ (δ p) (ϕ' p)
+        ε' p = γₒ (Typ ρ p) (δ p) (ε p) (ϕ' p) (ψ' p)
+    in inr (u , γₒ-pos-inl (Typ ρ u) (δ u) (ε u) (ϕ' u) (ψ' u) v) 
+
+  γₒ-pos-inr : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (τ : 𝒯r o ρ)
+    → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+    → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
+    → (p : Pos ρ) (q : 𝒯rPos (ε p))
+    → 𝒯rPos (γₒ o ρ τ δ ε)
+  γₒ-pos-inr o .(ηₒ o) (lf .o) ϕ ψ =
+    ηₒ-pos-elim o (λ p → 𝒯rPos (ψ p) → 𝒯rPos (ψ (ηₒ-pos o))) (λ p → p) 
+  γₒ-pos-inr o .(μₒ ρ δ) (nd .o ρ δ ε) ϕ ψ u v = 
+    let ϕ' p q = ϕ (μₒ-pos ρ δ p q)
+        ψ' p q = ψ (μₒ-pos ρ δ p q)
+        δ' p = μₒ (δ p) (ϕ' p)
+        ε' p = γₒ (Typ ρ p) (δ p) (ε p) (ϕ' p) (ψ' p)
+        u₀ = μₒ-pos-fst ρ δ u
+        u₁ = μₒ-pos-snd ρ δ u
+    in inr (u₀ , γₒ-pos-inr (Typ ρ u₀) (δ u₀) (ε u₀) (ϕ' u₀) (ψ' u₀) u₁ v) 
+
+  γₒ-pos-elim : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (τ : 𝒯r o ρ)
+    → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+    → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
+    → (X : 𝒯rPos (γₒ o ρ τ δ ε) → Set)
+    → (left : (p : 𝒯rPos τ) → X (γₒ-pos-inl o ρ τ δ ε p))
+    → (right : (p : Pos ρ) (q : 𝒯rPos (ε p)) → X (γₒ-pos-inr o ρ τ δ ε p q))
+    → (p : 𝒯rPos (γₒ o ρ τ δ ε)) → X p
+  γₒ-pos-elim o .(ηₒ o) (lf .o) ϕ ψ X left right p = right (ηₒ-pos o) p
+  γₒ-pos-elim o .(μₒ ρ δ) (nd .o ρ δ ε) ϕ ψ X left right (inl tt) = left (inl tt)
+  γₒ-pos-elim o .(μₒ ρ δ) (nd .o ρ δ ε) ϕ ψ X left right (inr (u , v)) = 
+    let ϕ' p q = ϕ (μₒ-pos ρ δ p q)
+        ψ' p q = ψ (μₒ-pos ρ δ p q)
+        δ' p = μₒ (δ p) (ϕ' p)
+        ε' p = γₒ (Typ ρ p) (δ p) (ε p) (ϕ' p) (ψ' p)
+    in γₒ-pos-elim (Typ ρ u) (δ u) (ε u) (ϕ' u) (ψ' u)
+         (λ q → X (inr (u , q)))
+         (λ q → left (inr (u , q)))
+         (λ p q → right (μₒ-pos ρ δ u p) q) v
+    
+  --
+  --  Grafting Laws
+  --
+
+  postulate
+  
     -- γₒ elim rules
-    γₒ-pos-elim-inl-β : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (υ : 𝒯r (o ▸ τ))
-      → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-      → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-      → (X : Pos (γₒ o τ υ δ ε) → Set)
-      → (left : (p : Pos υ) → X (γₒ-pos-inl o τ υ δ ε p))
-      → (right : (p : Pos τ) (q : Pos (ε p)) → X (γₒ-pos-inr o τ υ δ ε p q))
-      → (p : Pos υ)
-      → γₒ-pos-elim o τ υ δ ε X left right (γₒ-pos-inl o τ υ δ ε p) ↦ left p
+    γₒ-pos-elim-inl-β : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
+      → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+      → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
+      → (X : 𝒯rPos (γₒ o ρ υ δ ε) → Set)
+      → (left : (p : 𝒯rPos υ) → X (γₒ-pos-inl o ρ υ δ ε p))
+      → (right : (p : Pos ρ) (q : 𝒯rPos (ε p)) → X (γₒ-pos-inr o ρ υ δ ε p q))
+      → (p : 𝒯rPos υ)
+      → γₒ-pos-elim o ρ υ δ ε X left right (γₒ-pos-inl o ρ υ δ ε p) ↦ left p
     {-# REWRITE γₒ-pos-elim-inl-β #-}
 
-    γₒ-pos-elim-inr-β : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (υ : 𝒯r (o ▸ τ))
-      → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-      → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-      → (X : Pos (γₒ o τ υ δ ε) → Set)
-      → (left : (p : Pos υ) → X (γₒ-pos-inl o τ υ δ ε p))
-      → (right : (p : Pos τ) (q : Pos (ε p)) → X (γₒ-pos-inr o τ υ δ ε p q))
-      → (p : Pos τ) (q : Pos (ε p))
-      → γₒ-pos-elim o τ υ δ ε X left right (γₒ-pos-inr o τ υ δ ε p q) ↦ right p q
+    γₒ-pos-elim-inr-β : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
+      → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+      → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
+      → (X : 𝒯rPos (γₒ o ρ υ δ ε) → Set)
+      → (left : (p : 𝒯rPos υ) → X (γₒ-pos-inl o ρ υ δ ε p))
+      → (right : (p : Pos ρ) (q : 𝒯rPos (ε p)) → X (γₒ-pos-inr o ρ υ δ ε p q))
+      → (p : Pos ρ) (q : 𝒯rPos (ε p))
+      → γₒ-pos-elim o ρ υ δ ε X left right (γₒ-pos-inr o ρ υ δ ε p q) ↦ right p q
     {-# REWRITE γₒ-pos-elim-inr-β #-}
 
     -- γₒ pos laws
-    γₒ-pos-inl-typ : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (υ : 𝒯r (o ▸ τ))
-      → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-      → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-      → (p : Pos υ)
-      → Typ (γₒ o τ υ δ ε) (γₒ-pos-inl o τ υ δ ε p) ↦ Typ υ p
+    γₒ-pos-inl-typ : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
+      → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+      → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
+      → (p : 𝒯rPos υ)
+      → 𝒯rTyp (γₒ o ρ υ δ ε) (γₒ-pos-inl o ρ υ δ ε p) ↦ 𝒯rTyp υ p
     {-# REWRITE γₒ-pos-inl-typ #-}
 
-    γₒ-pos-inr-typ : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (υ : 𝒯r (o ▸ τ))
-      → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-      → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-      → (p : Pos τ) (q : Pos (ε p))
-      → Typ (γₒ o τ υ δ ε) (γₒ-pos-inr o τ υ δ ε p q) ↦ Typ (ε p) q
+    γₒ-pos-inr-typ : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
+      → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+      → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
+      → (p : Pos ρ) (q : 𝒯rPos (ε p))
+      → 𝒯rTyp (γₒ o ρ υ δ ε) (γₒ-pos-inr o ρ υ δ ε p q) ↦ 𝒯rTyp (ε p) q
     {-# REWRITE γₒ-pos-inr-typ #-}
 
     -- γₒ laws
-    γₒ-unit-r : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (υ : 𝒯r (o ▸ τ))
-      → γₒ o τ υ (λ p → ηₒ (Typ τ p)) (λ p → lf (Typ τ p)) ↦ υ 
+    γₒ-unit-r : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
+      → γₒ o ρ υ (λ p → ηₒ (Typ ρ p)) (λ p → lf (Typ ρ p)) ↦ υ 
     {-# REWRITE γₒ-unit-r #-}
 
-  -- ηₒ : {n : ℕ} (o : 𝒪 n) → 𝒯r o
-  ηₒ ● = arr
-  ηₒ (o ▸ τ) = nd o τ (λ p → ηₒ (Typ τ p)) (λ p → lf (Typ τ p))
+  --
+  --  Opetopes 
+  --
+
+  𝒪 O = ⊤
+  𝒪 (S n) = Σ (𝒪 n) 𝒫
+
+  𝒫 {O} _ = ⊤
+  𝒫 {S n} (o , p) = 𝒯r o p
+
+  Pos {O} _ = ⊤
+  Pos {S n} ρ = 𝒯rPos ρ
+  
+  Typ {O} _ _ = tt
+  Typ {S n} ρ p = 𝒯rTyp ρ p
+
+  -- ηₒ : {n : ℕ} (o : 𝒪 n) → 𝒫 o
+  ηₒ {O} _ = tt
+  ηₒ {S n} (o , ρ) =
+    nd o ρ (λ p → ηₒ (Typ ρ p))
+           (λ p → lf (Typ ρ p))
 
   -- ηₒ-pos : {n : ℕ} (o : 𝒪 n)
   --   → Pos (ηₒ o)
-  ηₒ-pos ● = tt 
-  ηₒ-pos (o ▸ τ) = inl tt 
-  
+  ηₒ-pos {O} _ = tt
+  ηₒ-pos {S n} (o , ρ) = inl tt
+
   -- ηₒ-pos-elim : {n : ℕ} (o : 𝒪 n)
   --   → (X : (p : Pos (ηₒ o)) → Set)
   --   → (ηₒ-pos* : X (ηₒ-pos o))
   --   → (p : Pos (ηₒ o)) → X p
-  ηₒ-pos-elim ● X ηₒ-pos* arr-pos = ηₒ-pos*
-  ηₒ-pos-elim (o ▸ τ) X ηₒ-pos* (inl tt) = ηₒ-pos*
-  ηₒ-pos-elim (o ▸ τ) X ηₒ-pos* (inr (p , ()))
+  ηₒ-pos-elim {O} o X ηₒ-pos* tt = ηₒ-pos*
+  ηₒ-pos-elim {S n} o X ηₒ-pos* (inl tt) = ηₒ-pos*
 
-  -- μₒ : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
-  --   → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
-  --   → 𝒯r o
-  μₒ arr κ = κ tt
-  μₒ (lf o) κ = lf o
-  μₒ (nd o τ δ ε) κ =
+  -- μₒ : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+  --   → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+  --   → 𝒫 o
+  μₒ {O} {_} _ _ = tt
+  μₒ {S n} (lf o) κ = lf o
+  μₒ {S n} (nd o ρ δ ε) κ = 
     let w = κ (inl tt)
         ε' p = μₒ (ε p) (λ q → κ (inr (p , q)))
-    in γₒ o τ w δ ε'
+    in γₒ o ρ w δ ε'
 
-  -- γₒ : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (p : 𝒯r (o ▸ τ))
-  --   → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-  --   → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-  --   → 𝒯r (o ▸ μₒ τ δ)
-  γₒ o .(ηₒ o) (lf .o) ϕ ψ = ψ (ηₒ-pos o)
-  γₒ o .(μₒ τ δ) (nd .o τ δ ε) ϕ ψ =
-    let ϕ' p q = ϕ (μₒ-pos τ δ p q)
-        ψ' p q = ψ (μₒ-pos τ δ p q)
-        δ' p = μₒ (δ p) (ϕ' p)
-        ε' p = γₒ (Typ τ p) (δ p) (ε p) (ϕ' p) (ψ' p) 
-    in nd o τ δ' ε'
-
-  -- μₒ-pos : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
-  --   → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
-  --   → (p : Pos τ) (q : Pos (κ p))
-  --   → Pos (μₒ τ κ)
-  μₒ-pos arr κ arr-pos q = q
-  μₒ-pos (lf o) κ () q
-  μₒ-pos (nd o τ δ ε) κ (inl tt) r =
-    let w = κ (inl tt) 
+  -- μₒ-pos : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+  --   → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+  --   → (p : Pos ρ) (q : Pos (κ p))
+  --   → Pos (μₒ ρ κ)
+  μₒ-pos {O} _ _ _ _ = tt
+  μₒ-pos {S n} (nd o ρ δ ε) κ (inl tt) r = 
+    let w = κ (inl tt)
         ε' p = μₒ (ε p) (λ q → κ (inr (p , q)))
-    in γₒ-pos-inl o τ w δ ε' r
-  μₒ-pos (nd o τ δ ε) κ (inr (p , q)) r = 
+    in γₒ-pos-inl o ρ w δ ε' r
+  μₒ-pos {S n} (nd o ρ δ ε) κ (inr (p , q)) r = 
     let w = κ (inl tt)
         κ' p q = κ (inr (p , q))
         ε' p = μₒ (ε p) (κ' p)
-    in γₒ-pos-inr o τ w δ ε' p (μₒ-pos (ε p) (κ' p) q r) 
+    in γₒ-pos-inr o ρ w δ ε' p (μₒ-pos (ε p) (κ' p) q r) 
 
-  -- μₒ-pos-fst : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
-  --   → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
-  --   → Pos (μₒ τ κ) → Pos τ
-  μₒ-pos-fst arr κ _ = tt
-  μₒ-pos-fst (lf o) κ ()
-  μₒ-pos-fst (nd o τ δ ε) κ =
+  -- μₒ-pos-fst : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+  --   → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+  --   → Pos (μₒ ρ κ) → Pos ρ
+  μₒ-pos-fst {O} _ _ _ = tt
+  μₒ-pos-fst {S n} (nd o ρ δ ε) κ = 
     let w = κ (inl tt)
         κ' p q = κ (inr (p , q))
         ε' p = μₒ (ε p) (κ' p)
-    in γₒ-pos-elim o τ w δ ε' _ (λ _ → inl tt)
+    in γₒ-pos-elim o ρ w δ ε' _ (λ _ → inl tt)
         (λ p q → inr (p , μₒ-pos-fst (ε p) (κ' p) q))
-    
-  -- μₒ-pos-snd : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
-  --   → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
-  --   → (p : Pos (μₒ τ κ)) → Pos (κ (μₒ-pos-fst τ κ p))
-  μₒ-pos-snd arr κ p = p
-  μₒ-pos-snd (lf o) κ ()
-  μₒ-pos-snd (nd o τ δ ε) κ = 
+
+  -- μₒ-pos-snd : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+  --   → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+  --   → (p : Pos (μₒ ρ κ)) → Pos (κ (μₒ-pos-fst ρ κ p))
+  μₒ-pos-snd {O} _ _ _ = tt
+  μₒ-pos-snd {S n} (nd o ρ δ ε) κ = 
     let w = κ (inl tt)
         κ' p q = κ (inr (p , q))
         ε' p = μₒ (ε p) (κ' p)
-    in γₒ-pos-elim o τ w δ ε' _ (λ p → p)
+    in γₒ-pos-elim o ρ w δ ε' _ (λ p → p)
          (λ p q → μₒ-pos-snd (ε p) (κ' p) q)
-
-  -- γₒ-pos-inl : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (p : 𝒯r (o ▸ τ))
-  --   → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-  --   → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-  --   → Pos p → Pos (γₒ o τ p δ ε)
-  γₒ-pos-inl o .(ηₒ o) (lf .o) ϕ ψ ()
-  γₒ-pos-inl o .(μₒ τ δ) (nd .o τ δ ε) ϕ ψ (inl tt) = inl tt
-  γₒ-pos-inl o .(μₒ τ δ) (nd .o τ δ ε) ϕ ψ (inr (u , v)) = 
-    let ϕ' p q = ϕ (μₒ-pos τ δ p q)
-        ψ' p q = ψ (μₒ-pos τ δ p q)
-        δ' p = μₒ (δ p) (ϕ' p)
-        ε' p = γₒ (Typ τ p) (δ p) (ε p) (ϕ' p) (ψ' p)
-    in inr (u , γₒ-pos-inl (Typ τ u) (δ u) (ε u) (ϕ' u) (ψ' u) v) 
-
-  -- γₒ-pos-inr : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (p : 𝒯r (o ▸ τ))
-  --   → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-  --   → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-  --   → (p : Pos τ) (q : Pos (ε p))
-  --   → Pos (γₒ o τ p δ ε)
-  γₒ-pos-inr o .(ηₒ o) (lf .o) ϕ ψ =
-    ηₒ-pos-elim o (λ p → Pos (ψ p) → Pos (ψ (ηₒ-pos o))) (λ p → p) 
-  γₒ-pos-inr o .(μₒ τ δ) (nd .o τ δ ε) ϕ ψ u v = 
-    let ϕ' p q = ϕ (μₒ-pos τ δ p q)
-        ψ' p q = ψ (μₒ-pos τ δ p q)
-        δ' p = μₒ (δ p) (ϕ' p)
-        ε' p = γₒ (Typ τ p) (δ p) (ε p) (ϕ' p) (ψ' p)
-        u₀ = μₒ-pos-fst τ δ u
-        u₁ = μₒ-pos-snd τ δ u
-    in inr (u₀ , γₒ-pos-inr (Typ τ u₀) (δ u₀) (ε u₀) (ϕ' u₀) (ψ' u₀) u₁ v) 
-
-  -- γₒ-pos-elim : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (p : 𝒯r (o ▸ τ))
-  --   → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-  --   → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-  --   → (X : Pos (γₒ o τ p δ ε) → pet)
-  --   → (left : (p : Pos p) → X (γₒ-pos-inl o τ p δ ε p))
-  --   → (right : (p : Pos τ) (q : Pos (ε p)) → X (γₒ-pos-inr o τ p δ ε p t))
-  --   → (p : Pos (γₒ o τ p δ ε)) → X p
-  γₒ-pos-elim o .(ηₒ o) (lf .o) ϕ ψ X inl* inr* q = inr* (ηₒ-pos o) q
-  γₒ-pos-elim o .(μₒ τ δ) (nd .o τ δ ε) ϕ ψ X inl* inr* (inl tt) =
-    inl* (inl tt)
-  γₒ-pos-elim o .(μₒ τ δ) (nd .o τ δ ε) ϕ ψ X inl* inr* (inr (u , v)) =
-    let ϕ' p q = ϕ (μₒ-pos τ δ p q)
-        ψ' p q = ψ (μₒ-pos τ δ p q)
-        δ' p = μₒ (δ p) (ϕ' p)
-        ε' p = γₒ (Typ τ p) (δ p) (ε p) (ϕ' p) (ψ' p)
-    in γₒ-pos-elim (Typ τ u) (δ u) (ε u) (ϕ' u) (ψ' u)
-         (λ q → X (inr (u , q)))
-         (λ q → inl* (inr (u , q)))
-         (λ p q → inr* (μₒ-pos τ δ u p) q) v
 
   --
   --  Examples
   --
 
   τb : 𝒪 0
-  τb = ●
+  τb = tt
 
   arrow : 𝒪 1
-  arrow = ● ▸ arr
+  arrow = tt , tt
 
   2-drop : 𝒪 2
-  2-drop = ● ▸ arr ▸ lf ●
+  2-drop = (tt , tt) , lf tt
 
   2-globe : 𝒪 2
-  2-globe = ● ▸ arr ▸ nd ● arr (λ { arr-pos → arr }) (λ { arr-pos → lf ● })
+  2-globe = (tt , tt) , nd tt tt (cst tt) (cst (lf tt))
 
   2-simplex : 𝒪 2
-  2-simplex = ● ▸ arr ▸ nd ● arr (λ { arr-pos → arr }) (λ { arr-pos → nd ● arr (λ { arr-pos → arr }) (λ { arr-pos → lf ● }) })
+  2-simplex = (tt , tt) , nd tt tt (cst tt) (λ p → nd tt tt (cst tt) (cst (lf tt)))
