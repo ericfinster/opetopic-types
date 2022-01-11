@@ -6,7 +6,7 @@ module Opetopes where
 
   data 𝒪 : ℕ → Set
   data 𝒯r : {n : ℕ} (o : 𝒪 n) → Set
-  data Pos : {n : ℕ} {o : 𝒪 n} → 𝒯r o → Set 
+  Pos : {n : ℕ} {o : 𝒪 n} → 𝒯r o → Set 
   Typ : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o) (p : Pos τ) → 𝒪 n
 
   infixl 40 _▸_
@@ -74,24 +74,15 @@ module Opetopes where
       → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
       → 𝒯r (o ▸ μ τ δ)
 
-  -- Not strictly positive with this definition ...
-  data Pos where
-    arr-pos : Pos arr
-    nd-pos-here : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o)
-      → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-      → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-      → Pos (nd o τ δ ε)
-    nd-pos-there : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o)
-      → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
-      → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
-      → (p : Pos τ) (q : Pos (ε p))
-      → Pos (nd o τ δ ε)
+  -- Pos : {n : ℕ} {o : 𝒪 n} → 𝒯r o → Set
+  Pos arr = ⊤
+  Pos (lf o) = ∅
+  Pos (nd o τ δ ε) = ⊤ ⊔ Σ (Pos τ) (λ p → Pos (ε p))
 
   -- Typ : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o) (p : Pos τ) → 𝒪 n
-  Typ arr _ = ●
-  Typ (lf o) ()
-  Typ (nd o τ δ ε) (nd-pos-here .o .τ .δ .ε) = o ▸ τ
-  Typ (nd o τ δ ε) (nd-pos-there .o .τ .δ .ε p q) = Typ (ε p) q
+  Typ arr p = ●
+  Typ (nd o τ δ ε) (inl tt) = o ▸ τ
+  Typ (nd o τ δ ε) (inr (p , q)) = Typ (ε p) q
 
   postulate
 
@@ -194,25 +185,25 @@ module Opetopes where
 
   -- η-pos : {n : ℕ} (o : 𝒪 n)
   --   → Pos (η o)
-  η-pos ● = arr-pos
-  η-pos (o ▸ τ) = nd-pos-here o τ (λ p → η (Typ τ p)) (λ p → lf (Typ τ p))
+  η-pos ● = tt 
+  η-pos (o ▸ τ) = inl tt 
   
   -- η-pos-elim : {n : ℕ} (o : 𝒪 n)
   --   → (X : (p : Pos (η o)) → Set)
   --   → (η-pos* : X (η-pos o))
   --   → (p : Pos (η o)) → X p
   η-pos-elim ● X η-pos* arr-pos = η-pos*
-  η-pos-elim (o ▸ τ) X η-pos* (nd-pos-here .o .τ ._ ._) = η-pos*
-  η-pos-elim (o ▸ τ) X η-pos* (nd-pos-there .o .τ ._ ._ p ())
+  η-pos-elim (o ▸ τ) X η-pos* (inl tt) = η-pos*
+  η-pos-elim (o ▸ τ) X η-pos* (inr (p , ()))
 
   -- μ : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
   --   → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
   --   → 𝒯r o
-  μ arr κ = κ arr-pos
+  μ arr κ = κ tt
   μ (lf o) κ = lf o
   μ (nd o τ δ ε) κ =
-    let w = κ (nd-pos-here o τ δ ε)
-        ε' p = μ (ε p) (λ t → κ (nd-pos-there o τ δ ε p t))
+    let w = κ (inl tt)
+        ε' p = μ (ε p) (λ q → κ (inr (p , q)))
     in γ o τ w δ ε'
 
   -- γ : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (p : 𝒯r (o ▸ τ))
@@ -233,27 +224,27 @@ module Opetopes where
   --   → Pos (μ τ κ)
   μ-pos arr κ arr-pos q = q
   μ-pos (lf o) κ () q
-  μ-pos (nd o τ δ ε) κ (nd-pos-here .o .τ .δ .ε) r =
-    let w = κ (nd-pos-here o τ δ ε)
-        ε' p = μ (ε p) (λ t → κ (nd-pos-there o τ δ ε p t))
+  μ-pos (nd o τ δ ε) κ (inl tt) r =
+    let w = κ (inl tt) 
+        ε' p = μ (ε p) (λ q → κ (inr (p , q)))
     in γ-pos-inl o τ w δ ε' r
-  μ-pos (nd o τ δ ε) κ (nd-pos-there .o .τ .δ .ε p q) r = 
-    let w = κ (nd-pos-here o τ δ ε)
-        κ' p t = κ (nd-pos-there o τ δ ε p t)
+  μ-pos (nd o τ δ ε) κ (inr (p , q)) r = 
+    let w = κ (inl tt)
+        κ' p q = κ (inr (p , q))
         ε' p = μ (ε p) (κ' p)
     in γ-pos-inr o τ w δ ε' p (μ-pos (ε p) (κ' p) q r) 
 
   -- μ-pos-fst : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
   --   → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
   --   → Pos (μ τ κ) → Pos τ
-  μ-pos-fst arr κ _ = arr-pos
+  μ-pos-fst arr κ _ = tt
   μ-pos-fst (lf o) κ ()
   μ-pos-fst (nd o τ δ ε) κ =
-    let w = κ (nd-pos-here o τ δ ε)
-        κ' p t = κ (nd-pos-there o τ δ ε p t)
+    let w = κ (inl tt)
+        κ' p q = κ (inr (p , q))
         ε' p = μ (ε p) (κ' p)
-    in γ-pos-elim o τ w δ ε' _ (λ _ → nd-pos-here o τ δ ε) 
-         (λ p t → nd-pos-there o τ δ ε p (μ-pos-fst (ε p) (κ' p) t))
+    in γ-pos-elim o τ w δ ε' _ (λ _ → inl tt)
+        (λ p q → inr (p , μ-pos-fst (ε p) (κ' p) q))
     
   -- μ-pos-snd : {n : ℕ} {o : 𝒪 n} (τ : 𝒯r o)
   --   → (κ : (p : Pos τ) → 𝒯r (Typ τ p))
@@ -261,29 +252,24 @@ module Opetopes where
   μ-pos-snd arr κ p = p
   μ-pos-snd (lf o) κ ()
   μ-pos-snd (nd o τ δ ε) κ = 
-    let w = κ (nd-pos-here o τ δ ε)
-        κ' p t = κ (nd-pos-there o τ δ ε p t)
+    let w = κ (inl tt)
+        κ' p q = κ (inr (p , q))
         ε' p = μ (ε p) (κ' p)
     in γ-pos-elim o τ w δ ε' _ (λ p → p)
-         (λ p t → μ-pos-snd (ε p) (κ' p) t)
+         (λ p q → μ-pos-snd (ε p) (κ' p) q)
 
   -- γ-pos-inl : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (p : 𝒯r (o ▸ τ))
   --   → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
   --   → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
   --   → Pos p → Pos (γ o τ p δ ε)
   γ-pos-inl o .(η o) (lf .o) ϕ ψ ()
-  γ-pos-inl o .(μ τ δ) (nd .o τ δ ε) ϕ ψ (nd-pos-here .o .τ .δ .ε) = 
+  γ-pos-inl o .(μ τ δ) (nd .o τ δ ε) ϕ ψ (inl tt) = inl tt
+  γ-pos-inl o .(μ τ δ) (nd .o τ δ ε) ϕ ψ (inr (u , v)) = 
     let ϕ' p q = ϕ (μ-pos τ δ p q)
         ψ' p q = ψ (μ-pos τ δ p q)
         δ' p = μ (δ p) (ϕ' p)
         ε' p = γ (Typ τ p) (δ p) (ε p) (ϕ' p) (ψ' p)
-    in nd-pos-here o τ δ' ε'
-  γ-pos-inl o .(μ τ δ) (nd .o τ δ ε) ϕ ψ (nd-pos-there .o .τ .δ .ε u v) = 
-    let ϕ' p q = ϕ (μ-pos τ δ p q)
-        ψ' p q = ψ (μ-pos τ δ p q)
-        δ' p = μ (δ p) (ϕ' p)
-        ε' p = γ (Typ τ p) (δ p) (ε p) (ϕ' p) (ψ' p)
-    in nd-pos-there o τ δ' ε' u (γ-pos-inl (Typ τ u) (δ u) (ε u) (ϕ' u) (ψ' u) v)
+    in inr (u , γ-pos-inl (Typ τ u) (δ u) (ε u) (ϕ' u) (ψ' u) v) 
 
   -- γ-pos-inr : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (p : 𝒯r (o ▸ τ))
   --   → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
@@ -299,7 +285,7 @@ module Opetopes where
         ε' p = γ (Typ τ p) (δ p) (ε p) (ϕ' p) (ψ' p)
         u₀ = μ-pos-fst τ δ u
         u₁ = μ-pos-snd τ δ u
-    in nd-pos-there o τ δ' ε' u₀ (γ-pos-inr (Typ τ u₀) (δ u₀) (ε u₀) (ϕ' u₀) (ψ' u₀) u₁ v)
+    in inr (u₀ , γ-pos-inr (Typ τ u₀) (δ u₀) (ε u₀) (ϕ' u₀) (ψ' u₀) u₁ v) 
 
   -- γ-pos-elim : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o) (p : 𝒯r (o ▸ τ))
   --   → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
@@ -309,17 +295,17 @@ module Opetopes where
   --   → (right : (p : Pos τ) (q : Pos (ε p)) → X (γ-pos-inr o τ p δ ε p t))
   --   → (p : Pos (γ o τ p δ ε)) → X p
   γ-pos-elim o .(η o) (lf .o) ϕ ψ X inl* inr* q = inr* (η-pos o) q
-  γ-pos-elim o .(μ τ δ) (nd .o τ δ ε) ϕ ψ X inl* inr* (nd-pos-here .o .τ ._ ._) =
-    inl* (nd-pos-here o τ δ ε)
-  γ-pos-elim o .(μ τ δ) (nd .o τ δ ε) ϕ ψ X inl* inr* (nd-pos-there .o .τ ._ ._ u v) =
+  γ-pos-elim o .(μ τ δ) (nd .o τ δ ε) ϕ ψ X inl* inr* (inl tt) =
+    inl* (inl tt)
+  γ-pos-elim o .(μ τ δ) (nd .o τ δ ε) ϕ ψ X inl* inr* (inr (u , v)) =
     let ϕ' p q = ϕ (μ-pos τ δ p q)
         ψ' p q = ψ (μ-pos τ δ p q)
         δ' p = μ (δ p) (ϕ' p)
         ε' p = γ (Typ τ p) (δ p) (ε p) (ϕ' p) (ψ' p)
     in γ-pos-elim (Typ τ u) (δ u) (ε u) (ϕ' u) (ψ' u)
-         (λ t → X (nd-pos-there o τ δ' ε' u t))
-         (λ t → inl* (nd-pos-there o τ δ ε u t))
-         (λ p t → inr* (μ-pos τ δ u p) t) v
+         (λ q → X (inr (u , q)))
+         (λ q → inl* (inr (u , q)))
+         (λ p q → inr* (μ-pos τ δ u p) q) v
 
   --
   --  Examples
