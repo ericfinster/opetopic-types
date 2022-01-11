@@ -7,50 +7,91 @@ module OpetopicType where
 
   𝕆 : (ℓ : Level) → ℕ → Set (ℓ-suc ℓ)
   Frm : ∀ {ℓ n} (X : 𝕆 ℓ n) → 𝒪 n → Set ℓ
-  Pd : ∀ {ℓ n} (X : 𝕆 ℓ n) {o : 𝒪 n} (f : Frm X o) (τ : 𝒯r o) → Set ℓ 
+  Cell : ∀ {ℓ n} (X : 𝕆 ℓ n) (o : 𝒪 n) → Frm X o → Set ℓ
+  Pd : ∀ {ℓ n} (X : 𝕆 ℓ n) {o : 𝒪 n} (f : Frm X o) → 𝒯r o → Set ℓ 
 
   𝕆 ℓ O = Set ℓ
   𝕆 ℓ (S n) =
     Σ (𝕆 ℓ n) (λ Xₙ →
       (o : 𝒪 n) (f : Frm Xₙ o) → Set ℓ)
   
-  Frm X ● = X × X 
-  Frm (Xₙ , Xₛₙ) (o ▸ τ) =
-    Σ (Frm Xₙ o) (λ f →
-      -- But this doesn't make sense: the dimensions are wrong ...
-      Pd Xₙ f τ × Xₛₙ o f)
+  Frm X ● = X × X
+  Frm X (o ▸ τ) = {!!}
+  
+  Cell = {!!}
+  
+  Pd = {!!} 
 
-  -- Having a problem with the type of Pd.  What is it?  I think it's
-  -- the same problem as with trying to do Frm inductively: since the
-  -- n has to vary in the definition, if you make it inductive, then
-  -- you will have to carry the whole data of the opetoic type in the
-  -- index, and this will force the definition to have the wrong size.
-
-  -- That's a bit annoying.
-
-  -- I guess the alternative is this way you had already developed
-  -- using identity types.  Don't really see a reason not to do this.
-  -- The other option is that pasting diagrams are only for successors,
-  -- and there is a special case ...
 
   postulate
-  
-    ηₜ : ∀ {ℓ n} {X : 𝕆 ℓ n}
-      → {o : 𝒪 n} (f : Frm X o)
-      → Pd X f (η o) 
 
-    μₜ : ∀ {ℓ n} {X : 𝕆 ℓ n}
+    η : ∀ {ℓ n} (X : 𝕆 ℓ n)
+      → {o : 𝒪 n} (f : Frm X o) (x : Cell X o f) 
+      → Pd X f (ηₒ o) 
+
+    μ : ∀ {ℓ n} {X : 𝕆 ℓ n} 
       → {o : 𝒪 n} (f : Frm X o) (τ : 𝒯r o)
       → (ρ : Pd X f τ)
       → {κ : (p : Pos τ) → 𝒯r (Typ τ p)}
       → (δ : (p : Pos τ) → Frm X (Typ τ p))
       → (ε : (p : Pos τ) → Pd X (δ p) (κ p))
-      → Pd X f (μ τ κ) 
+      → Pd X f (μₒ τ κ) 
 
-  Pd X f arr = ⊤
-  Pd X f (lf o) = {!!}
-  Pd X f (nd o τ δ ε) = {!!}
+  -- 𝕆 : (ℓ : Level) → ℕ → Set (ℓ-suc ℓ)
+  -- Frm : ∀ {ℓ n} (X : 𝕆 ℓ n) → 𝒪 n → Set ℓ
+  -- Pd : ∀ {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : (o : 𝒪 n) (f : Frm Xₙ o) → Set ℓ) 
+  --   → {o : 𝒪 n} (f : Frm Xₙ o) (τ : 𝒯r o) → Set ℓ 
 
-
+  -- 𝕆 ℓ O = Set ℓ
+  -- 𝕆 ℓ (S n) =
+  --   Σ (𝕆 ℓ n) (λ Xₙ →
+  --     (o : 𝒪 n) (f : Frm Xₙ o) → Set ℓ)
   
+  -- Frm X ● = X × X 
+  -- Frm (Xₙ , Xₛₙ) (o ▸ τ) =
+  --   Σ (Frm Xₙ o) (λ f →
+  --     Pd Xₙ Xₛₙ f τ × Xₛₙ o f)
+
+  -- postulate
+
+  --   η : ∀ {ℓ n} {Xₙ : 𝕆 ℓ n} {Xₛₙ : (o : 𝒪 n) (f : Frm Xₙ o) → Set ℓ} 
+  --     → {o : 𝒪 n} {f : Frm Xₙ o} (x : Xₛₙ o f) 
+  --     → Pd Xₙ Xₛₙ f (ηₒ o) 
+
+  --   μ : ∀ {ℓ n} {Xₙ : 𝕆 ℓ n} {Xₛₙ : (o : 𝒪 n) (f : Frm Xₙ o) → Set ℓ}
+  --     → {o : 𝒪 n} (f : Frm Xₙ o) (τ : 𝒯r o)
+  --     → (ρ : Pd Xₙ Xₛₙ f τ)
+  --     → {κ : (p : Pos τ) → 𝒯r (Typ τ p)}
+  --     → (δ : (p : Pos τ) → Frm Xₙ (Typ τ p))
+  --     → (ε : (p : Pos τ) → Pd Xₙ Xₛₙ (δ p) (κ p))
+  --     → Pd Xₙ Xₛₙ f (μₒ τ κ) 
+
+
+  -- data Pd' {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : (o : 𝒪 n) (f : Frm Xₙ o) → Set ℓ) : 
+  --   {o : 𝒪 n} (f : Frm Xₙ o) (τ : 𝒯r o) → Set ℓ where
+
+  --   lf' : {o : 𝒪 n} (f : Frm Xₙ o) (x : Xₛₙ o f)
+  --     → Pd' Xₙ Xₛₙ {!!} {!!} 
+
+  -- -- No.  This is certainly wrong ...
+  -- -- Okay.  What if we add a "cell" fibration, which trivially computes
+  -- -- back to the given one.  Maybe this will let us give these guys
+  -- -- simpler types? 
+
+  -- -- data 𝒯r where
+  -- --   arr : 𝒯r ●
+  -- --   lf : {n : ℕ} (o : 𝒪 n) → 𝒯r (o ▸ ηₒ o)
+  -- --   nd : {n : ℕ} (o : 𝒪 n) (τ : 𝒯r o)
+  -- --     → (δ : (p : Pos τ) → 𝒯r (Typ τ p))
+  -- --     → (ε : (p : Pos τ) → 𝒯r (Typ τ p ▸ δ p))
+  -- --     → 𝒯r (o ▸ μₒ τ δ)
+
+
+  -- Pd Xₙ Xₛₙ {o = ●} f τ = Xₛₙ ● f
+  -- Pd Xₙ Xₛₙ {o = o ▸ τ} f υ = {!!}
+
+  -- -- But now we have too many, which is weird!
+  -- -- Again, problem is that we don't want to put the whole opetopic type
+  -- -- in the index.
+
 
