@@ -59,6 +59,10 @@ module SimpleOpetopicType where
       → {g : Frm X} (p : Pos X (μ X c δ) g)
       → P {g} p              
 
+  --
+  --  Definition of the Derived Monad 
+  --
+
   module _ {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : (f : Frm Xₙ) → Set ℓ) where
   
     η-dec : (f : Frm Xₙ) (x : Xₛₙ f)
@@ -116,25 +120,51 @@ module SimpleOpetopicType where
         → {ψ : SlcFrm} (ρ : WebPos (ε p) ψ)
         → WebPos (nd φ δ θ ε) ψ 
 
+    --
+    --  Grafting
+    --
+    
+    postulate
 
-    -- γ : {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : (f : Frm Xₙ) → Set ℓ)
-    --   → (f : Frm Xₙ) (x : Xₛₙ f) (c : Cns Xₙ f)
-    --   → (ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g) 
-    --   → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
-    --   → (ω : Web Xₙ Xₛₙ f x c ν)
+      graft : {φ : SlcFrm} (ω : Web φ)
+        → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
+        → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
+               {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
+        → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
+             → Web ⟪ g , δ p , src φ p , θ p ⟫)
+        → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) δ θ ⟫ 
+      
+      graft-pos-inl : {φ : SlcFrm} (ω : Web φ)
+        → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
+        → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
+               {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
+        → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
+             → Web ⟪ g , δ p , src φ p , θ p ⟫)
+        → {ψ : SlcFrm} (p : WebPos ω ψ)
+        → WebPos (graft ω δ θ ε) ψ
 
-  -- γₒ : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (τ : 𝒯r o ρ)
-  --   → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
-  --   → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
-  --   → 𝒯r o (μₒ ρ δ)
-  -- γₒ o .(ηₒ o) (lf .o) ϕ ψ = ψ (ηₒ-pos o)
-  -- γₒ o .(μₒ ρ δ) (nd .o ρ δ ε) ϕ ψ = 
-  --   let ϕ' p q = ϕ (μₒ-pos ρ δ p q)
-  --       ψ' p q = ψ (μₒ-pos ρ δ p q)
-  --       δ' p = μₒ (δ p) (ϕ' p)
-  --       ε' p = γₒ (Typ ρ p) (δ p) (ε p) (ϕ' p) (ψ' p) 
-  --   in nd o ρ δ' ε'
+      graft-pos-inr : {φ : SlcFrm} (ω : Web φ)
+        → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
+        → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
+               {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
+        → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
+             → Web ⟪ g , δ p , src φ p , θ p ⟫)
+        → {f : Frm Xₙ} (p : Pos Xₙ (cns φ) f)
+        → {ψ : SlcFrm} (q : WebPos (ε p) ψ)
+        → WebPos (graft ω δ θ ε) ψ
 
+      graft-pos-elim : {φ : SlcFrm} (ω : Web φ)
+        → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
+        → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
+               {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
+        → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
+             → Web ⟪ g , δ p , src φ p , θ p ⟫)
+        → (P : {ψ : SlcFrm} (p : WebPos (graft ω δ θ ε) ψ) → Set ℓ)
+        → (inl* : {ψ : SlcFrm} (p : WebPos ω ψ) → P (graft-pos-inl ω δ θ ε p))
+        → (inr* : {f : Frm Xₙ} (p : Pos Xₙ (cns φ) f)
+                  {ψ : SlcFrm} (q : WebPos (ε p) ψ)
+                → P (graft-pos-inr ω δ θ ε p q))
+        → {ψ : SlcFrm} (p : WebPos (graft ω δ θ ε) ψ) → P p 
 
   𝕆 ℓ O = ⊤
   𝕆 ℓ (S n) = Σ (𝕆 ℓ n) (λ Xₙ → (f : Frm Xₙ) → Set ℓ)
