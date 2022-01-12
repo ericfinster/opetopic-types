@@ -33,7 +33,7 @@ module SimpleOpetopicType where
 
     η-pos-elim : ∀ {ℓ n} (X : 𝕆 ℓ n) (f : Frm X)
       → (P : {g : Frm X} (p : Pos X (η X f) g) → Set ℓ)
-      → (p : P (η-pos X f))
+      → (η-pos* : P (η-pos X f))
       → {g : Frm X} (p : Pos X (η X f) g)
       → P p 
 
@@ -53,11 +53,56 @@ module SimpleOpetopicType where
       → {f : Frm X} (c : Cns X f)
       → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
       → (P : {g : Frm X} (p : Pos X (μ X c δ) g) → Set ℓ)
-      → (p : {g : Frm X} (p : Pos X c g)
-             {h : Frm X} (q : Pos X (δ p) h)
-             → P {h} (μ-pos X c δ p q))
+      → (μ-pos* : {g : Frm X} (p : Pos X c g)
+                  {h : Frm X} (q : Pos X (δ p) h)
+                → P {h} (μ-pos X c δ p q))
       → {g : Frm X} (p : Pos X (μ X c δ) g)
       → P {g} p              
+  
+  --
+  --  Monad Laws
+  --
+
+  postulate
+
+    μ-unit-r : ∀ {ℓ n} (X : 𝕆 ℓ n)
+      → (f : Frm X) (c : Cns X f)
+      → μ X c (λ {g} p → η X g) ↦ c
+    {-# REWRITE μ-unit-r #-}
+
+    μ-unit-l : ∀ {ℓ n} (X : 𝕆 ℓ n) (f : Frm X)
+      → (δ : {g : Frm X} (p : Pos X (η X f) g) → Cns X g)
+      → μ X (η X f) δ ↦ δ (η-pos X f)
+    {-# REWRITE μ-unit-l #-}
+
+    μ-assoc : ∀ {ℓ n} (X : 𝕆 ℓ n)
+      → (f : Frm X) (c : Cns X f)
+      → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
+      → (ε : {g : Frm X} (p : Pos X c g)
+             {h : Frm X} (q : Pos X (δ p) h) → Cns X h)
+      → μ X (μ X c δ) (μ-pos-elim X c δ (λ {g} p → Cns X g) ε)
+        ↦ μ X c (λ p → μ X (δ p) (ε p))
+    {-# REWRITE μ-assoc #-}
+
+    -- Position Elimination Laws
+    
+    η-pos-elim-β : ∀ {ℓ n} (X : 𝕆 ℓ n) (f : Frm X)
+      → (P : {g : Frm X} (p : Pos X (η X f) g) → Set ℓ)
+      → (η-pos* : P (η-pos X f))
+      → η-pos-elim X f P η-pos* (η-pos X f) ↦ η-pos*
+    {-# REWRITE η-pos-elim-β #-}
+
+    μ-pos-elim-β : ∀ {ℓ n} (X : 𝕆 ℓ n)
+      → {f : Frm X} (c : Cns X f)
+      → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
+      → (P : {g : Frm X} (p : Pos X (μ X c δ) g) → Set ℓ)
+      → (μ-pos* : {g : Frm X} (p : Pos X c g)
+                  {h : Frm X} (q : Pos X (δ p) h)
+                → P {h} (μ-pos X c δ p q))
+      → {g : Frm X} (p : Pos X c g)
+      → {h : Frm X} (q : Pos X (δ p) h)
+      → μ-pos-elim X c δ P μ-pos* (μ-pos X c δ p q) ↦ μ-pos* p q
+    {-# REWRITE μ-pos-elim-β #-}
 
   --
   --  Definition of the Derived Monad 
