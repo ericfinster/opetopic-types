@@ -4,6 +4,10 @@ open import MiniHoTT
 
 module SimpleOpetopicType where
 
+  --
+  --  Opetopic Types
+  --
+
   𝕆 : (ℓ : Level) → ℕ → Set (ℓ-suc ℓ)
 
   --
@@ -182,6 +186,7 @@ module SimpleOpetopicType where
     -- to put the monad laws in the once unfolded form so that when
     -- we slice, there is the same behavior.  Well, I'm not sure if
     -- this is necessary or not ...
+    
     data WebPos : {φ : SlcFrm} (ω : Web φ) → SlcFrm → Set ℓ where
 
       nd-here : (φ : SlcFrm)
