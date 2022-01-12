@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --rewriting --no-positivity #-}
 
 open import MiniHoTT
 
@@ -73,6 +73,7 @@ module SimpleOpetopicType where
     μ-dec c δ θ = μ-pos-elim Xₙ c δ (λ {g} p → Xₛₙ g) θ 
 
     record SlcFrm : Set ℓ where
+      inductive 
       constructor ⟪_,_,_,_⟫ 
       field
         frm : Frm Xₙ
@@ -82,91 +83,39 @@ module SimpleOpetopicType where
 
     open SlcFrm
     
-    data NewWeb : SlcFrm → Set ℓ where
+    data Web : SlcFrm → Set ℓ where
 
       lf : {f : Frm Xₙ} (x : Xₛₙ f)
-        → NewWeb ⟪ f , η Xₙ f , x , η-dec f x ⟫ 
+        → Web ⟪ f , η Xₙ f , x , η-dec f x ⟫ 
 
       nd : (φ : SlcFrm)
         → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
         → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
                {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
         → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-             → NewWeb ⟪ g , δ p , src φ p , θ p ⟫)
-        → NewWeb ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) δ θ ⟫ 
+             → Web ⟪ g , δ p , src φ p , θ p ⟫)
+        → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) δ θ ⟫ 
 
-    data NewWebPos : {φ : SlcFrm} (ω : NewWeb φ) → SlcFrm → Set ℓ where
+    data WebPos : {φ : SlcFrm} (ω : Web φ) → SlcFrm → Set ℓ where
 
       nd-here : (φ : SlcFrm)
         → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
         → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
                {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
         → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-             → NewWeb ⟪ g , δ p , src φ p , θ p ⟫)
-        → NewWebPos (nd φ δ θ ε) φ
+             → Web ⟪ g , δ p , src φ p , θ p ⟫)
+        → WebPos (nd φ δ θ ε) φ
 
       nd-there : (φ : SlcFrm)
         → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
         → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
                {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
         → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-             → NewWeb ⟪ g , δ p , src φ p , θ p ⟫)
+             → Web ⟪ g , δ p , src φ p , θ p ⟫)
         → {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-        → {ψ : SlcFrm} (ρ : NewWebPos (ε p) ψ)
-        → NewWebPos (nd φ δ θ ε) ψ 
+        → {ψ : SlcFrm} (ρ : WebPos (ε p) ψ)
+        → WebPos (nd φ δ θ ε) ψ 
 
-  -- 
-  --  Webs, their positions, and grafting 
-  --
-
-  data Web {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : (f : Frm Xₙ) → Set ℓ) :
-    (f : Frm Xₙ) (x : Xₛₙ f) (c : Cns Xₙ f)
-    (ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g) → Set ℓ where
-
-    lf : {f : Frm Xₙ} (x : Xₛₙ f)
-      → Web Xₙ Xₛₙ f x (η Xₙ f) (η-pos-elim Xₙ f (λ {g} p → Xₛₙ g) x) 
-
-    nd : {f : Frm Xₙ} (c : Cns Xₙ f) (x : Xₛₙ f) 
-      → (ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g)
-      → (δ : {g : Frm Xₙ} (p : Pos Xₙ c g) → Cns Xₙ g)
-      → (θ : {g : Frm Xₙ} (p : Pos Xₙ c g)
-             {h : Frm Xₙ} (q : Pos Xₙ (δ p) h)
-           → Xₛₙ h)
-      → (ε : {g : Frm Xₙ} (p : Pos Xₙ c g)
-           → Web Xₙ Xₛₙ g (ν p) (δ p) (θ p))
-      → Web Xₙ Xₛₙ f x (μ Xₙ c δ)
-          (μ-pos-elim Xₙ c δ (λ {g} p → Xₛₙ g) θ) 
-
-  data WebPos {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : (f : Frm Xₙ) → Set ℓ) : 
-    {f : Frm Xₙ} {x : Xₛₙ f} {c : Cns Xₙ f}
-    {ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g}
-    (ρ : Web Xₙ Xₛₙ f x c ν)
-    (g : Frm Xₙ) (y : Xₛₙ g) (d : Cns Xₙ g)
-    (θ : {h : Frm Xₙ} (p : Pos Xₙ d h) → Xₛₙ h)  → Set ℓ where
-
-    nd-here : {f : Frm Xₙ} {c : Cns Xₙ f} {x : Xₛₙ f}
-      → {ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g}
-      → {δ : {g : Frm Xₙ} (p : Pos Xₙ c g) → Cns Xₙ g}
-      → {θ : {g : Frm Xₙ} (p : Pos Xₙ c g)
-             {h : Frm Xₙ} (q : Pos Xₙ (δ p) h)
-           → Xₛₙ h}
-      → {ε : {g : Frm Xₙ} (p : Pos Xₙ c g)
-           → Web Xₙ Xₛₙ g (ν p) (δ p) (θ p)}
-      → WebPos Xₙ Xₛₙ (nd c x ν δ θ ε) f x c ν 
-
-    nd-there : {f : Frm Xₙ} {c : Cns Xₙ f} {x : Xₛₙ f}
-      → {ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g}
-      → {δ : {g : Frm Xₙ} (p : Pos Xₙ c g) → Cns Xₙ g}
-      → {θ : {g : Frm Xₙ} (p : Pos Xₙ c g)
-             {h : Frm Xₙ} (q : Pos Xₙ (δ p) h)
-           → Xₛₙ h}
-      → {ε : {g : Frm Xₙ} (p : Pos Xₙ c g)
-           → Web Xₙ Xₛₙ g (ν p) (δ p) (θ p)}
-      → {g : Frm Xₙ} (p : Pos Xₙ c g)
-      → {h : Frm Xₙ} {y : Xₛₙ h} {d : Cns Xₙ h}
-      → {ρ : {k : Frm Xₙ} (q : Pos Xₙ d k) → Xₛₙ k}
-      → (q : WebPos Xₙ Xₛₙ (ε p) h y d ρ)
-      → WebPos Xₙ Xₛₙ (nd c x ν δ θ ε) h y d ρ
 
     -- γ : {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : (f : Frm Xₙ) → Set ℓ)
     --   → (f : Frm Xₙ) (x : Xₛₙ f) (c : Cns Xₙ f)
@@ -187,7 +136,70 @@ module SimpleOpetopicType where
   --   in nd o ρ δ' ε'
 
 
-  𝕆 = {!!}
-  Frm = {!!}
-  Cns = {!!} 
-  Pos = {!!} 
+  𝕆 ℓ O = ⊤
+  𝕆 ℓ (S n) = Σ (𝕆 ℓ n) (λ Xₙ → (f : Frm Xₙ) → Set ℓ)
+  
+  Frm {ℓ} {O} _ = ⊤
+  Frm {ℓ} {S n} (Xₙ , Xₛₙ) = SlcFrm Xₙ Xₛₙ
+  
+  Cns {ℓ} {O} _ _ = ⊤
+  Cns {ℓ} {S n} (Xₙ , Xₛₙ) = Web Xₙ Xₛₙ
+  
+  Pos {ℓ} {O} _ _ _ = ⊤
+  Pos {ℓ} {S n} (Xₙ , Xₛₙ) c g = WebPos Xₙ Xₛₙ c g
+
+  -- 
+  --  Old, unfolded version of above
+  --
+
+  -- data Web {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : (f : Frm Xₙ) → Set ℓ) :
+  --   (f : Frm Xₙ) (x : Xₛₙ f) (c : Cns Xₙ f)
+  --   (ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g) → Set ℓ where
+
+  --   lf : {f : Frm Xₙ} (x : Xₛₙ f)
+  --     → Web Xₙ Xₛₙ f x (η Xₙ f) (η-pos-elim Xₙ f (λ {g} p → Xₛₙ g) x) 
+
+  --   nd : {f : Frm Xₙ} (c : Cns Xₙ f) (x : Xₛₙ f) 
+  --     → (ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g)
+  --     → (δ : {g : Frm Xₙ} (p : Pos Xₙ c g) → Cns Xₙ g)
+  --     → (θ : {g : Frm Xₙ} (p : Pos Xₙ c g)
+  --            {h : Frm Xₙ} (q : Pos Xₙ (δ p) h)
+  --          → Xₛₙ h)
+  --     → (ε : {g : Frm Xₙ} (p : Pos Xₙ c g)
+  --          → Web Xₙ Xₛₙ g (ν p) (δ p) (θ p))
+  --     → Web Xₙ Xₛₙ f x (μ Xₙ c δ)
+  --         (μ-pos-elim Xₙ c δ (λ {g} p → Xₛₙ g) θ) 
+
+  -- data WebPos {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : (f : Frm Xₙ) → Set ℓ) : 
+  --   {f : Frm Xₙ} {x : Xₛₙ f} {c : Cns Xₙ f}
+  --   {ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g}
+  --   (ρ : Web Xₙ Xₛₙ f x c ν)
+  --   (g : Frm Xₙ) (y : Xₛₙ g) (d : Cns Xₙ g)
+  --   (θ : {h : Frm Xₙ} (p : Pos Xₙ d h) → Xₛₙ h)  → Set ℓ where
+
+  --   nd-here : {f : Frm Xₙ} {c : Cns Xₙ f} {x : Xₛₙ f}
+  --     → {ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g}
+  --     → {δ : {g : Frm Xₙ} (p : Pos Xₙ c g) → Cns Xₙ g}
+  --     → {θ : {g : Frm Xₙ} (p : Pos Xₙ c g)
+  --            {h : Frm Xₙ} (q : Pos Xₙ (δ p) h)
+  --          → Xₛₙ h}
+  --     → {ε : {g : Frm Xₙ} (p : Pos Xₙ c g)
+  --          → Web Xₙ Xₛₙ g (ν p) (δ p) (θ p)}
+  --     → WebPos Xₙ Xₛₙ (nd c x ν δ θ ε) f x c ν 
+
+  --   nd-there : {f : Frm Xₙ} {c : Cns Xₙ f} {x : Xₛₙ f}
+  --     → {ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g}
+  --     → {δ : {g : Frm Xₙ} (p : Pos Xₙ c g) → Cns Xₙ g}
+  --     → {θ : {g : Frm Xₙ} (p : Pos Xₙ c g)
+  --            {h : Frm Xₙ} (q : Pos Xₙ (δ p) h)
+  --          → Xₛₙ h}
+  --     → {ε : {g : Frm Xₙ} (p : Pos Xₙ c g)
+  --          → Web Xₙ Xₛₙ g (ν p) (δ p) (θ p)}
+  --     → {g : Frm Xₙ} (p : Pos Xₙ c g)
+  --     → {h : Frm Xₙ} {y : Xₛₙ h} {d : Cns Xₙ h}
+  --     → {ρ : {k : Frm Xₙ} (q : Pos Xₙ d k) → Xₛₙ k}
+  --     → (q : WebPos Xₙ Xₛₙ (ε p) h y d ρ)
+  --     → WebPos Xₙ Xₛₙ (nd c x ν δ θ ε) h y d ρ
+
+
+
