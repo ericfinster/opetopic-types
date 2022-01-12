@@ -85,7 +85,6 @@ module SimpleOpetopicType where
     {-# REWRITE μ-assoc #-}
 
     -- Position Elimination Laws
-    
     η-pos-elim-β : ∀ {ℓ n} (X : 𝕆 ℓ n) (f : Frm X)
       → (P : {g : Frm X} (p : Pos X (η X f) g) → Set ℓ)
       → (η-pos* : P (η-pos X f))
@@ -103,6 +102,40 @@ module SimpleOpetopicType where
       → {h : Frm X} (q : Pos X (δ p) h)
       → μ-pos-elim X c δ P μ-pos* (μ-pos X c δ p q) ↦ μ-pos* p q
     {-# REWRITE μ-pos-elim-β #-}
+
+    -- Intro compatibility
+    μ-pos-unit-r : ∀ {ℓ n} (X : 𝕆 ℓ n)
+      → {f : Frm X} (c : Cns X f)
+      → {g : Frm X} (p : Pos X c g)
+      → μ-pos X c (λ {k} p → η X k) p (η-pos X g) ↦ p
+    {-# REWRITE μ-pos-unit-r #-}
+
+    μ-pos-unit-l : ∀ {ℓ n} (X : 𝕆 ℓ n) (f : Frm X)
+      → (δ : {g : Frm X} (p : Pos X (η X f) g) → Cns X g)
+      → {h : Frm X} (p : Pos X (δ (η-pos X f)) h)
+      → μ-pos X (η X f) δ (η-pos X f) p ↦ p
+    {-# REWRITE μ-pos-unit-l #-}
+      
+    -- Elim compatibility
+    μ-pos-elim-unit-r : ∀ {ℓ n} (X : 𝕆 ℓ n)
+      → (f : Frm X) (c : Cns X f)
+      → (P : {g : Frm X} (p : Pos X (μ X c (λ {h} p → η X h)) g) → Set ℓ)
+      → (μ-pos* : {g : Frm X} (p : Pos X c g)
+                  {h : Frm X} (q : Pos X (η X g) h)
+                → P {h} (μ-pos X c (λ {h} p → η X h) p q))
+      → {g : Frm X} (p : Pos X (μ X c (λ {g} p → η X g)) g)
+      → μ-pos-elim X c (λ {g} p → η X g) P μ-pos* p ↦ μ-pos* p (η-pos X g) 
+    {-# REWRITE μ-pos-elim-unit-r #-}
+
+    μ-pos-elim-unit-l : ∀ {ℓ n} (X : 𝕆 ℓ n) (f : Frm X)
+      → (δ : {g : Frm X} (p : Pos X (η X f) g) → Cns X g)
+      → (P : {g : Frm X} (p : Pos X (μ X (η X f) δ) g) → Set ℓ)
+      → (μ-pos* : {g : Frm X} (p : Pos X (η X f) g)
+                  {h : Frm X} (q : Pos X (δ p) h)
+                → P (μ-pos X (η X f) δ p q))
+      → {g : Frm X} (p : Pos X (δ (η-pos X f)) g)
+      → μ-pos-elim X (η X f) δ P μ-pos* p ↦ μ-pos* (η-pos X f) p
+    {-# REWRITE μ-pos-elim-unit-l #-}
 
   --
   --  Definition of the Derived Monad 
@@ -145,6 +178,10 @@ module SimpleOpetopicType where
              → Web ⟪ g , δ p , src φ p , θ p ⟫)
         → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) δ θ ⟫ 
 
+    -- One thing I am realizing is that you will probably *also* have
+    -- to put the monad laws in the once unfolded form so that when
+    -- we slice, there is the same behavior.  Well, I'm not sure if
+    -- this is necessary or not ...
     data WebPos : {φ : SlcFrm} (ω : Web φ) → SlcFrm → Set ℓ where
 
       nd-here : (φ : SlcFrm)
@@ -169,16 +206,18 @@ module SimpleOpetopicType where
     --  Grafting
     --
     
-    postulate
+    graft : {φ : SlcFrm} (ω : Web φ)
+      → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
+      → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
+             {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
+      → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
+           → Web ⟪ g , δ p , src φ p , θ p ⟫)
+      → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) δ θ ⟫
+    graft (lf {f} x) δ θ ε = ε (η-pos Xₙ f)
+    graft (nd φ δ θ ε) ϕ ψ κ = {!!}
 
-      graft : {φ : SlcFrm} (ω : Web φ)
-        → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
-        → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-               {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
-        → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-             → Web ⟪ g , δ p , src φ p , θ p ⟫)
-        → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) δ θ ⟫ 
-      
+    postulate
+    
       graft-pos-inl : {φ : SlcFrm} (ω : Web φ)
         → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
         → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
