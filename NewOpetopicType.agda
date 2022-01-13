@@ -229,58 +229,46 @@ module NewOpetopicType where
       → (p : Pos Xₙ (μ Xₙ c δ)) → Xₛₙ (Typ Xₙ (μ Xₙ c δ) p)
     μ-dec c δ θ p = θ (μ-fst Xₙ c δ p) (μ-snd Xₙ c δ p)
 
-    -- record SlcFrm : Set ℓ where
-    --   inductive 
-    --   constructor ⟪_,_,_,_⟫ 
-    --   field
-    --     frm : Frm Xₙ
-    --     cns : Cns Xₙ frm
-    --     tgt : Xₛₙ frm
-    --     src : {f : Frm Xₙ} (p : Pos Xₙ cns f) → Xₛₙ f 
+    record SlcFrm : Set ℓ where
+      inductive 
+      constructor ⟪_,_,_,_⟫ 
+      field
+        frm : Frm Xₙ
+        cns : Cns Xₙ frm
+        tgt : Xₛₙ frm
+        src : (p : Pos Xₙ cns) → Xₛₙ (Typ Xₙ cns p)
 
-    -- open SlcFrm
+    open SlcFrm
     
-    -- data Web : SlcFrm → Set ℓ where
+    data Web : SlcFrm → Set ℓ where
 
-    --   lf : {f : Frm Xₙ} (x : Xₛₙ f)
-    --     → Web ⟪ f , η Xₙ f , x , η-dec f x ⟫ 
+      lf : {f : Frm Xₙ} (x : Xₛₙ f)
+        → Web ⟪ f , η Xₙ f , x , η-dec f x ⟫ 
 
-    --   nd : (φ : SlcFrm)
-    --     → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
-    --     → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-    --            {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
-    --     → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-    --          → Web ⟪ g , δ p , src φ p , θ p ⟫)
-    --     → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) δ θ ⟫ 
-
-    -- -- One thing I am realizing is that you will probably *also* have
-    -- -- to put the monad laws in the once unfolded form so that when
-    -- -- we slice, there is the same behavior.  Well, I'm not sure if
-    -- -- this is necessary or not ...
+      nd : (φ : SlcFrm)
+        → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
+        → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
+        → (ε : (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
+        → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) δ ν ⟫ 
     
-    -- data WebPos : {φ : SlcFrm} (ω : Web φ) → SlcFrm → Set ℓ where
+    data WebPos : {φ : SlcFrm} (ω : Web φ) → Set ℓ where
 
-    --   nd-here : (φ : SlcFrm)
-    --     → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
-    --     → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-    --            {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
-    --     → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-    --          → Web ⟪ g , δ p , src φ p , θ p ⟫)
-    --     → WebPos (nd φ δ θ ε) φ
+      nd-here : (φ : SlcFrm)
+        → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
+        → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
+        → (ε : (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
+        → WebPos (nd φ δ ν ε) 
 
-    --   nd-there : (φ : SlcFrm)
-    --     → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
-    --     → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-    --            {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
-    --     → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-    --          → Web ⟪ g , δ p , src φ p , θ p ⟫)
-    --     → {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-    --     → {ψ : SlcFrm} (ρ : WebPos (ε p) ψ)
-    --     → WebPos (nd φ δ θ ε) ψ 
+      nd-there : (φ : SlcFrm)
+        → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
+        → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
+        → (ε : (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
+        → (p : Pos Xₙ (cns φ)) (ρ : WebPos (ε p))
+        → WebPos (nd φ δ ν ε) 
 
-    -- --
-    -- --  Grafting
-    -- --
+    --
+    --  Grafting
+    --
     
     -- graft : {φ : SlcFrm} (ω : Web φ)
     --   → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
@@ -331,9 +319,6 @@ module NewOpetopicType where
     --               {ψ : SlcFrm} (q : WebPos (ε p) ψ)
     --             → P (graft-pos-inr ω δ θ ε p q))
     --     → {ψ : SlcFrm} (p : WebPos (graft ω δ θ ε) ψ) → P p 
-
-
-
 
   𝕆 = {!!} 
 
