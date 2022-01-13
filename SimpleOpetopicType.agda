@@ -321,27 +321,7 @@ module SimpleOpetopicType where
           κ' {g} p {h} q = κ (μ-pos Xₙ (cns φ) δ {g} p {h} q)
           δ' {g} p = μ Xₙ {g} (δ p) (ϕ' p)
           ε' {g} p = graft (ε {g} p) (ϕ' p) (λ q r → ψ (μ-pos Xₙ (cns φ) δ p q) r) (κ' p) 
-      in {!!} 
-
-      -- nd : (φ : SlcFrm)
-      --   → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
-      --   → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-      --          {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
-      --   → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-      --        → Web ⟪ g , δ p , src φ p , θ p ⟫)
-      --   → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) δ θ ⟫ 
-
-  -- γₒ : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (τ : 𝒯r o ρ)
-  --   → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
-  --   → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
-  --   → 𝒯r o (μₒ ρ δ)
-  -- γₒ o .(ηₒ o) (lf .o) ϕ ψ = ψ (ηₒ-pos o)
-  -- γₒ o .(μₒ ρ δ) (nd .o ρ δ ε) ϕ ψ = 
-  --   let ϕ' p q = ϕ (μₒ-pos ρ δ p q)
-  --       ψ' p q = ψ (μₒ-pos ρ δ p q)
-  --       δ' p = μₒ (δ p) (ϕ' p)
-  --       ε' p = γₒ (Typ ρ p) (δ p) (ε p) (ϕ' p) (ψ' p) 
-  --   in nd o ρ δ' ε'
+      in nd φ δ' (λ p q → ψ (μ-pos Xₙ (cns φ) δ p (μ-fst Xₙ (δ p) (ϕ' p) q)) ((μ-snd Xₙ (δ p) (ϕ' p) q))) ε' 
 
     postulate
     
