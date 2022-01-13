@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --rewriting --no-positivity #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 --
 --  A note on termination and non-positivity:
@@ -250,6 +250,7 @@ module NewOpetopicType where
       → (p : Pos Xₙ (μ Xₙ c δ)) → Xₛₙ (Typ Xₙ (μ Xₙ c δ) p)
     μ-dec c δ θ p = θ (μ-fst Xₙ c δ p) (μ-snd Xₙ c δ p)
 
+    {-# NO_POSITIVITY_CHECK #-}
     record WebFrm : Set ℓ where
       inductive 
       constructor ⟪_,_,_,_⟫ 
@@ -290,38 +291,64 @@ module NewOpetopicType where
       → (ε :  (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
       → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) δ ν ⟫
     graft (lf {f} x) δ₁ ν₁ ε₁ = ε₁ (η-pos Xₙ f)
-    graft (nd φ δ₀ ν₀ ε₀) δ₁ ν₁ ε₁ = 
-      let δ₁-ih p q = δ₁ (μ-pos Xₙ (cns φ) δ₀ p q)
-          ν₁-ih p q = ν₁ (μ-pos Xₙ (cns φ) δ₀ p q)
-          ε₁-ih p q = ε₁ (μ-pos Xₙ (cns φ) δ₀ p q)
-          δ' p = μ Xₙ (δ₀ p) (δ₁-ih p)
-          ν' p q = ν₁ (μ-pos Xₙ (cns φ) δ₀ p (μ-fst Xₙ (δ₀ p) (δ₁-ih p) q)) (μ-snd Xₙ (δ₀ p) (δ₁-ih p) q)
-          ε' p = graft (ε₀ p) (δ₁-ih p) (ν₁-ih p) (ε₁-ih p)
+    graft (nd φ δ ν ε) δ₁ ν₁ ε₁ = 
+      let δ₁-ih p q = δ₁ (μ-pos Xₙ (cns φ) δ p q)
+          ν₁-ih p q = ν₁ (μ-pos Xₙ (cns φ) δ p q)
+          ε₁-ih p q = ε₁ (μ-pos Xₙ (cns φ) δ p q)
+          δ' p = μ Xₙ (δ p) (δ₁-ih p)
+          ν' p q = ν₁ (μ-pos Xₙ (cns φ) δ p (μ-fst Xₙ (δ p) (δ₁-ih p) q)) (μ-snd Xₙ (δ p) (δ₁-ih p) q)
+          ε' p = graft (ε p) (δ₁-ih p) (ν₁-ih p) (ε₁-ih p)
       in nd φ δ' ν' ε' 
 
-    postulate
+    graft-pos-inl : {φ : WebFrm} (ω : Web φ)
+      → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
+      → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
+      → (ε :  (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
+      → WebPos ω → WebPos (graft ω δ ν ε) 
+    graft-pos-inl (nd φ δ ν ε) δ₁ ν₁ ε₁ (inl tt) = inl tt
+    graft-pos-inl (nd φ δ ν ε) δ₁ ν₁ ε₁ (inr (p , q)) = 
+      let δ₁-ih p q = δ₁ (μ-pos Xₙ (cns φ) δ p q)
+          ν₁-ih p q = ν₁ (μ-pos Xₙ (cns φ) δ p q)
+          ε₁-ih p q = ε₁ (μ-pos Xₙ (cns φ) δ p q)
+      in inr (p , (graft-pos-inl (ε p) (δ₁-ih p) (ν₁-ih p) (ε₁-ih p) q))
+
+    graft-pos-inr : {φ : WebFrm} (ω : Web φ)
+      → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
+      → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
+      → (ε :  (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
+      → (p : Pos Xₙ (cns φ)) (q : WebPos (ε p))
+      → WebPos (graft ω δ ν ε)
+    graft-pos-inr (lf {f} x) δ₁ ν₁ ε₁ =
+      η-pos-elim Xₙ f (λ p → WebPos (ε₁ p) → WebPos (ε₁ (η-pos Xₙ f))) (λ p → p)
+    graft-pos-inr (nd φ δ ν ε) δ₁ ν₁ ε₁ pq r =
+      let δ₁-ih p q = δ₁ (μ-pos Xₙ (cns φ) δ p q)
+          ν₁-ih p q = ν₁ (μ-pos Xₙ (cns φ) δ p q)
+          ε₁-ih p q = ε₁ (μ-pos Xₙ (cns φ) δ p q)
+          p = μ-fst Xₙ (cns φ) δ pq
+          q = μ-snd Xₙ (cns φ) δ pq 
+      in inr (p , (graft-pos-inr (ε p) (δ₁-ih p) (ν₁-ih p) (ε₁-ih p) q r))
     
-      graft-pos-inl : {φ : WebFrm} (ω : Web φ)
-        → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
-        → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
-        → (ε :  (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
-        → WebPos ω → WebPos (graft ω δ ν ε) 
+    graft-pos-elim : ∀ {ℓ'} {φ : WebFrm} (ω : Web φ)
+      → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
+      → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
+      → (ε :  (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
+      → (P : WebPos (graft ω δ ν ε) → Set ℓ')
+      → (inl* : (p : WebPos ω) → P (graft-pos-inl ω δ ν ε p))
+      → (inr* : (p : Pos Xₙ (cns φ)) (q : WebPos (ε p)) → P (graft-pos-inr ω δ ν ε p q))
+      → (p : WebPos (graft ω δ ν ε)) → P p 
+    graft-pos-elim (lf {f} x) δ₁ ν₁ ε₁ P inl* inr* p = inr* (η-pos Xₙ f) p
+    graft-pos-elim (nd φ δ ν ε) δ₁ ν₁ ε₁ P inl* inr* (inl tt) = inl* (inl tt)
+    graft-pos-elim (nd φ δ ν ε) δ₁ ν₁ ε₁ P inl* inr* (inr (p , q)) = 
+      let δ₁-ih p q = δ₁ (μ-pos Xₙ (cns φ) δ p q)
+          ν₁-ih p q = ν₁ (μ-pos Xₙ (cns φ) δ p q)
+          ε₁-ih p q = ε₁ (μ-pos Xₙ (cns φ) δ p q)
+      in graft-pos-elim (ε p) (δ₁-ih p) (ν₁-ih p) (ε₁-ih p)
+           (λ q → P (inr (p , q))) (λ q → inl* (inr (p , q)))
+           (λ p' q → inr* (μ-pos Xₙ (cns φ) δ p p') q) q
 
-      graft-pos-inr : {φ : WebFrm} (ω : Web φ)
-        → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
-        → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
-        → (ε :  (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
-        → (p : Pos Xₙ (cns φ)) (q : WebPos (ε p))
-        → WebPos (graft ω δ ν ε)
-
-      graft-pos-elim : ∀ {ℓ'} {φ : WebFrm} (ω : Web φ)
-        → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
-        → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
-        → (ε :  (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
-        → (P : WebPos (graft ω δ ν ε) → Set ℓ')
-        → (inl* : (p : WebPos ω) → P (graft-pos-inl ω δ ν ε p))
-        → (inr* : (p : Pos Xₙ (cns φ)) (q : WebPos (ε p)) → P (graft-pos-inr ω δ ν ε p q))
-        → (p : WebPos (graft ω δ ν ε)) → P p 
+  --
+  --  Implementations 
+  --
 
   𝕆 ℓ O = ⊤
   𝕆 ℓ (S n) = Σ (𝕆 ℓ n) (λ Xₙ → (f : Frm Xₙ) → Set ℓ)
