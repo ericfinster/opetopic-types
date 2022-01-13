@@ -320,6 +320,7 @@ module SimpleOpetopicType where
       let ϕ' {g} p {h} q = ϕ (μ-pos Xₙ (cns φ) δ {g} p {h} q)
           κ' {g} p {h} q = κ (μ-pos Xₙ (cns φ) δ {g} p {h} q)
           δ' {g} p = μ Xₙ {g} (δ p) (ϕ' p)
+          -- Hmmm. Don't know why I can't make the λ's here into let defs ...
           ε' {g} p = graft (ε {g} p) (ϕ' p) (λ q r → ψ (μ-pos Xₙ (cns φ) δ p q) r) (κ' p) 
       in nd φ δ' (λ p q → ψ (μ-pos Xₙ (cns φ) δ p (μ-fst Xₙ (δ p) (ϕ' p) q)) ((μ-snd Xₙ (δ p) (ϕ' p) q))) ε' 
 
