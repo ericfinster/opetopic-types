@@ -53,6 +53,18 @@ module SimpleOpetopicType where
       → {h : Frm X} (q : Pos X (δ p) h)
       → Pos X (μ X c δ) h
 
+    -- μ-fst : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    --   → {f : Frm X} (c : Cns X f)
+    --   → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
+    --   → {g : Frm X} (p : Pos X (μ X c δ) g)
+    --   → Σ (Frm X) (Pos X c)
+
+    -- μ-snd : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    --   → {f : Frm X} (c : Cns X f)
+    --   → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
+    --   → {g : Frm X} (p : Pos X (μ X c δ) g)
+    --   → Pos X (δ (snd (μ-fst X c δ p))) g
+
     μ-pos-elim : ∀ {ℓ n} (X : 𝕆 ℓ n)
       → {f : Frm X} (c : Cns X f)
       → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
@@ -62,7 +74,8 @@ module SimpleOpetopicType where
                 → P {h} (μ-pos X c δ p q))
       → {g : Frm X} (p : Pos X (μ X c δ) g)
       → P {g} p              
-  
+
+
   --
   --  Monad Laws
   --
@@ -82,13 +95,17 @@ module SimpleOpetopicType where
     μ-assoc : ∀ {ℓ n} (X : 𝕆 ℓ n)
       → (f : Frm X) (c : Cns X f)
       → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
-      → (ε : {g : Frm X} (p : Pos X c g)
-             {h : Frm X} (q : Pos X (δ p) h) → Cns X h)
-      → μ X (μ X c δ) (μ-pos-elim X c δ (λ {g} p → Cns X g) ε)
-        ↦ μ X c (λ p → μ X (δ p) (ε p))
+      → (ε : {g : Frm X} (p : Pos X (μ X c δ) g) → Cns X g)
+      → μ X (μ X c δ) ε ↦ μ X c (λ p → μ X (δ p) (λ q → ε (μ-pos X c δ p q)))
     {-# REWRITE μ-assoc #-}
 
-    -- Position Elimination Laws
+  --
+  --  Position Laws
+  --
+  
+  postulate
+  
+    -- Position Computation Rules
     η-pos-elim-β : ∀ {ℓ n} (X : 𝕆 ℓ n) (f : Frm X)
       → (P : {g : Frm X} (p : Pos X (η X f) g) → Set ℓ)
       → (η-pos* : P (η-pos X f))
@@ -107,6 +124,25 @@ module SimpleOpetopicType where
       → μ-pos-elim X c δ P μ-pos* (μ-pos X c δ p q) ↦ μ-pos* p q
     {-# REWRITE μ-pos-elim-β #-}
 
+  -- Projections
+  μ-fst : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    → {f : Frm X} (c : Cns X f)
+    → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
+    → {g : Frm X} (p : Pos X (μ X c δ) g)
+    → Σ (Frm X) (Pos X c)
+  μ-fst X c δ = μ-pos-elim X c δ (λ p → Σ (Frm X) (Pos X c)) (λ {g} p _ → g , p) 
+
+  μ-snd : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    → {f : Frm X} (c : Cns X f)
+    → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
+    → {g : Frm X} (p : Pos X (μ X c δ) g)
+    → Pos X (δ (snd (μ-fst X c δ p))) g
+  μ-snd X c δ = μ-pos-elim X c δ
+    (λ {g} p → Pos X (δ (snd (μ-fst X c δ p))) g)
+    (λ {g} p q → q) 
+
+  postulate
+  
     -- Intro compatibility
     μ-pos-unit-r : ∀ {ℓ n} (X : 𝕆 ℓ n)
       → {f : Frm X} (c : Cns X f)
@@ -119,7 +155,32 @@ module SimpleOpetopicType where
       → {h : Frm X} (p : Pos X (δ (η-pos X f)) h)
       → μ-pos X (η X f) δ (η-pos X f) p ↦ p
     {-# REWRITE μ-pos-unit-l #-}
-      
+
+    -- So this can in fact be more general if you introduce
+    -- the projections ...  perhaps that is better? 
+    μ-pos-assoc : ∀ {ℓ n} (X : 𝕆 ℓ n)
+      → (f : Frm X) (c : Cns X f)
+      → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
+      → (ε : {g : Frm X} (p : Pos X (μ X c δ) g) → Cns X g)
+      → {g : Frm X} (p : Pos X c g)
+      → {h : Frm X} (q : Pos X (δ p) h)
+      → {k : Frm X} (r : Pos X (ε (μ-pos X c δ p q)) k)
+      → μ-pos X (μ X c δ) ε (μ-pos X c δ p q) r
+        ↦ μ-pos X c (λ p → μ X (δ p) (λ q → ε (μ-pos X c δ p q))) p
+          (μ-pos X (δ p) (λ q → ε (μ-pos X c δ p q)) q r)
+    {-# REWRITE μ-pos-assoc #-}
+
+    -- μ-pos-assoc' : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    --   → (f : Frm X) (c : Cns X f)
+    --   → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
+    --   → (ε : {g : Frm X} (p : Pos X (μ X c δ) g) → Cns X g)
+    --   → {g : Frm X} (p : Pos X (μ X c δ) g)
+    --   → {h : Frm X} (q : Pos X (ε p) h)
+    --   → μ-pos X (μ X c δ) ε p q
+    --     ↦ μ-pos X c (λ p → μ X (δ p) (λ q → ε (μ-pos X c δ p q))) (snd (μ-fst X c δ p))
+    --         (μ-pos X (δ (snd (μ-fst X c δ p))) (λ q → ε (μ-pos X c δ (snd (μ-fst X c δ p)) q))
+    --           (μ-snd X c δ p) {!q!})
+
     -- Elim compatibility
     μ-pos-elim-unit-r : ∀ {ℓ n} (X : 𝕆 ℓ n)
       → (f : Frm X) (c : Cns X f)
@@ -140,6 +201,43 @@ module SimpleOpetopicType where
       → {g : Frm X} (p : Pos X (δ (η-pos X f)) g)
       → μ-pos-elim X (η X f) δ P μ-pos* p ↦ μ-pos* (η-pos X f) p
     {-# REWRITE μ-pos-elim-unit-l #-}
+
+    μ-pos-elim-assoc : ∀ {ℓ n} (X : 𝕆 ℓ n)
+      → (f : Frm X) (c : Cns X f)
+      → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
+      → (ε : {g : Frm X} (p : Pos X (μ X c δ) g) → Cns X g)
+      → (P : {g : Frm X} (p : Pos X (μ X (μ X c δ) ε) g) → Set ℓ)
+      → (μ-pos* : {g : Frm X} (p : Pos X (μ X c δ) g)
+                  {h : Frm X} (q : Pos X (ε p) h)
+                → P (μ-pos X (μ X c δ) ε p q ))
+      → {g : Frm X} (p : Pos X (μ X (μ X c δ) ε) g)
+      → μ-pos-elim X (μ X c δ) ε P μ-pos* p ↦
+          μ-pos-elim X c (λ p → μ X (δ p) (λ q → ε (μ-pos X c δ p q)))
+            P (λ p q → {!μ-pos* (μ-pos X c δ p (snd )) ?!}) p  
+
+    -- I see.  This is not general enough.  Oh, and probably the same for
+    -- associativity.  It should be *any* decoration of the multiplied
+    -- constructor, not just one obtained from eliminating.  Let's try
+    -- that.
+    -- μ-pos-elim-assoc : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    --   → (f : Frm X) (c : Cns X f)
+    --   → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
+    --   → (ε : {g : Frm X} (p : Pos X c g)
+    --          {h : Frm X} (q : Pos X (δ p) h) → Cns X h)
+    --   → (P : {g : Frm X} (p : Pos X (μ X (μ X c δ)
+    --            (μ-pos-elim X c δ (λ {g} p → Cns X g) ε)) g) → Set ℓ)
+    --   → (μ-pos* : {g : Frm X} (p : Pos X (μ X c δ) g)
+    --               {h : Frm X} (q : Pos X (μ-pos-elim X c δ (λ {g} p → Cns X g) ε p) h)
+    --             → P (μ-pos X (μ X c δ) (μ-pos-elim X c δ (λ {g} p → Cns X g) ε) p q ))
+    --   → {g : Frm X} (p : Pos X (μ X (μ X c δ)
+    --            (μ-pos-elim X c δ (λ {g} p → Cns X g) ε)) g)
+    --   → μ-pos-elim X (μ X c δ) (μ-pos-elim X c δ (λ {g} p → Cns X g) ε) P μ-pos* p 
+    --     ↦ μ-pos-elim X c (λ p → μ X (δ p) (ε p)) P
+    --         (λ p → μ-pos-elim X (δ p) (ε p)
+    --                (λ q → P (μ-pos X c (λ p₂ → μ X (δ p₂) (ε p₂)) p q))
+    --                (λ q r → μ-pos* (μ-pos X c δ p q) r)) p
+
+
 
   --
   --  Definition of the Derived Monad 
@@ -219,7 +317,32 @@ module SimpleOpetopicType where
            → Web ⟪ g , δ p , src φ p , θ p ⟫)
       → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) δ θ ⟫
     graft (lf {f} x) δ θ ε = ε (η-pos Xₙ f)
-    graft (nd φ δ θ ε) ϕ ψ κ = {!!}
+    graft (nd φ δ θ ε) ϕ ψ κ =
+      let ϕ' {g} p {h} q = ϕ (μ-pos Xₙ (cns φ) δ {g} p {h} q)
+          κ' {g} p {h} q = κ (μ-pos Xₙ (cns φ) δ {g} p {h} q)
+          δ' {g} p = μ Xₙ {g} (δ p) (ϕ' p)
+          ε' {g} p = graft (ε {g} p) (ϕ' p) (λ q r → ψ (μ-pos Xₙ (cns φ) δ p q) r) (κ' p) 
+      in {!μ-dec (μ Xₙ (cns φ) δ) ϕ ψ !} 
+
+      -- nd : (φ : SlcFrm)
+      --   → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
+      --   → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
+      --          {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
+      --   → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
+      --        → Web ⟪ g , δ p , src φ p , θ p ⟫)
+      --   → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) δ θ ⟫ 
+
+  -- γₒ : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (τ : 𝒯r o ρ)
+  --   → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+  --   → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
+  --   → 𝒯r o (μₒ ρ δ)
+  -- γₒ o .(ηₒ o) (lf .o) ϕ ψ = ψ (ηₒ-pos o)
+  -- γₒ o .(μₒ ρ δ) (nd .o ρ δ ε) ϕ ψ = 
+  --   let ϕ' p q = ϕ (μₒ-pos ρ δ p q)
+  --       ψ' p q = ψ (μₒ-pos ρ δ p q)
+  --       δ' p = μₒ (δ p) (ϕ' p)
+  --       ε' p = γₒ (Typ ρ p) (δ p) (ε p) (ϕ' p) (ψ' p) 
+  --   in nd o ρ δ' ε'
 
     postulate
     
@@ -266,59 +389,4 @@ module SimpleOpetopicType where
   
   Pos {ℓ} {O} _ _ _ = ⊤
   Pos {ℓ} {S n} (Xₙ , Xₛₙ) c g = WebPos Xₙ Xₛₙ c g
-
-  -- 
-  --  Old, unfolded version of above
-  --
-
-  -- data Web {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : (f : Frm Xₙ) → Set ℓ) :
-  --   (f : Frm Xₙ) (x : Xₛₙ f) (c : Cns Xₙ f)
-  --   (ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g) → Set ℓ where
-
-  --   lf : {f : Frm Xₙ} (x : Xₛₙ f)
-  --     → Web Xₙ Xₛₙ f x (η Xₙ f) (η-pos-elim Xₙ f (λ {g} p → Xₛₙ g) x) 
-
-  --   nd : {f : Frm Xₙ} (c : Cns Xₙ f) (x : Xₛₙ f) 
-  --     → (ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g)
-  --     → (δ : {g : Frm Xₙ} (p : Pos Xₙ c g) → Cns Xₙ g)
-  --     → (θ : {g : Frm Xₙ} (p : Pos Xₙ c g)
-  --            {h : Frm Xₙ} (q : Pos Xₙ (δ p) h)
-  --          → Xₛₙ h)
-  --     → (ε : {g : Frm Xₙ} (p : Pos Xₙ c g)
-  --          → Web Xₙ Xₛₙ g (ν p) (δ p) (θ p))
-  --     → Web Xₙ Xₛₙ f x (μ Xₙ c δ)
-  --         (μ-pos-elim Xₙ c δ (λ {g} p → Xₛₙ g) θ) 
-
-  -- data WebPos {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : (f : Frm Xₙ) → Set ℓ) : 
-  --   {f : Frm Xₙ} {x : Xₛₙ f} {c : Cns Xₙ f}
-  --   {ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g}
-  --   (ρ : Web Xₙ Xₛₙ f x c ν)
-  --   (g : Frm Xₙ) (y : Xₛₙ g) (d : Cns Xₙ g)
-  --   (θ : {h : Frm Xₙ} (p : Pos Xₙ d h) → Xₛₙ h)  → Set ℓ where
-
-  --   nd-here : {f : Frm Xₙ} {c : Cns Xₙ f} {x : Xₛₙ f}
-  --     → {ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g}
-  --     → {δ : {g : Frm Xₙ} (p : Pos Xₙ c g) → Cns Xₙ g}
-  --     → {θ : {g : Frm Xₙ} (p : Pos Xₙ c g)
-  --            {h : Frm Xₙ} (q : Pos Xₙ (δ p) h)
-  --          → Xₛₙ h}
-  --     → {ε : {g : Frm Xₙ} (p : Pos Xₙ c g)
-  --          → Web Xₙ Xₛₙ g (ν p) (δ p) (θ p)}
-  --     → WebPos Xₙ Xₛₙ (nd c x ν δ θ ε) f x c ν 
-
-  --   nd-there : {f : Frm Xₙ} {c : Cns Xₙ f} {x : Xₛₙ f}
-  --     → {ν : {g : Frm Xₙ} (p : Pos Xₙ c g) → Xₛₙ g}
-  --     → {δ : {g : Frm Xₙ} (p : Pos Xₙ c g) → Cns Xₙ g}
-  --     → {θ : {g : Frm Xₙ} (p : Pos Xₙ c g)
-  --            {h : Frm Xₙ} (q : Pos Xₙ (δ p) h)
-  --          → Xₛₙ h}
-  --     → {ε : {g : Frm Xₙ} (p : Pos Xₙ c g)
-  --          → Web Xₙ Xₛₙ g (ν p) (δ p) (θ p)}
-  --     → {g : Frm Xₙ} (p : Pos Xₙ c g)
-  --     → {h : Frm Xₙ} {y : Xₛₙ h} {d : Cns Xₙ h}
-  --     → {ρ : {k : Frm Xₙ} (q : Pos Xₙ d k) → Xₛₙ k}
-  --     → (q : WebPos Xₙ Xₛₙ (ε p) h y d ρ)
-  --     → WebPos Xₙ Xₛₙ (nd c x ν δ θ ε) h y d ρ
-
-
 
