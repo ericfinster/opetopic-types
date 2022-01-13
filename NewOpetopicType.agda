@@ -1,5 +1,27 @@
 {-# OPTIONS --without-K --rewriting --no-positivity #-}
 
+--
+--  A note on termination and non-positivity:
+--
+--    In fact, both can be avoided.
+--
+--  The non-positivity arises because of the use of the WebFrm record,
+--  which may simply be defined as a Σ type in which case the problem
+--  disappears.  However, this significantly complicates some of the
+--  type signatures, and the development is much more pleasant with
+--  the named projections.
+--
+--  As to the termination, this can also be avoided by defining the
+--  rest of the monad signature for the slice locally, and not
+--  matching during the definition of η, μ, etc.  The problem with
+--  this is that you then need to repeat the rewrites for all the
+--  monad laws in this context so that these functions *also* compute,
+--  and this leads to an annoying amount of duplication.  Since the
+--  definitions of the relevant functions are the same in either case,
+--  this already proves that they terminate.  But setting things up
+--  the way I have saves a lot of typing.
+--
+
 open import MiniHoTT
 
 module NewOpetopicType where
@@ -23,7 +45,6 @@ module NewOpetopicType where
     → {f : Frm X} (c : Cns X f)
     → (p : Pos X c) → Frm X
 
-
   --
   --  Monadic Signature
   --
@@ -38,8 +59,8 @@ module NewOpetopicType where
       → (f : Frm X)
       → Pos X (η X f) 
 
-    η-pos-elim : ∀ {ℓ n} (X : 𝕆 ℓ n) (f : Frm X)
-      → (P : (p : Pos X (η X f)) → Set ℓ)
+    η-pos-elim : ∀ {ℓ ℓ' n} (X : 𝕆 ℓ n) (f : Frm X)
+      → (P : (p : Pos X (η X f)) → Set ℓ')
       → (η-pos* : P (η-pos X f))
       → (p : Pos X (η X f)) → P p 
 
@@ -178,16 +199,16 @@ module NewOpetopicType where
       → μ-fst X (η X f) δ p ↦ η-pos X f
     {-# REWRITE μ-fst-unit-l #-}
 
-    -- μ-fst-assoc : ∀ {ℓ n} (X : 𝕆 ℓ n)
-    --   → (f : Frm X) (c : Cns X f)
-    --   → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
-    --   → (ε : {g : Frm X} (p : Pos X (μ X c δ) g) → Cns X g)
-    --   → {g : Frm X} (pqr : Pos X (μ X (μ X c δ) ε) g)
-    --   → let p = μ-fst X c (λ p → μ X (δ p) (λ q → ε (μ-pos X c δ p q))) pqr
-    --         qr = μ-snd X c (λ p → μ X (δ p) (λ q → ε (μ-pos X c δ p q))) pqr
-    --         q = μ-fst X (δ p) (λ q → ε (μ-pos X c δ p q)) qr
-    --     in μ-fst X (μ X c δ) ε pqr ↦ μ-pos X c δ p q  
-    -- {-# REWRITE μ-fst-assoc #-}
+    μ-fst-assoc : ∀ {ℓ n} (X : 𝕆 ℓ n)
+      → (f : Frm X) (c : Cns X f)
+      → (δ : (p : Pos X c) → Cns X (Typ X c p))
+      → (ε : (p : Pos X (μ X c δ)) → Cns X (Typ X (μ X c δ) p))
+      → (pqr : Pos X (μ X (μ X c δ) ε))
+      → let p = μ-fst X c (λ p → μ X (δ p) (λ q → ε (μ-pos X c δ p q))) pqr
+            qr = μ-snd X c (λ p → μ X (δ p) (λ q → ε (μ-pos X c δ p q))) pqr
+            q = μ-fst X (δ p) (λ q → ε (μ-pos X c δ p q)) qr
+        in μ-fst X (μ X c δ) ε pqr ↦ μ-pos X c δ p q  
+    {-# REWRITE μ-fst-assoc #-}
 
     -- Second Projection
     μ-snd-unit-r : ∀ {ℓ n} (X : 𝕆 ℓ n)
@@ -202,16 +223,16 @@ module NewOpetopicType where
       → μ-snd X (η X f) δ p ↦ p
     {-# REWRITE μ-snd-unit-l #-}
 
-    -- μ-snd-assoc : ∀ {ℓ n} (X : 𝕆 ℓ n)
-    --   → (f : Frm X) (c : Cns X f)
-    --   → (δ : {g : Frm X} (p : Pos X c g) → Cns X g)
-    --   → (ε : {g : Frm X} (p : Pos X (μ X c δ) g) → Cns X g)
-    --   → {g : Frm X} (pqr : Pos X (μ X (μ X c δ) ε) g)
-    --   → let p = μ-fst X c (λ p → μ X (δ p) (λ q → ε (μ-pos X c δ p q))) pqr
-    --         qr = μ-snd X c (λ p → μ X (δ p) (λ q → ε (μ-pos X c δ p q))) pqr
-    --     in μ-snd X (μ X c δ) ε pqr
-    --       ↦ μ-snd X (δ p) (λ q → ε (μ-pos X c δ p q)) qr 
-    -- {-# REWRITE μ-snd-assoc #-} 
+    μ-snd-assoc : ∀ {ℓ n} (X : 𝕆 ℓ n)
+      → (f : Frm X) (c : Cns X f)
+      → (δ : (p : Pos X c) → Cns X (Typ X c p))
+      → (ε : (p : Pos X (μ X c δ)) → Cns X (Typ X (μ X c δ) p))
+      → (pqr : Pos X (μ X (μ X c δ) ε))
+      → let p = μ-fst X c (λ p → μ X (δ p) (λ q → ε (μ-pos X c δ p q))) pqr
+            qr = μ-snd X c (λ p → μ X (δ p) (λ q → ε (μ-pos X c δ p q))) pqr
+        in μ-snd X (μ X c δ) ε pqr
+          ↦ μ-snd X (δ p) (λ q → ε (μ-pos X c δ p q)) qr 
+    {-# REWRITE μ-snd-assoc #-} 
 
   --
   --  Definition of the Derived Monad 
@@ -229,7 +250,7 @@ module NewOpetopicType where
       → (p : Pos Xₙ (μ Xₙ c δ)) → Xₛₙ (Typ Xₙ (μ Xₙ c δ) p)
     μ-dec c δ θ p = θ (μ-fst Xₙ c δ p) (μ-snd Xₙ c δ p)
 
-    record SlcFrm : Set ℓ where
+    record WebFrm : Set ℓ where
       inductive 
       constructor ⟪_,_,_,_⟫ 
       field
@@ -238,91 +259,83 @@ module NewOpetopicType where
         tgt : Xₛₙ frm
         src : (p : Pos Xₙ cns) → Xₛₙ (Typ Xₙ cns p)
 
-    open SlcFrm
+    open WebFrm
     
-    data Web : SlcFrm → Set ℓ where
+    data Web : WebFrm → Set ℓ where
 
       lf : {f : Frm Xₙ} (x : Xₛₙ f)
         → Web ⟪ f , η Xₙ f , x , η-dec f x ⟫ 
 
-      nd : (φ : SlcFrm)
+      nd : (φ : WebFrm)
         → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
         → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
         → (ε : (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
         → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) δ ν ⟫ 
-    
-    data WebPos : {φ : SlcFrm} (ω : Web φ) → Set ℓ where
 
-      nd-here : (φ : SlcFrm)
-        → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
-        → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
-        → (ε : (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
-        → WebPos (nd φ δ ν ε) 
+    WebPos : {φ : WebFrm} (ω : Web φ) → Set ℓ 
+    WebPos (lf x) = ∅
+    WebPos (nd φ δ ν ε) = ⊤ {ℓ} ⊔ Σ (Pos Xₙ (cns φ)) (λ p → WebPos (ε p))
 
-      nd-there : (φ : SlcFrm)
-        → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
-        → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
-        → (ε : (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
-        → (p : Pos Xₙ (cns φ)) (ρ : WebPos (ε p))
-        → WebPos (nd φ δ ν ε) 
+    WebTyp : {φ : WebFrm} (ω : Web φ) (p : WebPos ω) → WebFrm
+    WebTyp (nd φ δ ν ε) (inl tt) = φ
+    WebTyp (nd φ δ ν ε) (inr (p , q)) = WebTyp (ε p) q
 
     --
     --  Grafting
     --
+
+    graft : {φ : WebFrm} (ω : Web φ)
+      → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
+      → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
+      → (ε :  (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
+      → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) δ ν ⟫
+    graft (lf {f} x) δ₁ ν₁ ε₁ = ε₁ (η-pos Xₙ f)
+    graft (nd φ δ₀ ν₀ ε₀) δ₁ ν₁ ε₁ = 
+      let δ₁-ih p q = δ₁ (μ-pos Xₙ (cns φ) δ₀ p q)
+          ν₁-ih p q = ν₁ (μ-pos Xₙ (cns φ) δ₀ p q)
+          ε₁-ih p q = ε₁ (μ-pos Xₙ (cns φ) δ₀ p q)
+          δ' p = μ Xₙ (δ₀ p) (δ₁-ih p)
+          ν' p q = ν₁ (μ-pos Xₙ (cns φ) δ₀ p (μ-fst Xₙ (δ₀ p) (δ₁-ih p) q)) (μ-snd Xₙ (δ₀ p) (δ₁-ih p) q)
+          ε' p = graft (ε₀ p) (δ₁-ih p) (ν₁-ih p) (ε₁-ih p)
+      in nd φ δ' ν' ε' 
+
+    postulate
     
-    -- graft : {φ : SlcFrm} (ω : Web φ)
-    --   → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
-    --   → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-    --          {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
-    --   → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-    --        → Web ⟪ g , δ p , src φ p , θ p ⟫)
-    --   → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) δ θ ⟫
-    -- graft (lf {f} x) δ θ ε = ε (η-pos Xₙ f)
-    -- graft (nd φ δ θ ε) ϕ ψ κ =
-    --   let ϕ' {g} p {h} q = ϕ (μ-pos Xₙ (cns φ) δ {g} p {h} q)
-    --       κ' {g} p {h} q = κ (μ-pos Xₙ (cns φ) δ {g} p {h} q)
-    --       δ' {g} p = μ Xₙ {g} (δ p) (ϕ' p)
-    --       -- Hmmm. Don't know why I can't make the λ's here into let defs ...
-    --       ε' {g} p = graft (ε {g} p) (ϕ' p) (λ q r → ψ (μ-pos Xₙ (cns φ) δ p q) r) (κ' p) 
-    --   in nd φ δ' (λ p q → ψ (μ-pos Xₙ (cns φ) δ p (μ-fst Xₙ (δ p) (ϕ' p) q)) ((μ-snd Xₙ (δ p) (ϕ' p) q))) ε' 
+      graft-pos-inl : {φ : WebFrm} (ω : Web φ)
+        → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
+        → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
+        → (ε :  (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
+        → WebPos ω → WebPos (graft ω δ ν ε) 
 
-    -- postulate
-    
-    --   graft-pos-inl : {φ : SlcFrm} (ω : Web φ)
-    --     → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
-    --     → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-    --            {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
-    --     → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-    --          → Web ⟪ g , δ p , src φ p , θ p ⟫)
-    --     → {ψ : SlcFrm} (p : WebPos ω ψ)
-    --     → WebPos (graft ω δ θ ε) ψ
+      graft-pos-inr : {φ : WebFrm} (ω : Web φ)
+        → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
+        → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
+        → (ε :  (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
+        → (p : Pos Xₙ (cns φ)) (q : WebPos (ε p))
+        → WebPos (graft ω δ ν ε)
 
-    --   graft-pos-inr : {φ : SlcFrm} (ω : Web φ)
-    --     → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
-    --     → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-    --            {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
-    --     → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-    --          → Web ⟪ g , δ p , src φ p , θ p ⟫)
-    --     → {f : Frm Xₙ} (p : Pos Xₙ (cns φ) f)
-    --     → {ψ : SlcFrm} (q : WebPos (ε p) ψ)
-    --     → WebPos (graft ω δ θ ε) ψ
+      graft-pos-elim : ∀ {ℓ'} {φ : WebFrm} (ω : Web φ)
+        → (δ : (p : Pos Xₙ (cns φ)) → Cns Xₙ (Typ Xₙ (cns φ) p))
+        → (ν : (p : Pos Xₙ (cns φ)) (q : Pos Xₙ (δ p)) → Xₛₙ (Typ Xₙ (δ p) q))
+        → (ε :  (p : Pos Xₙ (cns φ)) → Web ⟪ Typ Xₙ (cns φ) p , δ p , src φ p , ν p ⟫)
+        → (P : WebPos (graft ω δ ν ε) → Set ℓ')
+        → (inl* : (p : WebPos ω) → P (graft-pos-inl ω δ ν ε p))
+        → (inr* : (p : Pos Xₙ (cns φ)) (q : WebPos (ε p)) → P (graft-pos-inr ω δ ν ε p q))
+        → (p : WebPos (graft ω δ ν ε)) → P p 
 
-    --   graft-pos-elim : {φ : SlcFrm} (ω : Web φ)
-    --     → (δ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g) → Cns Xₙ g)
-    --     → (θ : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-    --            {h : Frm Xₙ} (q : Pos Xₙ (δ p) h) → Xₛₙ h)
-    --     → (ε : {g : Frm Xₙ} (p : Pos Xₙ (cns φ) g)
-    --          → Web ⟪ g , δ p , src φ p , θ p ⟫)
-    --     → (P : {ψ : SlcFrm} (p : WebPos (graft ω δ θ ε) ψ) → Set ℓ)
-    --     → (inl* : {ψ : SlcFrm} (p : WebPos ω ψ) → P (graft-pos-inl ω δ θ ε p))
-    --     → (inr* : {f : Frm Xₙ} (p : Pos Xₙ (cns φ) f)
-    --               {ψ : SlcFrm} (q : WebPos (ε p) ψ)
-    --             → P (graft-pos-inr ω δ θ ε p q))
-    --     → {ψ : SlcFrm} (p : WebPos (graft ω δ θ ε) ψ) → P p 
+  𝕆 ℓ O = ⊤
+  𝕆 ℓ (S n) = Σ (𝕆 ℓ n) (λ Xₙ → (f : Frm Xₙ) → Set ℓ)
+  
+  Frm {ℓ} {O} _ = ⊤
+  Frm {ℓ} {S n} (Xₙ , Xₛₙ) = WebFrm Xₙ Xₛₙ
+  
+  Cns {ℓ} {O} _ _ = ⊤
+  Cns {ℓ} {S n} (Xₙ , Xₛₙ) = Web Xₙ Xₛₙ
+  
+  Pos {ℓ} {O} _ _ = ⊤
+  Pos {ℓ} {S n} (Xₙ , Xₛₙ) = WebPos Xₙ Xₛₙ
 
-  𝕆 = {!!} 
+  Typ {ℓ} {O} _ _ _ = tt
+  Typ {ℓ} {S n} (Xₙ , Xₛₙ) = WebTyp Xₙ Xₛₙ
 
-  Frm = {!!} 
-  Cns = {!!}
-  Pos = {!!}
-  Typ = {!!} 
+
