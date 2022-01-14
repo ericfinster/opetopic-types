@@ -22,8 +22,8 @@ module Opetopes where
   ηₒ-pos : {n : ℕ} (o : 𝒪 n)
     → Pos (ηₒ o)
 
-  ηₒ-pos-elim : {n : ℕ} (o : 𝒪 n)
-    → (X : (p : Pos (ηₒ o)) → Set)
+  ηₒ-pos-elim : ∀ {ℓ} {n : ℕ} (o : 𝒪 n)
+    → (X : (p : Pos (ηₒ o)) → Set ℓ)
     → (ηₒ-pos* : X (ηₒ-pos o))
     → (p : Pos (ηₒ o)) → X p
 
@@ -152,8 +152,6 @@ module Opetopes where
   γₒ-pos-inl o .(μₒ ρ δ) (nd .o ρ δ ε) ϕ ψ (inr (u , v)) = 
     let ϕ' p q = ϕ (μₒ-pos ρ δ p q)
         ψ' p q = ψ (μₒ-pos ρ δ p q)
-        δ' p = μₒ (δ p) (ϕ' p)
-        ε' p = γₒ (Typ ρ p) (δ p) (ε p) (ϕ' p) (ψ' p)
     in inr (u , γₒ-pos-inl (Typ ρ u) (δ u) (ε u) (ϕ' u) (ψ' u) v) 
 
   γₒ-pos-inr : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (τ : 𝒯r o ρ)
@@ -166,8 +164,6 @@ module Opetopes where
   γₒ-pos-inr o .(μₒ ρ δ) (nd .o ρ δ ε) ϕ ψ u v = 
     let ϕ' p q = ϕ (μₒ-pos ρ δ p q)
         ψ' p q = ψ (μₒ-pos ρ δ p q)
-        δ' p = μₒ (δ p) (ϕ' p)
-        ε' p = γₒ (Typ ρ p) (δ p) (ε p) (ϕ' p) (ψ' p)
         u₀ = μₒ-pos-fst ρ δ u
         u₁ = μₒ-pos-snd ρ δ u
     in inr (u₀ , γₒ-pos-inr (Typ ρ u₀) (δ u₀) (ε u₀) (ϕ' u₀) (ψ' u₀) u₁ v) 
@@ -184,8 +180,6 @@ module Opetopes where
   γₒ-pos-elim o .(μₒ ρ δ) (nd .o ρ δ ε) ϕ ψ X left right (inr (u , v)) = 
     let ϕ' p q = ϕ (μₒ-pos ρ δ p q)
         ψ' p q = ψ (μₒ-pos ρ δ p q)
-        δ' p = μₒ (δ p) (ϕ' p)
-        ε' p = γₒ (Typ ρ p) (δ p) (ε p) (ϕ' p) (ψ' p)
     in γₒ-pos-elim (Typ ρ u) (δ u) (ε u) (ϕ' u) (ψ' u)
          (λ q → X (inr (u , q)))
          (λ q → left (inr (u , q)))
@@ -218,25 +212,27 @@ module Opetopes where
       → γₒ-pos-elim o ρ υ δ ε X left right (γₒ-pos-inr o ρ υ δ ε p q) ↦ right p q
     {-# REWRITE γₒ-pos-elim-inr-β #-}
 
+    -- Interesting that these are not needed with the current arrangement ...
+    
     -- γₒ pos laws
-    γₒ-pos-inl-typ : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
-      → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
-      → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
-      → (p : 𝒯rPos υ)
-      → 𝒯rTyp (γₒ o ρ υ δ ε) (γₒ-pos-inl o ρ υ δ ε p) ↦ 𝒯rTyp υ p
-    {-# REWRITE γₒ-pos-inl-typ #-}
+    -- γₒ-pos-inl-typ : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
+    --   → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+    --   → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
+    --   → (p : 𝒯rPos υ)
+    --   → 𝒯rTyp (γₒ o ρ υ δ ε) (γₒ-pos-inl o ρ υ δ ε p) ↦ 𝒯rTyp υ p
+    -- {-# REWRITE γₒ-pos-inl-typ #-}
 
-    γₒ-pos-inr-typ : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
-      → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
-      → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
-      → (p : Pos ρ) (q : 𝒯rPos (ε p))
-      → 𝒯rTyp (γₒ o ρ υ δ ε) (γₒ-pos-inr o ρ υ δ ε p q) ↦ 𝒯rTyp (ε p) q
-    {-# REWRITE γₒ-pos-inr-typ #-}
+    -- γₒ-pos-inr-typ : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
+    --   → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+    --   → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
+    --   → (p : Pos ρ) (q : 𝒯rPos (ε p))
+    --   → 𝒯rTyp (γₒ o ρ υ δ ε) (γₒ-pos-inr o ρ υ δ ε p q) ↦ 𝒯rTyp (ε p) q
+    -- {-# REWRITE γₒ-pos-inr-typ #-}
 
     -- γₒ laws
-    γₒ-unit-r : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
-      → γₒ o ρ υ (λ p → ηₒ (Typ ρ p)) (λ p → lf (Typ ρ p)) ↦ υ 
-    {-# REWRITE γₒ-unit-r #-}
+    -- γₒ-unit-r : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
+    --   → γₒ o ρ υ (λ p → ηₒ (Typ ρ p)) (λ p → lf (Typ ρ p)) ↦ υ 
+    -- {-# REWRITE γₒ-unit-r #-}
 
   --
   --  Opetopes 
@@ -269,8 +265,8 @@ module Opetopes where
   --   → (X : (p : Pos (ηₒ o)) → Set)
   --   → (ηₒ-pos* : X (ηₒ-pos o))
   --   → (p : Pos (ηₒ o)) → X p
-  ηₒ-pos-elim {O} o X ηₒ-pos* tt = ηₒ-pos*
-  ηₒ-pos-elim {S n} o X ηₒ-pos* (inl tt) = ηₒ-pos*
+  ηₒ-pos-elim {n = O} o X ηₒ-pos* tt = ηₒ-pos*
+  ηₒ-pos-elim {n = S n} o X ηₒ-pos* (inl tt) = ηₒ-pos*
 
   -- μₒ : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
   --   → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
