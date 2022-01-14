@@ -61,8 +61,8 @@ module Opetopes where
       → Typ (ηₒ o) p ↦ o
     {-# REWRITE ηₒ-pos-typ #-}
 
-    ηₒ-pos-elim-β : {n : ℕ} (o : 𝒪 n)
-      → (X : (p : Pos (ηₒ o)) → Set)
+    ηₒ-pos-elim-β : ∀ {ℓ} {n : ℕ} (o : 𝒪 n)
+      → (X : (p : Pos (ηₒ o)) → Set ℓ)
       → (ηₒ-pos* : X (ηₒ-pos o))
       → ηₒ-pos-elim o X ηₒ-pos* (ηₒ-pos o) ↦ ηₒ-pos*
     {-# REWRITE ηₒ-pos-elim-β #-}
@@ -108,6 +108,74 @@ module Opetopes where
       → μₒ (μₒ ρ κ) θ ↦ μₒ ρ (λ p → μₒ (κ p) (λ t → θ (μₒ-pos ρ κ p t)))
     {-# REWRITE μₒ-assoc #-}
 
+    -- intro compatibilities
+    μₒ-pos-unit-r : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+      → (p : Pos ρ) (q : Pos (ηₒ (Typ ρ p)))
+      → μₒ-pos ρ (λ p → ηₒ (Typ ρ p)) p q ↦ p
+    {-# REWRITE μₒ-pos-unit-r #-}
+
+    μₒ-pos-unit-l : {n : ℕ} {o : 𝒪 n}
+      → (ϕ : (p : Pos (ηₒ o)) → 𝒫 (Typ (ηₒ o) p))
+      → (q : Pos (ϕ (ηₒ-pos o)))
+      → μₒ-pos (ηₒ o) ϕ (ηₒ-pos o) q ↦ q 
+    {-# REWRITE μₒ-pos-unit-l #-}
+
+    μₒ-pos-assoc : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+      → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+      → (θ : (p : Pos (μₒ ρ κ)) → 𝒫 (Typ (μₒ ρ κ) p))
+      → (pq : Pos (μₒ ρ κ)) (r : Pos (θ pq))
+      → let p = μₒ-pos-fst ρ κ pq
+            q = μₒ-pos-snd ρ κ pq
+        in μₒ-pos (μₒ ρ κ) θ pq r
+          ↦ μₒ-pos ρ (λ p → μₒ (κ p) (λ t → θ (μₒ-pos ρ κ p t)))
+             p (μₒ-pos (κ p) (λ q → θ (μₒ-pos ρ κ p q)) q r)
+    {-# REWRITE μₒ-pos-assoc #-}
+
+    -- first projection compatibilities
+    μₒ-fst-unit-r : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+      → (p : Pos (μₒ ρ (λ p → ηₒ (Typ ρ p))))
+      → μₒ-pos-fst ρ (λ p → ηₒ (Typ ρ p)) p ↦ p
+    {-# REWRITE μₒ-fst-unit-r #-}
+
+    μₒ-fst-unit-l : {n : ℕ} {o : 𝒪 n}
+      → (ϕ : (p : Pos (ηₒ o)) → 𝒫 (Typ (ηₒ o) p))
+      → (p : Pos (μₒ (ηₒ o) ϕ))
+      → μₒ-pos-fst (ηₒ o) ϕ p ↦ ηₒ-pos o
+    {-# REWRITE μₒ-fst-unit-l #-}
+
+    μₒ-fst-assoc : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+      → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+      → (θ : (p : Pos (μₒ ρ κ)) → 𝒫 (Typ (μₒ ρ κ) p))
+      → (pqr : Pos (μₒ (μₒ ρ κ) θ))
+      → let κ' p = μₒ (κ p) (λ t → θ (μₒ-pos ρ κ p t))
+            p = μₒ-pos-fst ρ κ' pqr
+            qr = μₒ-pos-snd ρ κ' pqr
+            q = μₒ-pos-fst (κ p) (λ q → θ (μₒ-pos ρ κ p q)) qr
+        in μₒ-pos-fst (μₒ ρ κ) θ pqr ↦ μₒ-pos ρ κ p q 
+    {-# REWRITE μₒ-fst-assoc #-}
+    
+    -- second projection compatibilities
+    μₒ-snd-unit-r : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+      → (p : Pos (μₒ ρ (λ p → ηₒ (Typ ρ p))))
+      → μₒ-pos-snd ρ (λ p → ηₒ (Typ ρ p)) p ↦ ηₒ-pos (Typ ρ p)
+    {-# REWRITE μₒ-snd-unit-r #-}
+
+    μₒ-snd-unit-l : {n : ℕ} {o : 𝒪 n}
+      → (ϕ : (p : Pos (ηₒ o)) → 𝒫 (Typ (ηₒ o) p))
+      → (p : Pos (μₒ (ηₒ o) ϕ))
+      → μₒ-pos-snd (ηₒ o) ϕ p ↦ p 
+    {-# REWRITE μₒ-snd-unit-l #-}
+
+    μₒ-snd-assoc : {n : ℕ} {o : 𝒪 n} (ρ : 𝒫 o)
+      → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
+      → (θ : (p : Pos (μₒ ρ κ)) → 𝒫 (Typ (μₒ ρ κ) p))
+      → (pqr : Pos (μₒ (μₒ ρ κ) θ))
+      → let κ' p = μₒ (κ p) (λ t → θ (μₒ-pos ρ κ p t))
+            p = μₒ-pos-fst ρ κ' pqr
+            qr = μₒ-pos-snd ρ κ' pqr
+        in μₒ-pos-snd (μₒ ρ κ) θ pqr
+            ↦ μₒ-pos-snd (κ p) (λ q → θ (μₒ-pos ρ κ p q)) qr
+    {-# REWRITE μₒ-snd-assoc #-} 
 
   --
   --  Trees and Grafting 
@@ -168,10 +236,10 @@ module Opetopes where
         u₁ = μₒ-pos-snd ρ δ u
     in inr (u₀ , γₒ-pos-inr (Typ ρ u₀) (δ u₀) (ε u₀) (ϕ' u₀) (ψ' u₀) u₁ v) 
 
-  γₒ-pos-elim : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (τ : 𝒯r o ρ)
+  γₒ-pos-elim : ∀ {ℓ} {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (τ : 𝒯r o ρ)
     → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
     → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
-    → (X : 𝒯rPos (γₒ o ρ τ δ ε) → Set)
+    → (X : 𝒯rPos (γₒ o ρ τ δ ε) → Set ℓ)
     → (left : (p : 𝒯rPos τ) → X (γₒ-pos-inl o ρ τ δ ε p))
     → (right : (p : Pos ρ) (q : 𝒯rPos (ε p)) → X (γₒ-pos-inr o ρ τ δ ε p q))
     → (p : 𝒯rPos (γₒ o ρ τ δ ε)) → X p
@@ -192,20 +260,20 @@ module Opetopes where
   postulate
   
     -- γₒ elim rules
-    γₒ-pos-elim-inl-β : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
+    γₒ-pos-elim-inl-β : ∀ {ℓ} {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
       → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
       → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
-      → (X : 𝒯rPos (γₒ o ρ υ δ ε) → Set)
+      → (X : 𝒯rPos (γₒ o ρ υ δ ε) → Set ℓ)
       → (left : (p : 𝒯rPos υ) → X (γₒ-pos-inl o ρ υ δ ε p))
       → (right : (p : Pos ρ) (q : 𝒯rPos (ε p)) → X (γₒ-pos-inr o ρ υ δ ε p q))
       → (p : 𝒯rPos υ)
       → γₒ-pos-elim o ρ υ δ ε X left right (γₒ-pos-inl o ρ υ δ ε p) ↦ left p
     {-# REWRITE γₒ-pos-elim-inl-β #-}
 
-    γₒ-pos-elim-inr-β : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
+    γₒ-pos-elim-inr-β : ∀ {ℓ} {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
       → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
       → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
-      → (X : 𝒯rPos (γₒ o ρ υ δ ε) → Set)
+      → (X : 𝒯rPos (γₒ o ρ υ δ ε) → Set ℓ)
       → (left : (p : 𝒯rPos υ) → X (γₒ-pos-inl o ρ υ δ ε p))
       → (right : (p : Pos ρ) (q : 𝒯rPos (ε p)) → X (γₒ-pos-inr o ρ υ δ ε p q))
       → (p : Pos ρ) (q : 𝒯rPos (ε p))
