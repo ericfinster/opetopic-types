@@ -103,7 +103,7 @@ module OpetopicType where
     data Web : {o : 𝒪 n} {ρ : 𝒫 o} → WebFrm o ρ → 𝒯r o ρ → Set ℓ where
 
       lf : {o : 𝒪 n} {f : Frm Xₙ o} (x : Xₛₙ f)
-        → Web ⟪ f , η Xₙ f , x , η-dec f x ⟫ (lf o) 
+        → Web ⟪ f , η Xₙ f , x , cst x ⟫ (lfₒ o) 
 
       nd : {o : 𝒪 n} {ρ : 𝒫 o} (φ : WebFrm o ρ)
         → (ι : (p : Pos ρ) → 𝒫 (Typ ρ p))
@@ -111,7 +111,7 @@ module OpetopicType where
         → (δ : (p : Pos ρ) → Cns Xₙ (Shp Xₙ (cns φ) p) (ι p))
         → (ν : (p : Pos ρ) (q : Pos (ι p)) → Xₛₙ (Shp Xₙ (δ p) q))
         → (ε : (p : Pos ρ) → Web ⟪ Shp Xₙ (cns φ) p , δ p , src φ p , ν p ⟫ (κ p)) 
-        → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) ι δ ν ⟫ (nd o ρ ι κ) 
+        → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) ι δ ν ⟫ (ndₒ o ρ ι κ) 
 
     WebPos : {o : 𝒪 n} {ρ : 𝒫 o} {φ : WebFrm o ρ} {τ : 𝒯r o ρ} (ω : Web φ τ) → Set ℓ
     WebPos (lf _) = ∅
@@ -164,9 +164,9 @@ module OpetopicType where
   η {n = O} _ _ = tt
   η {n = S n} (Xₙ , Xₛₙ) {o , ρ} φ =
     let ι p = ηₒ (Typ ρ p)
-        κ p = lf (Typ ρ p)
+        κ p = lfₒ (Typ ρ p)
         δ p = η Xₙ (Shp Xₙ (cns φ) p)
-        ν p = η-dec Xₙ Xₛₙ (Shp Xₙ (cns φ) p) (src φ p)
+        ν p q = src φ p
         ε p = lf (src φ p)
     in nd φ ι κ δ ν ε
     

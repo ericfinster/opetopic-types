@@ -183,41 +183,41 @@ module Opetopes where
 
   data 𝒯r {n : ℕ} : (o : 𝒪 n) (ρ : 𝒫 o) → Set where
 
-    lf : (o : 𝒪 n) → 𝒯r o (ηₒ o)
+    lfₒ : (o : 𝒪 n) → 𝒯r o (ηₒ o)
     
-    nd : (o : 𝒪 n) (ρ : 𝒫 o) 
+    ndₒ : (o : 𝒪 n) (ρ : 𝒫 o) 
       → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
       → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
       → 𝒯r o (μₒ ρ δ)
 
   𝒯rPos : {n : ℕ} {o : 𝒪 n} {ρ : 𝒫 o} → 𝒯r o ρ → Set 
-  𝒯rPos (lf o) = ∅
-  𝒯rPos (nd o ρ δ ε) =
+  𝒯rPos (lfₒ o) = ∅
+  𝒯rPos (ndₒ o ρ δ ε) =
     ⊤ ⊔ (Σ (Pos ρ) (λ p → 𝒯rPos (ε p)))
 
   𝒯rTyp : {n : ℕ} {o : 𝒪 n} {ρ : 𝒫 o} (σ : 𝒯r o ρ) (p : 𝒯rPos σ) → Σ (𝒪 n) 𝒫
-  𝒯rTyp (lf _) ()
-  𝒯rTyp (nd o ρ δ ε) (inl tt) = o , ρ
-  𝒯rTyp (nd o ρ δ ε) (inr (p , q)) = 𝒯rTyp (ε p) q
+  𝒯rTyp (lfₒ _) ()
+  𝒯rTyp (ndₒ o ρ δ ε) (inl tt) = o , ρ
+  𝒯rTyp (ndₒ o ρ δ ε) (inr (p , q)) = 𝒯rTyp (ε p) q
 
   γₒ : {n : ℕ} {o : 𝒪 n} {ρ : 𝒫 o} (τ : 𝒯r o ρ)
     → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
     → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
     → 𝒯r o (μₒ ρ δ)
-  γₒ (lf o) ϕ ψ = ψ (ηₒ-pos o)
-  γₒ (nd o ρ δ ε) ϕ ψ = 
+  γₒ (lfₒ o) ϕ ψ = ψ (ηₒ-pos o)
+  γₒ (ndₒ o ρ δ ε) ϕ ψ = 
     let ϕ' p q = ϕ (μₒ-pos ρ δ p q)
         ψ' p q = ψ (μₒ-pos ρ δ p q)
         δ' p = μₒ (δ p) (ϕ' p)
         ε' p = γₒ (ε p) (ϕ' p) (ψ' p) 
-    in nd o ρ δ' ε'
+    in ndₒ o ρ δ' ε'
 
   γₒ-pos-inl : {n : ℕ} {o : 𝒪 n} {ρ : 𝒫 o} (τ : 𝒯r o ρ)
     → (δ : (p : Pos ρ) → 𝒫 (Typ ρ p))
     → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
     → 𝒯rPos τ → 𝒯rPos (γₒ τ δ ε)
-  γₒ-pos-inl (nd o ρ δ ε) ϕ ψ (inl tt) = inl tt
-  γₒ-pos-inl (nd o ρ δ ε) ϕ ψ (inr (u , v)) = 
+  γₒ-pos-inl (ndₒ o ρ δ ε) ϕ ψ (inl tt) = inl tt
+  γₒ-pos-inl (ndₒ o ρ δ ε) ϕ ψ (inr (u , v)) = 
     let ϕ' p q = ϕ (μₒ-pos ρ δ p q)
         ψ' p q = ψ (μₒ-pos ρ δ p q)
     in inr (u , γₒ-pos-inl (ε u) (ϕ' u) (ψ' u) v) 
@@ -227,9 +227,9 @@ module Opetopes where
     → (ε : (p : Pos ρ) → 𝒯r (Typ ρ p) (δ p))
     → (p : Pos ρ) (q : 𝒯rPos (ε p))
     → 𝒯rPos (γₒ τ δ ε)
-  γₒ-pos-inr (lf o) ϕ ψ =
+  γₒ-pos-inr (lfₒ o) ϕ ψ =
     ηₒ-pos-elim o (λ p → 𝒯rPos (ψ p) → 𝒯rPos (ψ (ηₒ-pos o))) (λ p → p) 
-  γₒ-pos-inr (nd o ρ δ ε) ϕ ψ u v = 
+  γₒ-pos-inr (ndₒ o ρ δ ε) ϕ ψ u v = 
     let ϕ' p q = ϕ (μₒ-pos ρ δ p q)
         ψ' p q = ψ (μₒ-pos ρ δ p q)
         u₀ = μₒ-pos-fst ρ δ u
@@ -243,9 +243,9 @@ module Opetopes where
     → (left : (p : 𝒯rPos τ) → X (γₒ-pos-inl τ δ ε p))
     → (right : (p : Pos ρ) (q : 𝒯rPos (ε p)) → X (γₒ-pos-inr τ δ ε p q))
     → (p : 𝒯rPos (γₒ τ δ ε)) → X p
-  γₒ-pos-elim (lf o) ϕ ψ X left right p = right (ηₒ-pos o) p
-  γₒ-pos-elim (nd o ρ δ ε) ϕ ψ X left right (inl tt) = left (inl tt)
-  γₒ-pos-elim (nd o ρ δ ε) ϕ ψ X left right (inr (u , v)) = 
+  γₒ-pos-elim (lfₒ o) ϕ ψ X left right p = right (ηₒ-pos o) p
+  γₒ-pos-elim (ndₒ o ρ δ ε) ϕ ψ X left right (inl tt) = left (inl tt)
+  γₒ-pos-elim (ndₒ o ρ δ ε) ϕ ψ X left right (inr (u , v)) = 
     let ϕ' p q = ϕ (μₒ-pos ρ δ p q)
         ψ' p q = ψ (μₒ-pos ρ δ p q)
     in γₒ-pos-elim (ε u) (ϕ' u) (ψ' u)
@@ -299,7 +299,7 @@ module Opetopes where
 
     -- γₒ laws
     -- γₒ-unit-r : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (υ : 𝒯r o ρ)
-    --   → γₒ υ (λ p → ηₒ (Typ ρ p)) (λ p → lf (Typ ρ p)) ↦ υ 
+    --   → γₒ υ (λ p → ηₒ (Typ ρ p)) (λ p → lfₒ (Typ ρ p)) ↦ υ 
     -- {-# REWRITE γₒ-unit-r #-}
 
     -- γₒ-assoc : {n : ℕ} (o : 𝒪 n) (ρ : 𝒫 o) (τ : 𝒯r o ρ)
@@ -334,8 +334,8 @@ module Opetopes where
   -- ηₒ : {n : ℕ} (o : 𝒪 n) → 𝒫 o
   ηₒ {O} _ = tt
   ηₒ {S n} (o , ρ) =
-    nd o ρ (λ p → ηₒ (Typ ρ p))
-           (λ p → lf (Typ ρ p))
+    ndₒ o ρ (λ p → ηₒ (Typ ρ p))
+           (λ p → lfₒ (Typ ρ p))
 
   -- ηₒ-pos : {n : ℕ} (o : 𝒪 n)
   --   → Pos (ηₒ o)
@@ -353,8 +353,8 @@ module Opetopes where
   --   → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
   --   → 𝒫 o
   μₒ {O} {_} _ _ = tt
-  μₒ {S n} (lf o) κ = lf o
-  μₒ {S n} (nd o ρ δ ε) κ = 
+  μₒ {S n} (lfₒ o) κ = lfₒ o
+  μₒ {S n} (ndₒ o ρ δ ε) κ = 
     let w = κ (inl tt)
         ε' p = μₒ (ε p) (λ q → κ (inr (p , q)))
     in γₒ w δ ε'
@@ -364,11 +364,11 @@ module Opetopes where
   --   → (p : Pos ρ) (q : Pos (κ p))
   --   → Pos (μₒ ρ κ)
   μₒ-pos {O} _ _ _ _ = tt
-  μₒ-pos {S n} (nd o ρ δ ε) κ (inl tt) r = 
+  μₒ-pos {S n} (ndₒ o ρ δ ε) κ (inl tt) r = 
     let w = κ (inl tt)
         ε' p = μₒ (ε p) (λ q → κ (inr (p , q)))
     in γₒ-pos-inl w δ ε' r
-  μₒ-pos {S n} (nd o ρ δ ε) κ (inr (p , q)) r = 
+  μₒ-pos {S n} (ndₒ o ρ δ ε) κ (inr (p , q)) r = 
     let w = κ (inl tt)
         κ' p q = κ (inr (p , q))
         ε' p = μₒ (ε p) (κ' p)
@@ -378,7 +378,7 @@ module Opetopes where
   --   → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
   --   → Pos (μₒ ρ κ) → Pos ρ
   μₒ-pos-fst {O} _ _ _ = tt
-  μₒ-pos-fst {S n} (nd o ρ δ ε) κ = 
+  μₒ-pos-fst {S n} (ndₒ o ρ δ ε) κ = 
     let w = κ (inl tt)
         κ' p q = κ (inr (p , q))
         ε' p = μₒ (ε p) (κ' p)
@@ -389,7 +389,7 @@ module Opetopes where
   --   → (κ : (p : Pos ρ) → 𝒫 (Typ ρ p))
   --   → (p : Pos (μₒ ρ κ)) → Pos (κ (μₒ-pos-fst ρ κ p))
   μₒ-pos-snd {O} _ _ _ = tt
-  μₒ-pos-snd {S n} (nd o ρ δ ε) κ = 
+  μₒ-pos-snd {S n} (ndₒ o ρ δ ε) κ = 
     let w = κ (inl tt)
         κ' p q = κ (inr (p , q))
         ε' p = μₒ (ε p) (κ' p)
@@ -407,10 +407,10 @@ module Opetopes where
   arrow = tt , tt
 
   2-drop : 𝒪 2
-  2-drop = (tt , tt) , lf tt
+  2-drop = (tt , tt) , lfₒ tt
 
   2-globe : 𝒪 2
-  2-globe = (tt , tt) , nd tt tt (cst tt) (cst (lf tt))
+  2-globe = (tt , tt) , ndₒ tt tt (cst tt) (cst (lfₒ tt))
 
   2-simplex : 𝒪 2
-  2-simplex = (tt , tt) , nd tt tt (cst tt) (λ p → nd tt tt (cst tt) (cst (lf tt)))
+  2-simplex = (tt , tt) , ndₒ tt tt (cst tt) (λ p → ndₒ tt tt (cst tt) (cst (lfₒ tt)))
