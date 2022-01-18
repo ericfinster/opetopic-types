@@ -400,8 +400,8 @@ module Opetopes where
   --  Examples
   --
 
-  τb : 𝒪 0
-  τb = tt
+  obj : 𝒪 0
+  obj = tt
 
   arrow : 𝒪 1
   arrow = tt , tt

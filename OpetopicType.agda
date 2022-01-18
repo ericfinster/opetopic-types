@@ -185,3 +185,10 @@ module OpetopicType where
         ε' p = μ (Xₙ , Xₛₙ) (ε p) (λ q → θ (inr (p , q)))
     in graft Xₙ Xₛₙ ω ι κ' δ ν ε'
 
+  --
+  -- The terminal opetopic type
+  --
+  
+  𝕋 : ∀ {ℓ} (n : ℕ) → 𝕆 ℓ n
+  𝕋 O = tt
+  𝕋 (S n) = 𝕋 n , λ _ → ⊤ 
