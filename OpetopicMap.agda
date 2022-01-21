@@ -6,6 +6,8 @@ open import OpetopicType
 
 module OpetopicMap where
 
+  infixr 40 _⇒_
+
   _⇒_ : ∀ {ℓ₀ ℓ₁ n} → 𝕆 ℓ₀ n → 𝕆 ℓ₁ n
     → Set (ℓ-max ℓ₀ ℓ₁)
 
@@ -71,3 +73,60 @@ module OpetopicMap where
   Cns⇒ {n = S n} {Xₙ , Xₛₙ} {Yₙ , Yₛₙ} (αₙ , αₛₙ) =
     Web⇒ Xₛₙ Yₛₙ αₙ αₛₙ
   
+  --
+  --  Composition
+  --
+
+  infixr 30 _⊚_
+  
+  _⊚_ : ∀ {ℓ₀ ℓ₁ ℓ₂ n} {X : 𝕆 ℓ₀ n} {Y : 𝕆 ℓ₁ n} {Z : 𝕆 ℓ₂ n}
+    → (Y ⇒ Z) → (X ⇒ Y) → (X ⇒ Z)
+
+  postulate
+
+    ⊚-Frm : ∀ {ℓ₀ ℓ₁ ℓ₂ n} {X : 𝕆 ℓ₀ n} {Y : 𝕆 ℓ₁ n} {Z : 𝕆 ℓ₂ n}
+      → (α : Y ⇒ Z) (β : X ⇒ Y) (o : 𝒪 n) (f : Frm X o)
+      → Frm⇒ (α ⊚ β) f ↦ Frm⇒ α (Frm⇒ β f)
+    {-# REWRITE ⊚-Frm #-}
+
+    ⊚-assoc : ∀ {ℓ₀ ℓ₁ ℓ₂ ℓ₃ n}
+      → {X : 𝕆 ℓ₀ n} {Y : 𝕆 ℓ₁ n} {Z : 𝕆 ℓ₂ n} {W : 𝕆 ℓ₃ n}
+      → (α : Z ⇒ W) (β : Y ⇒ Z) (γ : X ⇒ Y)
+      → (α ⊚ β) ⊚ γ ↦ α ⊚ β ⊚ γ
+    {-# REWRITE ⊚-assoc #-}
+
+    -- And unit laws ...
+
+  _⊚_ {n = O} α β = tt
+  _⊚_ {n = S n} {Xₙ , Xₛₙ} {Yₙ , Yₛₙ} {Zₙ , Zₛₙ} (αₙ , αₛₙ) (βₙ , βₛₙ) =
+    αₙ ⊚ βₙ , λ x → αₛₙ (βₛₙ x)
+
+  po-to-Σ : ∀ {ℓ ℓ'} {A : Set ℓ} {B : A → Set ℓ'}
+    → {a₀ a₁ : A} {b₀ : B a₀} {b₁ : B a₁}
+    → (p : a₀ ≡ a₁) (q : b₀ ≡ b₁ [ B ↓ p ])
+    → (a₀ , b₀) ≡ (a₁ , b₁)
+  po-to-Σ refl refl = refl
+
+  --
+  -- Equality of functions
+  --
+  
+  _⇒-≡_ : ∀ {ℓ₀ ℓ₁ n} {X : 𝕆 ℓ₀ n} {Y : 𝕆 ℓ₁ n} 
+    → (X ⇒ Y) → (X ⇒ Y) → Set (ℓ-max ℓ₀ ℓ₁)
+
+  postulate
+  
+    ⇒-≡-to-≡ : ∀ {ℓ₀ ℓ₁ n} {X : 𝕆 ℓ₀ n} {Y : 𝕆 ℓ₁ n} 
+      → (α : X ⇒ Y) (β : X ⇒ Y)
+      → α ⇒-≡ β → α ≡ β
+
+  _⇒-≡_ {n = O} {X} {Y} α β = ⊤
+  _⇒-≡_ {n = S n} {Xₙ , Xₛₙ} {Yₙ , Yₛₙ} (αₙ , αₛₙ) (βₙ , βₛₙ) =
+    Σ (αₙ ⇒-≡ βₙ) (λ e → {o : 𝒪 n} {f : Frm Xₙ o}
+      (x : Xₛₙ f) → αₛₙ x ≡ βₛₙ x [ (λ ϕ → Yₛₙ (Frm⇒ ϕ f)) ↓ ⇒-≡-to-≡ αₙ βₙ e ] )
+
+  -- And this last thing is by fun-ext.
+  -- ⇒-≡-to-≡ {n = O} {X} {Y} α β e = refl
+  -- ⇒-≡-to-≡ {n = S n} {Xₙ , Xₛₙ} {Yₙ , Yₛₙ} (αₙ , αₛₙ) (βₙ , βₛₙ) (eₙ , eₛₙ) =
+  --   po-to-Σ (⇒-≡-to-≡ αₙ βₙ eₙ) {!!}
+
