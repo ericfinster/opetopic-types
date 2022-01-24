@@ -1,3 +1,5 @@
 name: opetopic-types
 include: .
-depend: mini-hott
+depend: cubical
+flags: --cubical --no-import-sorts
+
