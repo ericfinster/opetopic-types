@@ -1,6 +1,5 @@
 {-# OPTIONS --rewriting #-}
 
--- open import Cubical.Core.Everything
 open import Cubical.Foundations.Everything
 open import Cubical.Data.Empty
 open import Cubical.Data.Unit
@@ -139,18 +138,28 @@ module OpetopicType where
       → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) ι δ ν ⟫ (γₒ τ ι κ)
     graft (lf {o} {f} x) ι₁ κ₁ δ₁ ν₁ ε₁ = ε₁ (ηₒ-pos o)
     graft (nd {ρ = ρ} φ ι κ δ ν ε) ι₁ κ₁ δ₁ ν₁ ε₁ =
-      let ι-ih p q = ι₁ (μₒ-pos ρ ι p q)
-          κ-ih p q = κ₁ (μₒ-pos ρ ι p q)
-          δ-ih p q = δ₁ (μₒ-pos ρ ι p q)
-          ν-ih p q = ν₁ (μₒ-pos ρ ι p q)
-          ε-ih p q = ε₁ (μₒ-pos ρ ι p q)
-          ι' p = μₒ (ι p) (ι-ih p)
+      let ι' p = μₒ (ι p) (ι-ih p)
           δ' p = μ Xₙ (δ p) (δ-ih p)
           κ' p = γₒ (κ p) (ι-ih p) (κ-ih p)
           ν' p q = ν₁ (μₒ-pos ρ ι p (μₒ-pos-fst (ι p) (ι-ih p) q)) (μₒ-pos-snd (ι p) (ι-ih p) q)
           ε' p = graft (ε p) (ι-ih p) (κ-ih p) (δ-ih p) (ν-ih p) (ε-ih p)
       in nd φ ι' κ' δ' ν' ε'  
+
+        where ι-ih : (p : Pos ρ) (q : Pos (ι p)) → 𝒫 (Typ (ι p) q)
+              ι-ih p q = ι₁ (μₒ-pos ρ ι p q)
+
+              κ-ih : (p : Pos ρ) (q : Pos (ι p)) → 𝒯r (Typ (ι p) q) (ι-ih p q)
+              κ-ih p q = κ₁ (μₒ-pos ρ ι p q)
+
+              δ-ih : (p : Pos ρ) (q : Pos (ι p)) → Cns Xₙ (Shp Xₙ (δ p) q) (ι-ih p q)
+              δ-ih p q = δ₁ (μₒ-pos ρ ι p q)
   
+              ν-ih : (p : Pos ρ) (q : Pos (ι p)) (r : Pos (ι-ih p q))  → Xₛₙ (Shp Xₙ (δ-ih p q) r)
+              ν-ih p q = ν₁ (μₒ-pos ρ ι p q)
+
+              ε-ih : (p : Pos ρ) (q : Pos (ι p)) → Web ⟪ Shp Xₙ (δ p) q , δ-ih p q , ν p q , ν-ih p q ⟫ (κ-ih p q)
+              ε-ih p q = ε₁ (μₒ-pos ρ ι p q) 
+
       -- TODO: Grafting Axioms
 
   𝕆 ℓ zero = Lift Unit 
@@ -187,7 +196,6 @@ module OpetopicType where
   μ {n = suc n} (Xₙ , Xₛₙ) (lf x) θ = lf x
   μ {n = suc n} (Xₙ , Xₛₙ) (nd φ ι κ δ ν ε) {ζ} θ =
     let ω = θ (inl tt)
-        θ' p q = θ (inr (p , q))
         κ' p = μₒ (κ p) (λ q → ζ (inr (p , q)))
         ε' p = μ (Xₙ , Xₛₙ) (ε p) (λ q → θ (inr (p , q)))
     in graft Xₙ Xₛₙ ω ι κ' δ ν ε'
