@@ -1,16 +1,23 @@
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --rewriting #-}
 
-open import MiniHoTT
+-- open import Cubical.Core.Everything
+open import Cubical.Foundations.Everything
+open import Cubical.Data.Empty
+open import Cubical.Data.Unit
+open import Cubical.Data.Nat 
+open import Cubical.Data.Sum
+
+open import Prelude
 open import Opetopes
 
 module OpetopicType where
 
-  𝕆 : (ℓ : Level) → ℕ → Set (ℓ-suc ℓ)
+  𝕆 : (ℓ : Level) → ℕ → Type (ℓ-suc ℓ)
   
-  Frm : ∀ {ℓ n} → 𝕆 ℓ n → 𝒪 n → Set ℓ
+  Frm : ∀ {ℓ n} → 𝕆 ℓ n → 𝒪 n → Type ℓ
   Cns : ∀ {ℓ n} (X : 𝕆 ℓ n)
     → {o : 𝒪 n} (f : Frm X o)
-    → 𝒫 o → Set ℓ 
+    → 𝒫 o → Type ℓ 
   Shp : ∀ {ℓ n} (X : 𝕆 ℓ n)
     → {o : 𝒪 n} {f : Frm X o}
     → {ρ : 𝒫 o} (c : Cns X f ρ)
@@ -74,7 +81,7 @@ module OpetopicType where
   --  Definition of the Derived Monad 
   --
 
-  module _ {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : {o : 𝒪 n} (f : Frm Xₙ o) → Set ℓ) where
+  module _ {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : {o : 𝒪 n} (f : Frm Xₙ o) → Type ℓ) where
   
     η-dec : {o : 𝒪 n} (f : Frm Xₙ o) (x : Xₛₙ f)
       → (p : Pos (ηₒ o)) → Xₛₙ (Shp Xₙ (η Xₙ f) p)
@@ -88,7 +95,7 @@ module OpetopicType where
     μ-dec {ρ = ρ} c ι δ ν p = ν (μₒ-pos-fst ρ ι p) (μₒ-pos-snd ρ ι p)
 
     {-# NO_POSITIVITY_CHECK #-}
-    record WebFrm (o : 𝒪 n) (ρ : 𝒫 o) : Set ℓ where
+    record WebFrm (o : 𝒪 n) (ρ : 𝒫 o) : Type ℓ where
       inductive
       eta-equality
       constructor ⟪_,_,_,_⟫ 
@@ -100,10 +107,10 @@ module OpetopicType where
 
     open WebFrm public
     
-    data Web : {o : 𝒪 n} {ρ : 𝒫 o} → WebFrm o ρ → 𝒯r o ρ → Set ℓ where
+    data Web : {o : 𝒪 n} {ρ : 𝒫 o} → WebFrm o ρ → 𝒯r o ρ → Type ℓ where
 
       lf : {o : 𝒪 n} {f : Frm Xₙ o} (x : Xₛₙ f)
-        → Web ⟪ f , η Xₙ f , x , cst x ⟫ (lfₒ o) 
+        → Web ⟪ f , η Xₙ f , x , const x ⟫ (lfₒ o) 
 
       nd : {o : 𝒪 n} {ρ : 𝒫 o} (φ : WebFrm o ρ)
         → (ι : (p : Pos ρ) → 𝒫 (Typ ρ p))
@@ -113,9 +120,9 @@ module OpetopicType where
         → (ε : (p : Pos ρ) → Web ⟪ Shp Xₙ (cns φ) p , δ p , src φ p , ν p ⟫ (κ p)) 
         → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) ι δ ν ⟫ (ndₒ o ρ ι κ) 
 
-    WebPos : {o : 𝒪 n} {ρ : 𝒫 o} {φ : WebFrm o ρ} {τ : 𝒯r o ρ} (ω : Web φ τ) → Set ℓ
-    WebPos (lf _) = ∅
-    WebPos (nd {ρ = ρ} φ ι κ δ ν ε) = ⊤ {ℓ} ⊔ Σ (Pos ρ) (λ p → WebPos (ε p))
+    WebPos : {o : 𝒪 n} {ρ : 𝒫 o} {φ : WebFrm o ρ} {τ : 𝒯r o ρ} (ω : Web φ τ) → Type ℓ
+    WebPos (lf _) = Lift ⊥
+    WebPos (nd {ρ = ρ} φ ι κ δ ν ε) = Unit ⊎ Σ (Pos ρ) (λ p → WebPos (ε p))
 
     WebShp : {o : 𝒪 n} {ρ : 𝒫 o} {φ : WebFrm o ρ} {τ : 𝒯r o ρ}
       → (ω : Web φ τ) (p : 𝒯rPos τ)
@@ -146,23 +153,23 @@ module OpetopicType where
   
       -- TODO: Grafting Axioms
 
-  𝕆 ℓ O = ⊤ 
-  𝕆 ℓ (S n) = Σ (𝕆 ℓ n) (λ Xₙ → {o : 𝒪 n} → Frm Xₙ o → Set ℓ)
+  𝕆 ℓ zero = Lift Unit 
+  𝕆 ℓ (suc n) = Σ (𝕆 ℓ n) (λ Xₙ → {o : 𝒪 n} → Frm Xₙ o → Type ℓ)
   
-  Frm {n = O} X tt = ⊤
-  Frm {n = S n} (Xₙ , Xₛₙ) (o , ρ) = WebFrm Xₙ Xₛₙ o ρ 
+  Frm {n = zero} X tt = Lift Unit
+  Frm {n = suc n} (Xₙ , Xₛₙ) (o , ρ) = WebFrm Xₙ Xₛₙ o ρ 
 
-  Cns {n = O} _ _ _ = ⊤ 
-  Cns {n = S n} (Xₙ , Xₛₙ) {o , ρ} = Web Xₙ Xₛₙ {o} {ρ} 
+  Cns {n = zero} _ _ _ = Lift Unit 
+  Cns {n = suc n} (Xₙ , Xₛₙ) {o , ρ} = Web Xₙ Xₛₙ {o} {ρ} 
   
-  Shp {n = O} _ _ _ = tt
-  Shp {n = S n} (Xₙ , Xₛₙ) {o , ρ} ω p = WebShp Xₙ Xₛₙ ω p
+  Shp {n = zero} _ _ _ = lift tt
+  Shp {n = suc n} (Xₙ , Xₛₙ) {o , ρ} ω p = WebShp Xₙ Xₛₙ ω p
 
   -- η : ∀ {n ℓ} (X : 𝕆 ℓ n)
   --   → {o : 𝒪 n} (f : Frm X o)
   --   → Cns X f (ηₒ o)
-  η {n = O} _ _ = tt
-  η {n = S n} (Xₙ , Xₛₙ) {o , ρ} φ =
+  η {n = zero} _ _ = lift tt
+  η {n = suc n} (Xₙ , Xₛₙ) {o , ρ} φ =
     let ι p = ηₒ (Typ ρ p)
         κ p = lfₒ (Typ ρ p)
         δ p = η Xₙ (Shp Xₙ (cns φ) p)
@@ -176,9 +183,9 @@ module OpetopicType where
   --   → {ι : (p : Pos ρ) → 𝒫 (Typ ρ p)}
   --   → (κ : (p : Pos ρ) → Cns X (Shp X c p) (ι p))
   --   → Cns X f (μₒ ρ ι)
-  μ {n = O} _ _ _ = tt
-  μ {n = S n} (Xₙ , Xₛₙ) (lf x) θ = lf x
-  μ {n = S n} (Xₙ , Xₛₙ) (nd φ ι κ δ ν ε) {ζ} θ =
+  μ {n = zero} _ _ _ = lift tt
+  μ {n = suc n} (Xₙ , Xₛₙ) (lf x) θ = lf x
+  μ {n = suc n} (Xₙ , Xₛₙ) (nd φ ι κ δ ν ε) {ζ} θ =
     let ω = θ (inl tt)
         θ' p q = θ (inr (p , q))
         κ' p = μₒ (κ p) (λ q → ζ (inr (p , q)))
@@ -190,5 +197,5 @@ module OpetopicType where
   --
   
   𝕋 : ∀ {ℓ} (n : ℕ) → 𝕆 ℓ n
-  𝕋 O = tt
-  𝕋 (S n) = 𝕋 n , λ _ → ⊤ 
+  𝕋 zero = lift tt
+  𝕋 (suc n) = 𝕋 n , λ _ → Lift Unit 

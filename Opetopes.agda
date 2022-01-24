@@ -1,10 +1,10 @@
 {-# OPTIONS --rewriting #-}
 
-open import Cubical.Core.Everything
-open import Cubical.Data.Nat
+open import Cubical.Core.Everything 
+open import Cubical.Data.Nat 
 open import Cubical.Data.Empty
 open import Cubical.Data.Unit
-open import Cubical.Data.Sum
+open import Cubical.Data.Sum 
 
 open import Prelude
 
