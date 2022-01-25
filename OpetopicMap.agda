@@ -1,5 +1,6 @@
 --
 --  OpetopicMap.agda - Maps of opetopic types
+--
 
 open import Cubical.Foundations.Everything
 open import Cubical.Data.Unit
@@ -48,7 +49,6 @@ module OpetopicMap where
            (Yₛₙ : {o : 𝒪 n} → Frm Yₙ o → Type ℓ₁)
            (αₙ : Xₙ ⇒ Yₙ) (αₛₙ : {o : 𝒪 n} {f : Frm Xₙ o} → Xₛₙ f → Yₛₙ (Frm⇒ αₙ f)) where
 
-    -- Bingo!
     WebFrm⇒ : {o : 𝒪 n} {ρ : 𝒫 o}
       → WebFrm Xₙ Xₛₙ o ρ → WebFrm Yₙ Yₛₙ o ρ 
     WebFrm⇒ φ = ⟪ Frm⇒ αₙ (frm φ) , Cns⇒ αₙ (cns φ) ,
@@ -105,12 +105,6 @@ module OpetopicMap where
   _⊚_ {n = zero} α β = lift tt
   _⊚_ {n = suc n} {Xₙ , Xₛₙ} {Yₙ , Yₛₙ} {Zₙ , Zₛₙ} (αₙ , αₛₙ) (βₙ , βₛₙ) =
     αₙ ⊚ βₙ , λ x → αₛₙ (βₛₙ x)
-
-  -- po-to-Σ : ∀ {ℓ ℓ'} {A : Type ℓ} {B : A → Type ℓ'}
-  --   → {a₀ a₁ : A} {b₀ : B a₀} {b₁ : B a₁}
-  --   → (p : a₀ ≡ a₁) (q : b₀ ≡ b₁ [ B ↓ p ])
-  --   → (a₀ , b₀) ≡ (a₁ , b₁)
-  -- po-to-Σ refl refl = refl
 
   --
   -- Equality of functions
