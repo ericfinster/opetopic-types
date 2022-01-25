@@ -1,5 +1,5 @@
 name: opetopic-types
 include: .
 depend: cubical
-flags: --cubical --no-import-sorts
+flags: --cubical --no-import-sorts --rewriting
 

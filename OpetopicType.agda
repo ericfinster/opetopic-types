@@ -1,4 +1,6 @@
-{-# OPTIONS --rewriting #-}
+--
+--  OpetopicType.agda - Definition of Opetopic Types
+--
 
 open import Cubical.Foundations.Everything
 open import Cubical.Data.Empty
