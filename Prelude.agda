@@ -11,5 +11,5 @@ module Prelude where
   {-# BUILTIN REWRITE _↦_ #-}
 
   -- Inductive identity types.
-  data _==_ {ℓ} {A : Type ℓ} (a : A) : A → Type ℓ where
-    refl : a == a 
+  data Ident {ℓ} (A : Type ℓ) (a : A) : A → Type ℓ where
+    refl : Ident A a a 

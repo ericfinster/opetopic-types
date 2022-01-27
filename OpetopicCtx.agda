@@ -122,9 +122,9 @@ module OpetopicCtx where
         → (ε : (p : Pos 𝑝) → Web ⟪ Shp Xₙ (cns φ) p , δ p , src φ p , ν p ⟫ (κ p)) 
         → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) ι δ ν ⟫ (ndₒ 𝑜 𝑝 ι κ) 
 
-    WebPos : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {φ : WebFrm 𝑜 𝑝} {𝑡 : 𝒯r 𝑜 𝑝} (ω : Web φ 𝑡) → Type ℓ
-    WebPos (lf _) = Lift ⊥
-    WebPos (nd {𝑝 = 𝑝} φ ι κ δ ν ε) = Unit ⊎ Σ (Pos 𝑝) (λ p → WebPos (ε p))
+    -- WebPos : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {φ : WebFrm 𝑜 𝑝} {𝑡 : 𝒯r 𝑜 𝑝} (ω : Web φ 𝑡) → Type ℓ
+    -- WebPos (lf _) = Lift ⊥
+    -- WebPos (nd {𝑝 = 𝑝} φ ι κ δ ν ε) = Unit ⊎ Σ (Pos 𝑝) (λ p → WebPos (ε p))
 
     WebShp : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {φ : WebFrm 𝑜 𝑝} {𝑡 : 𝒯r 𝑜 𝑝}
       → (ω : Web φ 𝑡) (p : 𝒯rPos 𝑡)
