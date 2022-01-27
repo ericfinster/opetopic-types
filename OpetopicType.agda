@@ -29,23 +29,25 @@ module OpetopicType where
     → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
     → (p : Pos 𝑝) → Frm↓ X (Shp Γ c p) 
 
+  postulate
+
+    η↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+      → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} (f↓ : Frm↓ X f)
+      → Cns↓ X f↓ (η Γ f)
+
+    μ↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+      → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} (f↓ : Frm↓ X f)
+      → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
+      → {𝑑 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+      → {δ : (p : Pos 𝑝) → Cns Γ (Shp Γ c p) (𝑑 p)}
+      → (δ↓ : (p : Pos 𝑝) → Cns↓ X (Shp↓ X c↓ p) (δ p))
+      → Cns↓ X f↓ (μ Γ c δ) 
+
   𝕆Type = {!!}
   Frm↓ = {!!}
   Cns↓ = {!!}
   Shp↓ = {!!}
 
-  -- postulate
-
-  --   η↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
-  --     → {f : Frm Γ} (f↓ : Frm↓ X f)
-  --     → Cns↓ X f↓ (η Γ f)
-
-  --   μ↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
-  --     → {f : Frm Γ} (f↓ : Frm↓ X f)
-  --     → {c : Cns Γ f} (c↓ : Cns↓ X f↓ c)
-  --     → {δ : (p : Pos Γ c) → Cns Γ (Typ Γ c p)}
-  --     → (δ↓ : (p : Pos Γ c) → Cns↓ X (Typ↓ X c↓ p) (δ p))
-  --     → Cns↓ X f↓ (μ Γ c δ) 
 
   -- postulate
 
