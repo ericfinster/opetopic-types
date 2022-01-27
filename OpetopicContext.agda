@@ -1,5 +1,5 @@
 --
---  Opetopes.agda - Underlying shapes for opetopic types
+--  OpetopicContext.agda - Contexts for Opetopic Types
 --
 
 open import Cubical.Foundations.Everything 
@@ -12,23 +12,22 @@ open import Prelude
 
 module OpetopicContext where
 
-
   --
-  --  Opetopic Types
+  --  Opetopic Contexts
   --
 
-  𝕆 : (ℓ : Level) → ℕ → Type (ℓ-suc ℓ)
+  𝕆Ctx : (ℓ : Level) → ℕ → Type (ℓ-suc ℓ)
 
   --
   --  Polynomial Signature
   --
 
-  Frm : ∀ {ℓ n} → 𝕆 ℓ n → Type ℓ
-  Cns : ∀ {ℓ n} (X : 𝕆 ℓ n)
+  Frm : ∀ {ℓ n} → 𝕆Ctx ℓ n → Type ℓ
+  Cns : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
     → Frm X → Type ℓ
-  Pos : ∀ {ℓ n} (X : 𝕆 ℓ n)
+  Pos : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
     → {f : Frm X} (c : Cns X f) → Type ℓ
-  Typ : ∀ {ℓ n} (X : 𝕆 ℓ n)
+  Typ : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
     → {f : Frm X} (c : Cns X f)
     → (p : Pos X c) → Frm X
 
@@ -36,38 +35,38 @@ module OpetopicContext where
   --  Monadic Signature
   --
 
-  η : ∀ {ℓ n} (X : 𝕆 ℓ n)
+  η : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
     → (f : Frm X)
     → Cns X f 
 
-  η-pos : ∀ {ℓ n} (X : 𝕆 ℓ n)
+  η-pos : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
     → (f : Frm X)
     → Pos X (η X f) 
 
-  η-pos-elim : ∀ {ℓ ℓ' n} (X : 𝕆 ℓ n) (f : Frm X)
+  η-pos-elim : ∀ {ℓ ℓ' n} (X : 𝕆Ctx ℓ n) (f : Frm X)
     → (P : (p : Pos X (η X f)) → Type ℓ')
     → (η-pos* : P (η-pos X f))
     → (p : Pos X (η X f)) → P p
 
   {-# TERMINATING #-}
-  μ : ∀ {ℓ n} (X : 𝕆 ℓ n)
+  μ : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
     → {f : Frm X} (c : Cns X f)
     → (δ : (p : Pos X c) → Cns X (Typ X c p))
     → Cns X f
 
-  μ-pos : ∀ {ℓ n} (X : 𝕆 ℓ n)
+  μ-pos : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
     → {f : Frm X} (c : Cns X f)
     → (δ : (p : Pos X c) → Cns X (Typ X c p))
     → (p : Pos X c) (q : Pos X (δ p))
     → Pos X (μ X c δ) 
 
-  μ-fst : ∀ {ℓ n} (X : 𝕆 ℓ n)
+  μ-fst : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
     → {f : Frm X} (c : Cns X f)
     → (δ : (p : Pos X c) → Cns X (Typ X c p))
     → (p : Pos X (μ X c δ))
     → Pos X c
 
-  μ-snd : ∀ {ℓ n} (X : 𝕆 ℓ n)
+  μ-snd : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
     → {f : Frm X} (c : Cns X f)
     → (δ : (p : Pos X c) → Cns X (Typ X c p))
     → (p : Pos X (μ X c δ))
@@ -79,12 +78,12 @@ module OpetopicContext where
     --  Position Typing
     --
 
-    η-pos-typ : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    η-pos-typ : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
       → (f : Frm X) (p : Pos X (η X f))
       → Typ X (η X f) p ↦ f
     {-# REWRITE η-pos-typ #-}
 
-    μ-pos-typ : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    μ-pos-typ : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
       → {f : Frm X} (c : Cns X f)
       → (δ : (p : Pos X c) → Cns X (Typ X c p))
       → (p : Pos X (μ X c δ))
@@ -95,27 +94,27 @@ module OpetopicContext where
     --  Position Computation Rules
     --
     
-    η-pos-elim-β : ∀ {ℓ n} (X : 𝕆 ℓ n) (f : Frm X)
+    η-pos-elim-β : ∀ {ℓ n} (X : 𝕆Ctx ℓ n) (f : Frm X)
       → (P : (p : Pos X (η X f)) → Type ℓ)
       → (η-pos* : P (η-pos X f))
       → η-pos-elim X f P η-pos* (η-pos X f) ↦ η-pos*
     {-# REWRITE η-pos-elim-β #-}
 
-    μ-pos-fst-β : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    μ-pos-fst-β : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
       → {f : Frm X} (c : Cns X f)
       → (δ : (p : Pos X c) → Cns X (Typ X c p))
       → (p : Pos X c) (q : Pos X (δ p))
       → μ-fst X c δ (μ-pos X c δ p q) ↦ p
     {-# REWRITE μ-pos-fst-β #-}
 
-    μ-pos-snd-β : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    μ-pos-snd-β : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
       → {f : Frm X} (c : Cns X f)
       → (δ : (p : Pos X c) → Cns X (Typ X c p))
       → (p : Pos X c) (q : Pos X (δ p))
       → μ-snd X c δ (μ-pos X c δ p q) ↦ q
     {-# REWRITE μ-pos-snd-β #-}
 
-    μ-pos-η : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    μ-pos-η : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
       → {f : Frm X} (c : Cns X f)
       → (δ : (p : Pos X c) → Cns X (Typ X c p))
       → (p : Pos X (μ X c δ))
@@ -126,17 +125,17 @@ module OpetopicContext where
     --  Monad Laws
     --
 
-    μ-unit-r : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    μ-unit-r : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
       → (f : Frm X) (c : Cns X f)
       → μ X c (λ p → η X (Typ X c p)) ↦ c
     {-# REWRITE μ-unit-r #-}
 
-    μ-unit-l : ∀ {ℓ n} (X : 𝕆 ℓ n) (f : Frm X)
+    μ-unit-l : ∀ {ℓ n} (X : 𝕆Ctx ℓ n) (f : Frm X)
       → (δ : (p : Pos X (η X f)) → Cns X (Typ X (η X f) p))
       → μ X (η X f) δ ↦ δ (η-pos X f)
     {-# REWRITE μ-unit-l #-}
 
-    μ-assoc : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    μ-assoc : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
       → (f : Frm X) (c : Cns X f)
       → (δ : (p : Pos X c) → Cns X (Typ X c p))
       → (ε : (p : Pos X (μ X c δ)) → Cns X (Typ X (μ X c δ) p))
@@ -149,18 +148,18 @@ module OpetopicContext where
     --
 
     -- Introduction
-    μ-pos-unit-r : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    μ-pos-unit-r : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
       → (f : Frm X) (c : Cns X f) (p : Pos X c)
       → μ-pos X c (λ p → η X (Typ X c p)) p (η-pos X (Typ X c p)) ↦ p
     {-# REWRITE μ-pos-unit-r #-}    
 
-    μ-pos-unit-l : ∀ {ℓ n} (X : 𝕆 ℓ n) (f : Frm X)
+    μ-pos-unit-l : ∀ {ℓ n} (X : 𝕆Ctx ℓ n) (f : Frm X)
       → (δ : (p : Pos X (η X f)) → Cns X f)
       → (p : Pos X (δ (η-pos X f)))
       → μ-pos X (η X f) δ (η-pos X f) p ↦ p
     {-# REWRITE μ-pos-unit-l #-}
 
-    μ-pos-assoc : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    μ-pos-assoc : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
       → (f : Frm X) (c : Cns X f)
       → (δ : (p : Pos X c) → Cns X (Typ X c p))
       → (ε : (p : Pos X (μ X c δ)) → Cns X (Typ X (μ X c δ) p))
@@ -173,19 +172,19 @@ module OpetopicContext where
     {-# REWRITE μ-pos-assoc #-}
     
     -- First Projection
-    μ-fst-unit-r : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    μ-fst-unit-r : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
       → (f : Frm X) (c : Cns X f)
       → (p : Pos X (μ X c (λ p → η X (Typ X c p))))
       → μ-fst X c (λ p → η X (Typ X c p)) p ↦ p
     {-# REWRITE μ-fst-unit-r #-}
 
-    μ-fst-unit-l : ∀ {ℓ n} (X : 𝕆 ℓ n) (f : Frm X)
+    μ-fst-unit-l : ∀ {ℓ n} (X : 𝕆Ctx ℓ n) (f : Frm X)
       → (δ : (p : Pos X (η X f)) → Cns X f)
       → (p : Pos X (μ X (η X f) δ))
       → μ-fst X (η X f) δ p ↦ η-pos X f
     {-# REWRITE μ-fst-unit-l #-}
 
-    μ-fst-assoc : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    μ-fst-assoc : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
       → (f : Frm X) (c : Cns X f)
       → (δ : (p : Pos X c) → Cns X (Typ X c p))
       → (ε : (p : Pos X (μ X c δ)) → Cns X (Typ X (μ X c δ) p))
@@ -197,19 +196,19 @@ module OpetopicContext where
     {-# REWRITE μ-fst-assoc #-}
 
     -- Second Projection
-    μ-snd-unit-r : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    μ-snd-unit-r : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
       → (f : Frm X) (c : Cns X f)
       → (p : Pos X (μ X c (λ p → η X (Typ X c p))))
       → μ-snd X c (λ p → η X (Typ X c p)) p ↦ η-pos X (Typ X c p)
     {-# REWRITE μ-snd-unit-r #-}
 
-    μ-snd-unit-l : ∀ {ℓ n} (X : 𝕆 ℓ n) (f : Frm X)
+    μ-snd-unit-l : ∀ {ℓ n} (X : 𝕆Ctx ℓ n) (f : Frm X)
       → (δ : (p : Pos X (η X f)) → Cns X (Typ X (η X f) p))
       → (p : Pos X (μ X (η X f) δ))
       → μ-snd X (η X f) δ p ↦ p
     {-# REWRITE μ-snd-unit-l #-}
 
-    μ-snd-assoc : ∀ {ℓ n} (X : 𝕆 ℓ n)
+    μ-snd-assoc : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
       → (f : Frm X) (c : Cns X f)
       → (δ : (p : Pos X c) → Cns X (Typ X c p))
       → (ε : (p : Pos X (μ X c δ)) → Cns X (Typ X (μ X c δ) p))
@@ -224,7 +223,7 @@ module OpetopicContext where
   --  Definition of the Derived Monad 
   --
 
-  module _ {ℓ n} (Xₙ : 𝕆 ℓ n) (Xₛₙ : (f : Frm Xₙ) → Type ℓ) where
+  module _ {ℓ n} (Xₙ : 𝕆Ctx ℓ n) (Xₛₙ : (f : Frm Xₙ) → Type ℓ) where
   
     η-dec : (f : Frm Xₙ) (x : Xₛₙ f)
       → (p : Pos Xₙ (η Xₙ f)) → Xₛₙ (Typ Xₙ (η Xₙ f) p)
@@ -385,8 +384,8 @@ module OpetopicContext where
   --  Implementations 
   --
 
-  𝕆 ℓ zero = Lift Unit
-  𝕆 ℓ (suc n) = Σ (𝕆 ℓ n) (λ Xₙ → (f : Frm Xₙ) → Type ℓ)
+  𝕆Ctx ℓ zero = Lift Unit
+  𝕆Ctx ℓ (suc n) = Σ (𝕆Ctx ℓ n) (λ Xₙ → (f : Frm Xₙ) → Type ℓ)
   
   Frm {ℓ} {zero} _ = Lift Unit
   Frm {ℓ} {suc n} (Xₙ , Xₛₙ) = WebFrm Xₙ Xₛₙ
@@ -400,7 +399,7 @@ module OpetopicContext where
   Typ {ℓ} {zero} _ _ _ = lift tt
   Typ {ℓ} {suc n} (Xₙ , Xₛₙ) = WebTyp Xₙ Xₛₙ
 
-  -- η : ∀ {ℓ n} (X : 𝕆 ℓ n)
+  -- η : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
   --   → (f : Frm X)
   --   → Cns X f 
   η {n = zero} _ _ = lift tt
@@ -410,20 +409,20 @@ module OpetopicContext where
         ε p = lf (src φ p)
     in nd φ δ ν ε 
 
-  -- η-pos : ∀ {ℓ n} (X : 𝕆 ℓ n)
+  -- η-pos : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
   --   → (f : Frm X)
   --   → Pos X (η X f) 
   η-pos {n = zero} _ _ = lift tt
   η-pos {n = suc n} (Xₙ , Xₛₙ) φ = inl tt
   
-  -- η-pos-elim : ∀ {ℓ ℓ' n} (X : 𝕆 ℓ n) (f : Frm X)
+  -- η-pos-elim : ∀ {ℓ ℓ' n} (X : 𝕆Ctx ℓ n) (f : Frm X)
   --   → (P : (p : Pos X (η X f)) → Type ℓ')
   --   → (η-pos* : P (η-pos X f))
   --   → (p : Pos X (η X f)) → P p 
   η-pos-elim {n = zero} X f P η-pos* p = η-pos*
   η-pos-elim {n = suc n} X f P η-pos* (inl tt) = η-pos*
 
-  -- μ : ∀ {ℓ n} (X : 𝕆 ℓ n)
+  -- μ : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
   --   → {f : Frm X} (c : Cns X f)
   --   → (δ : (p : Pos X c) → Cns X (Typ X c p))
   --   → Cns X f
@@ -434,7 +433,7 @@ module OpetopicContext where
         ε' p = μ (Xₙ , Xₛₙ) (ε p) (λ q → κ (inr (p , q)))
     in graft Xₙ Xₛₙ ω δ ν ε'
 
-  -- μ-pos : ∀ {ℓ n} (X : 𝕆 ℓ n)
+  -- μ-pos : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
   --   → {f : Frm X} (c : Cns X f)
   --   → (δ : (p : Pos X c) → Cns X (Typ X c p))
   --   → (p : Pos X c) (q : Pos X (δ p))
@@ -450,7 +449,7 @@ module OpetopicContext where
     in graft-pos-inr Xₙ Xₛₙ ω δ ν ε' p
         (μ-pos (Xₙ , Xₛₙ) (ε p) (λ q → κ (inr (p , q))) q r)
 
-  -- μ-fst : ∀ {ℓ n} (X : 𝕆 ℓ n)
+  -- μ-fst : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
   --   → {f : Frm X} (c : Cns X f)
   --   → (δ : (p : Pos X c) → Cns X (Typ X c p))
   --   → (p : Pos X (μ X c δ))
@@ -463,7 +462,7 @@ module OpetopicContext where
         (λ _ → inl tt)
         (λ p q → inr (p , μ-fst (Xₙ , Xₛₙ) (ε p) (λ q → κ (inr (p , q))) q))
 
-  -- μ-snd : ∀ {ℓ n} (X : 𝕆 ℓ n)
+  -- μ-snd : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
   --   → {f : Frm X} (c : Cns X f)
   --   → (δ : (p : Pos X c) → Cns X (Typ X c p))
   --   → (p : Pos X (μ X c δ))
