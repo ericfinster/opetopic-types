@@ -9,7 +9,8 @@ open import Cubical.Data.Nat
 open import Cubical.Data.Sum
 
 open import Prelude
-open import OpetopicContext
+open import Opetopes
+open import OpetopicCtx
 
 module OpetopicType where
 
@@ -17,29 +18,34 @@ module OpetopicType where
     → (ℓ : Level) → Type (ℓ-suc ℓ)
 
   Frm↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
-    → (f : Frm Γ) → Type ℓ
+    → {𝑜 : 𝒪 n} (f : Frm Γ 𝑜) → Type ℓ
     
   Cns↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
-    → {f : Frm Γ} (f↓ : Frm↓ X f)
-    → (c : Cns Γ f) → Type ℓ 
+    → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} (f↓ : Frm↓ X f)
+    → {𝑝 : 𝒫 𝑜} (c : Cns Γ f 𝑝) → Type ℓ 
 
-  Typ↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
-    → {f : Frm Γ} {f↓ : Frm↓ X f}
-    → {c : Cns Γ f} (c↓ : Cns↓ X f↓ c)
-    → (p : Pos Γ c) → Frm↓ X (Typ Γ c p) 
+  Shp↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+    → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} {f↓ : Frm↓ X f}
+    → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
+    → (p : Pos 𝑝) → Frm↓ X (Shp Γ c p) 
 
-  postulate
+  𝕆Type = {!!}
+  Frm↓ = {!!}
+  Cns↓ = {!!}
+  Shp↓ = {!!}
 
-    η↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
-      → {f : Frm Γ} (f↓ : Frm↓ X f)
-      → Cns↓ X f↓ (η Γ f)
+  -- postulate
 
-    μ↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
-      → {f : Frm Γ} (f↓ : Frm↓ X f)
-      → {c : Cns Γ f} (c↓ : Cns↓ X f↓ c)
-      → {δ : (p : Pos Γ c) → Cns Γ (Typ Γ c p)}
-      → (δ↓ : (p : Pos Γ c) → Cns↓ X (Typ↓ X c↓ p) (δ p))
-      → Cns↓ X f↓ (μ Γ c δ) 
+  --   η↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+  --     → {f : Frm Γ} (f↓ : Frm↓ X f)
+  --     → Cns↓ X f↓ (η Γ f)
+
+  --   μ↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+  --     → {f : Frm Γ} (f↓ : Frm↓ X f)
+  --     → {c : Cns Γ f} (c↓ : Cns↓ X f↓ c)
+  --     → {δ : (p : Pos Γ c) → Cns Γ (Typ Γ c p)}
+  --     → (δ↓ : (p : Pos Γ c) → Cns↓ X (Typ↓ X c↓ p) (δ p))
+  --     → Cns↓ X f↓ (μ Γ c δ) 
 
   -- postulate
 
@@ -168,12 +174,6 @@ module OpetopicType where
   --             ε-ih p q = ε₁ (μₒ-pos ρ ι p q) 
 
   --     -- TODO: Grafting Axioms
-
-
-  𝕆Type = {!!}
-  Frm↓ = {!!} 
-  Cns↓ = {!!} 
-  Typ↓ = {!!} 
 
   -- 𝕆 ℓ zero = Lift Unit 
   -- 𝕆 ℓ (suc n) = Σ (𝕆 ℓ n) (λ Xₙ → {o : 𝒪 n} → Frm Xₙ o → Type ℓ)
