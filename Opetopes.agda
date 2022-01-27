@@ -44,7 +44,7 @@ module Opetopes where
     → (X : (p : Pos (ηₒ o)) → Type ℓ)
     → (ηₒ-pos* : X (ηₒ-pos o))
     → (p : Pos (ηₒ o)) → X p
-  
+
   {-# TERMINATING #-}
   μₒ : {n : ℕ} {o : 𝒪 n} → ⟦ 𝒫 ⟧ₒ o → 𝒫 o
 
