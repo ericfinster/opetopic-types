@@ -36,60 +36,59 @@ module OpetopicType where
       → Cns↓ X f↓ (η Γ f)
 
     μ↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
-      → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} (f↓ : Frm↓ X f)
+      → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} {f↓ : Frm↓ X f}
       → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
       → {𝑑 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
       → {δ : (p : Pos 𝑝) → Cns Γ (Shp Γ c p) (𝑑 p)}
       → (δ↓ : (p : Pos 𝑝) → Cns↓ X (Shp↓ X c↓ p) (δ p))
       → Cns↓ X f↓ (μ Γ c δ) 
 
+    η↓-shp : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+      → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} (f↓ : Frm↓ X f)
+      → (p : Pos (ηₒ 𝑜))
+      → Shp↓ X (η↓ X f↓) p ↦ f↓
+    {-# REWRITE η↓-shp #-}
+
+    μ↓-shp : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+      → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} (f↓ : Frm↓ X f)
+      → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
+      → {𝑑 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+      → {δ : (p : Pos 𝑝) → Cns Γ (Shp Γ c p) (𝑑 p)}
+      → (δ↓ : (p : Pos 𝑝) → Cns↓ X (Shp↓ X c↓ p) (δ p))
+      → (p : Pos (μₒ 𝑝 𝑑))
+      → Shp↓ X (μ↓ X c↓ δ↓) p ↦ Shp↓ X (δ↓ (μₒ-pos-fst 𝑝 𝑑 p)) (μₒ-pos-snd 𝑝 𝑑 p)
+    {-# REWRITE μ↓-shp #-} 
+
+    μ↓-unit-r : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+      → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} {f↓ : Frm↓ X f}
+      → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
+      → μ↓ X c↓ (λ p → η↓ X (Shp↓ X c↓ p)) ↦ c↓
+    {-# REWRITE μ↓-unit-r #-} 
+
+    μ↓-unit-l : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+      → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} {f↓ : Frm↓ X f}
+      → {𝑑 : (p : Pos (ηₒ 𝑜)) → 𝒫 (Typ (ηₒ 𝑜) p)}
+      → {δ : (p : Pos (ηₒ 𝑜)) → Cns Γ f (𝑑 p)}
+      → (δ↓ : (p : Pos (ηₒ 𝑜)) → Cns↓ X f↓ (δ p))
+      → μ↓ X (η↓ X f↓) δ↓ ↦ δ↓ (ηₒ-pos 𝑜)
+    {-# REWRITE μ↓-unit-l #-}
+
+    μ↓-assoc : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+      → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} {f↓ : Frm↓ X f}
+      → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
+      → {𝑑 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+      → {δ : (p : Pos 𝑝) → Cns Γ (Shp Γ c p) (𝑑 p)}
+      → (δ↓ : (p : Pos 𝑝) → Cns↓ X (Shp↓ X c↓ p) (δ p))
+      → {𝑒 : (p : Pos (μₒ 𝑝 𝑑)) → 𝒫 (Typ (μₒ 𝑝 𝑑) p)}
+      → {ε : (p : Pos (μₒ 𝑝 𝑑)) → Cns Γ (Shp Γ (μ Γ c δ) p) (𝑒 p)}
+      → (ε↓ : (p : Pos (μₒ 𝑝 𝑑)) → Cns↓ X (Shp↓ X (μ↓ X c↓ δ↓) p) (ε p))
+      → μ↓ X (μ↓ X c↓ δ↓) ε↓ ↦ μ↓ X c↓ (λ p → μ↓ X (δ↓ p) (λ q → ε↓ (μₒ-pos 𝑝 𝑑 p q)))
+    {-# REWRITE μ↓-assoc #-} 
+
   𝕆Type = {!!}
   Frm↓ = {!!}
   Cns↓ = {!!}
   Shp↓ = {!!}
-
-
-  -- postulate
-
-  --   η-pos-shp : ∀ {ℓ n} (X : 𝕆 ℓ n)
-  --     → {o : 𝒪 n} (f : Frm X o)
-  --     → (p : Pos (ηₒ o))
-  --     → Shp X (η X f) p ↦ f
-  --   {-# REWRITE η-pos-shp #-}
-
-  --   μ-pos-shp : ∀ {ℓ n} (X : 𝕆 ℓ n)
-  --     → {o : 𝒪 n} {f : Frm X o}
-  --     → {ρ : 𝒫 o} (c : Cns X f ρ)
-  --     → {ι : (p : Pos ρ) → 𝒫 (Typ ρ p)}
-  --     → (κ : (p : Pos ρ) → Cns X (Shp X c p) (ι p))
-  --     → (p : Pos (μₒ ρ ι))
-  --     → Shp X (μ X c κ) p ↦ Shp X (κ (μₒ-pos-fst ρ ι p)) (μₒ-pos-snd ρ ι p)
-  --   {-# REWRITE μ-pos-shp #-} 
-
-  --   -- Monad Laws
-  --   μ-unit-r : ∀ {n ℓ} (X : 𝕆 ℓ n)
-  --     → {o : 𝒪 n} (ρ : 𝒫 o)
-  --     → {f : Frm X o} (c : Cns X f ρ)
-  --     → μ X c (λ p → η X (Shp X c p)) ↦ c
-  --   {-# REWRITE μ-unit-r #-}
-
-  --   μ-unit-l : ∀ {n ℓ} (X : 𝕆 ℓ n)
-  --     → {o : 𝒪 n} (f : Frm X o)
-  --     → (ι : (p : Pos (ηₒ o)) → 𝒫 (Typ (ηₒ o) p))
-  --     → (δ : (p : Pos (ηₒ o)) → Cns X f (ι p))
-  --     → μ X (η X f) δ ↦ δ (ηₒ-pos o)
-  --   {-# REWRITE μ-unit-l #-} 
-
-  --   μ-assoc : ∀ {n ℓ} (X : 𝕆 ℓ n)
-  --     → {o : 𝒪 n} {f : Frm X o}
-  --     → {ρ : 𝒫 o} (c : Cns X f ρ)
-  --     → {ι : (p : Pos ρ) → 𝒫 (Typ ρ p)}
-  --     → (κ : (p : Pos ρ) → Cns X (Shp X c p) (ι p))
-  --     → (δ : (p : Pos (μₒ ρ ι)) → 𝒫 (Typ (μₒ ρ ι) p))
-  --     → (ε : (p : Pos (μₒ ρ ι)) → Cns X (Shp X (κ (μₒ-pos-fst ρ ι p)) (μₒ-pos-snd ρ ι p)) (δ p))
-  --     → μ X (μ X c κ) ε
-  --       ↦ μ X c (λ p → μ X (κ p) (λ q → ε (μₒ-pos ρ ι p q)))
-  --   {-# REWRITE μ-assoc #-} 
 
   -- --
   -- --  Definition of the Derived Monad 
