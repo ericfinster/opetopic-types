@@ -55,8 +55,8 @@ module OpetopicType where
       → {𝑑 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
       → {δ : (p : Pos 𝑝) → Cns Γ (Shp Γ c p) (𝑑 p)}
       → (δ↓ : (p : Pos 𝑝) → Cns↓ X (Shp↓ X c↓ p) (δ p))
-      → (p : Pos (μₒ 𝑝 𝑑))
-      → Shp↓ X (μ↓ X c↓ δ↓) p ↦ Shp↓ X (δ↓ (μₒ-pos-fst 𝑝 𝑑 p)) (μₒ-pos-snd 𝑝 𝑑 p)
+      → (p : Pos (μₒ (𝑝 , 𝑑)))
+      → Shp↓ X (μ↓ X c↓ δ↓) p ↦ Shp↓ X (δ↓ (fstₒ (𝑝 , 𝑑) p)) (sndₒ (𝑝 , 𝑑) p)
     {-# REWRITE μ↓-shp #-} 
 
     μ↓-unit-r : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
@@ -79,10 +79,10 @@ module OpetopicType where
       → {𝑑 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
       → {δ : (p : Pos 𝑝) → Cns Γ (Shp Γ c p) (𝑑 p)}
       → (δ↓ : (p : Pos 𝑝) → Cns↓ X (Shp↓ X c↓ p) (δ p))
-      → {𝑒 : (p : Pos (μₒ 𝑝 𝑑)) → 𝒫 (Typ (μₒ 𝑝 𝑑) p)}
-      → {ε : (p : Pos (μₒ 𝑝 𝑑)) → Cns Γ (Shp Γ (μ Γ c δ) p) (𝑒 p)}
-      → (ε↓ : (p : Pos (μₒ 𝑝 𝑑)) → Cns↓ X (Shp↓ X (μ↓ X c↓ δ↓) p) (ε p))
-      → μ↓ X (μ↓ X c↓ δ↓) ε↓ ↦ μ↓ X c↓ (λ p → μ↓ X (δ↓ p) (λ q → ε↓ (μₒ-pos 𝑝 𝑑 p q)))
+      → {𝑒 : (p : Pos (μₒ (𝑝 , 𝑑))) → 𝒫 (Typ (μₒ (𝑝 , 𝑑)) p)}
+      → {ε : (p : Pos (μₒ (𝑝 , 𝑑))) → Cns Γ (Shp Γ (μ Γ c δ) p) (𝑒 p)}
+      → (ε↓ : (p : Pos (μₒ (𝑝 , 𝑑))) → Cns↓ X (Shp↓ X (μ↓ X c↓ δ↓) p) (ε p))
+      → μ↓ X (μ↓ X c↓ δ↓) ε↓ ↦ μ↓ X c↓ (λ p → μ↓ X (δ↓ p) (λ q → ε↓ (pairₒ (𝑝 , 𝑑) p q)))
     {-# REWRITE μ↓-assoc #-} 
 
 
@@ -101,33 +101,33 @@ module OpetopicType where
     --   → (p : Pos (μₒ 𝑝 ι)) → Xₛₙ (Shp Xₙ (μ Xₙ c δ) p)
     -- μ-dec {𝑝 = 𝑝} c ι δ ν p = ν (μₒ-pos-fst 𝑝 ι p) (μₒ-pos-snd 𝑝 ι p)
 
-    record WebFrm↓ {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} (φ : WebFrm Γₙ Γₛₙ 𝑜 𝑝) : Type ℓ where
-      inductive
-      eta-equality
-      constructor ⟪_,_,_,_⟫↓
-      field
-        frm↓ : Frm↓ Xₙ (frm φ)
-        cns↓ : Cns↓ Xₙ frm↓ (cns φ)
-        tgt↓ : Xₛₙ frm↓
-        src↓ : (p : Pos 𝑝) → Xₛₙ (Shp↓ Xₙ cns↓ p)
+    -- record WebFrm↓ {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} (φ : WebFrm Γₙ Γₛₙ 𝑜 𝑝) : Type ℓ where
+    --   inductive
+    --   eta-equality
+    --   constructor ⟪_,_,_,_⟫↓
+    --   field
+    --     frm↓ : Frm↓ Xₙ (frm φ)
+    --     cns↓ : Cns↓ Xₙ frm↓ (cns φ)
+    --     tgt↓ : Xₛₙ frm↓
+    --     src↓ : (p : Pos 𝑝) → Xₛₙ (Shp↓ Xₙ cns↓ p)
 
-    open WebFrm↓ public
+    -- open WebFrm↓ public
 
     -- This is simply the action of the appropriate polynomial.
     -- Perhaps you could simplify things a bit by making this
     -- a formal definition?
     
-    CnsAndDec : {𝑜 : 𝒪 n} {f : Frm Γₙ 𝑜} (f↓ : Frm↓ Xₙ f)
-      → {𝑝 : 𝒫 𝑜} (c : Cns Γₙ f 𝑝)
-      → Type ℓ
-    CnsAndDec f↓ {𝑝 = 𝑝} c = Σ (Cns↓ Xₙ f↓ c) (λ c↓ → (p : Pos 𝑝) → Xₛₙ (Shp↓ Xₙ c↓ p)) 
+    -- CnsAndDec : {𝑜 : 𝒪 n} {f : Frm Γₙ 𝑜} (f↓ : Frm↓ Xₙ f)
+    --   → {𝑝 : 𝒫 𝑜} (c : Cns Γₙ f 𝑝)
+    --   → Type ℓ
+    -- CnsAndDec f↓ {𝑝 = 𝑝} c = Σ (Cns↓ Xₙ f↓ c) (λ c↓ → (p : Pos 𝑝) → Xₛₙ (Shp↓ Xₙ c↓ p)) 
 
-    Web↓ : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {φ : WebFrm Γₙ Γₛₙ 𝑜 𝑝} {𝑡 : 𝒯r 𝑜 𝑝}
-      → WebFrm↓ φ → Web Γₙ Γₛₙ φ 𝑡 → Type ℓ
-    Web↓ {φ = ⟪ f , ._ , g , ._ ⟫} ⟪ f↓ , c↓ , x↓ , ν↓ ⟫↓ (lf 𝑜) =
-      Ident (CnsAndDec f↓ (η Γₙ f)) (c↓ , ν↓) (η↓ Xₙ f↓ , const x↓)
-    Web↓ {φ = ⟪ f , ._ , g , ._ ⟫} ⟪ f↓ , c↓ , x↓ , ν↓ ⟫↓ (nd φ 𝑑 𝑒 δ ν ε) =
-      Ident (CnsAndDec f↓ (μ Γₙ (cns φ) δ)) (c↓ , ν↓) ({!!} , {!!})
+    -- Web↓ : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {φ : WebFrm Γₙ Γₛₙ 𝑜 𝑝} {𝑡 : 𝒯r 𝑜 𝑝}
+    --   → WebFrm↓ φ → Web Γₙ Γₛₙ φ 𝑡 → Type ℓ
+    -- Web↓ {φ = ⟪ f , ._ , g , ._ ⟫} ⟪ f↓ , c↓ , x↓ , ν↓ ⟫↓ (lf 𝑜) =
+    --   Ident (CnsAndDec f↓ (η Γₙ f)) (c↓ , ν↓) (η↓ Xₙ f↓ , const x↓)
+    -- Web↓ {φ = ⟪ f , ._ , g , ._ ⟫} ⟪ f↓ , c↓ , x↓ , ν↓ ⟫↓ (nd φ 𝑑 𝑒 δ ν ε) =
+    --   Ident (CnsAndDec f↓ (μ Γₙ (cns φ) δ)) (c↓ , ν↓) ({!!} , {!!})
 
     -- data Web : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} → WebFrm 𝑜 𝑝 → 𝒯r 𝑜 𝑝 → Type ℓ where
 
