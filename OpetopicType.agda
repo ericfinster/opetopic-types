@@ -105,17 +105,15 @@ module OpetopicType where
 
     Web↓ : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {φ : WebFrm Γₙ Γₛₙ 𝑝} {𝑡 : 𝒯r 𝑝}
       → WebFrm↓ φ → Web Γₙ Γₛₙ φ 𝑡 → Type ℓ
-    Web↓ {𝑜} {𝑝} {f , x , ._ , ._} (f↓ , x↓ , c↓ , y↓) (lf x) =
-      Ident (IdentType f↓ (η Γₙ f)) (η↓ Xₙ f↓ , const x↓) (c↓ , y↓)
-    Web↓ (f↓ , x↓ , c↓ , y↓) (nd x c y d z ψ) = {!!}
-
-    --   nd : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} (φ : WebFrm 𝑜 𝑝)
-    --     → (ι : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
-    --     → (κ : (p : Pos 𝑝) → 𝒯r (Typ 𝑝 p) (ι p))
-    --     → (δ : (p : Pos 𝑝) → Cns Xₙ (Shp Xₙ (cns φ) p) (ι p))
-    --     → (ν : (p : Pos 𝑝) (q : Pos (ι p)) → Xₛₙ (Shp Xₙ (δ p) q))
-    --     → (ε : (p : Pos 𝑝) → Web ⟪ Shp Xₙ (cns φ) p , δ p , src φ p , ν p ⟫ (κ p)) 
-    --     → Web ⟪ frm φ , μ Xₙ (cns φ) δ , tgt φ , μ-dec (cns φ) ι δ ν ⟫ (ndₒ 𝑜 𝑝 ι κ) 
+    Web↓ {𝑜} .{_} {f , x , ._ , ._} (f↓ , x↓ , ηc↓ , ηy↓) (lf x) =
+      Ident (IdentType f↓ (η Γₙ f)) (η↓ Xₙ f↓ , const x↓) (ηc↓ , ηy↓)
+    Web↓ {𝑜} .{_}  {f , x , ._ , ._} (f↓ , x↓ , μc↓ , μy↓) (nd .{𝑜} {𝑝} {𝑞} x c y d z ψ) =
+      Σ[ c↓ ∈ Cns↓ Xₙ f↓ c ]
+      Σ[ y↓ ∈ ((p : Pos 𝑝) → Xₛₙ (Shp↓ Xₙ c↓ p)) ]
+      Σ[ d↓ ∈ ((p : Pos 𝑝) → Cns↓ Xₙ (Shp↓ Xₙ c↓ p) (d p)) ]
+      Σ[ z↓ ∈ ((p : Pos 𝑝) (q : Pos (𝑞 p)) → Xₛₙ (Shp↓ Xₙ (d↓ p) q)) ]
+      Σ[ ψ↓ ∈ ((p : Pos 𝑝) → Web↓ (Shp↓ Xₙ c↓ p , y↓ p , d↓ p , z↓ p) (ψ p)) ]
+      Ident (IdentType f↓ (μ Γₙ c d)) ({!!} , {!!}) (μc↓ , μy↓)
 
   𝕆Type = {!!}
   Frm↓ = {!!}
