@@ -15,7 +15,7 @@ open import OpetopicCtx
 module OpetopicType where
 
   𝕆Type : ∀ {ℓ₀ n} (Γ : 𝕆Ctx ℓ₀ n)
-    → (ℓ : Level) → Type (ℓ-suc ℓ)
+    → (ℓ : Level) → Type (ℓ-max ℓ₀ (ℓ-suc ℓ))
 
   Frm↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
     → {𝑜 : 𝒪 n} (f : Frm Γ 𝑜) → Type ℓ
@@ -87,35 +87,56 @@ module OpetopicType where
 
 
   module _ {ℓ₀ ℓ n} (Γₙ : 𝕆Ctx ℓ₀ n) (Γₛₙ : {𝑜 : 𝒪 n} (f : Frm Γₙ 𝑜) → Type ℓ₀)
-           (Xₙ : 𝕆Type Γₙ ℓ) (Xₛₙ : {𝑜 : 𝒪 n} {f : Frm Γₙ 𝑜} (f↓ : Frm↓ Xₙ f) → Type ℓ)
+           (Xₙ : 𝕆Type Γₙ ℓ) (Xₛₙ : {𝑜 : 𝒪 n} {f : Frm Γₙ 𝑜} (f↓ : Frm↓ Xₙ f) → Γₛₙ f → Type ℓ)
     where
 
     IdentType : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
-      → {f : Frm Γₙ 𝑜} (f↓ : Frm↓ Xₙ f)
-      → Cns Γₙ f 𝑝 → Type ℓ
-    IdentType {𝑝 = 𝑝} f↓ c = 
+      → {f : Frm Γₙ 𝑜} (c : Cns Γₙ f 𝑝)
+      → (y : (p : Pos 𝑝) → Γₛₙ (Shp Γₙ c p))
+      → (f↓ : Frm↓ Xₙ f)
+      → Type ℓ
+    IdentType {𝑝 = 𝑝} c y f↓ = 
       Σ[ c↓ ∈ Cns↓ Xₙ f↓ c ]
-      ((p : Pos 𝑝) → Xₛₙ (Shp↓ Xₙ c↓ p)) 
+      ((p : Pos 𝑝) → Xₛₙ (Shp↓ Xₙ c↓ p) (y p))
 
     WebFrm↓ : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} (φ : WebFrm Γₙ Γₛₙ 𝑝) → Type ℓ
     WebFrm↓ {𝑝 = 𝑝} (f , x , c , y) = 
       Σ[ f↓ ∈ Frm↓ Xₙ f ]
-      Σ[ x↓ ∈ Xₛₙ f↓ ]
-      IdentType f↓ c
+      Σ[ x↓ ∈ Xₛₙ f↓ x ]
+      IdentType c y f↓
 
     Web↓ : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {φ : WebFrm Γₙ Γₛₙ 𝑝} {𝑡 : 𝒯r 𝑝}
       → WebFrm↓ φ → Web Γₙ Γₛₙ φ 𝑡 → Type ℓ
     Web↓ {𝑜} .{_} {f , x , ._ , ._} (f↓ , x↓ , ηc↓ , ηy↓) (lf x) =
-      Ident (IdentType f↓ (η Γₙ f)) (η↓ Xₙ f↓ , const x↓) (ηc↓ , ηy↓)
+      Ident (IdentType (η Γₙ f) (const x) f↓) (η↓ Xₙ f↓ , const x↓) (ηc↓ , ηy↓)
     Web↓ {𝑜} .{_}  {f , x , ._ , ._} (f↓ , x↓ , μc↓ , μy↓) (nd .{𝑜} {𝑝} {𝑞} x c y d z ψ) =
       Σ[ c↓ ∈ Cns↓ Xₙ f↓ c ]
-      Σ[ y↓ ∈ ((p : Pos 𝑝) → Xₛₙ (Shp↓ Xₙ c↓ p)) ]
+      Σ[ y↓ ∈ ((p : Pos 𝑝) → Xₛₙ (Shp↓ Xₙ c↓ p) (y p)) ]
       Σ[ d↓ ∈ ((p : Pos 𝑝) → Cns↓ Xₙ (Shp↓ Xₙ c↓ p) (d p)) ]
-      Σ[ z↓ ∈ ((p : Pos 𝑝) (q : Pos (𝑞 p)) → Xₛₙ (Shp↓ Xₙ (d↓ p) q)) ]
+      Σ[ z↓ ∈ ((p : Pos 𝑝) (q : Pos (𝑞 p)) → Xₛₙ (Shp↓ Xₙ (d↓ p) q) (z p q)) ]
       Σ[ ψ↓ ∈ ((p : Pos 𝑝) → Web↓ (Shp↓ Xₙ c↓ p , y↓ p , d↓ p , z↓ p) (ψ p)) ]
-      Ident (IdentType f↓ (μ Γₙ c d)) ({!!} , {!!}) (μc↓ , μy↓)
+      Ident (IdentType (μ Γₙ c d) (λ p → z (fstₒ (𝑝 , 𝑞) p) (sndₒ (𝑝 , 𝑞) p)) f↓)
+        (μ↓ Xₙ c↓ d↓ , λ p → z↓ (fstₒ (𝑝 , 𝑞) p) (sndₒ (𝑝 , 𝑞) p)) (μc↓ , μy↓)
 
-  𝕆Type = {!!}
+  --
+  --  Implementations
+  --
+  
+  𝕆Type {n = zero} Γ ℓ = Lift Unit
+  𝕆Type {n = suc n} (Γₙ , Γₛₙ) ℓ =
+    Σ[ Xₙ ∈ 𝕆Type Γₙ ℓ ]
+    ({𝑜 : 𝒪 n} {f : Frm Γₙ 𝑜} (f↓ : Frm↓ Xₙ f) → Γₛₙ f → Type ℓ)
+
+  -- Frm {n = zero} X tt = Lift Unit
+  -- Frm {n = suc n} (Γₙ , Γₛₙ) (𝑜 , 𝑝) = WebFrm Γₙ Γₛₙ 𝑝 
+
+  -- Cns {n = zero} _ _ _ = Lift Unit 
+  -- Cns {n = suc n} (Γₙ , Γₛₙ) {𝑜 , 𝑝} = Web Γₙ Γₛₙ {𝑜} {𝑝} 
+  
+  -- Shp {n = zero} _ _ _ = lift tt
+  -- Shp {n = suc n} (Γₙ , Γₛₙ) {𝑜 , 𝑝} ψ p = WebShp Γₙ Γₛₙ ψ p
+
+
   Frm↓ = {!!}
   Cns↓ = {!!}
   Shp↓ = {!!}
