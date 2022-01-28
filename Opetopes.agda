@@ -97,18 +97,6 @@ module Opetopes where
       → Typ (μₒ 𝑝) p ↦ Typ (snd 𝑝 (fstₒ 𝑝 p)) (sndₒ 𝑝 p)
     {-# REWRITE pairₒ-typ #-}
 
-  --
-  --  Monad action on families (not sure we need this ...)
-  --
-
-  ηₘ : ∀ {ℓ n} → (X : 𝒪 n → Type ℓ)
-    → {𝑜 : 𝒪 n} → X 𝑜 → ⟦ X ⟧ₒ 𝑜
-  ηₘ X {𝑜} x = ηₒ 𝑜 , const x
-
-  μₘ : ∀ {ℓ n} → (X : 𝒪 n → Type ℓ)
-    → {𝑜 : 𝒪 n} → ⟦ ⟦ X ⟧ₒ ⟧ₒ 𝑜 → ⟦ X ⟧ₒ 𝑜
-  μₘ X {𝑜} (𝑝 , 𝑑) = μₒ (𝑝 , fst ∘ 𝑑) , λ p → snd (𝑑 (fstₒ _ p)) (sndₒ _ p) 
-
   postulate
 
     -- μₒ laws

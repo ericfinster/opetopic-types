@@ -12,4 +12,4 @@ module Prelude where
 
   -- Inductive identity types.
   data Ident {ℓ} (A : Type ℓ) (a : A) : A → Type ℓ where
-    refl : Ident A a a 
+    idp : Ident A a a 
