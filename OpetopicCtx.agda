@@ -25,83 +25,59 @@ module OpetopicCtx where
     → {𝑝 : 𝒫 𝑜} (c : Cns Γ f 𝑝)
     → (p : Pos 𝑝) → Frm Γ (Typ 𝑝 p) 
 
-  -- I'm not sure this really helped.  The dependencies get
-  -- complicated no matter what you do ....
-  -- Dec : ∀ {n ℓ ℓ' ℓ''} {Γ : 𝕆Ctx ℓ n}
-  --   → {P : 𝒪 n → Type ℓ''}
-  --   → (X : {𝑜 : 𝒪 n} → Frm Γ 𝑜 → P 𝑜 → Type ℓ')
-  --   → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
-  --   → {𝑝 : 𝒫 𝑜} (𝑞 : Decₒ P 𝑝)
-  --   → Cns Γ f 𝑝 → Type ℓ'
-  -- Dec X {𝑝 = 𝑝} 𝑞 c = (p : Pos 𝑝) → X (Shp _ c p) (𝑞 p) 
-
-  -- ⟦_⟧ : ∀ {n ℓ ℓ' ℓ''} {Γ : 𝕆Ctx ℓ n}
-  --   → {P : 𝒪 n → Type ℓ''}
-  --   → (X : {𝑜 : 𝒪 n} → Frm Γ 𝑜 → P 𝑜 → Type ℓ')
-  --   → {𝑜 : 𝒪 n} → Frm Γ 𝑜 → ⟦ P ⟧ₒ 𝑜 → Type (ℓ-max ℓ ℓ')
-  -- ⟦ X ⟧ {𝑜} f (𝑝 , 𝑞) = Σ (Cns _ f 𝑝) (Dec X 𝑞)
-
-  -- Dec' : ∀ {n ℓ ℓ'} {Γ : 𝕆Ctx ℓ n}
-  --   → (X : {𝑜 : 𝒪 n} → Frm Γ 𝑜 → Type ℓ')
-  --   → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
-  --   → {𝑝 : 𝒫 𝑜} → Cns Γ f 𝑝 → Type ℓ'
-  -- Dec' X {𝑝 = 𝑝} c = (p : Pos 𝑝) → X (Shp _ c p)
-
-  -- ⟦_⟧' : ∀ {n ℓ ℓ'} {Γ : 𝕆Ctx ℓ n}
-  --   → (X : {𝑜 : 𝒪 n} → Frm Γ 𝑜 → Type ℓ')
-  --   → {𝑜 : 𝒪 n} (f : Frm Γ 𝑜) (𝑝 : 𝒫 𝑜)
-  --   → Type (ℓ-max ℓ ℓ')
-  -- ⟦ X ⟧' f 𝑝 = Σ (Cns _ f 𝑝) (λ c → Dec' X c)
-
-
-  -- Monadic signature
-  
   η : ∀ {n ℓ} (Γ : 𝕆Ctx ℓ n)
     → {𝑜 : 𝒪 n} (f : Frm Γ 𝑜)
     → Cns Γ f (ηₒ 𝑜)
 
   μ : ∀ {n ℓ} (Γ : 𝕆Ctx ℓ n)
-    → {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜}
-    → {f : Frm Γ 𝑜} (c : Cns Γ f (fst 𝑝))
-    → (d : (p : Pos (fst 𝑝)) → Cns Γ (Shp Γ c p) (snd 𝑝 p))
-    → Cns Γ f (μₒ 𝑝)
-    
+    → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
+    → {𝑝 : 𝒫 𝑜} (c : Cns Γ f 𝑝)
+    → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+    → (d : (p : Pos 𝑝) → Cns Γ (Shp Γ c p) (𝑞 p))
+    → Cns Γ f (μₒ (𝑝 , 𝑞))
+
   postulate
 
-    η-pos-shp : ∀ {ℓ n} (X : 𝕆Ctx ℓ n)
-      → {𝑜 : 𝒪 n} (f : Frm X 𝑜)
+    η-pos-shp : ∀ {ℓ n} (Γ : 𝕆Ctx ℓ n)
+      → {𝑜 : 𝒪 n} (f : Frm Γ 𝑜)
       → (p : Pos (ηₒ 𝑜))
-      → Shp X (η X f) p ↦ f
+      → Shp Γ (η Γ f) p ↦ f
     {-# REWRITE η-pos-shp #-}
 
-    μ-pos-shp : ∀ {n ℓ} (Γ : 𝕆Ctx ℓ n)
-      → {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜}
-      → {f : Frm Γ 𝑜} (c : Cns Γ f (fst 𝑝))
-      → (d : (p : Pos (fst 𝑝)) → Cns Γ (Shp Γ c p) (snd 𝑝 p))
-      → (p : Pos (μₒ 𝑝))
-      → Shp Γ (μ Γ c) p ↦ Shp Γ (snd c (fstₒ 𝑝 p)) (sndₒ 𝑝 p)
-    {-# REWRITE μ-pos-shp #-}
+    μ-pos-shp : ∀ {ℓ n} (Γ : 𝕆Ctx ℓ n)
+      → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
+      → {𝑝 : 𝒫 𝑜} (c : Cns Γ f 𝑝)
+      → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+      → (d : (p : Pos 𝑝) → Cns Γ (Shp Γ c p) (𝑞 p))
+      → (p : Pos (μₒ (𝑝 , 𝑞)))
+      → Shp Γ (μ Γ c d) p ↦ Shp Γ (d (fstₒ (𝑝 , 𝑞) p)) (sndₒ (𝑝 , 𝑞) p)
+    {-# REWRITE μ-pos-shp #-} 
 
     -- Monad Laws
     μ-unit-r : ∀ {n ℓ} (Γ : 𝕆Ctx ℓ n)
       → {𝑜 : 𝒪 n} (𝑝 : 𝒫 𝑜)
       → {f : Frm Γ 𝑜} (c : Cns Γ f 𝑝)
-      → μ Γ (c , λ p → η Γ (Shp Γ c p)) ↦ c
+      → μ Γ c (λ p → η Γ (Shp Γ c p)) ↦ c
     {-# REWRITE μ-unit-r #-}
 
     μ-unit-l : ∀ {n ℓ} (Γ : 𝕆Ctx ℓ n)
       → {𝑜 : 𝒪 n} (f : Frm Γ 𝑜)
-      → (𝑞 : Decₒ 𝒫 (ηₒ 𝑜))
-      → (d : Dec (Cns Γ) 𝑞 (η Γ f))
-      → μ Γ (η Γ f , d) ↦ d (ηₒ-pos 𝑜)
+      → (𝑞 : (p : Pos (ηₒ 𝑜)) → 𝒫 (Typ (ηₒ 𝑜) p))
+      → (d : (p : Pos (ηₒ 𝑜)) → Cns Γ f (𝑞 p))
+      → μ Γ (η Γ f) d ↦ d (ηₒ-pos 𝑜)
     {-# REWRITE μ-unit-l #-} 
 
     μ-assoc : ∀ {n ℓ} (Γ : 𝕆Ctx ℓ n)
-      → {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} (𝑒 : Decₒ 𝒫 (μₒ 𝑝))
-      → {f : Frm Γ 𝑜} (c : ⟦ Cns Γ ⟧ f 𝑝) (ε : Dec (Cns Γ) 𝑒 (μ Γ c))
-      → μ Γ (μ Γ c , ε) ↦ μ Γ (fst c , λ p → μ Γ (snd c p , λ q → ε (pairₒ 𝑝 p q)))
-    {-# REWRITE μ-assoc #-} 
-
+      → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
+      → {𝑝 : 𝒫 𝑜} (c : Cns Γ f 𝑝)
+      → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+      → (d : (p : Pos 𝑝) → Cns Γ (Shp Γ c p) (𝑞 p))
+      → (𝑟 : (p : Pos (μₒ (𝑝 , 𝑞))) → 𝒫 (Typ (μₒ (𝑝 , 𝑞)) p))
+      → (e : (p : Pos (μₒ (𝑝 , 𝑞))) → Cns Γ (Shp Γ (d (fstₒ (𝑝 , 𝑞) p)) (sndₒ (𝑝 , 𝑞) p)) (𝑟 p))
+      → μ Γ (μ Γ c d) e
+        ↦ μ Γ c (λ p → μ Γ (d p) (λ q → e (pairₒ (𝑝 , 𝑞) p q)))
+    {-# REWRITE μ-assoc #-}
+    
   --
   --  Definition of the Derived Monad 
   --
@@ -126,26 +102,27 @@ module OpetopicCtx where
         → {𝑠 : (p : Pos 𝑝) → 𝒯r (𝑞 p)}
         → (d : (p : Pos 𝑝) → Cns Γₙ (Shp Γₙ c p) (𝑞 p))
         → (z : (p : Pos 𝑝) (q : Pos (𝑞 p)) → Γₛₙ (Shp Γₙ (d p) q))
-        → (ψ : (p : Pos 𝑝) → Web (Shp Γₙ c p , y p , d p , z p ) (𝑠 p)) 
-        → Web (f , x , μ Γₙ (c , d) , λ p → z (fstₒ (𝑝 , 𝑞) p) (sndₒ (𝑝 , 𝑞) p)) (ndₒ (𝑝 , 𝑞) 𝑠) 
+        → (ψ : (p : Pos 𝑝) → Web (Shp Γₙ c p , y p , d p , z p) (𝑠 p)) 
+        → Web (f , x , μ Γₙ c d , λ p → z (fstₒ (𝑝 , 𝑞) p) (sndₒ (𝑝 , 𝑞) p)) (ndₒ (𝑝 , 𝑞) 𝑠) 
 
-    -- WebShp : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {φ : WebFrm 𝑝} {𝑡 : 𝒯r 𝑝}
-    --   → (ω : Web φ 𝑡) (p : 𝒯rPos 𝑡)
-    --   → WebFrm (snd (𝒯rTyp 𝑡 p))
-    -- WebShp {φ = (f , x , ._ , ._)} {𝑡 = ndₒ (𝑝 , 𝑞) 𝑒} (c , y , d , θ , ε , refl) (inl tt) = f , x , c , y
-    -- WebShp {φ = (f , x , ._ , ._)} {𝑡 = ndₒ (𝑝 , 𝑞) 𝑒} (c , y , d , θ , ε , refl) (inr (p , q)) = WebShp (ε p) q
-
-    graft : {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
-      → {𝑠 : 𝒯r (fst 𝑝)} {𝑡 : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p)}
-      → {f : Frm Γₙ 𝑜} (x : Γₛₙ f)
-      → (c : Cns Γₙ f (fst 𝑝))
-      → (y : Dec' Γₛₙ c)
+    WebShp : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {φ : WebFrm 𝑝} {𝑡 : 𝒯r 𝑝}
+      → (ω : Web φ 𝑡) (p : 𝒯rPos 𝑡)
+      → WebFrm (snd (𝒯rTyp 𝑡 p))
+    WebShp (nd x c y d z ψ) (inl tt) = _ , x , c , y
+    WebShp (nd x c y d z ψ) (inr (p , q)) = WebShp (ψ p) q
+    
+    graft : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+      → {𝑠 : 𝒯r 𝑝} {f : Frm Γₙ 𝑜} (x : Γₛₙ f) (c : Cns Γₙ f 𝑝)
+      → (y : (p : Pos 𝑝) → Γₛₙ (Shp Γₙ c p))
       → (ψ : Web (f , x , c , y) 𝑠)
-      → (d : Dec (Cns Γₙ) (snd 𝑝) c)
-      → (z : (p : Pos (fst 𝑝)) (q : Pos (snd 𝑝 p)) → Γₛₙ (Shp Γₙ (d p) q))
-      → (ω : (p : Pos (fst 𝑝)) → Web (Shp Γₙ c p , y p , d p , z p) (𝑡 p)) 
-      → Web (f , x , μ Γₙ (c , d) , λ p → z (fstₒ 𝑝 p) (sndₒ 𝑝 p)) (γₒ 𝑠 𝑡)
-    graft = {!!} 
+      → {𝑡 : (p : Pos 𝑝) → 𝒯r (𝑞 p)}
+      → (d : (p : Pos 𝑝) → Cns Γₙ (Shp Γₙ c p) (𝑞 p))
+      → (z : (p : Pos 𝑝) (q : Pos (𝑞 p)) → Γₛₙ (Shp Γₙ (d p) q))
+      → (ω : (p : Pos 𝑝) → Web (Shp Γₙ c p , y p , d p , z p) (𝑡 p)) 
+      → Web (f , x , μ Γₙ c d , λ p → z (fstₒ (𝑝 , 𝑞) p) (sndₒ (𝑝 , 𝑞) p)) (γₒ 𝑠 𝑡)
+    graft {𝑜} x ._ ._ (lf .x) d z ω = ω (ηₒ-pos 𝑜)
+    graft x ._ ._ (nd {𝑜} {𝑝} {𝑞} .x c y d z ψ) dd zz ω =
+      nd x c y {!!} {!!} {!!} -- graft (y p) (d p) (z p) (ψ p)
 
   --   graft (lf {𝑜} {f} x) 𝑞₁ 𝑒₁ d₁ y₁ ε₁ = ε₁ (ηₒ-pos 𝑜)
   --   graft (nd {𝑝 = 𝑝} φ 𝑞 𝑒 d y ε) 𝑞₁ 𝑒₁ d₁ y₁ ε₁ =
@@ -156,20 +133,14 @@ module OpetopicCtx where
   --         ε' p = graft (ε p) (𝑞-ih p) (𝑒-ih p) (d-ih p) (y-ih p) (ε-ih p)
   --     in nd φ 𝑞' 𝑒' d' y' ε'  
 
-  --       where 𝑞-ih : (p : Pos 𝑝) (q : Pos (𝑞 p)) → 𝒫 (Typ (𝑞 p) q)
-  --             𝑞-ih p q = 𝑞₁ (pairₒ 𝑝 𝑞 p q)
-
-  --             𝑒-ih : (p : Pos 𝑝) (q : Pos (𝑞 p)) → 𝒯r (Typ (𝑞 p) q) (𝑞-ih p q)
-  --             𝑒-ih p q = 𝑒₁ (pairₒ 𝑝 𝑞 p q)
-
-  --             d-ih : (p : Pos 𝑝) (q : Pos (𝑞 p)) → Cns Γₙ (Shp Γₙ (d p) q) (𝑞-ih p q)
-  --             d-ih p q = d₁ (pairₒ 𝑝 𝑞 p q)
+        -- where dd-ih : (p : Pos 𝑝) (q : Pos (𝑞 p)) → Cns Γₙ (Shp Γₙ (dd p) q) _
+        --       dd-ih p q = dd (pairₒ (𝑝 , 𝑞) p q)
   
-  --             y-ih : (p : Pos 𝑝) (q : Pos (𝑞 p)) (r : Pos (𝑞-ih p q))  → Γₛₙ (Shp Γₙ (d-ih p q) r)
-  --             y-ih p q = y₁ (pairₒ 𝑝 𝑞 p q)
+              -- z-ih : (p : Pos 𝑝) (q : Pos (𝑞 p)) (r : Pos (𝑞-ih p q))  → Γₛₙ (Shp Γₙ (d-ih p q) r)
+              -- z-ih p q = z (pairₒ (𝑝 , 𝑞) p q)
 
-  --             ε-ih : (p : Pos 𝑝) (q : Pos (𝑞 p)) → Web ⟪ Shp Γₙ (d p) q , d-ih p q , y p q , y-ih p q ⟫ (𝑒-ih p q)
-  --             ε-ih p q = ε₁ (pairₒ 𝑝 𝑞 p q) 
+              -- ω-ih : (p : Pos 𝑝) (q : Pos (𝑞 p)) → Web (Shp Γₙ (d p) q , d-ih p q , z p q , z-ih p q) (𝑒-ih p q)
+              -- ω-ih p q = ω (pairₒ (𝑝 , 𝑞) p q) 
 
   --     -- TODO: Grafting Axioms
 
@@ -183,17 +154,17 @@ module OpetopicCtx where
   Cns {n = suc n} (Γₙ , Γₛₙ) {𝑜 , 𝑝} = Web Γₙ Γₛₙ {𝑜} {𝑝} 
   
   Shp {n = zero} _ _ _ = lift tt
-  Shp {n = suc n} (Γₙ , Γₛₙ) {𝑜 , 𝑝} ψ p = {!!} -- WebShp Γₙ Γₛₙ ω p
+  Shp {n = suc n} (Γₙ , Γₛₙ) {𝑜 , 𝑝} ψ p = WebShp Γₙ Γₛₙ ψ p
   
   -- η : ∀ {n ℓ} (Γ : 𝕆Ctx ℓ n)
   --   → {𝑜 : 𝒪 n} (f : Frm Γ 𝑜)
   --   → Cns Γ f (ηₒ 𝑜)
   η {n = zero} Γ f = lift tt
-  η {n = suc n} (Γₙ , Γₛₙ) {𝑜 , 𝑝} (f , x , c , y) = {!!} 
-    -- let d p = η Γₙ (Shp Γₙ c p)
-    --     θ p q = y p
-    --     ε p = idp
-    -- in c , y , d , θ , ε , idp
+  η {n = suc n} (Γₙ , Γₛₙ) {𝑜 , 𝑝} (f , x , c , y) =  
+    let d p = η Γₙ (Shp Γₙ c p)
+        z p q = y p
+        ψ p = lf (y p) 
+    in nd x c y d z ψ
     
   -- -- μ : ∀ {n ℓ} (X : 𝕆Ctx ℓ n)
   -- --   → {𝑜 : 𝒪 n} {f : Frm X 𝑜}
