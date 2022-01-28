@@ -112,37 +112,27 @@ module OpetopicCtx where
     WebShp (nd x c y d z ψ) (inl tt) = _ , x , c , y
     WebShp (nd x c y d z ψ) (inr (p , q)) = WebShp (ψ p) q
     
-    graft : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+    graft : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} 
       → {𝑠 : 𝒯r 𝑝} {f : Frm Γₙ 𝑜} (x : Γₛₙ f) (c : Cns Γₙ f 𝑝)
       → (y : (p : Pos 𝑝) → Γₛₙ (Shp Γₙ c p))
       → (ψ : Web (f , x , c , y) 𝑠)
+      → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
       → {𝑡 : (p : Pos 𝑝) → 𝒯r (𝑞 p)}
       → (d : (p : Pos 𝑝) → Cns Γₙ (Shp Γₙ c p) (𝑞 p))
       → (z : (p : Pos 𝑝) (q : Pos (𝑞 p)) → Γₛₙ (Shp Γₙ (d p) q))
       → (ω : (p : Pos 𝑝) → Web (Shp Γₙ c p , y p , d p , z p) (𝑡 p)) 
       → Web (f , x , μ Γₙ c d , λ p → z (fstₒ (𝑝 , 𝑞) p) (sndₒ (𝑝 , 𝑞) p)) (γₒ 𝑠 𝑡)
     graft {𝑜} x ._ ._ (lf .x) d z ω = ω (ηₒ-pos 𝑜)
-    graft {𝑞 = 𝑞𝑞} x ._ ._ (nd {𝑜} {𝑝} {𝑞} .x c y d z ψ) {𝑡𝑡} dd zz ω =
-      let d' p = μ Γₙ (d p) (d-ih p)
-          z' p q = zz (pairₒ (𝑝 , 𝑞) p (fstₒ (𝑞 p , 𝑞-ih p) q)) (sndₒ (𝑞 p , 𝑞-ih p) q)
-          ω' p = graft (y p) (d p) (z p) (ψ p) (d-ih p) (z-ih p) (ω-ih p)
-      in nd x c y d' z' ω'
-
-        where 𝑞-ih : (p : Pos 𝑝) (q : Pos (𝑞 p)) → 𝒫 (Typ (𝑞 p) q)
-              𝑞-ih p q = 𝑞𝑞 (pairₒ (𝑝 , 𝑞) p q)
-
-              𝑡-ih : (p : Pos 𝑝) (q : Pos (𝑞 p)) → 𝒯r (𝑞-ih p q)
-              𝑡-ih p q = 𝑡𝑡 (pairₒ (𝑝 , 𝑞) p q)
-
-              d-ih : (p : Pos 𝑝) (q : Pos (𝑞 p)) → Cns Γₙ (Shp Γₙ (d p) q) (𝑞-ih p q)
-              d-ih p q = dd (pairₒ (𝑝 , 𝑞) p q)
-  
-              z-ih : (p : Pos 𝑝) (q : Pos (𝑞 p)) (r : Pos (𝑞-ih p q))  → Γₛₙ (Shp Γₙ (d-ih p q) r)
-              z-ih p q = zz (pairₒ (𝑝 , 𝑞) p q)
-
-              ω-ih : (p : Pos 𝑝) (q : Pos (𝑞 p)) → Web (Shp Γₙ (d p) q , z p q , d-ih p q , z-ih p q) (𝑡-ih p q)
-              ω-ih p q = ω (pairₒ (𝑝 , 𝑞) p q) 
-
+    graft {_} x ._ ._ (nd {𝑜} {𝑝} {𝑞} .x c y d z ψ) {𝑞𝑞} dd zz ω =
+      nd x c y
+        (λ p → μ Γₙ (d p) (λ q → dd (pairₒ (𝑝 , 𝑞) p q)))
+        (λ p q → zz (pairₒ (𝑝 , 𝑞) p (fstₒ (𝑞 p , λ q → 𝑞𝑞 (pairₒ (𝑝 , 𝑞) p q)) q))
+                    (sndₒ (𝑞 p , λ q → 𝑞𝑞 (pairₒ (𝑝 , 𝑞) p q)) q))
+        (λ p → graft (y p) (d p) (z p) (ψ p)
+                 (λ q → dd (pairₒ (𝑝 , 𝑞) p q))
+                 (λ q → zz (pairₒ (𝑝 , 𝑞) p q))
+                 (λ q → ω (pairₒ (𝑝 , 𝑞) p q)))
+    
       -- TODO: Grafting Axioms
 
   𝕆Ctx ℓ zero = Lift Unit 
