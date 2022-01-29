@@ -17,66 +17,64 @@ module OpetopicSub where
   _⇒_ : ∀ {ℓ₀ ℓ₁ n} → 𝕆Ctx ℓ₀ n → 𝕆Ctx ℓ₁ n
     → Type (ℓ-max ℓ₀ ℓ₁)
 
-  Frm⇒ : ∀ {ℓ₀ ℓ₁ n} {X : 𝕆Ctx ℓ₀ n} {Y : 𝕆Ctx ℓ₁ n} (α : X ⇒ Y)
-    → {o : 𝒪 n} → Frm X o → Frm Y o
+  Frm⇒ : ∀ {ℓ₀ ℓ₁ n} {Γ : 𝕆Ctx ℓ₀ n} {Δ : 𝕆Ctx ℓ₁ n} (σ : Γ ⇒ Δ)
+    → {o : 𝒪 n} → Frm Γ o → Frm Δ o
     
-  Cns⇒ : ∀ {ℓ₀ ℓ₁ n} {X : 𝕆Ctx ℓ₀ n} {Y : 𝕆Ctx ℓ₁ n} (α : X ⇒ Y)
-    → {o : 𝒪 n} {ρ : 𝒫 o} {f : Frm X o}
-    → Cns X f ρ → Cns Y (Frm⇒ α f) ρ
+  Cns⇒ : ∀ {ℓ₀ ℓ₁ n} {Γ : 𝕆Ctx ℓ₀ n} {Δ : 𝕆Ctx ℓ₁ n} (σ : Γ ⇒ Δ)
+    → {o : 𝒪 n} {ρ : 𝒫 o} {f : Frm Γ o}
+    → Cns Γ f ρ → Cns Δ (Frm⇒ σ f) ρ
 
   postulate
 
-    Shp-Frm⇒ : ∀ {ℓ₀ ℓ₁ n} {X : 𝕆Ctx ℓ₀ n} {Y : 𝕆Ctx ℓ₁ n} (α : X ⇒ Y)
-      → {o : 𝒪 n} {ρ : 𝒫 o} {f : Frm X o} (c : Cns X f ρ) (p : Pos ρ)
-      → Frm⇒ α (Shp X c p) ↦ Shp Y (Cns⇒ α c) p
+    Shp-Frm⇒ : ∀ {ℓ₀ ℓ₁ n} {Γ : 𝕆Ctx ℓ₀ n} {Δ : 𝕆Ctx ℓ₁ n} (σ : Γ ⇒ Δ)
+      → {o : 𝒪 n} {ρ : 𝒫 o} {f : Frm Γ o} (c : Cns Γ f ρ) (p : Pos ρ)
+      → Frm⇒ σ (Shp Γ c p) ↦ Shp Δ (Cns⇒ σ c) p
     {-# REWRITE Shp-Frm⇒ #-} 
 
-    η⇒ : ∀ {ℓ₀ ℓ₁ n} {X : 𝕆Ctx ℓ₀ n} {Y : 𝕆Ctx ℓ₁ n} (α : X ⇒ Y)
-      → {o : 𝒪 n} (f : Frm X o)
-      → Cns⇒ α (η X f) ↦ η Y (Frm⇒ α f)
+    η⇒ : ∀ {ℓ₀ ℓ₁ n} {Γ : 𝕆Ctx ℓ₀ n} {Δ : 𝕆Ctx ℓ₁ n} (σ : Γ ⇒ Δ)
+      → {o : 𝒪 n} (f : Frm Γ o)
+      → Cns⇒ σ (η Γ f) ↦ η Δ (Frm⇒ σ f)
     {-# REWRITE η⇒ #-} 
 
-    μ⇒ : ∀ {ℓ₀ ℓ₁ n} {X : 𝕆Ctx ℓ₀ n} {Y : 𝕆Ctx ℓ₁ n} (α : X ⇒ Y)
-      → {o : 𝒪 n} {f : Frm X o}
-      → {ρ : 𝒫 o} (c : Cns X f ρ)
+    μ⇒ : ∀ {ℓ₀ ℓ₁ n} {Γ : 𝕆Ctx ℓ₀ n} {Δ : 𝕆Ctx ℓ₁ n} (σ : Γ ⇒ Δ)
+      → {o : 𝒪 n} {f : Frm Γ o}
+      → {ρ : 𝒫 o} (c : Cns Γ f ρ)
       → {ι : (p : Pos ρ) → 𝒫 (Typ ρ p)}
-      → (κ : (p : Pos ρ) → Cns X (Shp X c p) (ι p))
-      → Cns⇒ α (μ X c κ) ↦ μ Y (Cns⇒ α c) (λ p → Cns⇒ α (κ p))
+      → (κ : (p : Pos ρ) → Cns Γ (Shp Γ c p) (ι p))
+      → Cns⇒ σ (μ Γ c κ) ↦ μ Δ (Cns⇒ σ c) (λ p → Cns⇒ σ (κ p))
     {-# REWRITE μ⇒ #-}
 
-  module _ {ℓ₀ ℓ₁ n} {Xₙ : 𝕆Ctx ℓ₀ n} {Yₙ : 𝕆Ctx ℓ₁ n}
-           (Xₛₙ : {o : 𝒪 n} → Frm Xₙ o → Type ℓ₀)
-           (Yₛₙ : {o : 𝒪 n} → Frm Yₙ o → Type ℓ₁)
-           (αₙ : Xₙ ⇒ Yₙ) (αₛₙ : {o : 𝒪 n} {f : Frm Xₙ o} → Xₛₙ f → Yₛₙ (Frm⇒ αₙ f)) where
+  module _ {ℓ₀ ℓ₁ n} {Γₙ : 𝕆Ctx ℓ₀ n} {Δₙ : 𝕆Ctx ℓ₁ n}
+           (Γₛₙ : {o : 𝒪 n} → Frm Γₙ o → Type ℓ₀)
+           (Δₛₙ : {o : 𝒪 n} → Frm Δₙ o → Type ℓ₁)
+           (σₙ : Γₙ ⇒ Δₙ) (σₛₙ : {o : 𝒪 n} {f : Frm Γₙ o} → Γₛₙ f → Δₛₙ (Frm⇒ σₙ f)) where
 
     WebFrm⇒ : {o : 𝒪 n} {ρ : 𝒫 o}
-      → WebFrm Xₙ Xₛₙ o ρ → WebFrm Yₙ Yₛₙ o ρ 
-    WebFrm⇒ φ = ⟪ Frm⇒ αₙ (frm φ) , Cns⇒ αₙ (cns φ) ,
-                  αₛₙ (tgt φ) , (λ p → αₛₙ (src φ p)) ⟫ 
+      → WebFrm Γₙ Γₛₙ ρ → WebFrm Δₙ Δₛₙ ρ 
+    WebFrm⇒ (f , x , c , y) = Frm⇒ σₙ f , σₛₙ x , Cns⇒ σₙ c , λ p → σₛₙ (y p) 
 
     Web⇒ : {o : 𝒪 n} {ρ : 𝒫 o}
-      → {φ : WebFrm Xₙ Xₛₙ o ρ} {τ : 𝒯r o ρ}
-      → Web Xₙ Xₛₙ φ τ → Web Yₙ Yₛₙ (WebFrm⇒ φ) τ 
-    Web⇒ (lf x) = lf (αₛₙ x)
-    Web⇒ (nd φ ι κ δ ν ε) =
-      nd (WebFrm⇒ φ) ι κ
-        (λ p → Cns⇒ αₙ (δ p))
-        (λ p q → αₛₙ (ν p q))
-        (λ p → Web⇒ (ε p))
+      → {φ : WebFrm Γₙ Γₛₙ ρ} {τ : 𝒯r ρ}
+      → Web Γₙ Γₛₙ φ τ → Web Δₙ Δₛₙ (WebFrm⇒ φ) τ 
+    Web⇒ (lf x) = lf (σₛₙ x)
+    Web⇒ (nd x c y d z ψ) =
+      nd (σₛₙ x) (Cns⇒ σₙ c) (σₛₙ ∘ y) (Cns⇒ σₙ ∘ d)
+         (λ p q → σₛₙ (z p q)) (Web⇒ ∘ ψ) 
+
 
   _⇒_ {n = zero} _ _ = Lift Unit
-  _⇒_ {n = suc n} (Xₙ , Xₛₙ) (Yₙ , Yₛₙ) =
-    Σ (Xₙ ⇒ Yₙ) (λ α →
-     {o : 𝒪 n} {f : Frm Xₙ o}
-     → Xₛₙ f → Yₛₙ (Frm⇒ α f))
+  _⇒_ {n = suc n} (Γₙ , Γₛₙ) (Δₙ , Δₛₙ) =
+    Σ (Γₙ ⇒ Δₙ) (λ σ →
+     {o : 𝒪 n} {f : Frm Γₙ o}
+     → Γₛₙ f → Δₛₙ (Frm⇒ σ f))
 
-  Frm⇒ {n = zero} α _ = lift tt
-  Frm⇒ {n = suc n} {Xₙ , Xₛₙ} {Yₙ , Yₛₙ} (αₙ , αₛₙ) =
-    WebFrm⇒ Xₛₙ Yₛₙ αₙ αₛₙ
+  Frm⇒ {n = zero} σ _ = lift tt
+  Frm⇒ {n = suc n} {Γₙ , Γₛₙ} {Δₙ , Δₛₙ} (σₙ , σₛₙ) =
+    WebFrm⇒ Γₛₙ Δₛₙ σₙ σₛₙ
 
   Cns⇒ {n = zero} _ _ = lift tt
-  Cns⇒ {n = suc n} {Xₙ , Xₛₙ} {Yₙ , Yₛₙ} (αₙ , αₛₙ) =
-    Web⇒ Xₛₙ Yₛₙ αₙ αₛₙ
+  Cns⇒ {n = suc n} {Γₙ , Γₛₙ} {Δₙ , Δₛₙ} (σₙ , σₛₙ) =
+    Web⇒ Γₛₙ Δₛₙ σₙ σₛₙ
   
   --
   --  Composition
@@ -84,25 +82,25 @@ module OpetopicSub where
 
   infixr 30 _⊚_
   
-  _⊚_ : ∀ {ℓ₀ ℓ₁ ℓ₂ n} {X : 𝕆Ctx ℓ₀ n} {Y : 𝕆Ctx ℓ₁ n} {Z : 𝕆Ctx ℓ₂ n}
-    → (Y ⇒ Z) → (X ⇒ Y) → (X ⇒ Z)
+  _⊚_ : ∀ {ℓ₀ ℓ₁ ℓ₂ n} {Γ : 𝕆Ctx ℓ₀ n} {Δ : 𝕆Ctx ℓ₁ n} {Θ : 𝕆Ctx ℓ₂ n}
+    → (Δ ⇒ Θ) → (Γ ⇒ Δ) → (Γ ⇒ Θ)
 
   postulate
 
-    ⊚-Frm : ∀ {ℓ₀ ℓ₁ ℓ₂ n} {X : 𝕆Ctx ℓ₀ n} {Y : 𝕆Ctx ℓ₁ n} {Z : 𝕆Ctx ℓ₂ n}
-      → (α : Y ⇒ Z) (β : X ⇒ Y) (o : 𝒪 n) (f : Frm X o)
-      → Frm⇒ (α ⊚ β) f ↦ Frm⇒ α (Frm⇒ β f)
+    ⊚-Frm : ∀ {ℓ₀ ℓ₁ ℓ₂ n} {Γ : 𝕆Ctx ℓ₀ n} {Δ : 𝕆Ctx ℓ₁ n} {Θ : 𝕆Ctx ℓ₂ n}
+      → (σ : Δ ⇒ Θ) (τ : Γ ⇒ Δ) (o : 𝒪 n) (f : Frm Γ o)
+      → Frm⇒ (σ ⊚ τ) f ↦ Frm⇒ σ (Frm⇒ τ f)
     {-# REWRITE ⊚-Frm #-}
 
     ⊚-assoc : ∀ {ℓ₀ ℓ₁ ℓ₂ ℓ₃ n}
-      → {X : 𝕆Ctx ℓ₀ n} {Y : 𝕆Ctx ℓ₁ n} {Z : 𝕆Ctx ℓ₂ n} {W : 𝕆Ctx ℓ₃ n}
-      → (α : Z ⇒ W) (β : Y ⇒ Z) (γ : X ⇒ Y)
-      → (α ⊚ β) ⊚ γ ↦ α ⊚ β ⊚ γ
+      → {Γ : 𝕆Ctx ℓ₀ n} {Δ : 𝕆Ctx ℓ₁ n} {Θ : 𝕆Ctx ℓ₂ n} {W : 𝕆Ctx ℓ₃ n}
+      → (σ : Θ ⇒ W) (τ : Δ ⇒ Θ) (γ : Γ ⇒ Δ)
+      → (σ ⊚ τ) ⊚ γ ↦ σ ⊚ τ ⊚ γ
     {-# REWRITE ⊚-assoc #-}
 
     -- And unit laws ...
 
-  _⊚_ {n = zero} α β = lift tt
-  _⊚_ {n = suc n} {Xₙ , Xₛₙ} {Yₙ , Yₛₙ} {Zₙ , Zₛₙ} (αₙ , αₛₙ) (βₙ , βₛₙ) =
-    αₙ ⊚ βₙ , λ x → αₛₙ (βₛₙ x)
+  _⊚_ {n = zero} σ τ = lift tt
+  _⊚_ {n = suc n} {Γₙ , Γₛₙ} {Δₙ , Δₛₙ} {Θₙ , Θₛₙ} (σₙ , σₛₙ) (τₙ , τₛₙ) =
+    σₙ ⊚ τₙ , λ x → σₛₙ (τₛₙ x)
 
