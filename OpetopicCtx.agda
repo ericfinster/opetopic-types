@@ -168,7 +168,7 @@ module OpetopicCtx where
   μ {suc n} (Γₙ , Γₛₙ) (nd x c y d z ψ) ω =
     graft Γₙ Γₛₙ x c y (ω (inl tt)) d z 
       (λ p → μ (Γₙ , Γₛₙ) (ψ p) (λ q → ω (inr (p , q))))
-      
+
   --
   -- The terminal opetopic context
   --

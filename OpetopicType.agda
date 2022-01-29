@@ -29,19 +29,20 @@ module OpetopicType where
     → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
     → (p : Pos 𝑝) → Frm↓ X (Shp Γ c p) 
 
+  η↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+    → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} (f↓ : Frm↓ X f)
+    → Cns↓ X f↓ (η Γ f)
+
+  {-# TERMINATING #-}
+  μ↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+    → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} {f↓ : Frm↓ X f}
+    → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
+    → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+    → {d : (p : Pos 𝑝) → Cns Γ (Shp Γ c p) (𝑞 p)}
+    → (d↓ : (p : Pos 𝑝) → Cns↓ X (Shp↓ X c↓ p) (d p))
+    → Cns↓ X f↓ (μ Γ c d)
+    
   postulate
-
-    η↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
-      → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} (f↓ : Frm↓ X f)
-      → Cns↓ X f↓ (η Γ f)
-
-    μ↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
-      → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} {f↓ : Frm↓ X f}
-      → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
-      → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
-      → {d : (p : Pos 𝑝) → Cns Γ (Shp Γ c p) (𝑞 p)}
-      → (d↓ : (p : Pos 𝑝) → Cns↓ X (Shp↓ X c↓ p) (d p))
-      → Cns↓ X f↓ (μ Γ c d) 
 
     η↓-shp : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
       → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} (f↓ : Frm↓ X f)
@@ -170,4 +171,29 @@ module OpetopicType where
   
   Shp↓ {n = zero} _ _ _ = lift tt
   Shp↓ {n = suc n} (Xₙ , Xₛₙ) ω↓ p = WebShp↓ Xₙ Xₛₙ ω↓ p
+
+
+  -- η↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+  --   → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} (f↓ : Frm↓ X f)
+  --   → Cns↓ X f↓ (η Γ f)
+  η↓ {n = zero} X f↓ = lift tt
+  η↓ {n = suc n} (Xₙ , Xₛₙ) (f↓ , x↓ , c↓ , y↓) = 
+    let d↓ p = η↓ Xₙ (Shp↓ Xₙ c↓ p)
+        z↓ p q = y↓ p
+        ψ↓ p = idp
+    in (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) 
+
+  -- μ↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+  --   → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} {f↓ : Frm↓ X f}
+  --   → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
+  --   → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+  --   → {d : (p : Pos 𝑝) → Cns Γ (Shp Γ c p) (𝑞 p)}
+  --   → (d↓ : (p : Pos 𝑝) → Cns↓ X (Shp↓ X c↓ p) (d p))
+  --   → Cns↓ X f↓ (μ Γ c d) 
+  μ↓ {n = zero} X c↓ d↓ = lift tt
+  μ↓ {n = suc n} (Xₙ , Xₛₙ) {c = lf x} c↓ ω↓ = c↓
+  μ↓ {n = suc n} (Xₙ , Xₛₙ) {c = nd x c y d z ψ} (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) ω↓ = 
+    graft↓ Xₙ Xₛₙ _ c↓ y↓ (ω↓ (inl tt)) d↓ z↓
+      (λ p → μ↓ (Xₙ , Xₛₙ) (ψ↓ p) (λ q → ω↓ (inr (p , q))))
+
 
