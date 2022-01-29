@@ -14,27 +14,27 @@ open import OpetopicCtx
 
 module OpetopicType where
 
-  𝕆Type : ∀ {ℓ₀ n} (Γ : 𝕆Ctx ℓ₀ n)
+  𝕆Type : ∀ {n ℓ₀} (Γ : 𝕆Ctx n ℓ₀)
     → (ℓ : Level) → Type (ℓ-max ℓ₀ (ℓ-suc ℓ))
 
-  Frm↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+  Frm↓ : ∀ {n ℓ₀ ℓ} {Γ : 𝕆Ctx n ℓ₀} (X : 𝕆Type Γ ℓ)
     → {𝑜 : 𝒪 n} (f : Frm Γ 𝑜) → Type ℓ
     
-  Cns↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+  Cns↓ : ∀ {n ℓ₀ ℓ} {Γ : 𝕆Ctx n ℓ₀} (X : 𝕆Type Γ ℓ)
     → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} (f↓ : Frm↓ X f)
     → {𝑝 : 𝒫 𝑜} (c : Cns Γ f 𝑝) → Type ℓ 
 
-  Shp↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+  Shp↓ : ∀ {n ℓ₀ ℓ} {Γ : 𝕆Ctx n ℓ₀} (X : 𝕆Type Γ ℓ)
     → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} {f↓ : Frm↓ X f}
     → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
     → (p : Pos 𝑝) → Frm↓ X (Shp Γ c p) 
 
-  η↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+  η↓ : ∀ {n ℓ₀ ℓ} {Γ : 𝕆Ctx n ℓ₀} (X : 𝕆Type Γ ℓ)
     → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} (f↓ : Frm↓ X f)
     → Cns↓ X f↓ (η Γ f)
 
   {-# TERMINATING #-}
-  μ↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+  μ↓ : ∀ {n ℓ₀ ℓ} {Γ : 𝕆Ctx n ℓ₀} (X : 𝕆Type Γ ℓ)
     → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} {f↓ : Frm↓ X f}
     → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
     → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
@@ -44,13 +44,13 @@ module OpetopicType where
     
   postulate
 
-    η↓-shp : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+    η↓-shp : ∀ {n ℓ₀ ℓ} {Γ : 𝕆Ctx n ℓ₀} (X : 𝕆Type Γ ℓ)
       → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} (f↓ : Frm↓ X f)
       → (p : Pos (ηₒ 𝑜))
       → Shp↓ X (η↓ X f↓) p ↦ f↓
     {-# REWRITE η↓-shp #-}
 
-    μ↓-shp : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+    μ↓-shp : ∀ {n ℓ₀ ℓ} {Γ : 𝕆Ctx n ℓ₀} (X : 𝕆Type Γ ℓ)
       → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} (f↓ : Frm↓ X f)
       → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
       → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
@@ -60,13 +60,13 @@ module OpetopicType where
       → Shp↓ X (μ↓ X c↓ d↓) p ↦ Shp↓ X (d↓ (fstₒ (𝑝 , 𝑞) p)) (sndₒ (𝑝 , 𝑞) p)
     {-# REWRITE μ↓-shp #-} 
 
-    μ↓-unit-r : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+    μ↓-unit-r : ∀ {n ℓ₀ ℓ} {Γ : 𝕆Ctx n ℓ₀} (X : 𝕆Type Γ ℓ)
       → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} {f↓ : Frm↓ X f}
       → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
       → μ↓ X c↓ (λ p → η↓ X (Shp↓ X c↓ p)) ↦ c↓
     {-# REWRITE μ↓-unit-r #-} 
 
-    μ↓-unit-l : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+    μ↓-unit-l : ∀ {n ℓ₀ ℓ} {Γ : 𝕆Ctx n ℓ₀} (X : 𝕆Type Γ ℓ)
       → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} {f↓ : Frm↓ X f}
       → {𝑞 : (p : Pos (ηₒ 𝑜)) → 𝒫 (Typ (ηₒ 𝑜) p)}
       → {d : (p : Pos (ηₒ 𝑜)) → Cns Γ f (𝑞 p)}
@@ -74,7 +74,7 @@ module OpetopicType where
       → μ↓ X (η↓ X f↓) d↓ ↦ d↓ (ηₒ-pos 𝑜)
     {-# REWRITE μ↓-unit-l #-}
 
-    μ↓-assoc : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+    μ↓-assoc : ∀ {n ℓ₀ ℓ} {Γ : 𝕆Ctx n ℓ₀} (X : 𝕆Type Γ ℓ)
       → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} {f↓ : Frm↓ X f}
       → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
       → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
@@ -87,7 +87,7 @@ module OpetopicType where
     {-# REWRITE μ↓-assoc #-} 
 
 
-  module _ {ℓ₀ ℓ n} {Γₙ : 𝕆Ctx ℓ₀ n} {Γₛₙ : {𝑜 : 𝒪 n} (f : Frm Γₙ 𝑜) → Type ℓ₀}
+  module _ {n ℓ₀ ℓ} {Γₙ : 𝕆Ctx n ℓ₀} {Γₛₙ : {𝑜 : 𝒪 n} (f : Frm Γₙ 𝑜) → Type ℓ₀}
            (Xₙ : 𝕆Type Γₙ ℓ) (Xₛₙ : {𝑜 : 𝒪 n} {f : Frm Γₙ 𝑜} (f↓ : Frm↓ Xₙ f) → Γₛₙ f → Type ℓ)
     where
 
@@ -173,7 +173,7 @@ module OpetopicType where
   Shp↓ {n = suc n} (Xₙ , Xₛₙ) ω↓ p = WebShp↓ Xₙ Xₛₙ ω↓ p
 
 
-  -- η↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+  -- η↓ : ∀ {n ℓ₀ ℓ} {Γ : 𝕆Ctx n ℓ₀} (X : 𝕆Type Γ ℓ)
   --   → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} (f↓ : Frm↓ X f)
   --   → Cns↓ X f↓ (η Γ f)
   η↓ {n = zero} X f↓ = lift tt
@@ -183,7 +183,7 @@ module OpetopicType where
         ψ↓ p = idp
     in (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) 
 
-  -- μ↓ : ∀ {ℓ₀ ℓ n} {Γ : 𝕆Ctx ℓ₀ n} (X : 𝕆Type Γ ℓ)
+  -- μ↓ : ∀ {n ℓ₀ ℓ} {Γ : 𝕆Ctx n ℓ₀} (X : 𝕆Type Γ ℓ)
   --   → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜} {f↓ : Frm↓ X f}
   --   → {𝑝 : 𝒫 𝑜} {c : Cns Γ f 𝑝} (c↓ : Cns↓ X f↓ c)
   --   → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}

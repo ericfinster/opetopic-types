@@ -1,5 +1,5 @@
 --
---  OpetopicType.agda - Definition of Opetopic Types Indexed over Opetopes
+--  OpetopicCtx.agda - Opetopic Contexts
 --
 
 open import Cubical.Foundations.Everything
@@ -14,23 +14,25 @@ open import Opetopes
 
 module OpetopicCtx where
 
-  𝕆Ctx : (ℓ : Level) → ℕ → Type (ℓ-suc ℓ)
+  -- Ech.  You should invert the order of the
+  -- level and dimension here....
+  𝕆Ctx : ℕ → (ℓ : Level) → Type (ℓ-suc ℓ)
   
-  Frm : ∀ {ℓ n} → 𝕆Ctx ℓ n → 𝒪 n → Type ℓ
-  Cns : ∀ {ℓ n} (Γ : 𝕆Ctx ℓ n)
+  Frm : ∀ {n ℓ} → 𝕆Ctx n ℓ → 𝒪 n → Type ℓ
+  Cns : ∀ {n ℓ} (Γ : 𝕆Ctx n ℓ)
     → {𝑜 : 𝒪 n} (f : Frm Γ 𝑜)
     → 𝒫 𝑜 → Type ℓ 
-  Shp : ∀ {ℓ n} (Γ : 𝕆Ctx ℓ n)
+  Shp : ∀ {n ℓ} (Γ : 𝕆Ctx n ℓ)
     → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
     → {𝑝 : 𝒫 𝑜} (c : Cns Γ f 𝑝)
     → (p : Pos 𝑝) → Frm Γ (Typ 𝑝 p) 
 
-  η : ∀ {n ℓ} (Γ : 𝕆Ctx ℓ n)
+  η : ∀ {n ℓ} (Γ : 𝕆Ctx n ℓ)
     → {𝑜 : 𝒪 n} (f : Frm Γ 𝑜)
     → Cns Γ f (ηₒ 𝑜)
 
   {-# TERMINATING #-}
-  μ : ∀ {n ℓ} (Γ : 𝕆Ctx ℓ n)
+  μ : ∀ {n ℓ} (Γ : 𝕆Ctx n ℓ)
     → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
     → {𝑝 : 𝒫 𝑜} (c : Cns Γ f 𝑝)
     → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
@@ -39,13 +41,13 @@ module OpetopicCtx where
 
   postulate
 
-    η-pos-shp : ∀ {ℓ n} (Γ : 𝕆Ctx ℓ n)
+    η-pos-shp : ∀ {n ℓ} (Γ : 𝕆Ctx n ℓ)
       → {𝑜 : 𝒪 n} (f : Frm Γ 𝑜)
       → (p : Pos (ηₒ 𝑜))
       → Shp Γ (η Γ f) p ↦ f
     {-# REWRITE η-pos-shp #-}
 
-    μ-pos-shp : ∀ {ℓ n} (Γ : 𝕆Ctx ℓ n)
+    μ-pos-shp : ∀ {n ℓ} (Γ : 𝕆Ctx n ℓ)
       → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
       → {𝑝 : 𝒫 𝑜} (c : Cns Γ f 𝑝)
       → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
@@ -55,20 +57,20 @@ module OpetopicCtx where
     {-# REWRITE μ-pos-shp #-} 
 
     -- Monad Laws
-    μ-unit-r : ∀ {n ℓ} (Γ : 𝕆Ctx ℓ n)
+    μ-unit-r : ∀ {n ℓ} (Γ : 𝕆Ctx n ℓ)
       → {𝑜 : 𝒪 n} (𝑝 : 𝒫 𝑜)
       → {f : Frm Γ 𝑜} (c : Cns Γ f 𝑝)
       → μ Γ c (λ p → η Γ (Shp Γ c p)) ↦ c
     {-# REWRITE μ-unit-r #-}
 
-    μ-unit-l : ∀ {n ℓ} (Γ : 𝕆Ctx ℓ n)
+    μ-unit-l : ∀ {n ℓ} (Γ : 𝕆Ctx n ℓ)
       → {𝑜 : 𝒪 n} (f : Frm Γ 𝑜)
       → (𝑞 : (p : Pos (ηₒ 𝑜)) → 𝒫 (Typ (ηₒ 𝑜) p))
       → (d : (p : Pos (ηₒ 𝑜)) → Cns Γ f (𝑞 p))
       → μ Γ (η Γ f) d ↦ d (ηₒ-pos 𝑜)
     {-# REWRITE μ-unit-l #-} 
 
-    μ-assoc : ∀ {n ℓ} (Γ : 𝕆Ctx ℓ n)
+    μ-assoc : ∀ {n ℓ} (Γ : 𝕆Ctx n ℓ)
       → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
       → {𝑝 : 𝒫 𝑜} (c : Cns Γ f 𝑝)
       → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
@@ -83,7 +85,7 @@ module OpetopicCtx where
   --  Definition of the Derived Monad 
   --
 
-  module _ {ℓ n} (Γₙ : 𝕆Ctx ℓ n) (Γₛₙ : {𝑜 : 𝒪 n} (f : Frm Γₙ 𝑜) → Type ℓ) where
+  module _ {ℓ n} (Γₙ : 𝕆Ctx n ℓ) (Γₛₙ : {𝑜 : 𝒪 n} (f : Frm Γₙ 𝑜) → Type ℓ) where
   
     WebFrm : {𝑜 : 𝒪 n} (𝑝 : 𝒫 𝑜) →  Type ℓ
     WebFrm {𝑜} 𝑝 =
@@ -135,29 +137,29 @@ module OpetopicCtx where
     
       -- TODO: Grafting Axioms
 
-  𝕆Ctx ℓ zero = Lift Unit 
-  𝕆Ctx ℓ (suc n) = Σ (𝕆Ctx ℓ n) (λ Γₙ → {𝑜 : 𝒪 n} → Frm Γₙ 𝑜 → Type ℓ)
+  𝕆Ctx zero ℓ = Lift Unit 
+  𝕆Ctx (suc n) ℓ = Σ (𝕆Ctx n ℓ) (λ Γₙ → {𝑜 : 𝒪 n} → Frm Γₙ 𝑜 → Type ℓ)
   
-  Frm {n = zero} X tt = Lift Unit
-  Frm {n = suc n} (Γₙ , Γₛₙ) (𝑜 , 𝑝) = WebFrm Γₙ Γₛₙ 𝑝 
+  Frm {zero} X tt = Lift Unit
+  Frm {suc n} (Γₙ , Γₛₙ) (𝑜 , 𝑝) = WebFrm Γₙ Γₛₙ 𝑝 
 
-  Cns {n = zero} _ _ _ = Lift Unit 
-  Cns {n = suc n} (Γₙ , Γₛₙ) {𝑜 , 𝑝} = Web Γₙ Γₛₙ {𝑜} {𝑝} 
+  Cns {zero} _ _ _ = Lift Unit 
+  Cns {suc n} (Γₙ , Γₛₙ) {𝑜 , 𝑝} = Web Γₙ Γₛₙ {𝑜} {𝑝} 
   
-  Shp {n = zero} _ _ _ = lift tt
-  Shp {n = suc n} (Γₙ , Γₛₙ) {𝑜 , 𝑝} ψ p = WebShp Γₙ Γₛₙ ψ p
+  Shp {zero} _ _ _ = lift tt
+  Shp {suc n} (Γₙ , Γₛₙ) {𝑜 , 𝑝} ψ p = WebShp Γₙ Γₛₙ ψ p
   
-  -- η : ∀ {n ℓ} (Γ : 𝕆Ctx ℓ n)
+  -- η : ∀ {n ℓ} (Γ : 𝕆Ctx n ℓ)
   --   → {𝑜 : 𝒪 n} (f : Frm Γ 𝑜)
   --   → Cns Γ f (ηₒ 𝑜)
-  η {n = zero} Γ f = lift tt
-  η {n = suc n} (Γₙ , Γₛₙ) {𝑜 , 𝑝} (f , x , c , y) =  
+  η {zero} Γ f = lift tt
+  η {suc n} (Γₙ , Γₛₙ) {𝑜 , 𝑝} (f , x , c , y) =  
     let d p = η Γₙ (Shp Γₙ c p)
         z p q = y p
         ψ p = lf (y p) 
     in nd x c y d z ψ
 
-  -- μ : ∀ {n ℓ} (Γ : 𝕆Ctx ℓ n)
+  -- μ : ∀ {n ℓ} (Γ : 𝕆Ctx n ℓ)
   --   → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
   --   → {𝑝 : 𝒫 𝑜} (c : Cns Γ f 𝑝)
   --   → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
@@ -172,6 +174,6 @@ module OpetopicCtx where
   --
   -- The terminal opetopic context
   --
-  𝕋 : ∀ {ℓ} (n : ℕ) → 𝕆Ctx ℓ n
+  𝕋 : (n : ℕ) → 𝕆Ctx n ℓ-zero
   𝕋 zero = lift tt
   𝕋 (suc n) = 𝕋 n , λ _ → Lift Unit 
