@@ -9,6 +9,7 @@ open import Cubical.Data.Nat
 open import Prelude
 open import Opetopes
 open import OpetopicCtx
+open import OpetopicType
 
 module OpetopicSub where
 
@@ -103,4 +104,67 @@ module OpetopicSub where
   _⊚_ {n = zero} σ τ = lift tt
   _⊚_ {n = suc n} {Γₙ , Γₛₙ} {Δₙ , Δₛₙ} {Θₙ , Θₛₙ} (σₙ , σₛₙ) (τₙ , τₛₙ) =
     σₙ ⊚ τₙ , λ x → σₛₙ (τₛₙ x)
+
+  --
+  --  Action of substitutions on types
+  --
+
+  -- Oh, shoot.  We should allow different universe in the contexts
+  -- here ....
+  
+  _[_]ty : ∀ {n ℓ₀ ℓ₁} {Γ Δ : 𝕆Ctx ℓ₀ n}
+    → (X : 𝕆Type Δ ℓ₁) (σ : Γ ⇒ Δ) 
+    → 𝕆Type Γ ℓ₁
+
+  [_⊙_] : ∀ {n ℓ₀ ℓ₁} {Γ Δ : 𝕆Ctx ℓ₀ n} {X : 𝕆Type Δ ℓ₁}
+    → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
+    → (σ : Γ ⇒ Δ)
+    → Frm↓ (X [ σ ]ty) f 
+    → Frm↓ X (Frm⇒ σ f)
+
+  -- Again, to fix this, isolate the dimension in a module
+  {-# TERMINATING #-}
+  [_⊙_]c : ∀ {n ℓ₀ ℓ₁} {Γ Δ : 𝕆Ctx ℓ₀ n} {X : 𝕆Type Δ ℓ₁}
+    → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {f : Frm Γ 𝑜} {c : Cns Γ f 𝑝} 
+    → (σ : Γ ⇒ Δ) {f↓ : Frm↓ (X [ σ ]ty) f}
+    → Cns↓ (X [ σ ]ty) f↓ c
+    → Cns↓ X [ σ ⊙ f↓ ] (Cns⇒ σ c)
+
+  postulate
+
+    Shp-⊙ : ∀ {n ℓ₀ ℓ₁} {Γ Δ : 𝕆Ctx ℓ₀ n} {X : 𝕆Type Δ ℓ₁}
+      → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {f : Frm Γ 𝑜} {c : Cns Γ f 𝑝} 
+      → (σ : Γ ⇒ Δ) {f↓ : Frm↓ (X [ σ ]ty) f}
+      → (c↓ : Cns↓ (X [ σ ]ty) f↓ c) (p : Pos 𝑝)
+      → [ σ ⊙ Shp↓ (X [ σ ]ty) c↓ p ] ↦ Shp↓ X [ σ ⊙ c↓ ]c p 
+    {-# REWRITE Shp-⊙ #-}
+
+    η-⊙ : ∀ {n ℓ₀ ℓ₁} {Γ Δ : 𝕆Ctx ℓ₀ n} {X : 𝕆Type Δ ℓ₁}
+      → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
+      → (σ : Γ ⇒ Δ) (f↓ : Frm↓ (X [ σ ]ty) f)
+      → [ σ ⊙ η↓ (X [ σ ]ty) f↓ ]c ↦ η↓ X [ σ ⊙ f↓ ]
+    {-# REWRITE η-⊙ #-}
+
+    μ-⊙ : ∀ {n ℓ₀ ℓ₁} {Γ Δ : 𝕆Ctx ℓ₀ n} {X : 𝕆Type Δ ℓ₁}
+      → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {f : Frm Γ 𝑜} {c : Cns Γ f 𝑝} 
+      → (σ : Γ ⇒ Δ) {f↓ : Frm↓ (X [ σ ]ty) f} (c↓ : Cns↓ (X [ σ ]ty) f↓ c)
+      → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+      → {d : (p : Pos 𝑝) → Cns Γ (Shp Γ c p) (𝑞 p)}
+      → (d↓ :  (p : Pos 𝑝) → Cns↓ (X [ σ ]ty) (Shp↓ (X [ σ ]ty) c↓ p) (d p))
+      → [ σ ⊙ μ↓ (X [ σ ]ty) c↓ d↓ ]c ↦ μ↓ X [ σ ⊙ c↓ ]c (λ p → [ σ ⊙ d↓ p ]c)
+    {-# REWRITE μ-⊙ #-}
+
+  _[_]ty {zero} X σ = lift tt
+  _[_]ty {suc n} (Xₙ , Xₛₙ) (σₙ , σₛₙ) =
+    Xₙ [ σₙ ]ty , λ {𝑜} {f} f↓ γ → Xₛₙ [ σₙ ⊙ f↓ ] (σₛₙ γ)
+
+  [_⊙_] {zero} σ f↓ = lift tt
+  [_⊙_] {suc n} {f = f , x , c , y} (σₙ , σₛₙ) (f↓ , x↓ , c↓ , y↓) =
+    [ σₙ ⊙ f↓ ] , x↓ , [ σₙ ⊙ c↓ ]c , y↓
+
+  [_⊙_]c {zero} f↓ c↓ = lift tt
+  [_⊙_]c {suc n} {c = lf x} f↓ idp = idp
+  [_⊙_]c {suc n} {c = nd x c y d z ψ} (σₙ , σₛₙ) (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) =
+    [ σₙ ⊙ c↓ ]c , y↓ , (λ p → [ σₙ ⊙ d↓ p ]c) , z↓ , (λ p → [ (σₙ , σₛₙ) ⊙ (ψ↓ p) ]c) , idp
+
 
