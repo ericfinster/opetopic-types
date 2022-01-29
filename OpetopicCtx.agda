@@ -121,7 +121,7 @@ module OpetopicCtx where
       → (d : (p : Pos 𝑝) → Cns Γₙ (Shp Γₙ c p) (𝑞 p))
       → (z : (p : Pos 𝑝) (q : Pos (𝑞 p)) → Γₛₙ (Shp Γₙ (d p) q))
       → (ω : (p : Pos 𝑝) → Web (Shp Γₙ c p , y p , d p , z p) (𝑡 p)) 
-      → Web (f , x , μ Γₙ c d , λ p → z (fstₒ (𝑝 , 𝑞) p) (sndₒ (𝑝 , 𝑞) p)) (γₒ 𝑠 𝑡)
+      → Web (f , x , μ Γₙ c d , λ p → z (fstₒ (𝑝 , 𝑞) p) (sndₒ (𝑝 , 𝑞) p)) (graftₒ 𝑠 𝑡)
     graft {𝑜} x ._ ._ (lf .x) d z ω = ω (ηₒ-pos 𝑜)
     graft {_} x ._ ._ (nd {𝑜} {𝑝} {𝑞} .x c y d z ψ) {𝑞𝑞} dd zz ω =
       nd x c y

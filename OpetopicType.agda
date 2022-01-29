@@ -86,10 +86,11 @@ module OpetopicType where
     {-# REWRITE μ↓-assoc #-} 
 
 
-  module _ {ℓ₀ ℓ n} (Γₙ : 𝕆Ctx ℓ₀ n) (Γₛₙ : {𝑜 : 𝒪 n} (f : Frm Γₙ 𝑜) → Type ℓ₀)
+  module _ {ℓ₀ ℓ n} {Γₙ : 𝕆Ctx ℓ₀ n} {Γₛₙ : {𝑜 : 𝒪 n} (f : Frm Γₙ 𝑜) → Type ℓ₀}
            (Xₙ : 𝕆Type Γₙ ℓ) (Xₛₙ : {𝑜 : 𝒪 n} {f : Frm Γₙ 𝑜} (f↓ : Frm↓ Xₙ f) → Γₛₙ f → Type ℓ)
     where
 
+    -- Not a good name.  Just a placeholder ...
     IdentType : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
       → {f : Frm Γₙ 𝑜} (c : Cns Γₙ f 𝑝)
       → (y : (p : Pos 𝑝) → Γₛₙ (Shp Γₙ c p))
@@ -118,6 +119,31 @@ module OpetopicType where
       Ident (IdentType (μ Γₙ c d) (λ p → z (fstₒ (𝑝 , 𝑞) p) (sndₒ (𝑝 , 𝑞) p)) f↓)
         (μ↓ Xₙ c↓ d↓ , λ p → z↓ (fstₒ (𝑝 , 𝑞) p) (sndₒ (𝑝 , 𝑞) p)) (μc↓ , μy↓)
 
+    WebShp↓ : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {φ : WebFrm Γₙ Γₛₙ 𝑝} {𝑡 : 𝒯r 𝑝}
+      → {φ↓ : WebFrm↓ φ} {ω : Web Γₙ Γₛₙ φ 𝑡} (ω↓ : Web↓ φ↓ ω)
+      → (p : 𝒯rPos 𝑡) → WebFrm↓ (WebShp Γₙ Γₛₙ ω p)
+    WebShp↓ {φ↓ = f↓ , x↓ , ._ , ._} {ω = nd x c y d z ψ} (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) (inl tt) = f↓ , x↓ , c↓ , y↓
+    WebShp↓ {φ↓ = f↓ , x↓ , ._ , ._} {ω = nd x c y d z ψ} (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) (inr (p , q)) = WebShp↓ (ψ↓ p) q 
+
+    graft↓ : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} 
+      → {𝑠 : 𝒯r 𝑝} {f : Frm Γₙ 𝑜} {x : Γₛₙ f} {c : Cns Γₙ f 𝑝}
+      → {y : (p : Pos 𝑝) → Γₛₙ (Shp Γₙ c p)}
+      → {ψ : Web Γₙ Γₛₙ (f , x , c , y) 𝑠}
+      → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+      → {𝑡 : (p : Pos 𝑝) → 𝒯r (𝑞 p)}
+      → {d : (p : Pos 𝑝) → Cns Γₙ (Shp Γₙ c p) (𝑞 p)}
+      → {z : (p : Pos 𝑝) (q : Pos (𝑞 p)) → Γₛₙ (Shp Γₙ (d p) q)}
+      → (ω : (p : Pos 𝑝) → Web Γₙ Γₛₙ (Shp Γₙ c p , y p , d p , z p) (𝑡 p))
+      → {f↓ : Frm↓ Xₙ f} (x↓ : Xₛₙ f↓ x) (c↓ : Cns↓ Xₙ f↓ c)
+      → (y↓ : (p : Pos 𝑝) → Xₛₙ (Shp↓ Xₙ c↓ p) (y p))
+      → (ψ↓ : Web↓ (f↓ , x↓ , c↓ , y↓) ψ)
+      → (d↓ : (p : Pos 𝑝) → Cns↓ Xₙ (Shp↓ Xₙ c↓ p) (d p))
+      → (z↓ : (p : Pos 𝑝) (q : Pos (𝑞 p)) → Xₛₙ (Shp↓ Xₙ (d↓ p) q) (z p q))
+      → (ω↓ : (p : Pos 𝑝) → Web↓ (Shp↓ Xₙ c↓ p , y↓ p , d↓ p , z↓ p) (ω p))
+      → Web↓ (f↓ , x↓ , μ↓ Xₙ c↓ d↓ , λ p → z↓ (fstₒ (𝑝 , 𝑞) p) (sndₒ (𝑝 , 𝑞) p))
+             (graft Γₙ Γₛₙ x c y ψ d z ω)
+    graft↓ = {!!}
+
   --
   --  Implementations
   --
@@ -127,17 +153,12 @@ module OpetopicType where
     Σ[ Xₙ ∈ 𝕆Type Γₙ ℓ ]
     ({𝑜 : 𝒪 n} {f : Frm Γₙ 𝑜} (f↓ : Frm↓ Xₙ f) → Γₛₙ f → Type ℓ)
 
-  -- Frm {n = zero} X tt = Lift Unit
-  -- Frm {n = suc n} (Γₙ , Γₛₙ) (𝑜 , 𝑝) = WebFrm Γₙ Γₛₙ 𝑝 
+  Frm↓ {n = zero} X _ = Lift Unit
+  Frm↓ {n = suc n} (Xₙ , Xₛₙ) φ = WebFrm↓ Xₙ Xₛₙ φ
 
-  -- Cns {n = zero} _ _ _ = Lift Unit 
-  -- Cns {n = suc n} (Γₙ , Γₛₙ) {𝑜 , 𝑝} = Web Γₙ Γₛₙ {𝑜} {𝑝} 
+  Cns↓ {n = zero} _ _ _ = Lift Unit 
+  Cns↓ {n = suc n} (Xₙ , Xₛₙ) ω = Web↓ Xₙ Xₛₙ ω
   
-  -- Shp {n = zero} _ _ _ = lift tt
-  -- Shp {n = suc n} (Γₙ , Γₛₙ) {𝑜 , 𝑝} ψ p = WebShp Γₙ Γₛₙ ψ p
-
-
-  Frm↓ = {!!}
-  Cns↓ = {!!}
-  Shp↓ = {!!}
+  Shp↓ {n = zero} _ _ _ = lift tt
+  Shp↓ {n = suc n} (Xₙ , Xₛₙ) ω↓ p = WebShp↓ Xₙ Xₛₙ ω↓ p
 

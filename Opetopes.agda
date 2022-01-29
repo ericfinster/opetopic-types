@@ -198,19 +198,19 @@ module Opetopes where
   𝒯rTyp (ndₒ 𝓅 ε) (inl tt) = _ , fst 𝓅 
   𝒯rTyp (ndₒ 𝓅 ε) (inr (p , q)) = 𝒯rTyp (ε p) q
 
-  γₒ : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
+  graftₒ : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
     → (𝑡 : 𝒯r (fst 𝑝))
     → (ψ : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p))
     → 𝒯r (μₒ 𝑝)
-  γₒ lfₒ ψ = ψ (ηₒ-pos _)
-  γₒ {𝑝 = ._ , ϕ} (ndₒ (𝑝 , 𝑑) ε) ψ =
+  graftₒ lfₒ ψ = ψ (ηₒ-pos _)
+  graftₒ {𝑝 = ._ , ϕ} (ndₒ (𝑝 , 𝑑) ε) ψ =
     ndₒ (𝑝 , λ p → μₒ (𝑑 p , λ q → ϕ (pairₒ (𝑝 , 𝑑) p q)))
-        (λ p → γₒ (ε p) (λ q → ψ (pairₒ (𝑝 , 𝑑) p q)))
+        (λ p → graftₒ (ε p) (λ q → ψ (pairₒ (𝑝 , 𝑑) p q)))
 
   inlₒ : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
     → (𝑡 : 𝒯r (fst 𝑝))
     → (ψ : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p))
-    → 𝒯rPos 𝑡 → 𝒯rPos (γₒ 𝑡 ψ)
+    → 𝒯rPos 𝑡 → 𝒯rPos (graftₒ 𝑡 ψ)
   inlₒ (ndₒ 𝑝 ε) ψ (inl tt) = inl tt
   inlₒ {𝑝 = ._ , ϕ} (ndₒ (𝑝 , 𝑑) ε) ψ (inr (u , v)) = 
     inr (u , inlₒ (ε u) (λ q → ψ (pairₒ (𝑝 , 𝑑) u q)) v)
@@ -219,7 +219,7 @@ module Opetopes where
     → (𝑡 : 𝒯r (fst 𝑝))
     → (ψ : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p))
     → (p : Pos (fst 𝑝)) (q : 𝒯rPos (ψ p))
-    → 𝒯rPos (γₒ 𝑡 ψ)
+    → 𝒯rPos (graftₒ 𝑡 ψ)
   inrₒ {𝑜 = 𝑜} lfₒ ψ =
     ηₒ-pos-elim 𝑜 (λ p → 𝒯rPos (ψ p) → 𝒯rPos (ψ (ηₒ-pos 𝑜))) (λ p → p) 
   inrₒ (ndₒ 𝑝 ε) ψ u v = 
@@ -227,17 +227,17 @@ module Opetopes where
         u₁ = sndₒ 𝑝 u
     in inr (u₀ , inrₒ (ε u₀) (λ q → ψ (pairₒ 𝑝 u₀ q)) u₁ v)
 
-  γₒ-pos-elim : ∀ {ℓ} {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
+  graftₒ-pos-elim : ∀ {ℓ} {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
     → (𝑡 : 𝒯r (fst 𝑝))
     → (ψ : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p))
-    → (X : 𝒯rPos (γₒ 𝑡 ψ) → Type ℓ)
+    → (X : 𝒯rPos (graftₒ 𝑡 ψ) → Type ℓ)
     → (inl* : (p : 𝒯rPos 𝑡) → X (inlₒ 𝑡 ψ p))
     → (inr* : (p : Pos (fst 𝑝)) (q : 𝒯rPos (ψ p)) → X (inrₒ 𝑡 ψ p q))
-    → (p : 𝒯rPos (γₒ 𝑡 ψ)) → X p
-  γₒ-pos-elim lfₒ ψ X inl* inr* p = inr* (ηₒ-pos _) p
-  γₒ-pos-elim (ndₒ 𝑝 ε) ψ X inl* inr* (inl tt) = inl* (inl tt)
-  γₒ-pos-elim (ndₒ 𝑝 ε) ψ X inl* inr* (inr (u , v)) = 
-    γₒ-pos-elim (ε u) (λ q → ψ (pairₒ 𝑝 u q)) 
+    → (p : 𝒯rPos (graftₒ 𝑡 ψ)) → X p
+  graftₒ-pos-elim lfₒ ψ X inl* inr* p = inr* (ηₒ-pos _) p
+  graftₒ-pos-elim (ndₒ 𝑝 ε) ψ X inl* inr* (inl tt) = inl* (inl tt)
+  graftₒ-pos-elim (ndₒ 𝑝 ε) ψ X inl* inr* (inr (u , v)) = 
+    graftₒ-pos-elim (ε u) (λ q → ψ (pairₒ 𝑝 u q)) 
       (λ q → X (inr (u , q)))
       (λ q → inl* (inr (u , q)))
       (λ p q → inr* (pairₒ 𝑝 u p) q) v
@@ -248,25 +248,25 @@ module Opetopes where
 
   postulate
 
-    γₒ-pos-elim-inl-β : ∀ {ℓ} {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
+    graftₒ-pos-elim-inl-β : ∀ {ℓ} {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
       → (𝑡 : 𝒯r (fst 𝑝))
       → (ψ : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p))
-      → (X : 𝒯rPos (γₒ 𝑡 ψ) → Type ℓ)
+      → (X : 𝒯rPos (graftₒ 𝑡 ψ) → Type ℓ)
       → (inl* : (p : 𝒯rPos 𝑡) → X (inlₒ 𝑡 ψ p))
       → (inr* : (p : Pos (fst 𝑝)) (q : 𝒯rPos (ψ p)) → X (inrₒ 𝑡 ψ p q))
       → (p : 𝒯rPos 𝑡)
-      → γₒ-pos-elim 𝑡 ψ X inl* inr* (inlₒ 𝑡 ψ p) ↦ inl* p
-    {-# REWRITE γₒ-pos-elim-inl-β #-}
+      → graftₒ-pos-elim 𝑡 ψ X inl* inr* (inlₒ 𝑡 ψ p) ↦ inl* p
+    {-# REWRITE graftₒ-pos-elim-inl-β #-}
 
-    γₒ-pos-elim-inr-β : ∀ {ℓ} {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
+    graftₒ-pos-elim-inr-β : ∀ {ℓ} {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
       → (𝑡 : 𝒯r (fst 𝑝))
       → (ψ : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p))
-      → (X : 𝒯rPos (γₒ 𝑡 ψ) → Type ℓ)
+      → (X : 𝒯rPos (graftₒ 𝑡 ψ) → Type ℓ)
       → (inl* : (p : 𝒯rPos 𝑡) → X (inlₒ 𝑡 ψ p))
       → (inr* : (p : Pos (fst 𝑝)) (q : 𝒯rPos (ψ p)) → X (inrₒ 𝑡 ψ p q))
       → (p : Pos (fst 𝑝)) (q : 𝒯rPos (ψ p))
-      → γₒ-pos-elim 𝑡 ψ X inl* inr* (inrₒ 𝑡 ψ p q) ↦ inr* p q
-    {-# REWRITE γₒ-pos-elim-inr-β #-}
+      → graftₒ-pos-elim 𝑡 ψ X inl* inr* (inrₒ 𝑡 ψ p q) ↦ inr* p q
+    {-# REWRITE graftₒ-pos-elim-inr-β #-}
 
     -- TODO : More grafting laws...
 
@@ -309,7 +309,7 @@ module Opetopes where
   μₒ {suc n} (ndₒ 𝑝 ε , 𝑑) =
     let 𝑡 = 𝑑 (inl tt)
         Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
-    in γₒ 𝑡 Ψ
+    in graftₒ 𝑡 Ψ
 
   -- pairₒ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
   --   → (p : Pos (fst 𝑝)) (q : Pos (snd 𝑝 p))
@@ -330,7 +330,7 @@ module Opetopes where
   fstₒ {suc n} (ndₒ 𝑝 ε , 𝑑) = 
     let 𝑡 = 𝑑 (inl tt)
         Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
-    in γₒ-pos-elim 𝑡 Ψ _ (const (inl tt))
+    in graftₒ-pos-elim 𝑡 Ψ _ (const (inl tt))
          (λ p q → inr (p , fstₒ (ε p , λ q → 𝑑 (inr (p , q))) q))
 
   -- sndₒ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
@@ -339,7 +339,7 @@ module Opetopes where
   sndₒ {suc n} (ndₒ 𝑝 ε , 𝑑) = 
     let 𝑡 = 𝑑 (inl tt)
         Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
-    in γₒ-pos-elim 𝑡 Ψ _ (λ p → p)
+    in graftₒ-pos-elim 𝑡 Ψ _ (λ p → p)
          (λ p q → sndₒ (ε p , λ q → 𝑑 (inr (p , q))) q)
 
   --
