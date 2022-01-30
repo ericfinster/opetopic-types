@@ -109,9 +109,6 @@ module OpetopicSub where
   --  Action of substitutions on types
   --
 
-  -- Oh, shoot.  We should allow different universe in the contexts
-  -- here ....
-  
   _[_]ty : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Ctx n ℓ₀} {Δ : 𝕆Ctx n ℓ₁}
     → (X : 𝕆Type Δ ℓ₂) (σ : Γ ⇒ Δ) 
     → 𝕆Type Γ ℓ₂
@@ -171,3 +168,13 @@ module OpetopicSub where
     [ σₙ ⊙ c↓ ]c , y↓ , (λ p → [ σₙ ⊙ d↓ p ]c) , z↓ , (λ p → [ (σₙ , σₛₙ) ⊙ (ψ↓ p) ]c) , idp
 
 
+  --
+  --  Infinite Dimensional Substitutions
+  --
+
+  record [_⇒_↓_] {n ℓ} {X Y : 𝕆Ctx n ℓ} (X∞ : 𝕆Ctx∞ X) (Y∞ : 𝕆Ctx∞ Y)
+      (α : X ⇒ Y)  : Type ℓ where
+    coinductive
+    field
+      Fill⇒ : {o : 𝒪 n} {f : Frm X o} → Fill X∞ f → Fill Y∞ (Frm⇒ α f)
+      Hom⇒ : [ Hom X∞ ⇒ Hom Y∞ ↓ α , Fill⇒ ]

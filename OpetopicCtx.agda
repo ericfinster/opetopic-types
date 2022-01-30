@@ -172,8 +172,21 @@ module OpetopicCtx where
       (λ p → μ (Γₙ , Γₛₙ) (ψ p) (λ q → ω (inr (p , q))))
 
   --
-  -- The terminal opetopic context
+  --  The terminal opetopic context
   --
   𝕋 : (n : ℕ) → 𝕆Ctx n ℓ-zero
   𝕋 zero = lift tt
   𝕋 (suc n) = 𝕋 n , λ _ → Lift Unit 
+
+
+  --
+  --  Infinite dimensional contexts
+  --
+  
+  record 𝕆Ctx∞ {n ℓ} (Γ : 𝕆Ctx n ℓ) : Type (ℓ-suc ℓ) where
+    coinductive
+    field
+      Fill : {o : 𝒪 n} → Frm Γ o → Type ℓ 
+      Hom : 𝕆Ctx∞ (Γ , Fill) 
+
+  open 𝕆Ctx∞ public

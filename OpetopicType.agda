@@ -196,4 +196,15 @@ module OpetopicType where
     graft↓ Xₙ Xₛₙ _ c↓ y↓ (ω↓ (inl tt)) d↓ z↓
       (λ p → μ↓ (Xₙ , Xₛₙ) (ψ↓ p) (λ q → ω↓ (inr (p , q))))
 
+  --
+  --  Infinite dimensional types
+  --
+  
+  record 𝕆Type∞ {n ℓ₀ ℓ₁} {Γₙ : 𝕆Ctx n ℓ₀} (Γ : 𝕆Ctx∞ Γₙ)
+      (Xₙ : 𝕆Type Γₙ ℓ₁) : Type (ℓ-max ℓ₀ (ℓ-suc ℓ₁)) where
+    coinductive
+    field
+      FillTy : {𝑜 : 𝒪 n} {f : Frm Γₙ 𝑜} → Frm↓ Xₙ f → Fill Γ f → Type ℓ₁
+      HomTy : 𝕆Type∞ (Hom Γ) (Xₙ , FillTy)
 
+  open 𝕆Type∞ 
