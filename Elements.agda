@@ -1,5 +1,5 @@
 --
---  Elements.agda - experimenting with elements
+--  Elements.agda - Elements (i.e. global sections) 
 --
 
 open import Cubical.Foundations.Everything
@@ -57,7 +57,7 @@ module Elements where
        (λ p → Cns-El (σₙ , σₛₙ) (𝑟 p))
 
   --
-  --  Now, can we extract the fiber at an element?
+  --  Extracting the fiber at an element ...
   --
 
   fiber-at : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} (σ : El Γ)
@@ -75,26 +75,3 @@ module Elements where
     fiber-at σₙ Xₙ , λ {𝑜} f → Xₛₙ (frm-ovr σₙ Xₙ f) (σₛₙ 𝑜)
 
 
-  --
-  --  Okay, and so can you make these do things?
-  --
-
-  Σₒ : ∀ {n ℓ₀ ℓ₁} (Γ : 𝕆Ctx n ℓ₀) (X : 𝕆Type Γ ℓ₁)
-    → 𝕆Ctx n (ℓ-max ℓ₀ ℓ₁)
-
-  prₒ : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} {X : 𝕆Type Γ ℓ₁}
-    → (γ : El Γ) (x : El (fiber-at γ X))
-    → El (Σₒ Γ X)
-
-  data ΣCell {n ℓ₀ ℓ₁} (Γ : 𝕆Ctx (suc n) ℓ₀) (X : 𝕆Type Γ ℓ₁)
-    : {𝑜 : 𝒪 n} → Frm (Σₒ (fst Γ) (fst X)) 𝑜 → Type (ℓ-max ℓ₀ ℓ₁) where
-
-    pair : (γ : El (Γ)) (x : El (fiber-at γ X))
-      → (𝑜 : 𝒪 n) → ΣCell Γ X (Frm-El (prₒ (fst γ) (fst x)) 𝑜) 
-
-  Σₒ {zero} Γ X = lift tt
-  Σₒ {suc n} (Γₙ , Γₛₙ) (Xₙ , Xₛₙ) =
-    Σₒ Γₙ Xₙ  , ΣCell (Γₙ , Γₛₙ) (Xₙ , Xₛₙ)
-
-  prₒ {zero} γ x = lift tt
-  prₒ {suc n} γ x = prₒ (fst γ) (fst x) , pair γ x

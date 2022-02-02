@@ -174,19 +174,18 @@ module OpetopicCtx where
   --
   --  The terminal opetopic context
   --
-  𝕋 : (n : ℕ) → 𝕆Ctx n ℓ-zero
+  𝕋 : (n : ℕ) {ℓ : Level} → 𝕆Ctx n ℓ
   𝕋 zero = lift tt
   𝕋 (suc n) = 𝕋 n , λ _ → Lift Unit 
-
 
   --
   --  Infinite dimensional contexts
   --
   
-  record 𝕆Ctx∞ {n ℓ} (Γ : 𝕆Ctx n ℓ) : Type (ℓ-suc ℓ) where
+  record 𝕆Ctx∞ {n} (ℓ : Level) (Γ : 𝕆Ctx n ℓ) : Type (ℓ-suc ℓ) where
     coinductive
     field
       Fill : {o : 𝒪 n} → Frm Γ o → Type ℓ 
-      Hom : 𝕆Ctx∞ (Γ , Fill) 
+      Hom : 𝕆Ctx∞ ℓ (Γ , Fill) 
 
   open 𝕆Ctx∞ public

@@ -200,7 +200,7 @@ module OpetopicType where
   --  Infinite dimensional types
   --
   
-  record 𝕆Type∞ {n ℓ₀ ℓ₁} {Γₙ : 𝕆Ctx n ℓ₀} (Γ : 𝕆Ctx∞ Γₙ)
+  record 𝕆Type∞ {n ℓ₀ ℓ₁} {Γₙ : 𝕆Ctx n ℓ₀} (Γ : 𝕆Ctx∞ ℓ₀ Γₙ)
       (Xₙ : 𝕆Type Γₙ ℓ₁) : Type (ℓ-max ℓ₀ (ℓ-suc ℓ₁)) where
     coinductive
     field

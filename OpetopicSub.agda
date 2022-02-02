@@ -172,7 +172,7 @@ module OpetopicSub where
   --  Infinite Dimensional Substitutions
   --
 
-  record [_⇒_↓_] {n ℓ} {X Y : 𝕆Ctx n ℓ} (X∞ : 𝕆Ctx∞ X) (Y∞ : 𝕆Ctx∞ Y)
+  record [_⇒_↓_] {n ℓ} {X Y : 𝕆Ctx n ℓ} (X∞ : 𝕆Ctx∞ ℓ X) (Y∞ : 𝕆Ctx∞ ℓ Y)
       (α : X ⇒ Y)  : Type ℓ where
     coinductive
     field
