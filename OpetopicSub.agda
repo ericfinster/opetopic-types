@@ -178,3 +178,15 @@ module OpetopicSub where
     field
       Fill⇒ : {o : 𝒪 n} {f : Frm X o} → Fill X∞ f → Fill Y∞ (Frm⇒ α f)
       Hom⇒ : [ Hom X∞ ⇒ Hom Y∞ ↓ α , Fill⇒ ]
+
+  --
+  --  Pulling back an extension along a substitution
+  --
+
+  Pb∞ : ∀ {n ℓ} {X : 𝕆Ctx n ℓ} {Y : 𝕆Ctx n ℓ}
+    → (σ : X ⇒ Y) → 𝕆Ctx∞ ℓ Y → 𝕆Ctx∞ ℓ X 
+  Fill (Pb∞ {X = X} {Y} σ Y∞) {𝑜} f = Fill Y∞ (Frm⇒ σ f)
+  Hom (Pb∞ {X = X} {Y} σ Y∞) =
+    Pb∞ {X = (X , λ {𝑜} f → Fill Y∞ (Frm⇒ σ f))}
+          {Y = (Y , Fill Y∞)} (σ , λ x → x) (Hom Y∞)
+  

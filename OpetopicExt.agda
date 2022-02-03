@@ -15,6 +15,11 @@ open import OpetopicTerm
 
 module OpetopicExt where
 
+  -- The definition is awkward, not least because it doesn't provide
+  -- a pairing operation for frames.  I have not yet found a better
+  -- alternative other than simply axiomatizing the intro an elims...
+  -- So maybe redo this ...
+  
   Ext : ∀ {n ℓ₀ ℓ₁} (Γ : 𝕆Ctx n ℓ₀) (X : 𝕆Type Γ ℓ₁)
     → 𝕆Ctx n (ℓ-max ℓ₀ ℓ₁) 
 
