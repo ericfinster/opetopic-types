@@ -89,14 +89,30 @@ module Groupoid where
     (y : (p : Pos 𝑝) → Xₛₙ (Shp Xₙ c p))
     → Σ[ x ∈ Xₛₙ f ] Xₛₛₙ (f , x , c , y)
 
+  record is-mult-ext {n ℓ} {Xₙ : 𝕆Ctx n ℓ} (X∞ : 𝕆Ctx∞ ℓ Xₙ) : Type ℓ where
+    coinductive
+    field
+      fill-mult : is-mult-ctx ((Xₙ , Fill X∞) , Fill (Hom X∞))
+      hom-mult : is-mult-ext (Hom X∞)
+
+  open is-mult-ext
+
+  -- Yikes.  This is slightly more complicated than expected.  You have
+  -- to reconstruct the frame in X to multipy.  In principle seems like
+  -- it could be done using y.  But we'll see...
+  pf-is-mult : ∀ {n ℓ} {X : 𝕆Ctx n ℓ} {Y : 𝕆Ctx n ℓ}
+    → (σ : X ⇒ Y) (X∞ : 𝕆Ctx∞ ℓ X)
+    → is-mult-ext X∞ → is-mult-ext (Pf∞ σ X∞)
+  fill-mult (pf-is-mult σ X∞ ϕ) f c y = (({!!} , {!!}) , {!!}) , {!!}
+  hom-mult (pf-is-mult σ X∞ ϕ) =
+    pf-is-mult (σ , (λ {𝑜} {f} x → (f , (λ _ → Frm⇒ σ f)) , x))
+      (Hom X∞) (hom-mult ϕ)
 
   data UniqueFill {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ) (ϕ : is-mult-ctx X)
     : {𝑜 : 𝒪 n} (f : Frm (fst (fst X)) 𝑜) → Type ℓ 
 
-
   data UniqueHom {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ) (ϕ : is-mult-ctx X)
     : {𝑜 : 𝒪 (suc n)} (f : Frm (fst (fst X) , UniqueFill X ϕ) 𝑜) → Type ℓ 
-
 
   data UniqueFill {n ℓ} X ϕ where
 
@@ -112,7 +128,7 @@ module Groupoid where
 
   data UniqueHom {n ℓ} X ϕ where
   
-    in-hom : {𝑜 : 𝒪 (suc n)} {φ : Frm (fst X) 𝑜}
+    in-unique-hom : {𝑜 : 𝒪 (suc n)} {φ : Frm (fst X) 𝑜}
       → (filler : snd X φ)
       → UniqueHom X ϕ (fst φ , in-unique-fill (fst (snd φ)) ,
           fst (snd (snd φ)) , λ p → in-unique-fill (snd (snd (snd φ)) p))
@@ -122,12 +138,13 @@ module Groupoid where
       → (y : (p : Pos 𝑝) → (snd (fst X)) (Shp (fst (fst X)) c p))
       → (x : UniqueFill X ϕ f) (α : UniqueHom X ϕ (f , x , c , λ p → in-unique-fill (y p)))
       → (λ i → UniqueHom X ϕ (f , comp-unique c y x α i , c , λ p → in-unique-fill (y p)))
-          [ in-hom (snd (ϕ f c y)) ≡ α ] 
+          [ in-unique-hom (snd (ϕ f c y)) ≡ α ] 
 
-  -- FreeUnique : ∀ {n ℓ} (Xₙ : 𝕆Ctx n ℓ) (X∞ : 𝕆Ctx∞ ℓ Xₙ) → 𝕆Ctx∞ ℓ Xₙ
-  -- Fill (FreeUnique Xₙ X∞) = UniqueFill ((Xₙ , Fill X∞) , Fill (Hom X∞)) 
-  -- Fill (Hom (FreeUnique Xₙ X∞)) = UniqueHom ((Xₙ , Fill X∞) , Fill (Hom X∞)) 
-  -- Hom (Hom (FreeUnique {n} Xₙ X∞)) = 
-  --   FreeUnique ((Xₙ , UniqueFill ((Xₙ , Fill X∞) , Fill (Hom X∞))) ,
-  --                   UniqueHom ((Xₙ , Fill X∞) , Fill (Hom X∞)))
-  --           ((Pf∞ ((id-sub Xₙ , in-fill) , in-hom) (Hom (Hom X∞)))) 
+  FreeUnique : ∀ {n ℓ} (Xₙ : 𝕆Ctx n ℓ) (X∞ : 𝕆Ctx∞ ℓ Xₙ) (ϕ : is-mult-ext X∞) → 𝕆Ctx∞ ℓ Xₙ
+  Fill (FreeUnique Xₙ X∞ ϕ) = UniqueFill ((Xₙ , Fill X∞) , Fill (Hom X∞))  (fill-mult ϕ) 
+  Fill (Hom (FreeUnique Xₙ X∞ ϕ)) = UniqueHom ((Xₙ , Fill X∞) , Fill (Hom X∞))  (fill-mult ϕ) 
+  Hom (Hom (FreeUnique {n} Xₙ X∞ ϕ)) = 
+    FreeUnique ((Xₙ , UniqueFill ((Xₙ , Fill X∞) , Fill (Hom X∞)) (fill-mult ϕ)) ,
+                    UniqueHom ((Xₙ , Fill X∞) , Fill (Hom X∞)) (fill-mult ϕ))
+            ((Pf∞ ((id-sub Xₙ , in-unique-fill) , in-unique-hom) (Hom (Hom X∞))))
+            (pf-is-mult ((id-sub Xₙ , in-unique-fill) , in-unique-hom) (Hom (Hom X∞)) (hom-mult (hom-mult ϕ)))
