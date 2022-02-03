@@ -32,102 +32,102 @@ module Groupoid where
   Pt {suc n} x = Pt {n} x , op-refl x
 
   --
-  --  The free ∞-groupoid associated to an opetopic type
+  --  The free multiplicative extension associated to an opetopic type
   --
 
-  data FreeCell {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ) 
+  data MultFill {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ) 
     : {𝑜 : 𝒪 n} (f : Frm (fst (fst X)) 𝑜) → Type ℓ 
 
 
-  data FreeFill {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ)
-    : {𝑜 : 𝒪 (suc n)} (f : Frm (fst (fst X) , FreeCell X) 𝑜) → Type ℓ 
+  data MultHom {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ)
+    : {𝑜 : 𝒪 (suc n)} (f : Frm (fst (fst X) , MultFill X) 𝑜) → Type ℓ 
 
 
-  data FreeCell {n ℓ} X where
+  data MultFill {n ℓ} X where
 
-    free-cell-in : {𝑜 : 𝒪 n} {f : Frm (fst (fst X)) 𝑜}
+    in-fill : {𝑜 : 𝒪 n} {f : Frm (fst (fst X)) 𝑜}
       → (x : (snd (fst X)) f)
-      → FreeCell X f 
+      → MultFill X f 
 
-    comp-in : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
+    mult-comp : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
       → {f : Frm (fst (fst X)) 𝑜} (c : Cns (fst (fst X)) f 𝑝)
-      → (y : (p : Pos 𝑝) → FreeCell X (Shp (fst (fst X)) c p))
-      → FreeCell X f
+      → (y : (p : Pos 𝑝) → MultFill X (Shp (fst (fst X)) c p))
+      → MultFill X f
+
+
+  data MultHom {n ℓ} X where
+
+    in-hom : {𝑜 : 𝒪 (suc n)} {φ : Frm (fst X) 𝑜}
+      → (filler : snd X φ)
+      → MultHom X (fst φ , in-fill (fst (snd φ)) ,
+                    fst (snd (snd φ)) , λ p → in-fill (snd (snd (snd φ)) p))
+
+    mult-fill : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
+      → {f : Frm (fst (fst X)) 𝑜} (c : Cns (fst (fst X)) f 𝑝)
+      → (y : (p : Pos 𝑝) → MultFill X (Shp (fst (fst X)) c p))
+      → MultHom X (f , mult-comp c y , c , y)
+
+
+  FreeMult : ∀ {n ℓ} (Xₙ : 𝕆Ctx n ℓ) (X∞ : 𝕆Ctx∞ ℓ Xₙ) → 𝕆Ctx∞ ℓ Xₙ
+  Fill (FreeMult Xₙ X∞) = MultFill ((Xₙ , Fill X∞) , Fill (Hom X∞)) 
+  Fill (Hom (FreeMult Xₙ X∞)) = MultHom ((Xₙ , Fill X∞) , Fill (Hom X∞)) 
+  Hom (Hom (FreeMult {n} Xₙ X∞)) = 
+    FreeMult ((Xₙ , MultFill ((Xₙ , Fill X∞) , Fill (Hom X∞))) ,
+                    MultHom ((Xₙ , Fill X∞) , Fill (Hom X∞)))
+            ((Pf∞ ((id-sub Xₙ , in-fill) , in-hom) (Hom (Hom X∞)))) 
+
+
+  --
+  --  The free uniquely multiplicative context associated to
+  --  a multiplicative one
+  --
+
+  is-mult-ctx : ∀ {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ) → Type ℓ
+  is-mult-ctx {n} ((Xₙ , Xₛₙ) , Xₛₛₙ) =
+    {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
+    (f : Frm Xₙ 𝑜) (c : Cns Xₙ f 𝑝)
+    (y : (p : Pos 𝑝) → Xₛₙ (Shp Xₙ c p))
+    → Σ[ x ∈ Xₛₙ f ] Xₛₛₙ (f , x , c , y)
+
+
+  data UniqueFill {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ) (ϕ : is-mult-ctx X)
+    : {𝑜 : 𝒪 n} (f : Frm (fst (fst X)) 𝑜) → Type ℓ 
+
+
+  data UniqueHom {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ) (ϕ : is-mult-ctx X)
+    : {𝑜 : 𝒪 (suc n)} (f : Frm (fst (fst X) , UniqueFill X ϕ) 𝑜) → Type ℓ 
+
+
+  data UniqueFill {n ℓ} X ϕ where
+
+    in-unique-fill : {𝑜 : 𝒪 n} {f : Frm (fst (fst X)) 𝑜}
+      → (x : (snd (fst X)) f)
+      → UniqueFill X ϕ f 
 
     comp-unique : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
       → {f : Frm (fst (fst X)) 𝑜} (c : Cns (fst (fst X)) f 𝑝)
-      → (y : (p : Pos 𝑝) → FreeCell X (Shp (fst (fst X)) c p))
-      → (x : FreeCell X f) (α : FreeFill X (f , x , c , y))
-      → comp-in c y ≡ x 
+      → (y : (p : Pos 𝑝) → (snd (fst X)) (Shp (fst (fst X)) c p))
+      → (x : UniqueFill X ϕ f) (α : UniqueHom X ϕ (f , x , c , λ p → in-unique-fill (y p)))
+      → in-unique-fill (fst (ϕ f c y)) ≡ x
 
-  data FreeFill {n ℓ} X where
-
-    free-fill-in : {𝑜 : 𝒪 (suc n)} (φ : Frm (fst X) 𝑜)
-      → FreeFill X (fst φ , free-cell-in (fst (snd φ)) ,
-                    fst (snd (snd φ)) , λ p → free-cell-in (snd (snd (snd φ)) p))
-
-    fill-in : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
-      → {f : Frm (fst (fst X)) 𝑜} (c : Cns (fst (fst X)) f 𝑝)
-      → (y : (p : Pos 𝑝) → FreeCell X (Shp (fst (fst X)) c p))
-      → FreeFill X (f , comp-in c y , c , y)
+  data UniqueHom {n ℓ} X ϕ where
+  
+    in-hom : {𝑜 : 𝒪 (suc n)} {φ : Frm (fst X) 𝑜}
+      → (filler : snd X φ)
+      → UniqueHom X ϕ (fst φ , in-unique-fill (fst (snd φ)) ,
+          fst (snd (snd φ)) , λ p → in-unique-fill (snd (snd (snd φ)) p))
 
     fill-unique : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
       → {f : Frm (fst (fst X)) 𝑜} (c : Cns (fst (fst X)) f 𝑝)
-      → (y : (p : Pos 𝑝) → FreeCell X (Shp (fst (fst X)) c p))
-      → (x : FreeCell X f) (α : FreeFill X (f , x , c , y))
-      → (λ i → FreeFill X (f , comp-unique c y x α i , c , y)) [ fill-in c y ≡ α ] 
+      → (y : (p : Pos 𝑝) → (snd (fst X)) (Shp (fst (fst X)) c p))
+      → (x : UniqueFill X ϕ f) (α : UniqueHom X ϕ (f , x , c , λ p → in-unique-fill (y p)))
+      → (λ i → UniqueHom X ϕ (f , comp-unique c y x α i , c , λ p → in-unique-fill (y p)))
+          [ in-hom (snd (ϕ f c y)) ≡ α ] 
 
-  -- is-fibrant-ctx : ∀ {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ) → Type ℓ
-  -- is-fibrant-ctx {n} ((Xₙ , Xₛₙ) , Xₛₛₙ) =
-  --   {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
-  --   (f : Frm Xₙ 𝑜) (c : Cns Xₙ f 𝑝)
-  --   (y : (p : Pos 𝑝) → Xₛₙ (Shp Xₙ c p))
-  --   → isContr (Σ[ x ∈ Xₛₙ f ] Xₛₛₙ (f , x , c , y))
-  
-  -- FreeGrp : ∀ {ℓ} (X : 𝕆Ctx∞ ℓ tt*)
-  --   → (n : ℕ) → 𝕆Ctx n ℓ 
-
-  -- inc⇒ : ∀ {n ℓ} (Xₙ : 𝕆Ctx n ℓ) (X∞ : 𝕆Ctx∞ ℓ Xₙ)
-  --   → [ X∞ ⇒ FreeGrp Xₙ X∞ ↓ {!!} ] -- id sub 
-    
-
-  -- FreeGrp X n = {!!} 
-
-  -- Or maybe the frames and fillers need to be two separate definitions.
-  -- Or maybe it gets unfolded somehow ....
-
-  -- What if 
-
-  -- FreeGrp : ∀ {n ℓ} (Xₙ : 𝕆Ctx n ℓ) (X∞ : 𝕆Ctx∞ ℓ Xₙ) → 𝕆Ctx∞ ℓ Xₙ
-
-  -- data FreeCell {n ℓ} (Xₙ : 𝕆Ctx n ℓ) (X∞ : 𝕆Ctx∞ ℓ Xₙ)
-  --   : {𝑜 : 𝒪 n} (f : Frm Xₙ 𝑜) → Type ℓ where
-
-  -- data FreeFill {n ℓ} (Xₙ : 𝕆Ctx n ℓ) (X∞ : 𝕆Ctx∞ ℓ Xₙ)
-  --   : {𝑜 : 𝒪 (suc n)} (f : Frm (Xₙ , FreeCell Xₙ X∞) 𝑜) → Type ℓ where
-
-  -- -- Maybe if you destruct one more time, you can use the other Frm∞ constructor? 
-  -- Fill (FreeGrp Xₙ X∞) = FreeCell Xₙ {!FreeGrp (Xₙ , Fill X∞) (Hom X∞)!}
-  -- Hom (FreeGrp Xₙ X∞) = {!FreeGrp (Xₙ , Fill X∞) (Hom X∞)!}
-
-  -- --
-  -- --  Opetope and Context extensions Frame 
-  -- --
-
-  -- data 𝒪Ext : {n : ℕ} (𝑜 : 𝒪 n) → ℕ → Type where
-  --   here : {n : ℕ} (𝑜 : 𝒪 n) → 𝒪Ext 𝑜 zero
-  --   there : {n : ℕ} (𝑜 : 𝒪 n) (𝑝 : 𝒫 𝑜)
-  --     → {k : ℕ} (e : 𝒪Ext (𝑜 , 𝑝) k)
-  --     → 𝒪Ext 𝑜 (suc k) 
-  
-  -- Frm∞ : ∀ {n ℓ} (Xₙ : 𝕆Ctx n ℓ) (X∞ : 𝕆Ctx∞ ℓ Xₙ)
-  --   → {𝑜 : 𝒪 n} 
-  --   → {k : ℕ} (e : 𝒪Ext 𝑜 k) → Type ℓ 
-  -- Frm∞ {n} Xₙ X∞ (here 𝑜) = Frm Xₙ 𝑜
-  -- Frm∞ {n} Xₙ X∞ (there 𝑜 𝑝 e) = Frm∞ (Xₙ , Fill X∞) (Hom X∞) e
-
-
-  -- Skeleton : ∀ {ℓ} (X : 𝕆Ctx∞ ℓ tt*)
-  --   → (n : ℕ) → 𝕆Ctx n ℓ
-  -- Skeleton X zero = lift tt
-  -- Skeleton X (suc n) = Skeleton X n , {!!}
+  -- FreeUnique : ∀ {n ℓ} (Xₙ : 𝕆Ctx n ℓ) (X∞ : 𝕆Ctx∞ ℓ Xₙ) → 𝕆Ctx∞ ℓ Xₙ
+  -- Fill (FreeUnique Xₙ X∞) = UniqueFill ((Xₙ , Fill X∞) , Fill (Hom X∞)) 
+  -- Fill (Hom (FreeUnique Xₙ X∞)) = UniqueHom ((Xₙ , Fill X∞) , Fill (Hom X∞)) 
+  -- Hom (Hom (FreeUnique {n} Xₙ X∞)) = 
+  --   FreeUnique ((Xₙ , UniqueFill ((Xₙ , Fill X∞) , Fill (Hom X∞))) ,
+  --                   UniqueHom ((Xₙ , Fill X∞) , Fill (Hom X∞)))
+  --           ((Pf∞ ((id-sub Xₙ , in-fill) , in-hom) (Hom (Hom X∞)))) 

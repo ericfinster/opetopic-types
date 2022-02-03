@@ -3,6 +3,7 @@
 --
 
 open import Cubical.Foundations.Everything
+open import Cubical.Data.Sigma
 open import Cubical.Data.Unit
 open import Cubical.Data.Nat
 
@@ -76,6 +77,28 @@ module OpetopicSub where
   Cns⇒ {zero} _ _ = lift tt
   Cns⇒ {suc n} {Γ = Γₙ , Γₛₙ} {Δₙ , Δₛₙ} (σₙ , σₛₙ) =
     Web⇒ Γₛₙ Δₛₙ σₙ σₛₙ
+
+  --
+  --  The identity substitution
+  --
+
+  id-sub : ∀ {n ℓ} (X : 𝕆Ctx n ℓ) → X ⇒ X
+
+  postulate
+
+    id-frm : ∀ {n ℓ} (X : 𝕆Ctx n ℓ)
+      → {𝑜 : 𝒪 n} (f : Frm X 𝑜)
+      → Frm⇒ (id-sub X) f ↦ f
+    {-# REWRITE id-frm #-}
+
+    id-cns : ∀ {n ℓ} (X : 𝕆Ctx n ℓ)
+      → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
+      → (f : Frm X 𝑜) (c : Cns X f 𝑝)
+      → Cns⇒ (id-sub X) c ↦ c
+    {-# REWRITE id-cns #-}
+
+  id-sub {zero} X = lift tt
+  id-sub {suc n} (Xₙ , Xₛₙ) = id-sub Xₙ , λ x → x
   
   --
   --  Composition
@@ -179,10 +202,7 @@ module OpetopicSub where
       Fill⇒ : {o : 𝒪 n} {f : Frm X o} → Fill X∞ f → Fill Y∞ (Frm⇒ α f)
       Hom⇒ : [ Hom X∞ ⇒ Hom Y∞ ↓ α , Fill⇒ ]
 
-  --
   --  Pulling back an extension along a substitution
-  --
-
   Pb∞ : ∀ {n ℓ} {X : 𝕆Ctx n ℓ} {Y : 𝕆Ctx n ℓ}
     → (σ : X ⇒ Y) → 𝕆Ctx∞ ℓ Y → 𝕆Ctx∞ ℓ X 
   Fill (Pb∞ {X = X} {Y} σ Y∞) {𝑜} f = Fill Y∞ (Frm⇒ σ f)
@@ -190,3 +210,11 @@ module OpetopicSub where
     Pb∞ {X = (X , λ {𝑜} f → Fill Y∞ (Frm⇒ σ f))}
           {Y = (Y , Fill Y∞)} (σ , λ x → x) (Hom Y∞)
   
+  --  Pushing forward and extension along a substitution
+  Pf∞ : ∀ {n ℓ} {X : 𝕆Ctx n ℓ} {Y : 𝕆Ctx n ℓ}
+    → (σ : X ⇒ Y) → 𝕆Ctx∞ ℓ X → 𝕆Ctx∞ ℓ Y
+  Fill (Pf∞ {X = X} {Y} σ X∞) {o} f =
+    Σ[ f' ∈ fiber (Frm⇒ σ) f ] Fill X∞ (fst f')
+  Hom (Pf∞ {X = X} {Y} σ X∞) = Pf∞ {X = (X , Fill X∞)} {Y = (Y ,
+       (λ {o} f → Σ-syntax (fiber (Frm⇒ σ) f) (λ f' → Fill X∞ (fst f'))))}
+       (σ , λ {𝑜} {f} x → (f , refl) , x) (Hom X∞)
