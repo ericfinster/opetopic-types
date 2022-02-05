@@ -9,38 +9,38 @@ open import Cubical.Data.Sum
 
 open import Prelude
 open import Opetopes
-open import OpetopicCtx
 open import OpetopicType
+open import OpetopicFam
 
 module OpetopicTerm where
 
-  𝕆Term : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} (X : 𝕆Type Γ ℓ₁)
+  𝕆Term : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} (X : 𝕆Fam Γ ℓ₁)
     → Type (ℓ-max ℓ₀ ℓ₁)
 
-  Frm-Tm : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} {X : 𝕆Type Γ ℓ₁} (σ : 𝕆Term X)
+  Frm-Tm : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} {X : 𝕆Fam Γ ℓ₁} (σ : 𝕆Term X)
     → {𝑜 : 𝒪 n} (f : Frm Γ 𝑜) → Frm↓ X f
 
   -- usual fix
   {-# TERMINATING #-}
-  Cns-Tm : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} {X : 𝕆Type Γ ℓ₁} (σ : 𝕆Term X)
+  Cns-Tm : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} {X : 𝕆Fam Γ ℓ₁} (σ : 𝕆Term X)
     → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
     → {f : Frm Γ 𝑜} (c : Cns Γ f 𝑝)
     → Cns↓ X (Frm-Tm σ f) c
 
   postulate
 
-    Shp-Tm : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} {X : 𝕆Type Γ ℓ₁} (σ : 𝕆Term X)
+    Shp-Tm : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} {X : 𝕆Fam Γ ℓ₁} (σ : 𝕆Term X)
       → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
       → {f : Frm Γ 𝑜} (c : Cns Γ f 𝑝) (p : Pos 𝑝)
       → Frm-Tm σ (Shp Γ c p) ↦ Shp↓ X (Cns-Tm σ c) p
     {-# REWRITE Shp-Tm #-}
 
-    η-Tm : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} {X : 𝕆Type Γ ℓ₁} (σ : 𝕆Term X)
+    η-Tm : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} {X : 𝕆Fam Γ ℓ₁} (σ : 𝕆Term X)
       → {𝑜 : 𝒪 n} (f : Frm Γ 𝑜)
       → Cns-Tm σ (η Γ f) ↦ η↓ X (Frm-Tm σ f)
     {-# REWRITE η-Tm #-}
 
-    μ-Tm : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} {X : 𝕆Type Γ ℓ₁} (σ : 𝕆Term X)
+    μ-Tm : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} {X : 𝕆Fam Γ ℓ₁} (σ : 𝕆Term X)
       → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
       → {𝑝 : 𝒫 𝑜} (c : Cns Γ f 𝑝)
       → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}

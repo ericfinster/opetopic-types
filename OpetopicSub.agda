@@ -9,36 +9,36 @@ open import Cubical.Data.Nat
 
 open import Prelude
 open import Opetopes
-open import OpetopicCtx
 open import OpetopicType
+open import OpetopicFam
 
 module OpetopicSub where
 
   infixr 40 _⇒_
 
-  _⇒_ : ∀ {n ℓ₀ ℓ₁} → 𝕆Ctx n ℓ₀ → 𝕆Ctx n ℓ₁
+  _⇒_ : ∀ {n ℓ₀ ℓ₁} → 𝕆Type n ℓ₀ → 𝕆Type n ℓ₁
     → Type (ℓ-max ℓ₀ ℓ₁)
 
-  Frm⇒ : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} {Δ : 𝕆Ctx n ℓ₁} (σ : Γ ⇒ Δ)
+  Frm⇒ : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁} (σ : Γ ⇒ Δ)
     → {o : 𝒪 n} → Frm Γ o → Frm Δ o
     
-  Cns⇒ : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} {Δ : 𝕆Ctx n ℓ₁} (σ : Γ ⇒ Δ)
+  Cns⇒ : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁} (σ : Γ ⇒ Δ)
     → {o : 𝒪 n} {ρ : 𝒫 o} {f : Frm Γ o}
     → Cns Γ f ρ → Cns Δ (Frm⇒ σ f) ρ
 
   postulate
 
-    Shp-Frm⇒ : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} {Δ : 𝕆Ctx n ℓ₁} (σ : Γ ⇒ Δ)
+    Shp-Frm⇒ : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁} (σ : Γ ⇒ Δ)
       → {o : 𝒪 n} {ρ : 𝒫 o} {f : Frm Γ o} (c : Cns Γ f ρ) (p : Pos ρ)
       → Frm⇒ σ (Shp Γ c p) ↦ Shp Δ (Cns⇒ σ c) p
     {-# REWRITE Shp-Frm⇒ #-} 
 
-    η⇒ : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} {Δ : 𝕆Ctx n ℓ₁} (σ : Γ ⇒ Δ)
+    η⇒ : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁} (σ : Γ ⇒ Δ)
       → {o : 𝒪 n} (f : Frm Γ o)
       → Cns⇒ σ (η Γ f) ↦ η Δ (Frm⇒ σ f)
     {-# REWRITE η⇒ #-} 
 
-    μ⇒ : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} {Δ : 𝕆Ctx n ℓ₁} (σ : Γ ⇒ Δ)
+    μ⇒ : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁} (σ : Γ ⇒ Δ)
       → {o : 𝒪 n} {f : Frm Γ o}
       → {ρ : 𝒫 o} (c : Cns Γ f ρ)
       → {ι : (p : Pos ρ) → 𝒫 (Typ ρ p)}
@@ -46,7 +46,7 @@ module OpetopicSub where
       → Cns⇒ σ (μ Γ c κ) ↦ μ Δ (Cns⇒ σ c) (λ p → Cns⇒ σ (κ p))
     {-# REWRITE μ⇒ #-}
 
-  module _ {n ℓ₀ ℓ₁} {Γₙ : 𝕆Ctx n ℓ₀} {Δₙ : 𝕆Ctx n ℓ₁}
+  module _ {n ℓ₀ ℓ₁} {Γₙ : 𝕆Type n ℓ₀} {Δₙ : 𝕆Type n ℓ₁}
            (Γₛₙ : {o : 𝒪 n} → Frm Γₙ o → Type ℓ₀)
            (Δₛₙ : {o : 𝒪 n} → Frm Δₙ o → Type ℓ₁)
            (σₙ : Γₙ ⇒ Δₙ) (σₛₙ : {o : 𝒪 n} {f : Frm Γₙ o} → Γₛₙ f → Δₛₙ (Frm⇒ σₙ f)) where
@@ -82,16 +82,16 @@ module OpetopicSub where
   --  The identity substitution
   --
 
-  id-sub : ∀ {n ℓ} (X : 𝕆Ctx n ℓ) → X ⇒ X
+  id-sub : ∀ {n ℓ} (X : 𝕆Type n ℓ) → X ⇒ X
 
   postulate
 
-    id-frm : ∀ {n ℓ} (X : 𝕆Ctx n ℓ)
+    id-frm : ∀ {n ℓ} (X : 𝕆Type n ℓ)
       → {𝑜 : 𝒪 n} (f : Frm X 𝑜)
       → Frm⇒ (id-sub X) f ↦ f
     {-# REWRITE id-frm #-}
 
-    id-cns : ∀ {n ℓ} (X : 𝕆Ctx n ℓ)
+    id-cns : ∀ {n ℓ} (X : 𝕆Type n ℓ)
       → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
       → (f : Frm X 𝑜) (c : Cns X f 𝑝)
       → Cns⇒ (id-sub X) c ↦ c
@@ -106,18 +106,18 @@ module OpetopicSub where
 
   infixr 30 _⊚_
   
-  _⊚_ : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Ctx n ℓ₀} {Δ : 𝕆Ctx n ℓ₁} {Θ : 𝕆Ctx n ℓ₂}
+  _⊚_ : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁} {Θ : 𝕆Type n ℓ₂}
     → (Δ ⇒ Θ) → (Γ ⇒ Δ) → (Γ ⇒ Θ)
 
   postulate
 
-    ⊚-Frm : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Ctx n ℓ₀} {Δ : 𝕆Ctx n ℓ₁} {Θ : 𝕆Ctx n ℓ₂}
+    ⊚-Frm : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁} {Θ : 𝕆Type n ℓ₂}
       → (σ : Δ ⇒ Θ) (τ : Γ ⇒ Δ) (o : 𝒪 n) (f : Frm Γ o)
       → Frm⇒ (σ ⊚ τ) f ↦ Frm⇒ σ (Frm⇒ τ f)
     {-# REWRITE ⊚-Frm #-}
 
     ⊚-assoc : ∀ {n ℓ₀ ℓ₁ ℓ₂ ℓ₃}
-      → {Γ : 𝕆Ctx n ℓ₀} {Δ : 𝕆Ctx n ℓ₁} {Θ : 𝕆Ctx n ℓ₂} {W : 𝕆Ctx n ℓ₃}
+      → {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁} {Θ : 𝕆Type n ℓ₂} {W : 𝕆Type n ℓ₃}
       → (σ : Θ ⇒ W) (τ : Δ ⇒ Θ) (γ : Γ ⇒ Δ)
       → (σ ⊚ τ) ⊚ γ ↦ σ ⊚ τ ⊚ γ
     {-# REWRITE ⊚-assoc #-}
@@ -132,43 +132,43 @@ module OpetopicSub where
   --  Action of substitutions on types
   --
 
-  _[_]ty : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Ctx n ℓ₀} {Δ : 𝕆Ctx n ℓ₁}
-    → (X : 𝕆Type Δ ℓ₂) (σ : Γ ⇒ Δ) 
-    → 𝕆Type Γ ℓ₂
+  _[_]ty : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁}
+    → (X : 𝕆Fam Δ ℓ₂) (σ : Γ ⇒ Δ) 
+    → 𝕆Fam Γ ℓ₂
 
-  [_⊙_] : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Ctx n ℓ₀} {Δ : 𝕆Ctx n ℓ₁}
-    → {X : 𝕆Type Δ ℓ₂} (σ : Γ ⇒ Δ)
+  [_⊙_] : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁}
+    → {X : 𝕆Fam Δ ℓ₂} (σ : Γ ⇒ Δ)
     → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
     → Frm↓ (X [ σ ]ty) f 
     → Frm↓ X (Frm⇒ σ f)
 
   -- Again, to fix this, isolate the dimension in a module
   {-# TERMINATING #-}
-  [_⊙_]c : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Ctx n ℓ₀} {Δ : 𝕆Ctx n ℓ₁}
-    → {X : 𝕆Type Δ ℓ₂} (σ : Γ ⇒ Δ)
+  [_⊙_]c : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁}
+    → {X : 𝕆Fam Δ ℓ₂} (σ : Γ ⇒ Δ)
     → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {f : Frm Γ 𝑜} {c : Cns Γ f 𝑝} 
     → {f↓ : Frm↓ (X [ σ ]ty) f} (c↓ : Cns↓ (X [ σ ]ty) f↓ c)
     → Cns↓ X [ σ ⊙ f↓ ] (Cns⇒ σ c)
 
   postulate
 
-    Shp-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Ctx n ℓ₀} {Δ : 𝕆Ctx n ℓ₁}
-      → {X : 𝕆Type Δ ℓ₂} (σ : Γ ⇒ Δ)
+    Shp-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁}
+      → {X : 𝕆Fam Δ ℓ₂} (σ : Γ ⇒ Δ)
       → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {f : Frm Γ 𝑜} {c : Cns Γ f 𝑝} 
       → {f↓ : Frm↓ (X [ σ ]ty) f}
       → (c↓ : Cns↓ (X [ σ ]ty) f↓ c) (p : Pos 𝑝)
       → [ σ ⊙ Shp↓ (X [ σ ]ty) c↓ p ] ↦ Shp↓ X [ σ ⊙ c↓ ]c p 
     {-# REWRITE Shp-⊙ #-}
 
-    η-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Ctx n ℓ₀} {Δ : 𝕆Ctx n ℓ₁}
-      → {X : 𝕆Type Δ ℓ₂} (σ : Γ ⇒ Δ)
+    η-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁}
+      → {X : 𝕆Fam Δ ℓ₂} (σ : Γ ⇒ Δ)
       → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
       → (f↓ : Frm↓ (X [ σ ]ty) f)
       → [ σ ⊙ η↓ (X [ σ ]ty) f↓ ]c ↦ η↓ X [ σ ⊙ f↓ ]
     {-# REWRITE η-⊙ #-}
 
-    μ-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Ctx n ℓ₀} {Δ : 𝕆Ctx n ℓ₁}
-      → {X : 𝕆Type Δ ℓ₂} (σ : Γ ⇒ Δ)
+    μ-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁}
+      → {X : 𝕆Fam Δ ℓ₂} (σ : Γ ⇒ Δ)
       → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {f : Frm Γ 𝑜} {c : Cns Γ f 𝑝} 
       → {f↓ : Frm↓ (X [ σ ]ty) f} (c↓ : Cns↓ (X [ σ ]ty) f↓ c)
       → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
@@ -195,7 +195,7 @@ module OpetopicSub where
   --  Infinite Dimensional Substitutions
   --
 
-  record [_⇒_↓_] {n ℓ} {X Y : 𝕆Ctx n ℓ} (X∞ : 𝕆Ctx∞ ℓ X) (Y∞ : 𝕆Ctx∞ ℓ Y)
+  record [_⇒_↓_] {n ℓ} {X Y : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ ℓ X) (Y∞ : 𝕆Type∞ ℓ Y)
       (α : X ⇒ Y)  : Type ℓ where
     coinductive
     field
@@ -203,16 +203,16 @@ module OpetopicSub where
       Hom⇒ : [ Hom X∞ ⇒ Hom Y∞ ↓ α , Fill⇒ ]
 
   --  Pulling back an extension along a substitution
-  Pb∞ : ∀ {n ℓ} {X : 𝕆Ctx n ℓ} {Y : 𝕆Ctx n ℓ}
-    → (σ : X ⇒ Y) → 𝕆Ctx∞ ℓ Y → 𝕆Ctx∞ ℓ X 
+  Pb∞ : ∀ {n ℓ} {X : 𝕆Type n ℓ} {Y : 𝕆Type n ℓ}
+    → (σ : X ⇒ Y) → 𝕆Type∞ ℓ Y → 𝕆Type∞ ℓ X 
   Fill (Pb∞ {X = X} {Y} σ Y∞) {𝑜} f = Fill Y∞ (Frm⇒ σ f)
   Hom (Pb∞ {X = X} {Y} σ Y∞) =
     Pb∞ {X = (X , λ {𝑜} f → Fill Y∞ (Frm⇒ σ f))}
           {Y = (Y , Fill Y∞)} (σ , λ x → x) (Hom Y∞)
   
   --  Pushing forward and extension along a substitution
-  Pf∞ : ∀ {n ℓ} {X : 𝕆Ctx n ℓ} {Y : 𝕆Ctx n ℓ}
-    → (σ : X ⇒ Y) → 𝕆Ctx∞ ℓ X → 𝕆Ctx∞ ℓ Y
+  Pf∞ : ∀ {n ℓ} {X : 𝕆Type n ℓ} {Y : 𝕆Type n ℓ}
+    → (σ : X ⇒ Y) → 𝕆Type∞ ℓ X → 𝕆Type∞ ℓ Y
   Fill (Pf∞ {X = X} {Y} σ X∞) {o} f =
     Σ[ f' ∈ fiber (Frm⇒ σ) f ] Fill X∞ (fst f')
   Hom (Pf∞ {X = X} {Y} σ X∞) = Pf∞ {X = (X , Fill X∞)} {Y = (Y ,

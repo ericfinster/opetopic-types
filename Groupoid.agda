@@ -8,14 +8,14 @@ open import Cubical.Data.Nat
 
 open import Prelude
 open import Opetopes
-open import OpetopicCtx
 open import OpetopicType
+open import OpetopicFam 
 open import OpetopicTerm
 open import OpetopicSub
 
 module Groupoid where
 
-  Grp : ∀ {n ℓ} (X : Type ℓ) → 𝕆Type (𝕋 n {ℓ}) ℓ
+  Grp : ∀ {n ℓ} (X : Type ℓ) → 𝕆Fam (𝕋 n {ℓ}) ℓ
   Pt : ∀ {n ℓ} {X : Type ℓ} (x : X) → 𝕆Term {n} (Grp X)
 
   -- The extra units make this sloppy, but okay ...
@@ -35,11 +35,11 @@ module Groupoid where
   --  The free multiplicative extension associated to an opetopic type
   --
 
-  data MultFill {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ) 
+  data MultFill {n ℓ} (X : 𝕆Type (suc (suc n)) ℓ) 
     : {𝑜 : 𝒪 n} (f : Frm (fst (fst X)) 𝑜) → Type ℓ 
 
 
-  data MultHom {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ)
+  data MultHom {n ℓ} (X : 𝕆Type (suc (suc n)) ℓ)
     : {𝑜 : 𝒪 (suc n)} (f : Frm (fst (fst X) , MultFill X) 𝑜) → Type ℓ 
 
 
@@ -68,7 +68,7 @@ module Groupoid where
       → MultHom X (f , mult-comp c y , c , y)
 
 
-  FreeMult : ∀ {n ℓ} (Xₙ : 𝕆Ctx n ℓ) (X∞ : 𝕆Ctx∞ ℓ Xₙ) → 𝕆Ctx∞ ℓ Xₙ
+  FreeMult : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ) (X∞ : 𝕆Type∞ ℓ Xₙ) → 𝕆Type∞ ℓ Xₙ
   Fill (FreeMult Xₙ X∞) = MultFill ((Xₙ , Fill X∞) , Fill (Hom X∞)) 
   Fill (Hom (FreeMult Xₙ X∞)) = MultHom ((Xₙ , Fill X∞) , Fill (Hom X∞)) 
   Hom (Hom (FreeMult {n} Xₙ X∞)) = 
@@ -82,14 +82,14 @@ module Groupoid where
   --  a multiplicative one
   --
 
-  is-mult-ctx : ∀ {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ) → Type ℓ
+  is-mult-ctx : ∀ {n ℓ} (X : 𝕆Type (suc (suc n)) ℓ) → Type ℓ
   is-mult-ctx {n} ((Xₙ , Xₛₙ) , Xₛₛₙ) =
     {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
     (f : Frm Xₙ 𝑜) (c : Cns Xₙ f 𝑝)
     (y : (p : Pos 𝑝) → Xₛₙ (Shp Xₙ c p))
     → Σ[ x ∈ Xₛₙ f ] Xₛₛₙ (f , x , c , y)
 
-  record is-mult-ext {n ℓ} {Xₙ : 𝕆Ctx n ℓ} (X∞ : 𝕆Ctx∞ ℓ Xₙ) : Type ℓ where
+  record is-mult-ext {n ℓ} {Xₙ : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ ℓ Xₙ) : Type ℓ where
     coinductive
     field
       fill-mult : is-mult-ctx ((Xₙ , Fill X∞) , Fill (Hom X∞))
@@ -100,18 +100,18 @@ module Groupoid where
   -- Yikes.  This is slightly more complicated than expected.  You have
   -- to reconstruct the frame in X to multipy.  In principle seems like
   -- it could be done using y.  But we'll see...
-  pf-is-mult : ∀ {n ℓ} {X : 𝕆Ctx n ℓ} {Y : 𝕆Ctx n ℓ}
-    → (σ : X ⇒ Y) (X∞ : 𝕆Ctx∞ ℓ X)
+  pf-is-mult : ∀ {n ℓ} {X : 𝕆Type n ℓ} {Y : 𝕆Type n ℓ}
+    → (σ : X ⇒ Y) (X∞ : 𝕆Type∞ ℓ X)
     → is-mult-ext X∞ → is-mult-ext (Pf∞ σ X∞)
   fill-mult (pf-is-mult σ X∞ ϕ) f c y = (({!!} , {!!}) , {!!}) , {!!}
   hom-mult (pf-is-mult σ X∞ ϕ) =
     pf-is-mult (σ , (λ {𝑜} {f} x → (f , (λ _ → Frm⇒ σ f)) , x))
       (Hom X∞) (hom-mult ϕ)
 
-  data UniqueFill {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ) (ϕ : is-mult-ctx X)
+  data UniqueFill {n ℓ} (X : 𝕆Type (suc (suc n)) ℓ) (ϕ : is-mult-ctx X)
     : {𝑜 : 𝒪 n} (f : Frm (fst (fst X)) 𝑜) → Type ℓ 
 
-  data UniqueHom {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ) (ϕ : is-mult-ctx X)
+  data UniqueHom {n ℓ} (X : 𝕆Type (suc (suc n)) ℓ) (ϕ : is-mult-ctx X)
     : {𝑜 : 𝒪 (suc n)} (f : Frm (fst (fst X) , UniqueFill X ϕ) 𝑜) → Type ℓ 
 
   data UniqueFill {n ℓ} X ϕ where
@@ -140,7 +140,7 @@ module Groupoid where
       → (λ i → UniqueHom X ϕ (f , comp-unique c y x α i , c , λ p → in-unique-fill (y p)))
           [ in-unique-hom (snd (ϕ f c y)) ≡ α ] 
 
-  FreeUnique : ∀ {n ℓ} (Xₙ : 𝕆Ctx n ℓ) (X∞ : 𝕆Ctx∞ ℓ Xₙ) (ϕ : is-mult-ext X∞) → 𝕆Ctx∞ ℓ Xₙ
+  FreeUnique : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ) (X∞ : 𝕆Type∞ ℓ Xₙ) (ϕ : is-mult-ext X∞) → 𝕆Type∞ ℓ Xₙ
   Fill (FreeUnique Xₙ X∞ ϕ) = UniqueFill ((Xₙ , Fill X∞) , Fill (Hom X∞))  (fill-mult ϕ) 
   Fill (Hom (FreeUnique Xₙ X∞ ϕ)) = UniqueHom ((Xₙ , Fill X∞) , Fill (Hom X∞))  (fill-mult ϕ) 
   Hom (Hom (FreeUnique {n} Xₙ X∞ ϕ)) = 
@@ -153,11 +153,11 @@ module Groupoid where
   --  Fuck yeah!  A whole day but I got it!
   --
 
-  Skeleton : ∀ {ℓ} (X : 𝕆Ctx∞ ℓ tt*)
-    → (n : ℕ) → 𝕆Ctx n ℓ
+  Skeleton : ∀ {ℓ} (X : 𝕆Type∞ ℓ tt*)
+    → (n : ℕ) → 𝕆Type n ℓ
 
-  SkeletonExt : ∀ {ℓ} (X : 𝕆Ctx∞ ℓ tt*)
-    → (n : ℕ) → 𝕆Ctx∞ ℓ (Skeleton X n) 
+  SkeletonExt : ∀ {ℓ} (X : 𝕆Type∞ ℓ tt*)
+    → (n : ℕ) → 𝕆Type∞ ℓ (Skeleton X n) 
 
   Skeleton X zero = lift tt
   Skeleton X (suc n) = Skeleton X n , Fill (SkeletonExt X n)
@@ -165,20 +165,20 @@ module Groupoid where
   SkeletonExt X zero = X
   SkeletonExt X (suc n) = Hom (SkeletonExt X n)
 
-  FreeGrp : ∀ {ℓ} (X : 𝕆Ctx∞ ℓ tt*)
-    → (n : ℕ) → 𝕆Ctx n ℓ 
+  FreeGrp : ∀ {ℓ} (X : 𝕆Type∞ ℓ tt*)
+    → (n : ℕ) → 𝕆Type n ℓ 
 
-  FreeInc : ∀ {ℓ} (X : 𝕆Ctx∞ ℓ tt*)
+  FreeInc : ∀ {ℓ} (X : 𝕆Type∞ ℓ tt*)
     → (n : ℕ) → Skeleton X n ⇒ FreeGrp X n 
 
-  data FreeCell {ℓ} (X : 𝕆Ctx∞ ℓ tt*) : {n : ℕ} {𝑜 : 𝒪 n} (f : Frm (FreeGrp X n) 𝑜) → Type ℓ 
+  data FreeCell {ℓ} (X : 𝕆Type∞ ℓ tt*) : {n : ℕ} {𝑜 : 𝒪 n} (f : Frm (FreeGrp X n) 𝑜) → Type ℓ 
 
   FreeGrp X zero = lift tt
   FreeGrp X (suc n) = FreeGrp X n , FreeCell X
 
   data FreeCell {ℓ} X where
 
-    in-free : {n : ℕ} {𝑜 : 𝒪 n} {f : Frm (Skeleton X n) 𝑜}
+    free-in : {n : ℕ} {𝑜 : 𝒪 n} {f : Frm (Skeleton X n) 𝑜}
       → (x : Fill (SkeletonExt X n) f)
       → FreeCell X (Frm⇒ (FreeInc X n) f)
 
@@ -205,5 +205,5 @@ module Groupoid where
       → (λ i → FreeCell X (f , free-comp-unique c y x α i , c , y))
           [ free-fill c y ≡ α ] 
 
-  FreeInc X zero = lift tt
-  FreeInc X (suc n) = FreeInc X n , in-free
+  FreeInc X zero = tt*
+  FreeInc X (suc n) = FreeInc X n , free-in

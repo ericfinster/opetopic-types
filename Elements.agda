@@ -8,34 +8,34 @@ open import Cubical.Data.Nat
 
 open import Prelude
 open import Opetopes
-open import OpetopicCtx
 open import OpetopicType
+open import OpetopicFam
 
 module Elements where
 
-  El : ∀ {n ℓ} (Γ : 𝕆Ctx n ℓ) → Type ℓ
+  El : ∀ {n ℓ} (Γ : 𝕆Type n ℓ) → Type ℓ
   
-  Frm-El : ∀ {n ℓ} {Γ : 𝕆Ctx n ℓ} (σ : El Γ)
+  Frm-El : ∀ {n ℓ} {Γ : 𝕆Type n ℓ} (σ : El Γ)
     → (o : 𝒪 n) → Frm Γ o
 
   {-# TERMINATING #-}
-  Cns-El : ∀ {n ℓ} {Γ : 𝕆Ctx n ℓ} (σ : El Γ)
+  Cns-El : ∀ {n ℓ} {Γ : 𝕆Type n ℓ} (σ : El Γ)
     → {o : 𝒪 n} (ρ : 𝒫 o)
     → Cns Γ (Frm-El σ o) ρ 
 
   postulate
 
-    Shp-Frm-Cns : ∀ {ℓ n} (Γ : 𝕆Ctx n ℓ) (σ : El Γ)
+    Shp-Frm-Cns : ∀ {ℓ n} (Γ : 𝕆Type n ℓ) (σ : El Γ)
       → {o : 𝒪 n} (ρ : 𝒫 o) (p : Pos ρ)
       → Frm-El σ (Typ ρ p) ↦ Shp Γ (Cns-El σ ρ) p 
     {-# REWRITE Shp-Frm-Cns #-}
 
-    η-El : ∀ {ℓ n} (Γ : 𝕆Ctx n ℓ) (σ : El Γ)
+    η-El : ∀ {ℓ n} (Γ : 𝕆Type n ℓ) (σ : El Γ)
       → (o : 𝒪 n)
       → Cns-El σ (ηₒ o) ↦ η Γ (Frm-El σ o) 
     {-# REWRITE η-El #-}
 
-    μ-El : ∀ {n ℓ} (Γ : 𝕆Ctx n ℓ) (σ : El Γ)
+    μ-El : ∀ {n ℓ} (Γ : 𝕆Type n ℓ) (σ : El Γ)
       → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} 
       → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
       → Cns-El σ (μₒ (𝑝 , 𝑞)) ↦ μ Γ (Cns-El σ 𝑝) (λ p → Cns-El σ (𝑞 p)) 
@@ -60,13 +60,13 @@ module Elements where
   --  Extracting the fiber at an element ...
   --
 
-  fiber-at : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} (σ : El Γ)
-    → 𝕆Type Γ ℓ₁ → 𝕆Ctx n ℓ₁
+  fiber-at : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} (σ : El Γ)
+    → 𝕆Fam Γ ℓ₁ → 𝕆Type n ℓ₁
 
   postulate
   
-    frm-ovr : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} (σ : El Γ)
-      → (X : 𝕆Type Γ ℓ₁)
+    frm-ovr : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} (σ : El Γ)
+      → (X : 𝕆Fam Γ ℓ₁)
       → {𝑜 : 𝒪 n} (f : Frm (fiber-at σ X) 𝑜)
       → Frm↓ X (Frm-El σ 𝑜)
 

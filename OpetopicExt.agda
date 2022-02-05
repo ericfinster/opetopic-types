@@ -8,9 +8,9 @@ open import Cubical.Data.Nat
 
 open import Prelude
 open import Opetopes
-open import OpetopicCtx
-open import OpetopicSub 
 open import OpetopicType
+open import OpetopicSub 
+open import OpetopicFam
 open import OpetopicTerm
 
 module OpetopicExt where
@@ -20,13 +20,13 @@ module OpetopicExt where
   -- alternative other than simply axiomatizing the intro an elims...
   -- So maybe redo this ...
   
-  Ext : ∀ {n ℓ₀ ℓ₁} (Γ : 𝕆Ctx n ℓ₀) (X : 𝕆Type Γ ℓ₁)
-    → 𝕆Ctx n (ℓ-max ℓ₀ ℓ₁) 
+  Ext : ∀ {n ℓ₀ ℓ₁} (Γ : 𝕆Type n ℓ₀) (X : 𝕆Fam Γ ℓ₁)
+    → 𝕆Type n (ℓ-max ℓ₀ ℓ₁) 
 
-  π-ext : ∀ {n ℓ₀ ℓ₁} (Γ : 𝕆Ctx n ℓ₀) (X : 𝕆Type Γ ℓ₁)
+  π-ext : ∀ {n ℓ₀ ℓ₁} (Γ : 𝕆Type n ℓ₀) (X : 𝕆Fam Γ ℓ₁)
     → Ext Γ X ⇒ Γ
 
-  tm-ext : ∀ {n ℓ₀ ℓ₁} (Γ : 𝕆Ctx n ℓ₀) (X : 𝕆Type Γ ℓ₁)
+  tm-ext : ∀ {n ℓ₀ ℓ₁} (Γ : 𝕆Type n ℓ₀) (X : 𝕆Fam Γ ℓ₁)
     → 𝕆Term (X [ π-ext Γ X ]ty)
 
   Ext {zero} Γ X = lift tt
@@ -44,18 +44,18 @@ module OpetopicExt where
 
   -- Yeah, ummm, we should do this for arbitrary susbtitutions
   -- and then have the identity.  I think that is probably better.
-  ext-sub : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} {X : 𝕆Type Γ ℓ₁}
+  ext-sub : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} {X : 𝕆Fam Γ ℓ₁}
     → 𝕆Term X → Γ ⇒ Ext Γ X
 
   postulate
 
     -- Are these really the natural equations?
-    Frm-ext-sub : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} {X : 𝕆Type Γ ℓ₁}
+    Frm-ext-sub : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} {X : 𝕆Fam Γ ℓ₁}
       → (x : 𝕆Term X) {𝑜 : 𝒪 n} (f : Frm Γ 𝑜)
       → Frm⇒ (π-ext Γ X) (Frm⇒ (ext-sub x) f) ↦ f
     {-# REWRITE Frm-ext-sub #-}
 
-    Tm-ext-sub : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Ctx n ℓ₀} {X : 𝕆Type Γ ℓ₁}
+    Tm-ext-sub : ∀ {n ℓ₀ ℓ₁} {Γ : 𝕆Type n ℓ₀} {X : 𝕆Fam Γ ℓ₁}
       → (x : 𝕆Term X) {𝑜 : 𝒪 n} (f : Frm Γ 𝑜)
       → [ π-ext Γ X ⊙ Frm-Tm (tm-ext Γ X) (Frm⇒ (ext-sub x) f) ] ↦ Frm-Tm x f
     {-# REWRITE Tm-ext-sub #-}

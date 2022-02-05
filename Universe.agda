@@ -7,8 +7,8 @@ open import Cubical.Data.Nat
 
 open import Prelude
 open import Opetopes
-open import OpetopicCtx
 open import OpetopicType
+open import OpetopicFam 
 open import OpetopicSub
 open import OpetopicTerm
 open import OpetopicExt
@@ -16,8 +16,8 @@ open import OpetopicExt
 module Universe where
 
   -- Here's the version with the universe as a context.  
-  𝒰ₒ : (n : ℕ) (ℓ : Level) → 𝕆Ctx n (ℓ-suc ℓ)
-  𝒱ₒ : (n : ℕ) {ℓ : Level} → 𝕆Type (𝒰ₒ n ℓ) ℓ
+  𝒰ₒ : (n : ℕ) (ℓ : Level) → 𝕆Type n (ℓ-suc ℓ)
+  𝒱ₒ : (n : ℕ) {ℓ : Level} → 𝕆Fam (𝒰ₒ n ℓ) ℓ
 
   𝒰ₒ zero ℓ = lift tt
   𝒰ₒ (suc n) ℓ = 𝒰ₒ n ℓ , λ f → Frm↓ (𝒱ₒ n) f → Type ℓ
@@ -26,7 +26,7 @@ module Universe where
   𝒱ₒ (suc n) = 𝒱ₒ n , λ f↓ X → X f↓
 
   -- The dependent type of fibrancy
-  ℱₒ : (n : ℕ) {ℓ : Level} → 𝕆Type (𝒰ₒ n ℓ) ℓ
+  ℱₒ : (n : ℕ) {ℓ : Level} → 𝕆Fam (𝒰ₒ n ℓ) ℓ
   ℱₒ zero = lift tt
   ℱₒ (suc zero) = lift tt , λ f↓ x → Lift Unit
   ℱₒ (suc (suc n)) {ℓ} = ℱₒ (suc n) , is-fibrant
@@ -42,10 +42,10 @@ module Universe where
             → isContr (Σ[ x↓ ∈ Xₙ f↓ ] Xₛₙ (f↓ , x↓ , c↓ , y↓)) 
 
   -- We can now define the (∞,1)-category of spaces:
-  𝒮ₙ : (n : ℕ) (ℓ : Level) → 𝕆Ctx n (ℓ-suc ℓ)
+  𝒮ₙ : (n : ℕ) (ℓ : Level) → 𝕆Type n (ℓ-suc ℓ)
   𝒮ₙ n ℓ = Ext (𝒰ₒ n ℓ) (ℱₒ n) 
 
-  is-fibrant-ctx : ∀ {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ) → Type ℓ
+  is-fibrant-ctx : ∀ {n ℓ} (X : 𝕆Type (suc (suc n)) ℓ) → Type ℓ
   is-fibrant-ctx {n} ((Xₙ , Xₛₙ) , Xₛₛₙ) =
     {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
     (f : Frm Xₙ 𝑜) (c : Cns Xₙ f 𝑝)
@@ -104,7 +104,7 @@ module Universe where
   -- just simply *true* after a couple slices that the universe is
   -- multiplicative? 
 
-  is-mult-ctx : ∀ {n ℓ} (X : 𝕆Ctx (suc (suc n)) ℓ) → Type ℓ
+  is-mult-ctx : ∀ {n ℓ} (X : 𝕆Type (suc (suc n)) ℓ) → Type ℓ
   is-mult-ctx {n} ((Xₙ , Xₛₙ) , Xₛₛₙ) =
     {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
     (f : Frm Xₙ 𝑜) (c : Cns Xₙ f 𝑝)
@@ -126,7 +126,7 @@ module Universe where
   -- other relation in a kind of canonical way ....
     
   -- The dependent type of multiplicative structures
-  ℳₒ : (n : ℕ) {ℓ : Level} → 𝕆Type (𝒰ₒ n ℓ) ℓ
+  ℳₒ : (n : ℕ) {ℓ : Level} → 𝕆Fam (𝒰ₒ n ℓ) ℓ
   ℳₒ zero = lift tt
   ℳₒ (suc zero) = lift tt , λ f↓ x → Lift Unit
   ℳₒ (suc (suc n)) = ℳₒ (suc n) ,
