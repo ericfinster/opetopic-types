@@ -7,12 +7,12 @@ open import Cubical.Data.Sigma
 open import Cubical.Data.Unit
 open import Cubical.Data.Nat
 
-open import Prelude
-open import Opetopes
-open import OpetopicType
-open import OpetopicFam
+open import Core.Prelude
+open import Core.Opetopes
+open import Core.OpetopicType
+open import Core.OpetopicFamily
 
-module OpetopicSub where
+module Core.OpetopicMap where
 
   infixr 40 _⇒_
 
@@ -192,7 +192,7 @@ module OpetopicSub where
 
 
   --
-  --  Infinite Dimensional Substitutions
+  --  Infinite Dimensional Maps
   --
 
   record [_⇒_↓_] {n ℓ} {X Y : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ ℓ X) (Y∞ : 𝕆Type∞ ℓ Y)

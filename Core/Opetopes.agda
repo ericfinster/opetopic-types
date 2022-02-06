@@ -8,9 +8,9 @@ open import Cubical.Data.Empty
 open import Cubical.Data.Unit
 open import Cubical.Data.Sum 
 
-open import Prelude
+open import Core.Prelude
 
-module Opetopes where
+module Core.Opetopes where
 
   --
   --  The Opetopic Polynomials
@@ -48,15 +48,15 @@ module Opetopes where
   {-# TERMINATING #-}
   μₒ : {n : ℕ} {o : 𝒪 n} → ⟦ 𝒫 ⟧ₒ o → 𝒫 o
 
-  pairₒ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
+  pairₚ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
     → (p : Pos (fst 𝑝)) (q : Pos (snd 𝑝 p))
     → Pos (μₒ 𝑝)
 
-  fstₒ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
+  fstₚ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
     → Pos (μₒ 𝑝) → Pos (fst 𝑝)
 
-  sndₒ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
-    → (p : Pos (μₒ 𝑝)) → Pos (snd 𝑝 (fstₒ 𝑝 p))
+  sndₚ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
+    → (p : Pos (μₒ 𝑝)) → Pos (snd 𝑝 (fstₚ 𝑝 p))
 
   -- 
   --  Monadic Laws
@@ -76,26 +76,26 @@ module Opetopes where
       → ηₒ-pos-elim o X ηₒ-pos* (ηₒ-pos o) ↦ ηₒ-pos*
     {-# REWRITE ηₒ-pos-elim-β #-}
 
-    -- pairₒ laws
-    fstₒ-β : {n : ℕ} {𝑜 : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜)
+    -- pairₚ laws
+    fstₚ-β : {n : ℕ} {𝑜 : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜)
       → (p : Pos (fst 𝑝)) (q : Pos (snd 𝑝 p))
-      → fstₒ 𝑝 (pairₒ 𝑝 p q) ↦ p
-    {-# REWRITE fstₒ-β #-}
+      → fstₚ 𝑝 (pairₚ 𝑝 p q) ↦ p
+    {-# REWRITE fstₚ-β #-}
 
-    sndₒ-β : {n : ℕ} {𝑜 : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜)
+    sndₚ-β : {n : ℕ} {𝑜 : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜)
       → (p : Pos (fst 𝑝)) (q : Pos (snd 𝑝 p))
-      → sndₒ 𝑝 (pairₒ 𝑝 p q) ↦ q
-    {-# REWRITE sndₒ-β #-}
+      → sndₚ 𝑝 (pairₚ 𝑝 p q) ↦ q
+    {-# REWRITE sndₚ-β #-}
     
-    pairₒ-ηₒ : {n : ℕ} {𝑜 : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜)
+    pairₚ-ηₒ : {n : ℕ} {𝑜 : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜)
       → (p : Pos (μₒ 𝑝))
-      → pairₒ 𝑝 (fstₒ 𝑝 p) (sndₒ 𝑝 p) ↦ p
-    {-# REWRITE pairₒ-ηₒ #-}
+      → pairₚ 𝑝 (fstₚ 𝑝 p) (sndₚ 𝑝 p) ↦ p
+    {-# REWRITE pairₚ-ηₒ #-}
 
-    pairₒ-typ : {n : ℕ} {𝑜 : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜)
+    pairₚ-typ : {n : ℕ} {𝑜 : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜)
       → (p : Pos (μₒ 𝑝))
-      → Typ (μₒ 𝑝) p ↦ Typ (snd 𝑝 (fstₒ 𝑝 p)) (sndₒ 𝑝 p)
-    {-# REWRITE pairₒ-typ #-}
+      → Typ (μₒ 𝑝) p ↦ Typ (snd 𝑝 (fstₚ 𝑝 p)) (sndₚ 𝑝 p)
+    {-# REWRITE pairₚ-typ #-}
 
   postulate
 
@@ -111,73 +111,73 @@ module Opetopes where
 
     μₒ-assoc : {n : ℕ} {o : 𝒪 n} 
       → (𝑝 : ⟦ 𝒫 ⟧ₒ o) (ε : Decₒ 𝒫 (μₒ 𝑝))
-      → μₒ (μₒ 𝑝 , ε) ↦ μₒ (fst 𝑝 , λ p → μₒ (snd 𝑝 p , λ q → ε (pairₒ 𝑝 p q)))
+      → μₒ (μₒ 𝑝 , ε) ↦ μₒ (fst 𝑝 , λ p → μₒ (snd 𝑝 p , λ q → ε (pairₚ 𝑝 p q)))
     {-# REWRITE μₒ-assoc #-}
 
     -- intro compatibilities
-    pairₒ-unit-r : {n : ℕ} {o : 𝒪 n} (𝑝 : 𝒫 o)
+    pairₚ-unit-r : {n : ℕ} {o : 𝒪 n} (𝑝 : 𝒫 o)
       → (p : Pos 𝑝) (q : Pos (ηₒ (Typ 𝑝 p)))
-      → pairₒ (𝑝 , λ p → ηₒ (Typ 𝑝 p)) p q ↦ p
-    {-# REWRITE pairₒ-unit-r #-}
+      → pairₚ (𝑝 , λ p → ηₒ (Typ 𝑝 p)) p q ↦ p
+    {-# REWRITE pairₚ-unit-r #-}
 
-    pairₒ-unit-l : {n : ℕ} {𝑜 : 𝒪 n}
+    pairₚ-unit-l : {n : ℕ} {𝑜 : 𝒪 n}
       → (ϕ : Decₒ 𝒫 (ηₒ 𝑜))
       → (q : Pos (ϕ (ηₒ-pos 𝑜)))
-      → pairₒ (ηₒ 𝑜 , ϕ) (ηₒ-pos 𝑜) q ↦ q 
-    {-# REWRITE pairₒ-unit-l #-}
+      → pairₚ (ηₒ 𝑜 , ϕ) (ηₒ-pos 𝑜) q ↦ q 
+    {-# REWRITE pairₚ-unit-l #-}
 
-    pairₒ-assoc : {n : ℕ} {o : 𝒪 n} 
+    pairₚ-assoc : {n : ℕ} {o : 𝒪 n} 
       → (𝑝 : ⟦ 𝒫 ⟧ₒ o) (ε : Decₒ 𝒫 (μₒ 𝑝))
       → (pq : Pos (μₒ 𝑝)) (r : Pos (ε pq))
-      → let ε' p = μₒ (snd 𝑝 p , λ q → ε (pairₒ 𝑝 p q))
-            p = fstₒ 𝑝 pq
-            q = sndₒ 𝑝 pq
-        in pairₒ (μₒ 𝑝 , ε) pq r
-          ↦ pairₒ (fst 𝑝 , ε')
-              p (pairₒ (snd 𝑝 p , λ q → ε (pairₒ 𝑝 p q)) q r)
-    {-# REWRITE pairₒ-assoc #-} 
+      → let ε' p = μₒ (snd 𝑝 p , λ q → ε (pairₚ 𝑝 p q))
+            p = fstₚ 𝑝 pq
+            q = sndₚ 𝑝 pq
+        in pairₚ (μₒ 𝑝 , ε) pq r
+          ↦ pairₚ (fst 𝑝 , ε')
+              p (pairₚ (snd 𝑝 p , λ q → ε (pairₚ 𝑝 p q)) q r)
+    {-# REWRITE pairₚ-assoc #-} 
 
     -- first projection compatibilities
     μₒ-fst-unit-r : {n : ℕ} {o : 𝒪 n} (𝑝 : 𝒫 o)
       → (p : Pos (μₒ (𝑝 , λ p → ηₒ (Typ 𝑝 p))))
-      → fstₒ (𝑝 , λ p → ηₒ (Typ 𝑝 p)) p ↦ p
+      → fstₚ (𝑝 , λ p → ηₒ (Typ 𝑝 p)) p ↦ p
     {-# REWRITE μₒ-fst-unit-r #-}
 
     μₒ-fst-unit-l : {n : ℕ} {𝑜 : 𝒪 n}
       → (ϕ : Decₒ 𝒫 (ηₒ 𝑜))
       → (p : Pos (μₒ (ηₒ 𝑜 , ϕ)))
-      → fstₒ (ηₒ 𝑜 , ϕ) p ↦ ηₒ-pos 𝑜
+      → fstₚ (ηₒ 𝑜 , ϕ) p ↦ ηₒ-pos 𝑜
     {-# REWRITE μₒ-fst-unit-l #-}
 
     μₒ-fst-assoc : {n : ℕ} {o : 𝒪 n} 
       → (𝑝 : ⟦ 𝒫 ⟧ₒ o) (ε : Decₒ 𝒫 (μₒ 𝑝))
       → (pqr : Pos (μₒ (μₒ 𝑝 , ε)))
-      → let ε' p = μₒ (snd 𝑝 p , λ q → ε (pairₒ 𝑝 p q))
-            p = fstₒ (fst 𝑝 , ε') pqr
-            qr = sndₒ (fst 𝑝 , ε') pqr
-            q = fstₒ (snd 𝑝 p , λ q → ε (pairₒ 𝑝 p q)) qr
-        in fstₒ (μₒ 𝑝 , ε) pqr ↦ pairₒ 𝑝 p q
+      → let ε' p = μₒ (snd 𝑝 p , λ q → ε (pairₚ 𝑝 p q))
+            p = fstₚ (fst 𝑝 , ε') pqr
+            qr = sndₚ (fst 𝑝 , ε') pqr
+            q = fstₚ (snd 𝑝 p , λ q → ε (pairₚ 𝑝 p q)) qr
+        in fstₚ (μₒ 𝑝 , ε) pqr ↦ pairₚ 𝑝 p q
     {-# REWRITE μₒ-fst-assoc #-}
 
     -- second projection compatibilities
     μₒ-snd-unit-r : {n : ℕ} {o : 𝒪 n} (𝑝 : 𝒫 o)
       → (p : Pos (μₒ (𝑝 , λ p → ηₒ (Typ 𝑝 p))))
-      → sndₒ (𝑝 , λ p → ηₒ (Typ 𝑝 p)) p ↦ ηₒ-pos (Typ 𝑝 p)
+      → sndₚ (𝑝 , λ p → ηₒ (Typ 𝑝 p)) p ↦ ηₒ-pos (Typ 𝑝 p)
     {-# REWRITE μₒ-snd-unit-r #-}
 
     μₒ-snd-unit-l : {n : ℕ} {𝑜 : 𝒪 n}
       → (ϕ : Decₒ 𝒫 (ηₒ 𝑜))
       → (p : Pos (μₒ (ηₒ 𝑜 , ϕ)))
-      → sndₒ (ηₒ 𝑜 , ϕ) p ↦ p 
+      → sndₚ (ηₒ 𝑜 , ϕ) p ↦ p 
     {-# REWRITE μₒ-snd-unit-l #-}
 
     μₒ-snd-assoc : {n : ℕ} {o : 𝒪 n} 
       → (𝑝 : ⟦ 𝒫 ⟧ₒ o) (ε : Decₒ 𝒫 (μₒ 𝑝))
       → (pqr : Pos (μₒ (μₒ 𝑝 , ε)))
-      → let ε' p = μₒ (snd 𝑝 p , λ q → ε (pairₒ 𝑝 p q))
-            p = fstₒ (fst 𝑝 , ε') pqr
-            qr = sndₒ (fst 𝑝 , ε') pqr
-        in sndₒ (μₒ 𝑝 , ε) pqr ↦ sndₒ (snd 𝑝 p , λ q → ε (pairₒ 𝑝 p q)) qr
+      → let ε' p = μₒ (snd 𝑝 p , λ q → ε (pairₚ 𝑝 p q))
+            p = fstₚ (fst 𝑝 , ε') pqr
+            qr = sndₚ (fst 𝑝 , ε') pqr
+        in sndₚ (μₒ 𝑝 , ε) pqr ↦ sndₚ (snd 𝑝 p , λ q → ε (pairₚ 𝑝 p q)) qr
     {-# REWRITE μₒ-snd-assoc #-}
 
   --
@@ -204,8 +204,8 @@ module Opetopes where
     → 𝒯r (μₒ 𝑝)
   graftₒ lfₒ ψ = ψ (ηₒ-pos _)
   graftₒ {𝑝 = ._ , ϕ} (ndₒ (𝑝 , 𝑑) ε) ψ =
-    ndₒ (𝑝 , λ p → μₒ (𝑑 p , λ q → ϕ (pairₒ (𝑝 , 𝑑) p q)))
-        (λ p → graftₒ (ε p) (λ q → ψ (pairₒ (𝑝 , 𝑑) p q)))
+    ndₒ (𝑝 , λ p → μₒ (𝑑 p , λ q → ϕ (pairₚ (𝑝 , 𝑑) p q)))
+        (λ p → graftₒ (ε p) (λ q → ψ (pairₚ (𝑝 , 𝑑) p q)))
 
   inlₒ : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
     → (𝑡 : 𝒯r (fst 𝑝))
@@ -213,7 +213,7 @@ module Opetopes where
     → 𝒯rPos 𝑡 → 𝒯rPos (graftₒ 𝑡 ψ)
   inlₒ (ndₒ 𝑝 ε) ψ (inl tt) = inl tt
   inlₒ {𝑝 = ._ , ϕ} (ndₒ (𝑝 , 𝑑) ε) ψ (inr (u , v)) = 
-    inr (u , inlₒ (ε u) (λ q → ψ (pairₒ (𝑝 , 𝑑) u q)) v)
+    inr (u , inlₒ (ε u) (λ q → ψ (pairₚ (𝑝 , 𝑑) u q)) v)
 
   inrₒ : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
     → (𝑡 : 𝒯r (fst 𝑝))
@@ -223,9 +223,9 @@ module Opetopes where
   inrₒ {𝑜 = 𝑜} lfₒ ψ =
     ηₒ-pos-elim 𝑜 (λ p → 𝒯rPos (ψ p) → 𝒯rPos (ψ (ηₒ-pos 𝑜))) (λ p → p) 
   inrₒ (ndₒ 𝑝 ε) ψ u v = 
-    let u₀ = fstₒ 𝑝 u
-        u₁ = sndₒ 𝑝 u
-    in inr (u₀ , inrₒ (ε u₀) (λ q → ψ (pairₒ 𝑝 u₀ q)) u₁ v)
+    let u₀ = fstₚ 𝑝 u
+        u₁ = sndₚ 𝑝 u
+    in inr (u₀ , inrₒ (ε u₀) (λ q → ψ (pairₚ 𝑝 u₀ q)) u₁ v)
 
   graftₒ-pos-elim : ∀ {ℓ} {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
     → (𝑡 : 𝒯r (fst 𝑝))
@@ -237,10 +237,10 @@ module Opetopes where
   graftₒ-pos-elim lfₒ ψ X inl* inr* p = inr* (ηₒ-pos _) p
   graftₒ-pos-elim (ndₒ 𝑝 ε) ψ X inl* inr* (inl tt) = inl* (inl tt)
   graftₒ-pos-elim (ndₒ 𝑝 ε) ψ X inl* inr* (inr (u , v)) = 
-    graftₒ-pos-elim (ε u) (λ q → ψ (pairₒ 𝑝 u q)) 
+    graftₒ-pos-elim (ε u) (λ q → ψ (pairₚ 𝑝 u q)) 
       (λ q → X (inr (u , q)))
       (λ q → inl* (inr (u , q)))
-      (λ p q → inr* (pairₒ 𝑝 u p) q) v
+      (λ p q → inr* (pairₚ 𝑝 u p) q) v
       
   --
   --  Grafting Laws
@@ -311,36 +311,36 @@ module Opetopes where
         Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
     in graftₒ 𝑡 Ψ
 
-  -- pairₒ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
+  -- pairₚ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
   --   → (p : Pos (fst 𝑝)) (q : Pos (snd 𝑝 p))
   --   → Pos (μₒ 𝑝)
-  pairₒ {zero} (𝑝 , 𝑑) p q = tt
-  pairₒ {suc n} (ndₒ 𝑝 ε , 𝑑) (inl tt) r = 
+  pairₚ {zero} (𝑝 , 𝑑) p q = tt
+  pairₚ {suc n} (ndₒ 𝑝 ε , 𝑑) (inl tt) r = 
     let 𝑡 = 𝑑 (inl tt)
         Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
     in inlₒ 𝑡 Ψ r  
-  pairₒ {suc n} (ndₒ 𝑝 ε , 𝑑) (inr (p , q)) r =
+  pairₚ {suc n} (ndₒ 𝑝 ε , 𝑑) (inr (p , q)) r =
     let 𝑡 = 𝑑 (inl tt)
         Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
-    in inrₒ 𝑡 Ψ p (pairₒ (ε p , λ q → 𝑑 (inr (p , q))) q r) 
+    in inrₒ 𝑡 Ψ p (pairₚ (ε p , λ q → 𝑑 (inr (p , q))) q r) 
 
-  -- fstₒ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
+  -- fstₚ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
   --   → Pos (μₒ 𝑝) → Pos (fst 𝑝)
-  fstₒ {zero} (𝑝 , 𝑑) p = tt
-  fstₒ {suc n} (ndₒ 𝑝 ε , 𝑑) = 
+  fstₚ {zero} (𝑝 , 𝑑) p = tt
+  fstₚ {suc n} (ndₒ 𝑝 ε , 𝑑) = 
     let 𝑡 = 𝑑 (inl tt)
         Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
     in graftₒ-pos-elim 𝑡 Ψ _ (const (inl tt))
-         (λ p q → inr (p , fstₒ (ε p , λ q → 𝑑 (inr (p , q))) q))
+         (λ p q → inr (p , fstₚ (ε p , λ q → 𝑑 (inr (p , q))) q))
 
-  -- sndₒ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
-  --   → (p : Pos (μₒ 𝑝)) → Pos (snd 𝑝 (fstₒ 𝑝 p))
-  sndₒ {zero} (𝑝 , 𝑑) p = tt
-  sndₒ {suc n} (ndₒ 𝑝 ε , 𝑑) = 
+  -- sndₚ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
+  --   → (p : Pos (μₒ 𝑝)) → Pos (snd 𝑝 (fstₚ 𝑝 p))
+  sndₚ {zero} (𝑝 , 𝑑) p = tt
+  sndₚ {suc n} (ndₒ 𝑝 ε , 𝑑) = 
     let 𝑡 = 𝑑 (inl tt)
         Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
     in graftₒ-pos-elim 𝑡 Ψ _ (λ p → p)
-         (λ p q → sndₒ (ε p , λ q → 𝑑 (inr (p , q))) q)
+         (λ p q → sndₚ (ε p , λ q → 𝑑 (inr (p , q))) q)
 
   --
   --  Examples

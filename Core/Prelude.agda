@@ -2,7 +2,7 @@
 
 open import Cubical.Core.Everything 
 
-module Prelude where
+module Core.Prelude where
 
   infix 10 _↦_
   postulate  
