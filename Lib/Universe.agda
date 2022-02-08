@@ -57,9 +57,13 @@ module Lib.Universe where
          (snd (fst (fst (𝒮ₙ (suc (suc (suc n))) ℓ)))) ω p))
     → Frm↓ (𝒱ₒ (suc n)) (fst-frm f , fst X , fst-cns c , (λ p → fst (Y p))) → Type ℓ
   CompRel {n} {𝑡 = 𝑡} f X c Y ω R f↓ =
-    Σ[ ω↓ ∈ Cns↓ (𝒱ₒ (suc n)) f↓ (fst-cns ω) ]
-    ((p : 𝒯rPos 𝑡) → fst (R p) (Shp↓ (𝒱ₒ (suc n)) ω↓ p))  
+    Σ[ ω↓ ∈ Cns↓ (𝒱ₒ (suc n)) f↓ (fst-cns {P = ℱₒ (suc n)} ω) ]
+    ((p : 𝒯rPos 𝑡) → fst (R p) {!Shp↓ (𝒱ₒ (suc n)) ω↓ ?!})
+    -- (Shp↓ (𝒱ₒ (suc n)) ω↓ p))  
 
+  -- Ah.  Annoying.  So we can't have the shape computing functions
+  -- local because then the rewrites don't fire and we have to repeat
+  -- everything.  So you'll have to change this...
 
   thm : (n : ℕ) (ℓ : Level) → is-fibrant (𝒮ₙ (suc (suc (suc n))) ℓ)
   thm n ℓ {𝑜 , 𝑝} {𝑡} {f , X , c , Y} ω R =

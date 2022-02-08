@@ -79,3 +79,7 @@ module Lib.Join where
   join-inr {suc zero} = tt* , λ { {tt} {tt*} y → inr y }
   join-inr {suc (suc zero)} = join-inr {1} , λ { {_} {_ , y₀ , _ , y₁} β → jarr-inr y₀ (y₁ tt) β }
   join-inr {suc (suc (suc n))} = join-inr {2 + n} , jcell-inr
+
+  --
+  --  Obvious theorem: if X and Y are (∞,1)-categories, then so is their join ... 
+  -- 
