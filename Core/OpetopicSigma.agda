@@ -80,13 +80,28 @@ module Core.OpetopicSigma where
       → pair-cns (fst-cns c) (snd-cns c) ↦ c
     {-# REWRITE pair-cns-η #-}
 
-    -- Calculation of shapes 
+    -- Calculation of shapes
+
+
     pair-shp : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {P : 𝕆Fam X ℓ₁}
       → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} (f : Frm (Σₒ X P) 𝑜)
       → (c : Cns (Σₒ X P) f 𝑝) (p : Pos 𝑝)
       → Shp (Σₒ X P) c p ↦
           pair-frm (Shp X (fst-cns c) p) (Shp↓ P (snd-cns c) p)
     {-# REWRITE pair-shp #-} 
+
+    -- This extra rewrite is needed because shapes have to be defined
+    -- by an auxillary function ....
+    -- pair-web-shp : ∀ {n ℓ₀ ℓ₁} {Xₙ : 𝕆Type n ℓ₀} {Pₙ : 𝕆Fam Xₙ ℓ₁}
+    --   → {Xₛₙ : {𝑜 : 𝒪 n} → Frm Xₙ 𝑜 → Type ℓ₀}
+    --   → {Pₛₙ : {𝑜 : 𝒪 n} {f : Frm Xₙ 𝑜} (f↓ : Frm↓ Pₙ f) → Xₛₙ f → Type ℓ₁}
+    --   → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {𝑡 : 𝒯r 𝑝}
+    --   → (f : WebFrm (Σₒ Xₙ Pₙ) (λ f → Σ[ x ∈ Xₛₙ (fst-frm f) ] Pₛₙ (snd-frm f) x) 𝑝) 
+    --   → (ω : Web (Σₒ Xₙ Pₙ) (λ f → Σ[ x ∈ Xₛₙ (fst-frm f) ] Pₛₙ (snd-frm f) x) f 𝑡)
+    --   → (p : 𝒯rPos 𝑡)
+    --   → WebShp (Σₒ Xₙ Pₙ) (λ f → Σ[ x ∈ Xₛₙ (fst-frm f) ] Pₛₙ (snd-frm f) x) ω p
+    --       ↦ pair-frm (WebShp Xₙ Xₛₙ (fst-cns {X = Xₙ , Xₛₙ} {Pₙ , Pₛₙ} ω) p) (WebShp↓ Pₙ Pₛₙ (snd-cns ω) p)
+
 
     -- Compatibility with η 
     fst-η : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {P : 𝕆Fam X ℓ₁}
