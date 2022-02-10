@@ -14,6 +14,8 @@ open import Core.Opetopes
 
 module Core.OpetopicType where
 
+  {-# TERMINATING #-}
+
   𝕆Type : ℕ → (ℓ : Level) → Type (ℓ-suc ℓ)
   
   Frm : ∀ {n ℓ} → 𝕆Type n ℓ → 𝒪 n → Type ℓ
@@ -29,7 +31,6 @@ module Core.OpetopicType where
     → {𝑜 : 𝒪 n} (f : Frm X 𝑜)
     → Cns X f (ηₒ 𝑜)
 
-  {-# TERMINATING #-}
   μ : ∀ {n ℓ} (X : 𝕆Type n ℓ)
     → {𝑜 : 𝒪 n} {f : Frm X 𝑜}
     → {𝑝 : 𝒫 𝑜} (c : Cns X f 𝑝)
@@ -105,12 +106,6 @@ module Core.OpetopicType where
         → (z : (p : Pos 𝑝) (q : Pos (𝑞 p)) → Xₛₙ (Shp Xₙ (d p) q))
         → (ψ : (p : Pos 𝑝) → Web (Shp Xₙ c p , y p , d p , z p) (𝑠 p)) 
         → Web (f , x , μ Xₙ c d , λ p → z (fstₚ (𝑝 , 𝑞) p) (sndₚ (𝑝 , 𝑞) p)) (ndₒ (𝑝 , 𝑞) 𝑠) 
-
-    WebShp : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {φ : WebFrm 𝑝} {𝑡 : 𝒯r 𝑝}
-      → (ω : Web φ 𝑡) (p : 𝒯rPos 𝑡)
-      → WebFrm (snd (𝒯rTyp 𝑡 p))
-    WebShp (nd x c y d z ψ) (inl tt) = _ , x , c , y
-    WebShp (nd x c y d z ψ) (inr (p , q)) = WebShp (ψ p) q
     
     graft : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} 
       → {𝑠 : 𝒯r 𝑝} {f : Frm Xₙ 𝑜} (x : Xₛₙ f) (c : Cns Xₙ f 𝑝)
@@ -145,8 +140,9 @@ module Core.OpetopicType where
   Cns {suc n} (Xₙ , Xₛₙ) {𝑜 , 𝑝} = Web Xₙ Xₛₙ {𝑜} {𝑝} 
   
   Shp {zero} _ _ _ = lift tt
-  Shp {suc n} (Xₙ , Xₛₙ) {𝑜 , 𝑝} ψ p = WebShp Xₙ Xₛₙ ψ p
-  
+  Shp {suc n} (Xₙ , Xₛₙ) {𝑜 , ._} (nd x c y d z ψ) here = _ , x , c , y
+  Shp {suc n} (Xₙ , Xₛₙ) {𝑜 , ._} (nd x c y d z ψ) (there p q) = Shp (Xₙ , Xₛₙ) (ψ p) q
+
   -- η : ∀ {n ℓ} (X : 𝕆Type n ℓ)
   --   → {𝑜 : 𝒪 n} (f : Frm X 𝑜)
   --   → Cns X f (ηₒ 𝑜)
@@ -166,8 +162,8 @@ module Core.OpetopicType where
   μ {zero} X c d = lift tt
   μ {suc n} (Xₙ , Xₛₙ) (lf x) d = lf x
   μ {suc n} (Xₙ , Xₛₙ) (nd x c y d z ψ) ω =
-    graft Xₙ Xₛₙ x c y (ω (inl tt)) d z 
-      (λ p → μ (Xₙ , Xₛₙ) (ψ p) (λ q → ω (inr (p , q))))
+    graft Xₙ Xₛₙ x c y (ω here) d z 
+      (λ p → μ (Xₙ , Xₛₙ) (ψ p) (λ q → ω (there p q)))
 
   --
   --  The terminal opetopic context
