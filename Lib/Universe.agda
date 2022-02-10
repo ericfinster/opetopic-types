@@ -53,13 +53,23 @@ module Lib.Universe where
            (f , X , c , Y) 𝑡)
     → (R : (p : 𝒯rPos 𝑡) →
         snd (fst (𝒮ₙ (suc (suc (suc n))) ℓ))
-        (WebShp (fst (fst (fst (𝒮ₙ (suc (suc (suc n))) ℓ))))
-         (snd (fst (fst (𝒮ₙ (suc (suc (suc n))) ℓ)))) ω p))
+        (Shp (fst (fst (𝒮ₙ (suc (suc (suc n))) ℓ))) ω p))
     → Frm↓ (𝒱ₒ (suc n)) (fst-frm f , fst X , fst-cns c , (λ p → fst (Y p))) → Type ℓ
   CompRel {n} {𝑡 = 𝑡} f X c Y ω R f↓ =
     Σ[ ω↓ ∈ Cns↓ (𝒱ₒ (suc n)) f↓ (fst-cns {P = ℱₒ (suc n)} ω) ]
-    ((p : 𝒯rPos 𝑡) → fst (R p) {!!}) -- (Shp↓ (𝒱ₒ (suc n)) ω↓ p)
+    ((p : 𝒯rPos 𝑡) → fst (R p) {!(Shp↓ (𝒱ₒ (suc n)) ω↓ p)!}) -- ) 
 
   thm : (n : ℕ) (ℓ : Level) → is-fibrant (𝒮ₙ (suc (suc (suc n))) ℓ)
   thm n ℓ {𝑜 , 𝑝} {𝑡} {f , X , c , Y} ω R =
     ((CompRel f X c Y ω R , {!!}) , {!!}) , {!!}
+
+
+-- fst (Shp (𝒰ₒ (suc n) ℓ) (fst-cns ω) p) !=
+-- fst-frm
+-- (fst
+--  (Shp
+--   (Σₒ (𝒰ₒ n ℓ) (ℱₒ n) ,
+--    (λ f₁ → Σ (Frm↓ (𝒱ₒ n) (fst-frm f₁) → Type ℓ) is-fibrant-rel))
+--   ω p))
+
+-- fst-frm (fst (Shp (fst (fst (𝒮ₙ (suc (suc (suc n))) ℓ))) ω p)) of

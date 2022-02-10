@@ -67,7 +67,7 @@ module Core.OpetopicSigma where
       → (c : Cns X f 𝑝) (c↓ : Cns↓ P f↓ c)
       → fst-cns (pair-cns c c↓) ↦ c 
     {-# REWRITE fst-pair-cns-β #-}
-    
+
     snd-pair-cns-β : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {P : 𝕆Fam X ℓ₁}
       → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {f : Frm X 𝑜} {f↓ : Frm↓ P f}
       → (c : Cns X f 𝑝) (c↓ : Cns↓ P f↓ c)
@@ -82,26 +82,30 @@ module Core.OpetopicSigma where
 
     -- Calculation of shapes
 
+    fst-shp : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {P : 𝕆Fam X ℓ₁}
+      → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} (f : Frm (Σₒ X P) 𝑜)
+      → (c : Cns (Σₒ X P) f 𝑝) (p : Pos 𝑝)
+      → fst-frm (Shp (Σₒ X P) c p) ↦ Shp X (fst-cns c) p 
+    {-# REWRITE fst-shp #-}
+    
+    snd-shp : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {P : 𝕆Fam X ℓ₁}
+      → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} (f : Frm (Σₒ X P) 𝑜)
+      → (c : Cns (Σₒ X P) f 𝑝) (p : Pos 𝑝)
+      → snd-frm (Shp (Σₒ X P) c p) ↦ Shp↓ P (snd-cns c) p
+    {-# REWRITE snd-shp #-} 
 
-    pair-shp : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {P : 𝕆Fam X ℓ₁}
+    -- pair-shp : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {P : 𝕆Fam X ℓ₁}
+    --   → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {f : Frm X 𝑜} {f↓ : Frm↓ P f}
+    --   → (c : Cns X f 𝑝) (c↓ : Cns↓ P f↓ c) (p : Pos 𝑝)
+    --   → pair-frm (Shp X c p) (Shp↓ P c↓ p) ↦ Shp (Σₒ X P) (pair-cns c c↓) p
+    -- {-# REWRITE pair-shp #-}
+
+    pair-shp-exp : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {P : 𝕆Fam X ℓ₁}
       → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} (f : Frm (Σₒ X P) 𝑜)
       → (c : Cns (Σₒ X P) f 𝑝) (p : Pos 𝑝)
       → Shp (Σₒ X P) c p ↦
           pair-frm (Shp X (fst-cns c) p) (Shp↓ P (snd-cns c) p)
-    {-# REWRITE pair-shp #-} 
-
-    -- This extra rewrite is needed because shapes have to be defined
-    -- by an auxillary function ....
-    -- pair-web-shp : ∀ {n ℓ₀ ℓ₁} {Xₙ : 𝕆Type n ℓ₀} {Pₙ : 𝕆Fam Xₙ ℓ₁}
-    --   → {Xₛₙ : {𝑜 : 𝒪 n} → Frm Xₙ 𝑜 → Type ℓ₀}
-    --   → {Pₛₙ : {𝑜 : 𝒪 n} {f : Frm Xₙ 𝑜} (f↓ : Frm↓ Pₙ f) → Xₛₙ f → Type ℓ₁}
-    --   → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {𝑡 : 𝒯r 𝑝}
-    --   → (f : WebFrm (Σₒ Xₙ Pₙ) (λ f → Σ[ x ∈ Xₛₙ (fst-frm f) ] Pₛₙ (snd-frm f) x) 𝑝) 
-    --   → (ω : Web (Σₒ Xₙ Pₙ) (λ f → Σ[ x ∈ Xₛₙ (fst-frm f) ] Pₛₙ (snd-frm f) x) f 𝑡)
-    --   → (p : 𝒯rPos 𝑡)
-    --   → WebShp (Σₒ Xₙ Pₙ) (λ f → Σ[ x ∈ Xₛₙ (fst-frm f) ] Pₛₙ (snd-frm f) x) ω p
-    --       ↦ pair-frm (WebShp Xₙ Xₛₙ (fst-cns {X = Xₙ , Xₛₙ} {Pₙ , Pₛₙ} ω) p) (WebShp↓ Pₙ Pₛₙ (snd-cns ω) p)
-
+    {-# REWRITE pair-shp-exp #-} 
 
     -- Compatibility with η 
     fst-η : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {P : 𝕆Fam X ℓ₁}
@@ -180,8 +184,10 @@ module Core.OpetopicSigma where
   pair-cns {zero} c c↓ = tt*
   pair-cns {suc n} {f = f , x , ._ , ._} {f↓ = f↓ , x↓ , ._ , ._}
     (lf .x) idp = lf {f = pair-frm f f↓} (x , x↓)
-  pair-cns {suc n} {X = X} {P} {f = f , x , ._ , ._} {f↓ = f↓ , x↓ , ._ , ._}
+  pair-cns {suc n} {X = Xₙ , Xₛₙ} {Pₙ , Pₛₙ} {f = f , x , ._ , ._} {f↓ = f↓ , x↓ , ._ , ._}
     (nd .x c y d z ψ) (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) = 
     nd {f = pair-frm f f↓} (x , x↓) (pair-cns c c↓) (λ p → (y p , y↓ p))
       (λ p → pair-cns (d p) (d↓ p)) (λ p q → (z p q , z↓ p q))
-      (λ p → pair-cns {suc n} {X = X} {P} (ψ p) (ψ↓ p))
+      (λ p → pair-cns {suc n} {X = Xₙ , Xₛₙ} {Pₙ , Pₛₙ} (ψ p) (ψ↓ p))
+
+
