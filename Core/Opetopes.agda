@@ -15,6 +15,8 @@ module Core.Opetopes where
   --
   --  The Opetopic Polynomials
   --
+
+  {-# TERMINATING #-}
   
   𝒪 : ℕ → Type
   𝒫 : {n : ℕ} → 𝒪 n → Type
@@ -45,7 +47,6 @@ module Core.Opetopes where
     → (ηₒ-pos* : X (ηₒ-pos o))
     → (p : Pos (ηₒ o)) → X p
 
-  {-# TERMINATING #-}
   μₒ : {n : ℕ} {o : 𝒪 n} → ⟦ 𝒫 ⟧ₒ o → 𝒫 o
 
   pairₚ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
@@ -57,7 +58,7 @@ module Core.Opetopes where
 
   sndₚ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
     → (p : Pos (μₒ 𝑝)) → Pos (snd 𝑝 (fstₚ 𝑝 p))
-
+      
   -- 
   --  Monadic Laws
   --
@@ -181,23 +182,34 @@ module Core.Opetopes where
     {-# REWRITE μₒ-snd-assoc #-}
 
   --
-  --  Trees and Grafting 
+  --  Trees and Positions
   --
+  
+  {-# NO_POSITIVITY_CHECK #-}
+  
+  data 𝒯r {n : ℕ} {𝑜 : 𝒪 n} : (𝑝 : 𝒫 𝑜) → Type where
+  
+    lfₒ : 𝒯r (ηₒ 𝑜)
+    
+    ndₒ : (𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜)
+      → (ε : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p))
+      → 𝒯r {n} {𝑜} (μₒ 𝑝)
 
-  data 𝒯r {n : ℕ} {o : 𝒪 n} : (𝑝 : 𝒫 o) → Type where
-    lfₒ : 𝒯r (ηₒ o)
-    ndₒ : (𝑝 : ⟦ 𝒫 ⟧ₒ o) (ε : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p))
-      → 𝒯r (μₒ 𝑝)
+  data 𝒯rPos {n : ℕ} {𝑜 : 𝒪 n} : {𝑝 : 𝒫 𝑜} (𝑡 : 𝒯r 𝑝) → Type where
+  
+    here : {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜}
+      → {ε : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p)}
+      → 𝒯rPos (ndₒ 𝑝 ε)
 
-  𝒯rPos : {n : ℕ} {o : 𝒪 n} {𝑝 : 𝒫 o} → 𝒯r 𝑝 → Type 
-  𝒯rPos lfₒ = ⊥
-  𝒯rPos (ndₒ 𝑝 ε) = Unit ⊎ Σ (Pos (fst 𝑝)) (λ p → 𝒯rPos (ε p)) 
+    there : {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜}
+      → {ε : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p)}
+      → (p : Pos (fst 𝑝)) (q : 𝒯rPos (ε p))
+      → 𝒯rPos (ndₒ 𝑝 ε)
 
-  𝒯rTyp : {n : ℕ} {o : 𝒪 n} {𝑝 : 𝒫 o} (σ : 𝒯r 𝑝) (p : 𝒯rPos σ) → Σ (𝒪 n) 𝒫
-  𝒯rTyp lfₒ ()
-  𝒯rTyp (ndₒ 𝓅 ε) (inl tt) = _ , fst 𝓅 
-  𝒯rTyp (ndₒ 𝓅 ε) (inr (p , q)) = 𝒯rTyp (ε p) q
-
+  --
+  --  Grafting 
+  --
+  
   graftₒ : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
     → (𝑡 : 𝒯r (fst 𝑝))
     → (ψ : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p))
@@ -211,9 +223,9 @@ module Core.Opetopes where
     → (𝑡 : 𝒯r (fst 𝑝))
     → (ψ : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p))
     → 𝒯rPos 𝑡 → 𝒯rPos (graftₒ 𝑡 ψ)
-  inlₒ (ndₒ 𝑝 ε) ψ (inl tt) = inl tt
-  inlₒ {𝑝 = ._ , ϕ} (ndₒ (𝑝 , 𝑑) ε) ψ (inr (u , v)) = 
-    inr (u , inlₒ (ε u) (λ q → ψ (pairₚ (𝑝 , 𝑑) u q)) v)
+  inlₒ (ndₒ 𝑝 ε) ψ here = here
+  inlₒ {𝑝 = ._ , ϕ} (ndₒ (𝑝 , 𝑑) ε) ψ (there u v) = 
+    there u (inlₒ (ε u) (λ q → ψ (pairₚ (𝑝 , 𝑑) u q)) v)
 
   inrₒ : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
     → (𝑡 : 𝒯r (fst 𝑝))
@@ -225,7 +237,7 @@ module Core.Opetopes where
   inrₒ (ndₒ 𝑝 ε) ψ u v = 
     let u₀ = fstₚ 𝑝 u
         u₁ = sndₚ 𝑝 u
-    in inr (u₀ , inrₒ (ε u₀) (λ q → ψ (pairₚ 𝑝 u₀ q)) u₁ v)
+    in there u₀ (inrₒ (ε u₀) (λ q → ψ (pairₚ 𝑝 u₀ q)) u₁ v)
 
   graftₒ-pos-elim : ∀ {ℓ} {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
     → (𝑡 : 𝒯r (fst 𝑝))
@@ -235,11 +247,11 @@ module Core.Opetopes where
     → (inr* : (p : Pos (fst 𝑝)) (q : 𝒯rPos (ψ p)) → X (inrₒ 𝑡 ψ p q))
     → (p : 𝒯rPos (graftₒ 𝑡 ψ)) → X p
   graftₒ-pos-elim lfₒ ψ X inl* inr* p = inr* (ηₒ-pos _) p
-  graftₒ-pos-elim (ndₒ 𝑝 ε) ψ X inl* inr* (inl tt) = inl* (inl tt)
-  graftₒ-pos-elim (ndₒ 𝑝 ε) ψ X inl* inr* (inr (u , v)) = 
+  graftₒ-pos-elim (ndₒ 𝑝 ε) ψ X inl* inr* here = inl* here
+  graftₒ-pos-elim (ndₒ 𝑝 ε) ψ X inl* inr* (there u v) = 
     graftₒ-pos-elim (ε u) (λ q → ψ (pairₚ 𝑝 u q)) 
-      (λ q → X (inr (u , q)))
-      (λ q → inl* (inr (u , q)))
+      (λ q → X (there u  q))
+      (λ q → inl* (there u q))
       (λ p q → inr* (pairₚ 𝑝 u p) q) v
       
   --
@@ -271,20 +283,25 @@ module Core.Opetopes where
     -- TODO : More grafting laws...
 
   --
-  --  Opetopes 
+  --  Polynomial Implementations
   --
 
   𝒪 zero = Unit
   𝒪 (suc n) = Σ (𝒪 n) 𝒫
 
   𝒫 {zero} _ = Unit
-  𝒫 {suc n} (o , p) = 𝒯r p
-
+  𝒫 {suc n} (𝑜 , 𝑝) = 𝒯r {𝑜 = 𝑜} 𝑝
+  
   Pos {zero} _ = Unit
-  Pos {suc n} 𝑝 = 𝒯rPos 𝑝
+  Pos {suc n}  = 𝒯rPos 
   
   Typ {zero} _ _ = tt
-  Typ {suc n} 𝑝 p = 𝒯rTyp 𝑝 p
+  Typ {suc n} ._ (here {𝑝 , _}) = _ , 𝑝
+  Typ {suc n} ._ (there {ε = ε} p q) = Typ (ε p) q
+
+  --
+  --  Monadic Implementations
+  --
 
   -- ηₒ : {n : ℕ} (o : 𝒪 n) → 𝒫 o
   ηₒ {zero} _ = tt
@@ -294,53 +311,53 @@ module Core.Opetopes where
   -- ηₒ-pos : {n : ℕ} (o : 𝒪 n)
   --   → Pos (ηₒ o)
   ηₒ-pos {zero} _ = tt
-  ηₒ-pos {suc n} (o , 𝑝) = inl tt
+  ηₒ-pos {suc n} (o , 𝑝) = here
 
   -- ηₒ-pos-elim : {n : ℕ} (o : 𝒪 n)
   --   → (X : (p : Pos (ηₒ o)) → Type)
   --   → (ηₒ-pos* : X (ηₒ-pos o))
   --   → (p : Pos (ηₒ o)) → X p
   ηₒ-pos-elim {n = zero} o X ηₒ-pos* tt = ηₒ-pos*
-  ηₒ-pos-elim {n = suc n} o X ηₒ-pos* (inl tt) = ηₒ-pos*
+  ηₒ-pos-elim {n = suc n} o X ηₒ-pos* here = ηₒ-pos*
 
   -- μₒ : {n : ℕ} {o : 𝒪 n} → ⟦ 𝒫 ⟧ₒ o → 𝒫 o
   μₒ {zero} (𝑝 , 𝑑) = tt
   μₒ {suc n} (lfₒ , 𝑑) = lfₒ
   μₒ {suc n} (ndₒ 𝑝 ε , 𝑑) =
-    let 𝑡 = 𝑑 (inl tt)
-        Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
+    let 𝑡 = 𝑑 here
+        Ψ p = μₒ (ε p , λ q → 𝑑 (there p q))
     in graftₒ 𝑡 Ψ
 
   -- pairₚ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
   --   → (p : Pos (fst 𝑝)) (q : Pos (snd 𝑝 p))
   --   → Pos (μₒ 𝑝)
   pairₚ {zero} (𝑝 , 𝑑) p q = tt
-  pairₚ {suc n} (ndₒ 𝑝 ε , 𝑑) (inl tt) r = 
-    let 𝑡 = 𝑑 (inl tt)
-        Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
+  pairₚ {suc n} (ndₒ 𝑝 ε , 𝑑) here r = 
+    let 𝑡 = 𝑑 here
+        Ψ p = μₒ (ε p , λ q → 𝑑 (there p q))
     in inlₒ 𝑡 Ψ r  
-  pairₚ {suc n} (ndₒ 𝑝 ε , 𝑑) (inr (p , q)) r =
-    let 𝑡 = 𝑑 (inl tt)
-        Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
-    in inrₒ 𝑡 Ψ p (pairₚ (ε p , λ q → 𝑑 (inr (p , q))) q r) 
+  pairₚ {suc n} (ndₒ 𝑝 ε , 𝑑) (there p q) r =
+    let 𝑡 = 𝑑 here
+        Ψ p = μₒ (ε p , λ q → 𝑑 (there p q))
+    in inrₒ 𝑡 Ψ p (pairₚ (ε p , λ q → 𝑑 (there p q)) q r) 
 
   -- fstₚ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
   --   → Pos (μₒ 𝑝) → Pos (fst 𝑝)
   fstₚ {zero} (𝑝 , 𝑑) p = tt
   fstₚ {suc n} (ndₒ 𝑝 ε , 𝑑) = 
-    let 𝑡 = 𝑑 (inl tt)
-        Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
-    in graftₒ-pos-elim 𝑡 Ψ _ (const (inl tt))
-         (λ p q → inr (p , fstₚ (ε p , λ q → 𝑑 (inr (p , q))) q))
+    let 𝑡 = 𝑑 here
+        Ψ p = μₒ (ε p , λ q → 𝑑 (there p q))
+    in graftₒ-pos-elim 𝑡 Ψ _ (const here)
+         (λ p q → there p (fstₚ (ε p , λ q → 𝑑 (there p q)) q))
 
   -- sndₚ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
   --   → (p : Pos (μₒ 𝑝)) → Pos (snd 𝑝 (fstₚ 𝑝 p))
   sndₚ {zero} (𝑝 , 𝑑) p = tt
   sndₚ {suc n} (ndₒ 𝑝 ε , 𝑑) = 
-    let 𝑡 = 𝑑 (inl tt)
-        Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
+    let 𝑡 = 𝑑 here
+        Ψ p = μₒ (ε p , λ q → 𝑑 (there p q))
     in graftₒ-pos-elim 𝑡 Ψ _ (λ p → p)
-         (λ p q → sndₚ (ε p , λ q → 𝑑 (inr (p , q))) q)
+         (λ p q → sndₚ (ε p , λ q → 𝑑 (there p q)) q)
 
   --
   --  Examples
