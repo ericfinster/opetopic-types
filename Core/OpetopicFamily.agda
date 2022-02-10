@@ -14,6 +14,8 @@ open import Core.OpetopicType
 
 module Core.OpetopicFamily where
 
+  {-# TERMINATING #-}
+  
   𝕆Fam : ∀ {n ℓ₀} (X : 𝕆Type n ℓ₀)
     → (ℓ : Level) → Type (ℓ-max ℓ₀ (ℓ-suc ℓ))
 
@@ -33,7 +35,6 @@ module Core.OpetopicFamily where
     → {𝑜 : 𝒪 n} {f : Frm X 𝑜} (f↓ : Frm↓ P f)
     → Cns↓ P f↓ (η X f)
 
-  {-# TERMINATING #-}
   μ↓ : ∀ {n ℓ₀ ℓ} {X : 𝕆Type n ℓ₀} (P : 𝕆Fam X ℓ)
     → {𝑜 : 𝒪 n} {f : Frm X 𝑜} {f↓ : Frm↓ P f}
     → {𝑝 : 𝒫 𝑜} {c : Cns X f 𝑝} (c↓ : Cns↓ P f↓ c)
@@ -120,12 +121,6 @@ module Core.OpetopicFamily where
       Ident (IdentType (μ Xₙ c d) (λ p → z (fstₚ (𝑝 , 𝑞) p) (sndₚ (𝑝 , 𝑞) p)) f↓)
         (μ↓ Pₙ c↓ d↓ , λ p → z↓ (fstₚ (𝑝 , 𝑞) p) (sndₚ (𝑝 , 𝑞) p)) (μc↓ , μy↓)
 
-    WebShp↓ : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {φ : WebFrm Xₙ Xₛₙ 𝑝} {𝑡 : 𝒯r 𝑝}
-      → {φ↓ : WebFrm↓ φ} {ω : Web Xₙ Xₛₙ φ 𝑡} (ω↓ : Web↓ φ↓ ω)
-      → (p : 𝒯rPos 𝑡) → WebFrm↓ (WebShp Xₙ Xₛₙ ω p)
-    WebShp↓ {φ↓ = f↓ , x↓ , ._ , ._} {ω = nd x c y d z ψ} (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) (inl tt) = f↓ , x↓ , c↓ , y↓
-    WebShp↓ {φ↓ = f↓ , x↓ , ._ , ._} {ω = nd x c y d z ψ} (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) (inr (p , q)) = WebShp↓ (ψ↓ p) q 
-
     graft↓ : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} 
       → {𝑠 : 𝒯r 𝑝} {f : Frm Xₙ 𝑜} {x : Xₛₙ f} {c : Cns Xₙ f 𝑝}
       → {y : (p : Pos 𝑝) → Xₛₙ (Shp Xₙ c p)}
@@ -170,8 +165,8 @@ module Core.OpetopicFamily where
   Cns↓ {n = suc n} (Pₙ , Pₛₙ) ω = Web↓ Pₙ Pₛₙ ω
   
   Shp↓ {n = zero} _ _ _ = lift tt
-  Shp↓ {n = suc n} (Pₙ , Pₛₙ) ω↓ p = WebShp↓ Pₙ Pₛₙ ω↓ p
-
+  Shp↓ {n = suc n} (Pₙ , Pₛₙ) {f↓ = f↓ , x↓ , ._ , ._} {c = nd x c y d z ψ} (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) here = f↓ , x↓ , c↓ , y↓
+  Shp↓ {n = suc n} (Pₙ , Pₛₙ) {f↓ = f↓ , x↓ , ._ , ._} {c = nd x c y d z ψ} (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) (there p q) = Shp↓ (Pₙ , Pₛₙ) (ψ↓ p) q
 
   -- η↓ : ∀ {n ℓ₀ ℓ} {X : 𝕆Type n ℓ₀} (P : 𝕆Fam X ℓ)
   --   → {𝑜 : 𝒪 n} {f : Frm X 𝑜} (f↓ : Frm↓ P f)
@@ -193,8 +188,8 @@ module Core.OpetopicFamily where
   μ↓ {n = zero} P c↓ d↓ = lift tt
   μ↓ {n = suc n} (Pₙ , Pₛₙ) {c = lf x} c↓ ω↓ = c↓
   μ↓ {n = suc n} (Pₙ , Pₛₙ) {c = nd x c y d z ψ} (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) ω↓ = 
-    graft↓ Pₙ Pₛₙ _ c↓ y↓ (ω↓ (inl tt)) d↓ z↓
-      (λ p → μ↓ (Pₙ , Pₛₙ) (ψ↓ p) (λ q → ω↓ (inr (p , q))))
+    graft↓ Pₙ Pₛₙ _ c↓ y↓ (ω↓ here) d↓ z↓
+      (λ p → μ↓ (Pₙ , Pₛₙ) (ψ↓ p) (λ q → ω↓ (there p q)))
 
   --
   --  Infinite dimensional families
