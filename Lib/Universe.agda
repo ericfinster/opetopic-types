@@ -41,35 +41,3 @@ module Lib.Universe where
   𝒮ₙ : (n : ℕ) (ℓ : Level) → 𝕆Type n (ℓ-suc ℓ)
   𝒮ₙ n ℓ = Σₒ (𝒰ₒ n ℓ) (ℱₒ n) 
 
-  -- Right, so this I think is now correct.  Just needs to be cleaned up
-  -- and written in a way which is comprehensible....
-  CompRel : ∀ {n ℓ} {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {𝑡 : 𝒯r 𝑝}
-    → (f : Frm (Σₒ (𝒰ₒ n ℓ) (ℱₒ n)) 𝑜)
-    → (X : Σ (Frm↓ (𝒱ₒ n) (fst-frm f) → Type ℓ) is-fibrant-rel)
-    → (c : Cns (Σₒ (𝒰ₒ n ℓ) (ℱₒ n)) f 𝑝)
-    → (Y : (p : Pos 𝑝) → Σ (Frm↓ (𝒱ₒ n) (Shp (𝒰ₒ n ℓ) (fst-cns c) p) → Type ℓ) is-fibrant-rel)
-    → (ω : Web (Σₒ (𝒰ₒ n ℓ) (ℱₒ n))
-           (λ f₁ → Σ (Frm↓ (𝒱ₒ n) (fst-frm f₁) → Type ℓ) is-fibrant-rel)
-           (f , X , c , Y) 𝑡)
-    → (R : (p : 𝒯rPos 𝑡) →
-        snd (fst (𝒮ₙ (suc (suc (suc n))) ℓ))
-        (Shp (fst (fst (𝒮ₙ (suc (suc (suc n))) ℓ))) ω p))
-    → Frm↓ (𝒱ₒ (suc n)) (fst-frm f , fst X , fst-cns c , (λ p → fst (Y p))) → Type ℓ
-  CompRel {n} {𝑡 = 𝑡} f X c Y ω R f↓ =
-    Σ[ ω↓ ∈ Cns↓ (𝒱ₒ (suc n)) f↓ (fst-cns {P = ℱₒ (suc n)} ω) ]
-    ((p : 𝒯rPos 𝑡) → fst (R p) {!(Shp↓ (𝒱ₒ (suc n)) ω↓ p)!}) -- ) 
-
-  thm : (n : ℕ) (ℓ : Level) → is-fibrant (𝒮ₙ (suc (suc (suc n))) ℓ)
-  thm n ℓ {𝑜 , 𝑝} {𝑡} {f , X , c , Y} ω R =
-    ((CompRel f X c Y ω R , {!!}) , {!!}) , {!!}
-
-
--- fst (Shp (𝒰ₒ (suc n) ℓ) (fst-cns ω) p) !=
--- fst-frm
--- (fst
---  (Shp
---   (Σₒ (𝒰ₒ n ℓ) (ℱₒ n) ,
---    (λ f₁ → Σ (Frm↓ (𝒱ₒ n) (fst-frm f₁) → Type ℓ) is-fibrant-rel))
---   ω p))
-
--- fst-frm (fst (Shp (fst (fst (𝒮ₙ (suc (suc (suc n))) ℓ))) ω p)) of
