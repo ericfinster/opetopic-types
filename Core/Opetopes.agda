@@ -12,45 +12,21 @@ open import Core.Prelude
 
 module Core.Opetopes where
 
-  {-# TERMINATING #-}
-  
   --
   --  The Opetopic Polynomials
   --
+
+  {-# NO_POSITIVITY_CHECK #-}
   
-  𝒪 : ℕ → Type
-  𝒫 : {n : ℕ} → 𝒪 n → Type
-  Pos : {n : ℕ} {o : 𝒪 n} → 𝒫 o → Type 
+  data 𝒪 : ℕ → Type
+  data 𝒫 : {n : ℕ} → 𝒪 n → Type
+  data Pos : {n : ℕ} {o : 𝒪 n} → 𝒫 o → Type 
   Typ : {n : ℕ} {o : 𝒪 n} (𝑝 : 𝒫 o) (p : Pos 𝑝) → 𝒪 n
-
-  --
-  --  The slice construction
-  -- 
-
-  data 𝒯r {n : ℕ} : (𝑜 : 𝒪 (suc n)) → Type
-  𝒯rPos : {n : ℕ} {𝑜 : 𝒪 (suc n)} → 𝒯r 𝑜 → Type 
-  𝒯rTyp : {n : ℕ} {𝑜 : 𝒪 (suc n)} (𝑡 : 𝒯r 𝑜) (p : 𝒯rPos 𝑡) → 𝒪 (suc n)
-
-  --
-  --  Polynomial Definitions
-  --
-
-  𝒪 zero = Unit
-  𝒪 (suc n) = Σ (𝒪 n) 𝒫
-  
-  𝒫 {zero} _ = Unit
-  𝒫 {suc n} = 𝒯r
-  
-  Pos {zero} _ = Unit
-  Pos {suc n} = 𝒯rPos
-  
-  Typ {zero} _ _ = tt
-  Typ {suc n} = 𝒯rTyp
 
   --
   --  Monadic Structure
   --
-
+  
   ηₒ : {n : ℕ} (o : 𝒪 n) → 𝒫 o
 
   ηₒ-pos : {n : ℕ} (o : 𝒪 n)
@@ -65,20 +41,62 @@ module Core.Opetopes where
     → (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
     → 𝒫 𝑜
 
-  postulate
+  pairₚ : {n : ℕ} {𝑜 : 𝒪 n} 
+    → (𝑝 : 𝒫 𝑜) (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
+    → (p : Pos 𝑝) (q : Pos (𝑞 p))
+    → Pos (μₒ 𝑝 𝑞)
 
-    pairₚ : {n : ℕ} {𝑜 : 𝒪 n} 
-      → (𝑝 : 𝒫 𝑜) (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
-      → (p : Pos 𝑝) (q : Pos (𝑞 p))
-      → Pos (μₒ 𝑝 𝑞)
+  fstₚ : {n : ℕ} {𝑜 : 𝒪 n} 
+    → (𝑝 : 𝒫 𝑜) (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
+    → Pos (μₒ 𝑝 𝑞) → Pos 𝑝
 
-    fstₚ : {n : ℕ} {𝑜 : 𝒪 n} 
-      → (𝑝 : 𝒫 𝑜) (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
-      → Pos (μₒ 𝑝 𝑞) → Pos 𝑝
+  sndₚ : {n : ℕ} {𝑜 : 𝒪 n} 
+    → (𝑝 : 𝒫 𝑜) (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
+    → (p : Pos (μₒ 𝑝 𝑞)) → Pos (𝑞 (fstₚ 𝑝 𝑞 p))
 
-    sndₚ : {n : ℕ} {𝑜 : 𝒪 n} 
-      → (𝑝 : 𝒫 𝑜) (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
-      → (p : Pos (μₒ 𝑝 𝑞)) → Pos (𝑞 (fstₚ 𝑝 𝑞 p))
+  --
+  --  Polynomial Definitions
+  --
+
+  infixl 40 _∣_
+  
+  data 𝒪 where
+
+    ● : 𝒪 zero
+    
+    _∣_ : {n : ℕ} (𝑜 : 𝒪 n)
+      → (𝑝 : 𝒫 𝑜) → 𝒪 (suc n) 
+
+  data 𝒫 where
+
+    objₒ : 𝒫 ●
+    
+    lfₒ : {n : ℕ} {𝑜 : 𝒪 n}
+      → 𝒫 (𝑜 ∣ ηₒ 𝑜)
+      
+    ndₒ : {n : ℕ} {𝑜 : 𝒪 n} (𝑝 : 𝒫 𝑜)
+      → (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
+      → (𝑟 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p))
+      → 𝒫 (𝑜 ∣ μₒ 𝑝 𝑞)
+
+  data Pos where
+
+    obj-pos : Pos objₒ
+
+    nd-here : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
+      → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+      → {𝑟 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p)}
+      → Pos (ndₒ 𝑝 𝑞 𝑟)
+
+    nd-there : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
+      → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+      → {𝑟 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p)}
+      → (p : Pos 𝑝) (q : Pos (𝑟 p)) 
+      → Pos (ndₒ 𝑝 𝑞 𝑟)
+
+  Typ ._ obj-pos = ●
+  Typ ._ (nd-here {𝑜 = 𝑜} {𝑝}) = 𝑜 ∣ 𝑝
+  Typ ._ (nd-there {𝑟 = 𝑟} p q) = Typ (𝑟 p) q
 
   -- 
   --  Position Laws
@@ -148,251 +166,235 @@ module Core.Opetopes where
   --
   --  Position and Monad Law Compatibilities 
   --
+
+  postulate
   
-  --   -- intro compatibilities
-  --   pairₚ-unit-r : {n : ℕ} {o : 𝒪 n} (𝑝 : 𝒫 o)
-  --     → (p : Pos 𝑝) (q : Pos (ηₒ (Typ 𝑝 p)))
-  --     → pairₚ (𝑝 , λ p → ηₒ (Typ 𝑝 p)) p q ↦ p
-  --   {-# REWRITE pairₚ-unit-r #-}
+    -- intro compatibilities
+    pairₚ-unit-r : {n : ℕ} {o : 𝒪 n} (𝑝 : 𝒫 o)
+      → (p : Pos 𝑝) (q : Pos (ηₒ (Typ 𝑝 p)))
+      → pairₚ 𝑝 (λ p → ηₒ (Typ 𝑝 p)) p q ↦ p
+    {-# REWRITE pairₚ-unit-r #-}
 
-  --   pairₚ-unit-l : {n : ℕ} {𝑜 : 𝒪 n}
-  --     → (ϕ : Decₒ 𝒫 (ηₒ 𝑜))
-  --     → (q : Pos (ϕ (ηₒ-pos 𝑜)))
-  --     → pairₚ (ηₒ 𝑜 , ϕ) (ηₒ-pos 𝑜) q ↦ q 
-  --   {-# REWRITE pairₚ-unit-l #-}
+    pairₚ-unit-l : {n : ℕ} {𝑜 : 𝒪 n}
+      → (𝑝 : (p : Pos (ηₒ 𝑜)) → 𝒫 (Typ (ηₒ 𝑜) p))
+      → (p : Pos (𝑝 (ηₒ-pos 𝑜)))
+      → pairₚ (ηₒ 𝑜) 𝑝 (ηₒ-pos 𝑜) p ↦ p
+    {-# REWRITE pairₚ-unit-l #-}
 
-  --   pairₚ-assoc : {n : ℕ} {o : 𝒪 n} 
-  --     → (𝑝 : ⟦ 𝒫 ⟧ₒ o) (ε : Decₒ 𝒫 (μₒ 𝑝))
-  --     → (pq : Pos (μₒ 𝑝)) (r : Pos (ε pq))
-  --     → let ε' p = μₒ (snd 𝑝 p , λ q → ε (pairₚ 𝑝 p q))
-  --           p = fstₚ 𝑝 pq
-  --           q = sndₚ 𝑝 pq
-  --       in pairₚ (μₒ 𝑝 , ε) pq r
-  --         ↦ pairₚ (fst 𝑝 , ε')
-  --             p (pairₚ (snd 𝑝 p , λ q → ε (pairₚ 𝑝 p q)) q r)
-  --   {-# REWRITE pairₚ-assoc #-} 
-
-  --   -- first projection compatibilities
-  --   μₒ-fst-unit-r : {n : ℕ} {o : 𝒪 n} (𝑝 : 𝒫 o)
-  --     → (p : Pos (μₒ (𝑝 , λ p → ηₒ (Typ 𝑝 p))))
-  --     → fstₚ (𝑝 , λ p → ηₒ (Typ 𝑝 p)) p ↦ p
-  --   {-# REWRITE μₒ-fst-unit-r #-}
-
-  --   μₒ-fst-unit-l : {n : ℕ} {𝑜 : 𝒪 n}
-  --     → (ϕ : Decₒ 𝒫 (ηₒ 𝑜))
-  --     → (p : Pos (μₒ (ηₒ 𝑜 , ϕ)))
-  --     → fstₚ (ηₒ 𝑜 , ϕ) p ↦ ηₒ-pos 𝑜
-  --   {-# REWRITE μₒ-fst-unit-l #-}
-
-  --   μₒ-fst-assoc : {n : ℕ} {o : 𝒪 n} 
-  --     → (𝑝 : ⟦ 𝒫 ⟧ₒ o) (ε : Decₒ 𝒫 (μₒ 𝑝))
-  --     → (pqr : Pos (μₒ (μₒ 𝑝 , ε)))
-  --     → let ε' p = μₒ (snd 𝑝 p , λ q → ε (pairₚ 𝑝 p q))
-  --           p = fstₚ (fst 𝑝 , ε') pqr
-  --           qr = sndₚ (fst 𝑝 , ε') pqr
-  --           q = fstₚ (snd 𝑝 p , λ q → ε (pairₚ 𝑝 p q)) qr
-  --       in fstₚ (μₒ 𝑝 , ε) pqr ↦ pairₚ 𝑝 p q
-  --   {-# REWRITE μₒ-fst-assoc #-}
-
-  --   -- second projection compatibilities
-  --   μₒ-snd-unit-r : {n : ℕ} {o : 𝒪 n} (𝑝 : 𝒫 o)
-  --     → (p : Pos (μₒ (𝑝 , λ p → ηₒ (Typ 𝑝 p))))
-  --     → sndₚ (𝑝 , λ p → ηₒ (Typ 𝑝 p)) p ↦ ηₒ-pos (Typ 𝑝 p)
-  --   {-# REWRITE μₒ-snd-unit-r #-}
-
-  --   μₒ-snd-unit-l : {n : ℕ} {𝑜 : 𝒪 n}
-  --     → (ϕ : Decₒ 𝒫 (ηₒ 𝑜))
-  --     → (p : Pos (μₒ (ηₒ 𝑜 , ϕ)))
-  --     → sndₚ (ηₒ 𝑜 , ϕ) p ↦ p 
-  --   {-# REWRITE μₒ-snd-unit-l #-}
-
-  --   μₒ-snd-assoc : {n : ℕ} {o : 𝒪 n} 
-  --     → (𝑝 : ⟦ 𝒫 ⟧ₒ o) (ε : Decₒ 𝒫 (μₒ 𝑝))
-  --     → (pqr : Pos (μₒ (μₒ 𝑝 , ε)))
-  --     → let ε' p = μₒ (snd 𝑝 p , λ q → ε (pairₚ 𝑝 p q))
-  --           p = fstₚ (fst 𝑝 , ε') pqr
-  --           qr = sndₚ (fst 𝑝 , ε') pqr
-  --       in sndₚ (μₒ 𝑝 , ε) pqr ↦ sndₚ (snd 𝑝 p , λ q → ε (pairₚ 𝑝 p q)) qr
-  --   {-# REWRITE μₒ-snd-assoc #-}
-
-  --
-  --  Implementation of the slice polynomial
-  --
-
-  data 𝒯r {n} where
-    lfₒ : {𝑜 : 𝒪 n} → 𝒯r (𝑜 , ηₒ 𝑜)
-    ndₒ : {𝑜 : 𝒪 n} (𝑝 : 𝒫 𝑜)
+    pairₚ-assoc : {n : ℕ} {𝑜 : 𝒪 n} (𝑝 : 𝒫 𝑜)
       → (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
-      → (ε : (p : Pos 𝑝) → 𝒯r (Typ 𝑝 p , 𝑞 p))
-      → 𝒯r (𝑜 , μₒ 𝑝 𝑞)
-      
-  𝒯rPos lfₒ = ⊥
-  𝒯rPos (ndₒ 𝑝 𝑞 ε) =
-    Unit ⊎ Σ (Pos 𝑝) (λ p → 𝒯rPos (ε p)) 
-  
-  𝒯rTyp (ndₒ {𝑜} 𝑝 𝑞 ε) (inl tt) = 𝑜 , 𝑝
-  𝒯rTyp (ndₒ 𝑝 𝑞 ε) (inr (p , q)) = 𝒯rTyp (ε p) q
+      → (𝑟 : (p : Pos (μₒ 𝑝 𝑞)) → 𝒫 (Typ (μₒ 𝑝 𝑞) p))    
+      → (pq : Pos (μₒ 𝑝 𝑞)) (r : Pos (𝑟 pq))
+      → let 𝑟' p = μₒ (𝑞 p) (λ q → 𝑟 (pairₚ 𝑝 𝑞 p q))
+            p = fstₚ 𝑝 𝑞 pq
+            q = sndₚ 𝑝 𝑞 pq
+        in pairₚ (μₒ 𝑝 𝑞) 𝑟 pq r
+          ↦ pairₚ 𝑝 𝑟' p
+              (pairₚ (𝑞 p) (λ q → 𝑟 (pairₚ 𝑝 𝑞 p q)) q r)
+    {-# REWRITE pairₚ-assoc #-} 
 
-  corolla : {n : ℕ} → (𝑜 : 𝒪 (suc n)) → 𝒯r 𝑜
-  corolla (𝑜 , 𝑝) = ndₒ 𝑝 (λ p → ηₒ (Typ 𝑝 p))
-                          (λ p → lfₒ)
+    -- first projection compatibilities
+    μₒ-fst-unit-r : {n : ℕ} {o : 𝒪 n} (𝑝 : 𝒫 o)
+      → (p : Pos (μₒ 𝑝 (λ p → ηₒ (Typ 𝑝 p))))
+      → fstₚ 𝑝 (λ p → ηₒ (Typ 𝑝 p)) p ↦ p
+    {-# REWRITE μₒ-fst-unit-r #-}
 
-  corolla-pos : {n : ℕ} → (𝑜 : 𝒪 (suc n))
-    → 𝒯rPos (corolla 𝑜)
-  corolla-pos (𝑜 , 𝑝) = inl tt 
-    
+    μₒ-fst-unit-l : {n : ℕ} {𝑜 : 𝒪 n}
+      → (𝑝 : (p : Pos (ηₒ 𝑜)) → 𝒫 (Typ (ηₒ 𝑜) p))
+      → (p : Pos (μₒ (ηₒ 𝑜) 𝑝))
+      → fstₚ (ηₒ 𝑜) 𝑝 p ↦ ηₒ-pos 𝑜
+    {-# REWRITE μₒ-fst-unit-l #-}
+
+    μₒ-fst-assoc : {n : ℕ} {𝑜 : 𝒪 n} (𝑝 : 𝒫 𝑜)
+      → (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
+      → (𝑟 : (p : Pos (μₒ 𝑝 𝑞)) → 𝒫 (Typ (μₒ 𝑝 𝑞) p))    
+      → (pqr : Pos (μₒ (μₒ 𝑝 𝑞) 𝑟))
+      → let 𝑟' p = μₒ (𝑞 p) (λ q → 𝑟 (pairₚ 𝑝 𝑞 p q))
+            p = fstₚ 𝑝 𝑟' pqr
+            qr = sndₚ 𝑝 𝑟' pqr
+            q = fstₚ (𝑞 p) (λ q → 𝑟 (pairₚ 𝑝 𝑞 p q)) qr
+        in fstₚ (μₒ 𝑝 𝑞) 𝑟 pqr ↦ pairₚ 𝑝 𝑞 p q
+    {-# REWRITE μₒ-fst-assoc #-}
+
+    -- second projection compatibilities
+    μₒ-snd-unit-r : {n : ℕ} {o : 𝒪 n} (𝑝 : 𝒫 o)
+      → (p : Pos (μₒ 𝑝 (λ p → ηₒ (Typ 𝑝 p))))
+      → sndₚ 𝑝 (λ p → ηₒ (Typ 𝑝 p)) p ↦ ηₒ-pos (Typ 𝑝 p)
+    {-# REWRITE μₒ-snd-unit-r #-}
+
+    μₒ-snd-unit-l : {n : ℕ} {𝑜 : 𝒪 n}
+      → (𝑝 : (p : Pos (ηₒ 𝑜)) → 𝒫 (Typ (ηₒ 𝑜) p))
+      → (p : Pos (μₒ (ηₒ 𝑜) 𝑝))
+      → sndₚ (ηₒ 𝑜) 𝑝 p ↦ p 
+    {-# REWRITE μₒ-snd-unit-l #-}
+
+    μₒ-snd-assoc : {n : ℕ} {𝑜 : 𝒪 n} (𝑝 : 𝒫 𝑜)
+      → (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
+      → (𝑟 : (p : Pos (μₒ 𝑝 𝑞)) → 𝒫 (Typ (μₒ 𝑝 𝑞) p))    
+      → (pqr : Pos (μₒ (μₒ 𝑝 𝑞) 𝑟))
+      → let 𝑟' p = μₒ (𝑞 p) (λ q → 𝑟 (pairₚ 𝑝 𝑞 p q))
+            p = fstₚ 𝑝 𝑟' pqr
+            qr = sndₚ 𝑝 𝑟' pqr
+        in sndₚ (μₒ 𝑝 𝑞) 𝑟 pqr ↦ sndₚ (𝑞 p) (λ q → 𝑟 (pairₚ 𝑝 𝑞 p q)) qr
+    {-# REWRITE μₒ-snd-assoc #-}
+
   --
   --  Grafting 
   --
 
   graftₒ : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
     → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
-    → (𝑠 : 𝒯r (𝑜 , 𝑝))
-    → (𝑡 : (p : Pos 𝑝) → 𝒯r (Typ 𝑝 p , 𝑞 p))
-    → 𝒯r (𝑜 , μₒ 𝑝 𝑞)
-  graftₒ (lfₒ {𝑜}) 𝑡 = 𝑡 (ηₒ-pos 𝑜)
+    → (𝑠 : 𝒫 (𝑜 ∣ 𝑝))
+    → (𝑡 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p))
+    → 𝒫 (𝑜 ∣ μₒ 𝑝 𝑞)
+  graftₒ (lfₒ {𝑜 = 𝑜}) 𝑡 = 𝑡 (ηₒ-pos 𝑜)
   graftₒ {𝑞 = 𝑟} (ndₒ 𝑝 𝑞 ε) 𝑡 = 
     ndₒ 𝑝 (λ p → μₒ (𝑞 p) (λ q → 𝑟 (pairₚ 𝑝 𝑞 p q)))
         (λ p → graftₒ (ε p) (λ q → 𝑡 (pairₚ 𝑝 𝑞 p q)))
 
-  substₒ : {n : ℕ} {𝑜 : 𝒪 (suc n)} (𝑠 : 𝒯r 𝑜)
-    → (𝑡 : (p : 𝒯rPos 𝑠) → 𝒯r (𝒯rTyp 𝑠 p))
-    → 𝒯r 𝑜
-  substₒ lfₒ 𝑡 = lfₒ
-  substₒ (ndₒ 𝑝 𝑞 ε) 𝑡 = 
-    graftₒ (𝑡 (inl tt))
-      (λ p → μₒ (ε p) (λ q → 𝑡 (inr (p , q))))
+  inlₒ : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
+    → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+    → (𝑠 : 𝒫 (𝑜 ∣ 𝑝))
+    → (𝑡 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p))
+    → Pos 𝑠 → Pos (graftₒ 𝑠 𝑡)
+  inlₒ ._ 𝑡 nd-here = nd-here
+  inlₒ ._ 𝑡 (nd-there {𝑝 = 𝑝} {𝑞} {𝑟} u v) = 
+    nd-there u (inlₒ (𝑟 u) (λ q → 𝑡 (pairₚ 𝑝 𝑞 u q)) v)
 
-  -- inlₒ : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
-  --   → (𝑡 : 𝒯r (fst 𝑝))
-  --   → (ψ : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p))
-  --   → 𝒯rPos 𝑡 → 𝒯rPos (graftₒ 𝑡 ψ)
-  -- inlₒ (ndₒ 𝑝 ε) ψ (inl tt) = inl tt
-  -- inlₒ {𝑝 = ._ , ϕ} (ndₒ (𝑝 , 𝑑) ε) ψ (inr (u , v)) = 
-  --   inr (u , inlₒ (ε u) (λ q → ψ (pairₚ (𝑝 , 𝑑) u q)) v)
+  inrₒ : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
+    → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+    → (𝑠 : 𝒫 (𝑜 ∣ 𝑝))
+    → (𝑡 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p))
+    → (p : Pos 𝑝) (q : Pos (𝑡 p))
+    → Pos (graftₒ 𝑠 𝑡)
+  inrₒ (lfₒ {𝑜 = 𝑜}) 𝑡 = 
+    ηₒ-pos-elim 𝑜 (λ p → Pos (𝑡 p) → Pos (𝑡 (ηₒ-pos 𝑜))) (λ p → p) 
+  inrₒ (ndₒ 𝑝 𝑞 𝑟) 𝑡 u v = 
+    let u₀ = fstₚ 𝑝 𝑞 u
+        u₁ = sndₚ 𝑝 𝑞 u
+    in nd-there u₀ (inrₒ (𝑟 u₀) (λ q → 𝑡 (pairₚ 𝑝 𝑞 u₀ q)) u₁ v)
 
-  -- inrₒ : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
-  --   → (𝑡 : 𝒯r (fst 𝑝))
-  --   → (ψ : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p))
-  --   → (p : Pos (fst 𝑝)) (q : 𝒯rPos (ψ p))
-  --   → 𝒯rPos (graftₒ 𝑡 ψ)
-  -- inrₒ {𝑜 = 𝑜} lfₒ ψ =
-  --   ηₒ-pos-elim 𝑜 (λ p → 𝒯rPos (ψ p) → 𝒯rPos (ψ (ηₒ-pos 𝑜))) (λ p → p) 
-  -- inrₒ (ndₒ 𝑝 ε) ψ u v = 
-  --   let u₀ = fstₚ 𝑝 u
-  --       u₁ = sndₚ 𝑝 u
-  --   in inr (u₀ , inrₒ (ε u₀) (λ q → ψ (pairₚ 𝑝 u₀ q)) u₁ v)
-
-  -- graftₒ-pos-elim : ∀ {ℓ} {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
-  --   → (𝑡 : 𝒯r (fst 𝑝))
-  --   → (ψ : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p))
-  --   → (X : 𝒯rPos (graftₒ 𝑡 ψ) → Type ℓ)
-  --   → (inl* : (p : 𝒯rPos 𝑡) → X (inlₒ 𝑡 ψ p))
-  --   → (inr* : (p : Pos (fst 𝑝)) (q : 𝒯rPos (ψ p)) → X (inrₒ 𝑡 ψ p q))
-  --   → (p : 𝒯rPos (graftₒ 𝑡 ψ)) → X p
-  -- graftₒ-pos-elim lfₒ ψ X inl* inr* p = inr* (ηₒ-pos _) p
-  -- graftₒ-pos-elim (ndₒ 𝑝 ε) ψ X inl* inr* (inl tt) = inl* (inl tt)
-  -- graftₒ-pos-elim (ndₒ 𝑝 ε) ψ X inl* inr* (inr (u , v)) = 
-  --   graftₒ-pos-elim (ε u) (λ q → ψ (pairₚ 𝑝 u q)) 
-  --     (λ q → X (inr (u , q)))
-  --     (λ q → inl* (inr (u , q)))
-  --     (λ p q → inr* (pairₚ 𝑝 u p) q) v
+  graftₒ-pos-elim : ∀ {ℓ} {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
+    → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+    → (𝑠 : 𝒫 (𝑜 ∣ 𝑝))
+    → (𝑡 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p))
+    → (X : Pos (graftₒ 𝑠 𝑡) → Type ℓ)
+    → (inl* : (p : Pos 𝑠) → X (inlₒ 𝑠 𝑡 p))
+    → (inr* : (p : Pos 𝑝) (q : Pos (𝑡 p)) → X (inrₒ 𝑠 𝑡 p q))
+    → (p : Pos (graftₒ 𝑠 𝑡)) → X p
+  graftₒ-pos-elim lfₒ 𝑡 X inl* inr* p = inr* (ηₒ-pos _) p
+  graftₒ-pos-elim (ndₒ 𝑝 𝑞 𝑟) 𝑡 X inl* inr* nd-here = inl* nd-here
+  graftₒ-pos-elim (ndₒ 𝑝 𝑞 𝑟) 𝑡 X inl* inr* (nd-there u v) = 
+    graftₒ-pos-elim (𝑟 u) (λ q → 𝑡 (pairₚ 𝑝 𝑞 u q)) 
+      (λ q → X (nd-there u q))
+      (λ q → inl* (nd-there u q))
+      (λ p q → inr* (pairₚ 𝑝 𝑞 u p) q) v
       
-  -- --
-  -- --  Grafting Laws
-  -- --
+  --
+  --  Grafting Laws
+  --
 
-  -- postulate
+  postulate
 
-  --   graftₒ-pos-elim-inl-β : ∀ {ℓ} {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
-  --     → (𝑡 : 𝒯r (fst 𝑝))
-  --     → (ψ : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p))
-  --     → (X : 𝒯rPos (graftₒ 𝑡 ψ) → Type ℓ)
-  --     → (inl* : (p : 𝒯rPos 𝑡) → X (inlₒ 𝑡 ψ p))
-  --     → (inr* : (p : Pos (fst 𝑝)) (q : 𝒯rPos (ψ p)) → X (inrₒ 𝑡 ψ p q))
-  --     → (p : 𝒯rPos 𝑡)
-  --     → graftₒ-pos-elim 𝑡 ψ X inl* inr* (inlₒ 𝑡 ψ p) ↦ inl* p
-  --   {-# REWRITE graftₒ-pos-elim-inl-β #-}
+    graftₒ-pos-elim-inl-β : ∀ {ℓ} {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
+      → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+      → (𝑠 : 𝒫 (𝑜 ∣ 𝑝))
+      → (𝑡 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p))
+      → (X : Pos (graftₒ 𝑠 𝑡) → Type ℓ)
+      → (inl* : (p : Pos 𝑠) → X (inlₒ 𝑠 𝑡 p))
+      → (inr* : (p : Pos 𝑝) (q : Pos (𝑡 p)) → X (inrₒ 𝑠 𝑡 p q))
+      → (p : Pos 𝑠)
+      → graftₒ-pos-elim 𝑠 𝑡 X inl* inr* (inlₒ 𝑠 𝑡 p) ↦ inl* p
+    {-# REWRITE graftₒ-pos-elim-inl-β #-}
 
-  --   graftₒ-pos-elim-inr-β : ∀ {ℓ} {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : ⟦ 𝒫 ⟧ₒ 𝑜} 
-  --     → (𝑡 : 𝒯r (fst 𝑝))
-  --     → (ψ : (p : Pos (fst 𝑝)) → 𝒯r (snd 𝑝 p))
-  --     → (X : 𝒯rPos (graftₒ 𝑡 ψ) → Type ℓ)
-  --     → (inl* : (p : 𝒯rPos 𝑡) → X (inlₒ 𝑡 ψ p))
-  --     → (inr* : (p : Pos (fst 𝑝)) (q : 𝒯rPos (ψ p)) → X (inrₒ 𝑡 ψ p q))
-  --     → (p : Pos (fst 𝑝)) (q : 𝒯rPos (ψ p))
-  --     → graftₒ-pos-elim 𝑡 ψ X inl* inr* (inrₒ 𝑡 ψ p q) ↦ inr* p q
-  --   {-# REWRITE graftₒ-pos-elim-inr-β #-}
+    graftₒ-pos-elim-inr-β : ∀ {ℓ} {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
+      → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+      → (𝑠 : 𝒫 (𝑜 ∣ 𝑝))
+      → (𝑡 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p))
+      → (X : Pos (graftₒ 𝑠 𝑡) → Type ℓ)
+      → (inl* : (p : Pos 𝑠) → X (inlₒ 𝑠 𝑡 p))
+      → (inr* : (p : Pos 𝑝) (q : Pos (𝑡 p)) → X (inrₒ 𝑠 𝑡 p q))
+      → (p : Pos 𝑝) (q : Pos (𝑡 p))
+      → graftₒ-pos-elim 𝑠 𝑡 X inl* inr* (inrₒ 𝑠 𝑡 p q) ↦ inr* p q
+    {-# REWRITE graftₒ-pos-elim-inr-β #-}
 
-  --   -- TODO : More grafting laws...
+  --
+  --  Monad Implementation 
+  --
 
   -- ηₒ : {n : ℕ} (o : 𝒪 n) → 𝒫 o
-  ηₒ {zero} _ = tt
-  ηₒ {suc n} = corolla 
+  ηₒ {zero} ● = objₒ
+  ηₒ {suc n} (o ∣ 𝑝) =
+    ndₒ 𝑝 (λ p → ηₒ (Typ 𝑝 p)) (λ p → lfₒ)
 
   -- ηₒ-pos : {n : ℕ} (o : 𝒪 n)
   --   → Pos (ηₒ o)
-  ηₒ-pos {zero} _ = tt
-  ηₒ-pos {suc n} = corolla-pos
+  ηₒ-pos {zero} ● = obj-pos 
+  ηₒ-pos {suc n} (o ∣ 𝑝) = nd-here
 
   -- ηₒ-pos-elim : {n : ℕ} (o : 𝒪 n)
   --   → (X : (p : Pos (ηₒ o)) → Type)
   --   → (ηₒ-pos* : X (ηₒ-pos o))
   --   → (p : Pos (ηₒ o)) → X p
-  ηₒ-pos-elim {n = zero} o X ηₒ-pos* tt = ηₒ-pos*
-  ηₒ-pos-elim {n = suc n} o X ηₒ-pos* (inl tt) = ηₒ-pos*
+  ηₒ-pos-elim {n = zero} .● X ηₒ-pos* obj-pos = ηₒ-pos*
+  ηₒ-pos-elim {n = suc n} (o ∣ 𝑝) X ηₒ-pos* nd-here = ηₒ-pos*
 
-  -- μₒ : {n : ℕ} {o : 𝒪 n} → ⟦ 𝒫 ⟧ₒ o → 𝒫 o
-  μₒ {zero} _ _ = tt
-  μₒ {suc n} = substₒ 
+  -- μₒ : {n : ℕ} {𝑜 : 𝒪 n} (𝑝 : 𝒫 𝑜)
+  --   → (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
+  --   → 𝒫 𝑜
+  μₒ objₒ 𝑞 = objₒ
+  μₒ lfₒ 𝑞 = lfₒ
+  μₒ (ndₒ 𝑝 𝑞 𝑟) 𝑠 =
+    graftₒ (𝑠 nd-here)
+      (λ p → μₒ (𝑟 p) (λ q → 𝑠 (nd-there p q)))
 
-  -- -- pairₚ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
-  -- --   → (p : Pos (fst 𝑝)) (q : Pos (snd 𝑝 p))
-  -- --   → Pos (μₒ 𝑝)
-  -- pairₚ {zero} (𝑝 , 𝑑) p q = tt
-  -- pairₚ {suc n} (ndₒ 𝑝 ε , 𝑑) (inl tt) r = 
-  --   let 𝑡 = 𝑑 (inl tt)
-  --       Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
-  --   in inlₒ 𝑡 Ψ r  
-  -- pairₚ {suc n} (ndₒ 𝑝 ε , 𝑑) (inr (p , q)) r =
-  --   let 𝑡 = 𝑑 (inl tt)
-  --       Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
-  --   in inrₒ 𝑡 Ψ p (pairₚ (ε p , λ q → 𝑑 (inr (p , q))) q r) 
+  -- pairₚ : {n : ℕ} {𝑜 : 𝒪 n} 
+  --   → (𝑝 : 𝒫 𝑜) (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
+  --   → (p : Pos 𝑝) (q : Pos (𝑞 p))
+  --   → Pos (μₒ 𝑝 𝑞)
+  pairₚ objₒ 𝑠 p q = obj-pos
+  pairₚ (ndₒ 𝑝 𝑞 𝑟) 𝑠 nd-here r =
+    inlₒ (𝑠 nd-here)
+      (λ p → μₒ (𝑟 p) (λ q → 𝑠 (nd-there p q))) r
+  pairₚ (ndₒ 𝑝 𝑞 𝑟) 𝑠 (nd-there p q) r =
+    inrₒ (𝑠 nd-here)
+      (λ p → μₒ (𝑟 p) (λ q → 𝑠 (nd-there p q))) p
+        (pairₚ (𝑟 p) (λ q → 𝑠 (nd-there p q)) q r ) 
 
-  -- -- fstₚ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
-  -- --   → Pos (μₒ 𝑝) → Pos (fst 𝑝)
-  -- fstₚ {zero} (𝑝 , 𝑑) p = tt
-  -- fstₚ {suc n} (ndₒ 𝑝 ε , 𝑑) = 
-  --   let 𝑡 = 𝑑 (inl tt)
-  --       Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
-  --   in graftₒ-pos-elim 𝑡 Ψ _ (const (inl tt))
-  --        (λ p q → inr (p , fstₚ (ε p , λ q → 𝑑 (inr (p , q))) q))
+  -- fstₚ : {n : ℕ} {𝑜 : 𝒪 n} 
+  --   → (𝑝 : 𝒫 𝑜) (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
+  --   → Pos (μₒ 𝑝 𝑞) → Pos 𝑝
+  fstₚ objₒ 𝑞 p = obj-pos
+  fstₚ (ndₒ 𝑝 𝑞 𝑟) 𝑠 =
+    graftₒ-pos-elim (𝑠 nd-here) (λ p → μₒ (𝑟 p) (λ q → 𝑠 (nd-there p q))) _
+      (const nd-here) (λ p q → nd-there p (fstₚ (𝑟 p) (λ q → 𝑠 (nd-there p q)) q))
 
-  -- -- sndₚ : {n : ℕ} {o : 𝒪 n} (𝑝 : ⟦ 𝒫 ⟧ₒ o)
-  -- --   → (p : Pos (μₒ 𝑝)) → Pos (snd 𝑝 (fstₚ 𝑝 p))
-  -- sndₚ {zero} (𝑝 , 𝑑) p = tt
-  -- sndₚ {suc n} (ndₒ 𝑝 ε , 𝑑) = 
-  --   let 𝑡 = 𝑑 (inl tt)
-  --       Ψ p = μₒ (ε p , λ q → 𝑑 (inr (p , q)))
-  --   in graftₒ-pos-elim 𝑡 Ψ _ (λ p → p)
-  --        (λ p q → sndₚ (ε p , λ q → 𝑑 (inr (p , q))) q)
+  -- sndₚ : {n : ℕ} {𝑜 : 𝒪 n} 
+  --   → (𝑝 : 𝒫 𝑜) (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
+  --   → (p : Pos (μₒ 𝑝 𝑞)) → Pos (𝑞 (fstₚ 𝑝 𝑞 p))
+  sndₚ objₒ 𝑞 obj-pos with 𝑞 obj-pos
+  sndₚ objₒ 𝑞 obj-pos | objₒ = obj-pos
+  sndₚ (ndₒ 𝑝 𝑞 𝑟) 𝑠 =
+    graftₒ-pos-elim (𝑠 nd-here) (λ p → μₒ (𝑟 p) (λ q → 𝑠 (nd-there p q))) _
+      (λ p → p) (λ p q → sndₚ (𝑟 p) (λ q → 𝑠 (nd-there p q)) q)
+      
+  --
+  --  Examples
+  --
 
-  -- --
-  -- --  Examples
-  -- --
+  obj : 𝒪 0
+  obj = ●
 
-  -- obj : 𝒪 0
-  -- obj = tt
+  arrow : 𝒪 1
+  arrow = ● ∣ objₒ 
 
-  -- arrow : 𝒪 1
-  -- arrow = tt , tt
+  2-drop : 𝒪 2
+  2-drop = ● ∣ objₒ ∣ lfₒ 
 
-  -- 2-drop : 𝒪 2
-  -- 2-drop = (tt , tt) , lfₒ 
+  2-globe : 𝒪 2
+  2-globe = ● ∣ objₒ ∣ ndₒ objₒ (λ { obj-pos → objₒ }) (λ { obj-pos → lfₒ })
 
-  -- 2-globe : 𝒪 2
-  -- 2-globe = (tt , tt) , ndₒ (tt , λ _ → tt) (λ _ → lfₒ)
-
-  -- 2-simplex : 𝒪 2
-  -- 2-simplex = (tt , tt) , ndₒ (tt , λ _ → tt) (λ p → ndₒ (tt , λ _ → tt) (λ _ → lfₒ))
-
+  2-simplex : 𝒪 2
+  2-simplex = ● ∣ objₒ ∣ ndₒ objₒ (λ { obj-pos → objₒ }) (λ { obj-pos →
+                           ndₒ objₒ (λ { obj-pos → objₒ }) (λ { obj-pos → lfₒ }) })
+  
