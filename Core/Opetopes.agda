@@ -375,16 +375,6 @@ module Core.Opetopes where
 
   arrow : 𝒪 1
   arrow = ● ∣ objₒ 
-
-  2-drop : 𝒪 2
-  2-drop = ● ∣ objₒ ∣ lfₒ 
-
-  2-globe : 𝒪 2
-  2-globe = ● ∣ objₒ ∣ ndₒ objₒ (λ _ → objₒ ) (λ _ → lfₒ )
-
-  2-simplex : 𝒪 2
-  2-simplex = ● ∣ objₒ ∣ ndₒ objₒ (λ _ → objₒ ) (λ _ →
-                           ndₒ objₒ (λ _ → objₒ ) (λ _ → lfₒ ))
   
   n-path : ℕ → 𝒫 (● ∣ objₒ)
   n-path zero = lfₒ 
@@ -393,3 +383,11 @@ module Core.Opetopes where
   n-gon : ℕ → 𝒪 2
   n-gon n = ● ∣ objₒ ∣ n-path n
 
+  2-drop : 𝒪 2
+  2-drop = n-gon 0 
+
+  2-globe : 𝒪 2
+  2-globe = n-gon 1
+
+  2-simplex : 𝒪 2
+  2-simplex = n-gon 2
