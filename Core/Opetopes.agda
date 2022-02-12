@@ -386,5 +386,10 @@ module Core.Opetopes where
   2-simplex = ● ∣ objₒ ∣ ndₒ objₒ (λ _ → objₒ ) (λ _ →
                            ndₒ objₒ (λ _ → objₒ ) (λ _ → lfₒ ))
   
+  n-path : ℕ → 𝒫 (● ∣ objₒ)
+  n-path zero = lfₒ 
+  n-path (suc n) = ndₒ objₒ (λ _ → objₒ) (λ _ → n-path n)
 
+  n-gon : ℕ → 𝒪 2
+  n-gon n = ● ∣ objₒ ∣ n-path n
 
