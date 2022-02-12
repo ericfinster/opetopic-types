@@ -3,7 +3,8 @@
 --
 
 open import Cubical.Foundations.Everything 
-open import Cubical.Data.Nat 
+open import Cubical.Data.Nat
+open import Cubical.Data.Sigma
 open import Cubical.Data.Empty
 open import Cubical.Data.Unit
 open import Cubical.Data.Sum 
@@ -16,11 +17,9 @@ module Core.Opetopes where
   --  The Opetopic Polynomials
   --
 
-  {-# NO_POSITIVITY_CHECK #-}
-  
   data 𝒪 : ℕ → Type
   data 𝒫 : {n : ℕ} → 𝒪 n → Type
-  data Pos : {n : ℕ} {o : 𝒪 n} → 𝒫 o → Type 
+  Pos : {n : ℕ} {o : 𝒪 n} → 𝒫 o → Type 
   Typ : {n : ℕ} {o : 𝒪 n} (𝑝 : 𝒫 o) (p : Pos 𝑝) → 𝒪 n
 
   --
@@ -79,24 +78,13 @@ module Core.Opetopes where
       → (𝑟 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p))
       → 𝒫 (𝑜 ∣ μₒ 𝑝 𝑞)
 
-  data Pos where
-
-    obj-pos : Pos objₒ
-
-    nd-here : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
-      → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
-      → {𝑟 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p)}
-      → Pos (ndₒ 𝑝 𝑞 𝑟)
-
-    nd-there : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
-      → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
-      → {𝑟 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p)}
-      → (p : Pos 𝑝) (q : Pos (𝑟 p)) 
-      → Pos (ndₒ 𝑝 𝑞 𝑟)
-
-  Typ ._ obj-pos = ●
-  Typ ._ (nd-here {𝑜 = 𝑜} {𝑝}) = 𝑜 ∣ 𝑝
-  Typ ._ (nd-there {𝑟 = 𝑟} p q) = Typ (𝑟 p) q
+  Pos objₒ = Unit
+  Pos lfₒ = ⊥
+  Pos (ndₒ 𝑝 𝑞 𝑟) = Unit ⊎ (Σ[ p ∈ Pos 𝑝 ] Pos (𝑟 p))
+  
+  Typ objₒ _ = ●
+  Typ (ndₒ 𝑝 𝑞 𝑟) (inl tt) = _ ∣ 𝑝
+  Typ (ndₒ 𝑝 𝑞 𝑟) (inr (p , q)) = Typ (𝑟 p) q
 
   -- 
   --  Position Laws
@@ -257,9 +245,9 @@ module Core.Opetopes where
     → (𝑠 : 𝒫 (𝑜 ∣ 𝑝))
     → (𝑡 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p))
     → Pos 𝑠 → Pos (graftₒ 𝑠 𝑡)
-  inlₒ ._ 𝑡 nd-here = nd-here
-  inlₒ ._ 𝑡 (nd-there {𝑝 = 𝑝} {𝑞} {𝑟} u v) = 
-    nd-there u (inlₒ (𝑟 u) (λ q → 𝑡 (pairₚ 𝑝 𝑞 u q)) v)
+  inlₒ (ndₒ 𝑝 𝑞 𝑟) 𝑡 (inl tt) = inl tt
+  inlₒ (ndₒ 𝑝 𝑞 𝑟) 𝑡 (inr (u , v)) =
+    inr (u , inlₒ (𝑟 u) (λ q → 𝑡 (pairₚ 𝑝 𝑞 u q)) v)
 
   inrₒ : {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
     → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
@@ -267,12 +255,12 @@ module Core.Opetopes where
     → (𝑡 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p))
     → (p : Pos 𝑝) (q : Pos (𝑡 p))
     → Pos (graftₒ 𝑠 𝑡)
-  inrₒ (lfₒ {𝑜 = 𝑜}) 𝑡 = 
-    ηₒ-pos-elim 𝑜 (λ p → Pos (𝑡 p) → Pos (𝑡 (ηₒ-pos 𝑜))) (λ p → p) 
+  inrₒ lfₒ 𝑡 =  ηₒ-pos-elim _
+    (λ p → Pos (𝑡 p) → Pos (𝑡 (ηₒ-pos _))) (λ p → p) 
   inrₒ (ndₒ 𝑝 𝑞 𝑟) 𝑡 u v = 
     let u₀ = fstₚ 𝑝 𝑞 u
         u₁ = sndₚ 𝑝 𝑞 u
-    in nd-there u₀ (inrₒ (𝑟 u₀) (λ q → 𝑡 (pairₚ 𝑝 𝑞 u₀ q)) u₁ v)
+    in inr (u₀ , inrₒ (𝑟 u₀) (λ q → 𝑡 (pairₚ 𝑝 𝑞 u₀ q)) u₁ v)
 
   graftₒ-pos-elim : ∀ {ℓ} {n : ℕ} {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
     → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
@@ -283,11 +271,11 @@ module Core.Opetopes where
     → (inr* : (p : Pos 𝑝) (q : Pos (𝑡 p)) → X (inrₒ 𝑠 𝑡 p q))
     → (p : Pos (graftₒ 𝑠 𝑡)) → X p
   graftₒ-pos-elim lfₒ 𝑡 X inl* inr* p = inr* (ηₒ-pos _) p
-  graftₒ-pos-elim (ndₒ 𝑝 𝑞 𝑟) 𝑡 X inl* inr* nd-here = inl* nd-here
-  graftₒ-pos-elim (ndₒ 𝑝 𝑞 𝑟) 𝑡 X inl* inr* (nd-there u v) = 
+  graftₒ-pos-elim (ndₒ 𝑝 𝑞 𝑟) 𝑡 X inl* inr* (inl tt)  = inl* (inl tt)
+  graftₒ-pos-elim (ndₒ 𝑝 𝑞 𝑟) 𝑡 X inl* inr* (inr (u , v)) = 
     graftₒ-pos-elim (𝑟 u) (λ q → 𝑡 (pairₚ 𝑝 𝑞 u q)) 
-      (λ q → X (nd-there u q))
-      (λ q → inl* (nd-there u q))
+      (λ q → X (inr (u , q)))
+      (λ q → inl* (inr (u , q)))
       (λ p q → inr* (pairₚ 𝑝 𝑞 u p) q) v
       
   --
@@ -329,15 +317,15 @@ module Core.Opetopes where
 
   -- ηₒ-pos : {n : ℕ} (o : 𝒪 n)
   --   → Pos (ηₒ o)
-  ηₒ-pos {zero} ● = obj-pos 
-  ηₒ-pos {suc n} (o ∣ 𝑝) = nd-here
+  ηₒ-pos {zero} ● = tt 
+  ηₒ-pos {suc n} (o ∣ 𝑝) = inl tt
 
   -- ηₒ-pos-elim : {n : ℕ} (o : 𝒪 n)
   --   → (X : (p : Pos (ηₒ o)) → Type)
   --   → (ηₒ-pos* : X (ηₒ-pos o))
   --   → (p : Pos (ηₒ o)) → X p
-  ηₒ-pos-elim {n = zero} .● X ηₒ-pos* obj-pos = ηₒ-pos*
-  ηₒ-pos-elim {n = suc n} (o ∣ 𝑝) X ηₒ-pos* nd-here = ηₒ-pos*
+  ηₒ-pos-elim {n = zero} ● X ηₒ-pos* tt = ηₒ-pos*
+  ηₒ-pos-elim {n = suc n} (o ∣ 𝑝) X ηₒ-pos* (inl tt) = ηₒ-pos*
 
   -- μₒ : {n : ℕ} {𝑜 : 𝒪 n} (𝑝 : 𝒫 𝑜)
   --   → (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
@@ -345,38 +333,38 @@ module Core.Opetopes where
   μₒ objₒ 𝑞 = objₒ
   μₒ lfₒ 𝑞 = lfₒ
   μₒ (ndₒ 𝑝 𝑞 𝑟) 𝑠 =
-    graftₒ (𝑠 nd-here)
-      (λ p → μₒ (𝑟 p) (λ q → 𝑠 (nd-there p q)))
+    graftₒ (𝑠 (inl tt))
+      (λ p → μₒ (𝑟 p) (λ q → 𝑠 (inr (p , q))))
 
   -- pairₚ : {n : ℕ} {𝑜 : 𝒪 n} 
   --   → (𝑝 : 𝒫 𝑜) (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
   --   → (p : Pos 𝑝) (q : Pos (𝑞 p))
   --   → Pos (μₒ 𝑝 𝑞)
-  pairₚ objₒ 𝑠 p q = obj-pos
-  pairₚ (ndₒ 𝑝 𝑞 𝑟) 𝑠 nd-here r =
-    inlₒ (𝑠 nd-here)
-      (λ p → μₒ (𝑟 p) (λ q → 𝑠 (nd-there p q))) r
-  pairₚ (ndₒ 𝑝 𝑞 𝑟) 𝑠 (nd-there p q) r =
-    inrₒ (𝑠 nd-here)
-      (λ p → μₒ (𝑟 p) (λ q → 𝑠 (nd-there p q))) p
-        (pairₚ (𝑟 p) (λ q → 𝑠 (nd-there p q)) q r ) 
+  pairₚ objₒ 𝑠 p q = tt 
+  pairₚ (ndₒ 𝑝 𝑞 𝑟) 𝑠 (inl tt) r =
+    inlₒ (𝑠 (inl tt))
+      (λ p → μₒ (𝑟 p) (λ q → 𝑠 (inr (p , q)))) r
+  pairₚ (ndₒ 𝑝 𝑞 𝑟) 𝑠 (inr (p , q)) r =
+    inrₒ (𝑠 (inl tt))
+      (λ p → μₒ (𝑟 p) (λ q → 𝑠 (inr (p , q)))) p
+        (pairₚ (𝑟 p) (λ q → 𝑠 (inr (p , q))) q r ) 
 
   -- fstₚ : {n : ℕ} {𝑜 : 𝒪 n} 
   --   → (𝑝 : 𝒫 𝑜) (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
   --   → Pos (μₒ 𝑝 𝑞) → Pos 𝑝
-  fstₚ objₒ 𝑞 p = obj-pos
+  fstₚ objₒ 𝑞 p = tt 
   fstₚ (ndₒ 𝑝 𝑞 𝑟) 𝑠 =
-    graftₒ-pos-elim (𝑠 nd-here) (λ p → μₒ (𝑟 p) (λ q → 𝑠 (nd-there p q))) _
-      (const nd-here) (λ p q → nd-there p (fstₚ (𝑟 p) (λ q → 𝑠 (nd-there p q)) q))
+    graftₒ-pos-elim (𝑠 (inl tt)) (λ p → μₒ (𝑟 p) (λ q → 𝑠 (inr (p , q)))) _
+      (const (inl tt)) (λ p q → inr (p , fstₚ (𝑟 p) (λ q → 𝑠 (inr (p , q))) q))
 
   -- sndₚ : {n : ℕ} {𝑜 : 𝒪 n} 
   --   → (𝑝 : 𝒫 𝑜) (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
   --   → (p : Pos (μₒ 𝑝 𝑞)) → Pos (𝑞 (fstₚ 𝑝 𝑞 p))
-  sndₚ objₒ 𝑞 obj-pos with 𝑞 obj-pos
-  sndₚ objₒ 𝑞 obj-pos | objₒ = obj-pos
+  sndₚ objₒ 𝑞 tt with 𝑞 tt 
+  sndₚ objₒ 𝑞 tt | objₒ = tt 
   sndₚ (ndₒ 𝑝 𝑞 𝑟) 𝑠 =
-    graftₒ-pos-elim (𝑠 nd-here) (λ p → μₒ (𝑟 p) (λ q → 𝑠 (nd-there p q))) _
-      (λ p → p) (λ p q → sndₚ (𝑟 p) (λ q → 𝑠 (nd-there p q)) q)
+    graftₒ-pos-elim (𝑠 (inl tt)) (λ p → μₒ (𝑟 p) (λ q → 𝑠 (inr (p , q)))) _
+      (λ p → p) (λ p q → sndₚ (𝑟 p) (λ q → 𝑠 (inr (p , q))) q)
       
   --
   --  Examples
@@ -392,9 +380,11 @@ module Core.Opetopes where
   2-drop = ● ∣ objₒ ∣ lfₒ 
 
   2-globe : 𝒪 2
-  2-globe = ● ∣ objₒ ∣ ndₒ objₒ (λ { obj-pos → objₒ }) (λ { obj-pos → lfₒ })
+  2-globe = ● ∣ objₒ ∣ ndₒ objₒ (λ _ → objₒ ) (λ _ → lfₒ )
 
   2-simplex : 𝒪 2
-  2-simplex = ● ∣ objₒ ∣ ndₒ objₒ (λ { obj-pos → objₒ }) (λ { obj-pos →
-                           ndₒ objₒ (λ { obj-pos → objₒ }) (λ { obj-pos → lfₒ }) })
+  2-simplex = ● ∣ objₒ ∣ ndₒ objₒ (λ _ → objₒ ) (λ _ →
+                           ndₒ objₒ (λ _ → objₒ ) (λ _ → lfₒ ))
   
+
+
