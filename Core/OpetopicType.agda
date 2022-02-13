@@ -78,7 +78,7 @@ module Core.OpetopicType where
       → μ X (μ X c d) e
         ↦ μ X c (λ p → μ X (d p) (λ q → e (pairₚ 𝑝 𝑞 p q)))
     {-# REWRITE μ-assoc #-}
-    
+
   --
   --  Implementation of the Polynomials
   --
@@ -93,70 +93,71 @@ module Core.OpetopicType where
     Σ[ c ∈ Cns Xₙ f 𝑝 ]
     ((p : Pos 𝑝) → Xₛₙ (Shp Xₙ c p))  
 
-  DecCns : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ) (Xₛₙ : {𝑜 : 𝒪 n} → Frm Xₙ 𝑜 → Type ℓ)
-    → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} → Frm Xₙ 𝑜 → Type ℓ
-  DecCns Xₙ Xₛₙ {𝑝 = 𝑝} f =
-    Σ[ c ∈ Cns Xₙ f 𝑝 ]
-    ((p : Pos 𝑝) → Xₛₙ (Shp Xₙ c p)) 
+  data Web {n ℓ} (X : 𝕆Type (suc n) ℓ) : {𝑜 : 𝒪 (suc n)} → Frm X 𝑜 → 𝒫 𝑜 → Type ℓ where
 
-  Cns X f objₒ = Lift Unit
-  Cns (Xₙ , Xₛₙ) {𝑜 ∣ ._} (f , x , μc , μy) lfₒ = 
-    Ident (DecCns Xₙ Xₛₙ {𝑜} {ηₒ 𝑜} f) (η Xₙ f , const x) (μc , μy)
-  Cns (Xₙ , Xₛₙ) {𝑜 ∣ ._} (f , x , μc , μy) (ndₒ 𝑝 𝑞 𝑟) = 
-    Σ[ c ∈ Cns Xₙ f 𝑝 ]
-    Σ[ y ∈ ((p : Pos 𝑝) → Xₛₙ (Shp Xₙ c p)) ]
-    Σ[ d ∈ ((p : Pos 𝑝) → Cns Xₙ (Shp Xₙ c p) (𝑞 p)) ] 
-    Σ[ z ∈ ((p : Pos 𝑝) (q : Pos (𝑞 p)) → Xₛₙ (Shp Xₙ (d p) q)) ]
-    Σ[ ψ ∈ ((p : Pos 𝑝) → Cns (Xₙ , Xₛₙ) (Shp Xₙ c p , y p , d p , z p) (𝑟 p)) ]
-    Ident (DecCns Xₙ Xₛₙ {𝑜} {μₒ 𝑝 𝑞} f) (μ Xₙ c d , λ p → z (fstₚ 𝑝 𝑞 p) (sndₚ 𝑝 𝑞 p)) (μc , μy) 
+    lf : {𝑜 : 𝒪 n} {f : Frm (fst X) 𝑜} (x : (snd X) f)
+      → Web X (f , x , η (fst X) f , const x) lfₒ
 
-  Shp X {f = f} {objₒ} c p = tt*
-  Shp (Xₙ , Xₛₙ) {𝑜 ∣ ._} {f = f , x , ._ , ._} {ndₒ 𝑝 𝑞 𝑟} (c , y , d , z , ψ , idp) (inl tt) = f , x , c , y 
-  Shp (Xₙ , Xₛₙ) {𝑜 ∣ ._} {f = f , x , ._ , ._} {ndₒ 𝑝 𝑞 𝑟} (c , y , d , z , ψ , idp) (inr (p , q)) = Shp (Xₙ , Xₛₙ) (ψ p) q
+    nd : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
+      → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+      → {𝑟 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p)}
+      → {f : Frm (fst X) 𝑜} (x : (snd X) f) (c : Cns (fst X) f 𝑝)
+      → (y : (p : Pos 𝑝) → (snd X) (Shp (fst X) c p))
+      → (d : (p : Pos 𝑝) → Cns (fst X) (Shp (fst X) c p) (𝑞 p))
+      → (z : (p : Pos 𝑝) (q : Pos (𝑞 p)) → (snd X) (Shp (fst X) (d p) q))
+      → (ψ : (p : Pos 𝑝) → Web X (Shp (fst X) c p , y p , d p , z p) (𝑟 p)) 
+      → Web X (f , x , μ (fst X) c d , λ p → z (fstₚ 𝑝 𝑞 p) (sndₚ 𝑝 𝑞 p)) (ndₒ 𝑝 𝑞 𝑟) 
+
+  Cns X {●} f 𝑝 = Lift Unit
+  Cns X {𝑜 ∣ 𝑝} f 𝑞 = Web X f 𝑞
+
+  Shp X {●} {𝑝 = objₒ} c p = tt*
+  Shp X {𝑜 ∣ ._} (nd x c y d z ψ) (inl tt) = _ , x , c , y
+  Shp X {𝑜 ∣ ._} (nd x c y d z ψ) (inr (p , q)) = Shp X (ψ p) q
 
   graft : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ) (Xₛₙ : {𝑜 : 𝒪 n} → Frm Xₙ 𝑜 → Type ℓ)
-    → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {𝑠 : 𝒫 (𝑜 ∣ 𝑝)}
+    → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {𝑞 : 𝒫 (𝑜 ∣ 𝑝)}
+    → {𝑟 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+    → {𝑡 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑟 p)}
     → {f : Frm Xₙ 𝑜} (x : Xₛₙ f) (c : Cns Xₙ f 𝑝)
     → (y : (p : Pos 𝑝) → Xₛₙ (Shp Xₙ c p))
-    → (ψ : Cns (Xₙ , Xₛₙ) (f , x , c , y) 𝑠)
-    → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
-    → {𝑡 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p)}
-    → (d : (p : Pos 𝑝) → Cns Xₙ (Shp Xₙ c p) (𝑞 p))
-    → (z : (p : Pos 𝑝) (q : Pos (𝑞 p)) → Xₛₙ (Shp Xₙ (d p) q))
+    → (ψ : Cns (Xₙ , Xₛₙ) (f , x , c , y) 𝑞)
+    → (d : (p : Pos 𝑝) → Cns Xₙ (Shp Xₙ c p) (𝑟 p))
+    → (z : (p : Pos 𝑝) (q : Pos (𝑟 p)) → Xₛₙ (Shp Xₙ (d p) q))
     → (ω : (p : Pos 𝑝) → Cns (Xₙ , Xₛₙ) (Shp Xₙ c p , y p , d p , z p) (𝑡 p)) 
-    → Cns (Xₙ , Xₛₙ) (f , x , μ Xₙ c d , λ p → z (fstₚ 𝑝 𝑞 p) (sndₚ 𝑝 𝑞 p)) (graftₒ 𝑠 𝑡)
-  graft Xₙ Xₛₙ {𝑜 = 𝑜} {𝑠 = lfₒ} x ._ ._ idp d z ω = ω (ηₒ-pos 𝑜)
-  graft Xₙ Xₛₙ {𝑜 = 𝑜} {𝑠 = ndₒ 𝑝 𝑞 𝑟} x ._ ._ (c , y , d , z , ψ , idp) {𝑞𝑞} dd zz ψψ =
+    → Cns (Xₙ , Xₛₙ) (f , x , μ Xₙ c d , λ p → z (fstₚ 𝑝 𝑟 p) (sndₚ 𝑝 𝑟 p)) (graftₒ 𝑞 𝑡)
+  graft Xₙ Xₛₙ {𝑜} .x ._ ._ (lf x) dd zz ψψ = ψψ (ηₒ-pos 𝑜)
+  graft Xₙ Xₛₙ {𝑜} {𝑞 = ndₒ 𝑝 𝑞 𝑟} {𝑟𝑟} .x ._ ._ (nd x c y d z ψ) dd zz ψψ = 
     let d' p = μ Xₙ (d p) (λ q → dd (pairₚ 𝑝 𝑞 p q))
-        z' p q = zz (pairₚ 𝑝 𝑞 p (fstₚ (𝑞 p) (λ q → 𝑞𝑞 (pairₚ 𝑝 𝑞 p q)) q))
-                    (sndₚ (𝑞 p) (λ q → 𝑞𝑞 (pairₚ 𝑝 𝑞 p q)) q)
+        z' p q = zz (pairₚ 𝑝 𝑞 p (fstₚ (𝑞 p) (λ q → 𝑟𝑟 (pairₚ 𝑝 𝑞 p q)) q))
+                    (sndₚ (𝑞 p) (λ q → 𝑟𝑟 (pairₚ 𝑝 𝑞 p q)) q)
         ψ' p = graft Xₙ Xₛₙ (y p) (d p) (z p) (ψ p)
                  (λ q → dd (pairₚ 𝑝 𝑞 p q))
                  (λ q → zz (pairₚ 𝑝 𝑞 p q))
                  (λ q → ψψ (pairₚ 𝑝 𝑞 p q))
-    in c , y , d' , z' , ψ' , idp 
+    in nd x c y d' z' ψ'
   
   -- η : ∀ {n ℓ} (X : 𝕆Type n ℓ)
   --   → {𝑜 : 𝒪 n} (f : Frm X 𝑜)
   --   → Cns X f (ηₒ 𝑜)
   η X {●} f = tt*
-  η (Xₙ , Xₛₙ) {𝑜 ∣ 𝑝} (f , x , c , y) =
-    let d p = η Xₙ (Shp Xₙ c p)
+  η X {𝑜 ∣ 𝑝} (f , x , c , y) =
+    let d p = η (fst X) (Shp (fst X) c p)
         z p q = y p
-        ψ p = idp 
-    in c , y , d , z , ψ , idp
-  
+        ψ p = lf (y p)
+    in nd x c y d z ψ 
+
   -- μ : ∀ {n ℓ} (X : 𝕆Type n ℓ)
   --   → {𝑜 : 𝒪 n} {f : Frm X 𝑜}
   --   → {𝑝 : 𝒫 𝑜} (c : Cns X f 𝑝)
   --   → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
   --   → (d : (p : Pos 𝑝) → Cns X (Shp X c p) (𝑞 p))
   --   → Cns X f (μₒ (𝑝 , 𝑞))
-  μ X {𝑝 = objₒ} c d = tt*
-  μ X {𝑝 = lfₒ} idp d = idp
-  μ (Xₙ , Xₛₙ) {𝑜 = 𝑜 ∣ ._} {f = f , x , ._ , ._} {ndₒ 𝑝 𝑞 𝑟} (c , y , d , z , ψ , idp) {𝑞𝑞} ψψ =  {!!} 
-    -- graft Xₙ Xₛₙ {𝑠 = 𝑞𝑞 (inl tt)} x c y (ψψ (inl tt)) d z 
-    --   (λ p → μ (Xₙ , Xₛₙ) (ψ p) {𝑞 = λ q → 𝑞𝑞 (inr (p , q))} (λ q → ψψ (inr (p , q))))
+  μ X {●} c d = tt*
+  μ X {𝑜 ∣ ._} (lf x) ω = lf x
+  μ X {𝑜 ∣ ._} (nd x c y d z ψ) ω = 
+    graft (fst X) (snd X) x c y (ω (inl tt)) d z 
+      (λ p → μ X (ψ p) (λ q → ω (inr (p , q))))
 
   --
   --  The terminal opetopic context
