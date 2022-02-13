@@ -170,10 +170,18 @@ module Core.OpetopicType where
   --  Infinite dimensional contexts
   --
   
-  record 𝕆Type∞ {n} (ℓ : Level) (X : 𝕆Type n ℓ) : Type (ℓ-suc ℓ) where
+  record 𝕆Type∞ {n ℓ} (X : 𝕆Type n ℓ) : Type (ℓ-suc ℓ) where
     coinductive
     field
       Fill : {o : 𝒪 n} → Frm X o → Type ℓ 
-      Hom : 𝕆Type∞ ℓ (X , Fill) 
+      Hom : 𝕆Type∞ (X , Fill) 
 
   open 𝕆Type∞ public
+
+  𝕋Ext : ∀ {n ℓ} (X : 𝕆Type n ℓ) → 𝕆Type∞ X
+  Fill (𝕋Ext X) _ = Lift Unit
+  Hom (𝕋Ext X) = 𝕋Ext (X , (λ _ → Lift Unit))
+
+  𝕋∞ : ∀ {ℓ} → 𝕆Type∞ tt*
+  𝕋∞ {ℓ} = 𝕋Ext {ℓ = ℓ} tt*
+
