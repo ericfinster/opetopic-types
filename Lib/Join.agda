@@ -24,7 +24,9 @@ module Lib.Join where
     → {𝑜 : 𝒪 (2 + n)} (f : Frm (Join X Y) 𝑜) → Type
 
   data JoinArrow {ℓ₀ ℓ₁} (X : 𝕆Type 2 ℓ₀) (Y : 𝕆Type 2 ℓ₁) : {𝑜 : 𝒪 1} 
-      → WebFrm tt* (λ _ → snd (fst X) tt* ⊎ snd (fst Y) tt*) (snd 𝑜)
+      -- → Frm tt* (λ _ → snd (fst X) tt* ⊎ snd (fst Y) tt*) (snd 𝑜)
+      -- → Frm (tt* , λ _ → snd (fst X) tt* ⊎ snd (fst Y) tt*) (snd 𝑜)
+      → Frm (tt* , λ _ → snd (fst X) tt* ⊎ snd (fst Y) tt*) 𝑜 
       → Type (ℓ-max ℓ₀ ℓ₁) 
 
   data JoinCell {n ℓ₀ ℓ₁} (X : 𝕆Type (3 + n) ℓ₀) (Y : 𝕆Type (3 + n) ℓ₁)
@@ -56,29 +58,32 @@ module Lib.Join where
   data JoinCell {n ℓ₀ ℓ₁} X Y where
 
     jcell-inl : {𝑜 : 𝒪 (2 + n)} {f : Frm (fst X) 𝑜} (x : snd X f)
-      → JoinCell X Y (Frm⇒ {Δ = Join (fst X) (fst Y)} join-inl f)
+      → JoinCell X Y (Frm⇒ {Y = Join (fst X) (fst Y)} join-inl f)
 
     jcell-inr : {𝑜 : 𝒪 (2 + n)} {f : Frm (fst Y) 𝑜} (y : snd Y f)
-      → JoinCell X Y (Frm⇒ {Δ = Join (fst X) (fst Y)} join-inr f)
+      → JoinCell X Y (Frm⇒ {Y = Join (fst X) (fst Y)} join-inr f)
 
     jcell-inm : {𝑜 : 𝒪 (2 + n)} (f : Frm (Join (fst X) (fst Y)) 𝑜)
       → is-traversing f 
       → JoinCell X Y f 
 
-  is-traversing {zero} ((.tt* , .(inl x₀) , .tt* , .(λ _ → inl x₁)) , jarr-inl x₀ x₁ α , _ , _) = ⊥
-  is-traversing {zero} ((.tt* , .(inr y₀) , .tt* , .(λ _ → inr y₁)) , jarr-inr y₀ y₁ β , _ , _) = ⊥
-  is-traversing {zero} ((.tt* , .(inl x) , .tt* , .(λ _ → inr y)) , jarr-inm x y , _ , _) = Unit
-  is-traversing {suc n} f = is-traversing (fst f)
+  is-traversing = {!!} 
+  -- is-traversing {zero} ((.tt* , .(inl x₀) , .tt* , .(λ _ → inl x₁)) , jarr-inl x₀ x₁ α , _ , _) = ⊥
+  -- is-traversing {zero} ((.tt* , .(inr y₀) , .tt* , .(λ _ → inr y₁)) , jarr-inr y₀ y₁ β , _ , _) = ⊥
+  -- is-traversing {zero} ((.tt* , .(inl x) , .tt* , .(λ _ → inr y)) , jarr-inm x y , _ , _) = Unit
+  -- is-traversing {suc n} f = is-traversing (fst f)
 
-  join-inl {zero} = tt*
-  join-inl {suc zero} = tt* , λ { {tt} {tt*} x → inl x }
-  join-inl {suc (suc zero)} = join-inl {1} , λ { {_} {_ , x₀ , _ , x₁} α → jarr-inl x₀ (x₁ tt) α }
-  join-inl {suc (suc (suc n))} = join-inl {2 + n} , jcell-inl
+  join-inl = {!!} 
+  -- join-inl {zero} = tt*
+  -- join-inl {suc zero} = tt* , λ { {●} {tt*} x → inl x }
+  -- join-inl {suc (suc zero)} = join-inl {1} , λ { {_} {_ , x₀ , _ , x₁} α → jarr-inl x₀ (x₁ tt) α }
+  -- join-inl {suc (suc (suc n))} = join-inl {2 + n} , jcell-inl
 
-  join-inr {zero} = tt*
-  join-inr {suc zero} = tt* , λ { {tt} {tt*} y → inr y }
-  join-inr {suc (suc zero)} = join-inr {1} , λ { {_} {_ , y₀ , _ , y₁} β → jarr-inr y₀ (y₁ tt) β }
-  join-inr {suc (suc (suc n))} = join-inr {2 + n} , jcell-inr
+  join-inr = {!!} 
+  -- join-inr {zero} = tt*
+  -- join-inr {suc zero} = tt* , λ { {tt} {tt*} y → inr y }
+  -- join-inr {suc (suc zero)} = join-inr {1} , λ { {_} {_ , y₀ , _ , y₁} β → jarr-inr y₀ (y₁ tt) β }
+  -- join-inr {suc (suc (suc n))} = join-inr {2 + n} , jcell-inr
 
   --
   --  Obvious theorem: if X and Y are (∞,1)-categories, then so is their join ... 

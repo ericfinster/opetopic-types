@@ -92,28 +92,33 @@ module Core.OpetopicType where
     Σ[ x ∈ Xₛₙ f ]
     Σ[ c ∈ Cns Xₙ f 𝑝 ]
     ((p : Pos 𝑝) → Xₛₙ (Shp Xₙ c p))  
+  
+  data LfCns {n ℓ} (X : 𝕆Type (suc n) ℓ) {𝑜 : 𝒪 n} : Frm X (𝑜 ∣ ηₒ 𝑜) → Type ℓ where
 
-  data Web {n ℓ} (X : 𝕆Type (suc n) ℓ) : {𝑜 : 𝒪 (suc n)} → Frm X 𝑜 → 𝒫 𝑜 → Type ℓ where
+    lf : {f : Frm (fst X) 𝑜} (x : (snd X) f)
+      → LfCns X (f , x , η (fst X) f , const x) 
 
-    lf : {𝑜 : 𝒪 n} {f : Frm (fst X) 𝑜} (x : (snd X) f)
-      → Web X (f , x , η (fst X) f , const x) lfₒ
+  data NdCns {n ℓ} (X : 𝕆Type (suc n) ℓ)
+        (𝑜 : 𝒪 n) (𝑝 : 𝒫 𝑜)
+        (𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p))
+        (𝑟 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p))
+        
+    : Frm X (𝑜 ∣ μₒ 𝑝 𝑞) → Type ℓ where
 
-    nd : {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
-      → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
-      → {𝑟 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p)}
-      → {f : Frm (fst X) 𝑜} (x : (snd X) f) (c : Cns (fst X) f 𝑝)
+    nd : {f : Frm (fst X) 𝑜} (x : (snd X) f) (c : Cns (fst X) f 𝑝)
       → (y : (p : Pos 𝑝) → (snd X) (Shp (fst X) c p))
       → (d : (p : Pos 𝑝) → Cns (fst X) (Shp (fst X) c p) (𝑞 p))
       → (z : (p : Pos 𝑝) (q : Pos (𝑞 p)) → (snd X) (Shp (fst X) (d p) q))
-      → (ψ : (p : Pos 𝑝) → Web X (Shp (fst X) c p , y p , d p , z p) (𝑟 p)) 
-      → Web X (f , x , μ (fst X) c d , λ p → z (fstₚ 𝑝 𝑞 p) (sndₚ 𝑝 𝑞 p)) (ndₒ 𝑝 𝑞 𝑟) 
+      → (ψ : (p : Pos 𝑝) → Cns X (Shp (fst X) c p , y p , d p , z p) (𝑟 p)) 
+      → NdCns X 𝑜 𝑝 𝑞 𝑟 (f , x , μ (fst X) c d , λ p → z (fstₚ 𝑝 𝑞 p) (sndₚ 𝑝 𝑞 p)) 
 
   Cns X {●} f 𝑝 = Lift Unit
-  Cns X {𝑜 ∣ 𝑝} f 𝑞 = Web X f 𝑞
+  Cns X {𝑜 ∣ ._} f lfₒ = LfCns X f
+  Cns X {𝑜 ∣ ._} f (ndₒ 𝑝 𝑞 𝑟) = NdCns X 𝑜 𝑝 𝑞 𝑟 f
 
   Shp X {●} {𝑝 = objₒ} c p = tt*
-  Shp X {𝑜 ∣ ._} (nd x c y d z ψ) (inl tt) = _ , x , c , y
-  Shp X {𝑜 ∣ ._} (nd x c y d z ψ) (inr (p , q)) = Shp X (ψ p) q
+  Shp X {𝑜 ∣ ._} {𝑝 = ndₒ 𝑝 𝑞 𝑟} (nd {f} x c y d z ψ) (inl tt) = f , x , c , y
+  Shp X {𝑜 ∣ ._} {𝑝 = ndₒ 𝑝 𝑞 𝑟} (nd {f} x c y d z ψ) (inr (p , q)) = Shp X (ψ p) q
 
   graft : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ) (Xₛₙ : {𝑜 : 𝒪 n} → Frm Xₙ 𝑜 → Type ℓ)
     → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {𝑞 : 𝒫 (𝑜 ∣ 𝑝)}
@@ -126,7 +131,7 @@ module Core.OpetopicType where
     → (z : (p : Pos 𝑝) (q : Pos (𝑟 p)) → Xₛₙ (Shp Xₙ (d p) q))
     → (ω : (p : Pos 𝑝) → Cns (Xₙ , Xₛₙ) (Shp Xₙ c p , y p , d p , z p) (𝑡 p)) 
     → Cns (Xₙ , Xₛₙ) (f , x , μ Xₙ c d , λ p → z (fstₚ 𝑝 𝑟 p) (sndₚ 𝑝 𝑟 p)) (graftₒ 𝑞 𝑡)
-  graft Xₙ Xₛₙ {𝑜} .x ._ ._ (lf x) dd zz ψψ = ψψ (ηₒ-pos 𝑜)
+  graft Xₙ Xₛₙ {𝑜} {𝑞 = lfₒ} .x ._ ._ (lf x) dd zz ψψ = ψψ (ηₒ-pos 𝑜)
   graft Xₙ Xₛₙ {𝑜} {𝑞 = ndₒ 𝑝 𝑞 𝑟} {𝑟𝑟} .x ._ ._ (nd x c y d z ψ) dd zz ψψ = 
     let d' p = μ Xₙ (d p) (λ q → dd (pairₚ 𝑝 𝑞 p q))
         z' p q = zz (pairₚ 𝑝 𝑞 p (fstₚ (𝑞 p) (λ q → 𝑟𝑟 (pairₚ 𝑝 𝑞 p q)) q))
@@ -154,11 +159,11 @@ module Core.OpetopicType where
   --   → (d : (p : Pos 𝑝) → Cns X (Shp X c p) (𝑞 p))
   --   → Cns X f (μₒ (𝑝 , 𝑞))
   μ X {●} c d = tt*
-  μ X {𝑜 ∣ ._} (lf x) ω = lf x
-  μ X {𝑜 ∣ ._} (nd x c y d z ψ) ω = 
+  μ X {𝑜 ∣ ._} {𝑝 = lfₒ} (lf x) ω = lf x
+  μ X {𝑜 ∣ ._} {𝑝 = ndₒ 𝑝 𝑞 𝑟} (nd x c y d z ψ) ω = 
     graft (fst X) (snd X) x c y (ω (inl tt)) d z 
       (λ p → μ X (ψ p) (λ q → ω (inr (p , q))))
-
+      
   --
   --  The terminal opetopic context
   --

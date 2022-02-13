@@ -27,7 +27,7 @@ module Lib.Universe where
   is-fibrant-rel : ∀ {n ℓ} {𝑜 : 𝒪 n} {f : Frm (𝒰ₒ n ℓ) 𝑜}
     → (X : Frm↓ (𝒱ₒ n) f → Type ℓ) → Type ℓ
   is-fibrant-rel {zero} X = Lift Unit
-  is-fibrant-rel {suc n} {𝑜 = 𝑜 , 𝑝} {f , Xₙ , c , Yₙ} R = 
+  is-fibrant-rel {suc n} {𝑜 = 𝑜 ∣ 𝑝} {f , Xₙ , c , Yₙ} R = 
     (f↓ : Frm↓ (𝒱ₒ n) f) (c↓ : Cns↓ (𝒱ₒ n) f↓ c)
     (y↓ : (p : Pos 𝑝) → Yₙ p (Shp↓ (𝒱ₒ n) c↓ p))
      → isContr (Σ[ x↓ ∈ Xₙ f↓ ] R (f↓ , x↓ , c↓ , y↓)) 

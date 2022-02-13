@@ -23,23 +23,4 @@ module Lib.Groupoid where
   Pt {zero} x = tt*
   Pt {suc n} x = Pt {n} x , reflₒ x
 
-  --
-  --  Fibrancy? 
-  --
-
-  thm : ∀ {n ℓ} (X : Type ℓ) → is-fibrant (Grp X (suc (suc n)))
-  thm {zero} X {𝑜} {𝑝} {f} c y with y tt
-  thm {zero} X {tt} {tt} {tt*} tt* y | reflₒ x .tt =
-    -- Well, anyway, fundamental theorem....
-    (reflₒ x tt , {!reflₒ x (tt , tt)!}) , {!!}
-  thm {suc n} X (lf (reflₒ x 𝑜)) ν =
-    (reflₒ x (𝑜 , ηₒ 𝑜) , {!reflₒ x ((𝑜 , ηₒ 𝑜) , lfₒ)!}) , {!!}
-  thm {suc n} X (nd x c y d z ψ) ν = {!!}
-
-  -- is-fibrant : ∀ {n ℓ} (X : 𝕆Type (suc (suc n)) ℓ) → Type ℓ
-  -- is-fibrant {n} ((Xₙ , Xₛₙ) , Xₛₛₙ) =
-  --   {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
-  --   {f : Frm Xₙ 𝑜} (c : Cns Xₙ f 𝑝)
-  --   (y : (p : Pos 𝑝) → Xₛₙ (Shp Xₙ c p))
-  --   → isContr (Σ[ x ∈ Xₛₙ f ] Xₛₛₙ (f , x , c , y))
-
+  
