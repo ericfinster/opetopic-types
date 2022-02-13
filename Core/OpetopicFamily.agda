@@ -14,8 +14,6 @@ open import Core.OpetopicType
 
 module Core.OpetopicFamily where
 
-  {-# TERMINATING #-}
-  
   𝕆Fam : ∀ {n ℓ₀} (X : 𝕆Type n ℓ₀)
     → (ℓ : Level) → Type (ℓ-max ℓ₀ (ℓ-suc ℓ))
 
@@ -195,3 +193,7 @@ module Core.OpetopicFamily where
       HomTy : 𝕆Fam∞ (Hom X) (Pₙ , FillTy)
 
   open 𝕆Fam∞ 
+
+
+
+  
