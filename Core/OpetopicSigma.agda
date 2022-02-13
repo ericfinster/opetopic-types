@@ -14,8 +14,6 @@ open import Core.Element
 
 module Core.OpetopicSigma where
 
-  {-# TERMINATING #-} 
-
   Σₒ : ∀ {n ℓ₀ ℓ₁} (X : 𝕆Type n ℓ₀) (P : 𝕆Fam X ℓ₁)
     → 𝕆Type n (ℓ-max ℓ₀ ℓ₁) 
 
@@ -94,35 +92,33 @@ module Core.OpetopicSigma where
   Σₒ {zero} X P = tt*
   Σₒ {suc n} (Xₙ , Xₛₙ) (Pₙ , Pₛₙ)  =
     Σₒ Xₙ Pₙ , Σ-cell Xₛₙ Pₛₙ
-  
-  fst-frm {zero} f = tt*
-  fst-frm {suc n} (f , x , c , y) =
+
+  fst-frm {𝑜 = ●} f = tt*
+  fst-frm {𝑜 = 𝑜 ∣ 𝑝} (f , x , c , y) = 
     fst-frm f , fstₒ x , fst-cns c , λ p → fstₒ (y p)
-  
-  snd-frm {zero} f = tt*
-  snd-frm {suc n} (f , x , c , y) =
+
+  snd-frm {𝑜 = ●} f = tt*
+  snd-frm {𝑜 = 𝑜 ∣ 𝑝} (f , x , c , y) = 
     snd-frm f , sndₒ x , snd-cns c , λ p → sndₒ (y p)
-  
-  fst-cns {zero} c = tt*
-  fst-cns {suc n} (lf x) = lf (fstₒ x) 
-  fst-cns {suc n} {X = X} {P = P} (nd x c y d z ψ) =
+
+  fst-cns {𝑜 = ●} c = tt*
+  fst-cns {𝑜 = 𝑜 ∣ ._} (lf x) = lf (fstₒ x)
+  fst-cns {𝑜 = 𝑜 ∣ ._} (nd x c y d z ψ) = 
     nd (fstₒ x) (fst-cns c) (λ p → fstₒ (y p))
          (λ p → fst-cns (d p)) (λ p q → fstₒ (z p q))
-         (λ p → fst-cns {suc n} {X = X} {P = P} (ψ p))
-  
-  snd-cns {zero} c = tt*
-  snd-cns {suc n} (lf x) = idp
-  snd-cns {suc n} {X = X} {P = P} (nd x c y d z ψ) =
+         (λ p → fst-cns (ψ p))
+
+  snd-cns {𝑜 = ●} c = tt*
+  snd-cns {𝑜 = 𝑜 ∣ ._} (lf x) = idp
+  snd-cns {𝑜 = 𝑜 ∣ ._} (nd x c y d z ψ) = 
     snd-cns c , (λ p → sndₒ (y p)) ,
       (λ p → snd-cns (d p)) , (λ p q → sndₒ (z p q)) ,
-      (λ p → snd-cns {suc n} {X = X} {P = P} (ψ p)) , idp
+      (λ p → snd-cns (ψ p)) , idp
 
   --
   --  Pairing 
   --
 
-  {-# TERMINATING #-}
-  
   pair-frm : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {P : 𝕆Fam X ℓ₁}
     → {𝑜 : 𝒪 n} (f : Frm X 𝑜) (f↓ : Frm↓ P f)
     → Frm (Σₒ X P) 𝑜 
@@ -199,15 +195,15 @@ module Core.OpetopicSigma where
           μ (Σₒ X P) (pair-cns c c↓) (λ p → pair-cns (d p) (d↓ p))
     {-# REWRITE pair-μ #-}
 
-  pair-frm {zero} f f↓ = tt*
-  pair-frm {suc n} (f , x , c , y) (f↓ , x↓ , c↓ , y↓) =
+  pair-frm {𝑜 = ●} f f↓ = tt*
+  pair-frm {𝑜 = 𝑜 ∣ 𝑝} (f , x , c , y) (f↓ , x↓ , c↓ , y↓) = 
     pair-frm f f↓ , (x , x↓) , pair-cns c c↓ , λ p → (y p , y↓ p)
 
-  pair-cns {zero} c c↓ = tt*
-  pair-cns {suc n} {f = f , x , ._ , ._} {f↓ = f↓ , x↓ , ._ , ._}
-    (lf .x) idp = lf {f = pair-frm f f↓} (x , x↓)
-  pair-cns {suc n} {X = Xₙ , Xₛₙ} {Pₙ , Pₛₙ} {f = f , x , ._ , ._} {f↓ = f↓ , x↓ , ._ , ._}
+  pair-cns {𝑜 = ●} c c↓ = tt*
+  pair-cns {𝑜 = 𝑜 ∣ ._} {f = f , x , ._ , ._} {f↓ = f↓ , x↓ , ._ , ._} (lf x) idp = 
+    lf {f = pair-frm f f↓} (x , x↓)
+  pair-cns {𝑜 = 𝑜 ∣ ._} {f = f , x , ._ , ._} {f↓ = f↓ , x↓ , ._ , ._}
     (nd .x c y d z ψ) (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) = 
     nd {f = pair-frm f f↓} (x , x↓) (pair-cns c c↓) (λ p → (y p , y↓ p))
       (λ p → pair-cns (d p) (d↓ p)) (λ p q → (z p q , z↓ p q))
-      (λ p → pair-cns {suc n} {X = Xₙ , Xₛₙ} {Pₙ , Pₛₙ} (ψ p) (ψ↓ p))
+      (λ p → pair-cns (ψ p) (ψ↓ p))
