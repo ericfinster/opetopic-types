@@ -28,7 +28,7 @@ module Core.OpetopicFamily where
     → {𝑜 : 𝒪 n} {f : Frm X 𝑜} {f↓ : Frm↓ P f}
     → {𝑝 : 𝒫 𝑜} {c : Cns X f 𝑝} (c↓ : Cns↓ P f↓ c)
     → (p : Pos 𝑝) → Frm↓ P (Shp X c p) 
-
+  
   η↓ : ∀ {n ℓ₀ ℓ} {X : 𝕆Type n ℓ₀} (P : 𝕆Fam X ℓ)
     → {𝑜 : 𝒪 n} {f : Frm X 𝑜} (f↓ : Frm↓ P f)
     → Cns↓ P f↓ (η X f)
@@ -94,17 +94,6 @@ module Core.OpetopicFamily where
     Σ[ Pₙ ∈ 𝕆Fam Xₙ ℓ ]
     ({𝑜 : 𝒪 n} {f : Frm Xₙ 𝑜} (f↓ : Frm↓ Pₙ f) → Xₛₙ f → Type ℓ)
 
-  DecCns↓ : ∀ {n ℓ₀ ℓ} {Xₙ : 𝕆Type n ℓ₀} {Xₛₙ : {𝑜 : 𝒪 n} (f : Frm Xₙ 𝑜) → Type ℓ₀}
-    → (Pₙ : 𝕆Fam Xₙ ℓ) (Pₛₙ : {𝑜 : 𝒪 n} {f : Frm Xₙ 𝑜} (f↓ : Frm↓ Pₙ f) → Xₛₙ f → Type ℓ)
-    → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
-    → {f : Frm Xₙ 𝑜} (c : Cns Xₙ f 𝑝)
-    → (y : (p : Pos 𝑝) → Xₛₙ (Shp Xₙ c p))
-    → (f↓ : Frm↓ Pₙ f)
-    → Type ℓ    
-  DecCns↓ Pₙ Pₛₙ {𝑝 = 𝑝} c y f↓ =
-    Σ[ c↓ ∈ Cns↓ Pₙ f↓ c ]
-    ((p : Pos 𝑝) → Pₛₙ (Shp↓ Pₙ c↓ p) (y p))  
-
   Frm↓ P {●} f = Lift Unit
   Frm↓ (Pₙ , Pₛₙ) {𝑜 ∣ 𝑝} (f , x , c , y) = 
     Σ[ f↓ ∈ Frm↓ Pₙ f ]
@@ -112,21 +101,38 @@ module Core.OpetopicFamily where
     Σ[ c↓ ∈ Cns↓ Pₙ f↓ c ]
     ((p : Pos 𝑝) → Pₛₙ (Shp↓ Pₙ c↓ p) (y p))  
 
-  Cns↓ P {●} f p = Lift Unit
-  Cns↓ (Pₙ , Pₛₙ) {𝑜 ∣ ._} {f = f , .x , ._ , ._} (f↓ , x↓ , ηc↓ , ηy↓) (lf x) = 
-    Ident (DecCns↓ Pₙ Pₛₙ (η _ f) (const x) f↓) (η↓ Pₙ f↓ , const x↓) (ηc↓ , ηy↓)
-  Cns↓ (Pₙ , Pₛₙ) {𝑜 ∣ ._} {f = f , .x , ._ , ._} (f↓ , x↓ , μc↓ , μy↓) (nd {𝑝 = 𝑝} {𝑞} x c y d z ψ) =
-      Σ[ c↓ ∈ Cns↓ Pₙ f↓ c ]
-      Σ[ y↓ ∈ ((p : Pos 𝑝) → Pₛₙ (Shp↓ Pₙ c↓ p) (y p)) ]
-      Σ[ d↓ ∈ ((p : Pos 𝑝) → Cns↓ Pₙ (Shp↓ Pₙ c↓ p) (d p)) ]
-      Σ[ z↓ ∈ ((p : Pos 𝑝) (q : Pos (𝑞 p)) → Pₛₙ (Shp↓ Pₙ (d↓ p) q) (z p q)) ]
-      Σ[ ψ↓ ∈ ((p : Pos 𝑝) → Cns↓ (Pₙ , Pₛₙ) (Shp↓ Pₙ c↓ p , y↓ p , d↓ p , z↓ p) (ψ p)) ]
-      Ident (DecCns↓ Pₙ Pₛₙ (μ _ c d) (λ p → z (fstₚ 𝑝 𝑞 p) (sndₚ 𝑝 𝑞 p)) f↓)
-        (μ↓ Pₙ c↓ d↓ , λ p → z↓ (fstₚ 𝑝 𝑞 p) (sndₚ 𝑝 𝑞 p)) (μc↓ , μy↓)
+  data LfCns↓ {n ℓ₀ ℓ₁} {X : 𝕆Type (suc n) ℓ₀} (P : 𝕆Fam X ℓ₁)
+      {𝑜 : 𝒪 n} {f : Frm (fst X) 𝑜} (x : (snd X) f)
+    : Frm↓ P (f , x , η (fst X) f , const x) → Type ℓ₁ where
 
+    lf↓ : {f↓ : Frm↓ (fst P) f} (x↓ : (snd P) f↓ x)
+      → LfCns↓ P x (f↓ , x↓ , η↓ (fst P) f↓ , const x↓)
+
+  data NdCns↓ {n ℓ₀ ℓ₁} {X : 𝕆Type (suc n) ℓ₀} (P : 𝕆Fam X ℓ₁)
+        {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
+        {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
+        {𝑟 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p ∣ 𝑞 p)}
+        {f : Frm (fst X) 𝑜} (x : (snd X) f) (c : Cns (fst X) f 𝑝)
+        (y : (p : Pos 𝑝) → (snd X) (Shp (fst X) c p))
+        (d : (p : Pos 𝑝) → Cns (fst X) (Shp (fst X) c p) (𝑞 p))
+        (z : (p : Pos 𝑝) (q : Pos (𝑞 p)) → (snd X) (Shp (fst X) (d p) q))
+        (ψ : (p : Pos 𝑝) → Cns X (Shp (fst X) c p , y p , d p , z p) (𝑟 p)) 
+    : Frm↓ P (f , x , μ (fst X) c d , λ p → z (fstₚ 𝑝 𝑞 p) (sndₚ 𝑝 𝑞 p)) → Type ℓ₁ where
+
+    nd↓ : {f↓ : Frm↓ (fst P) f} (x↓ : (snd P) f↓ x) (c↓ : Cns↓ (fst P) f↓ c) 
+      → (y↓ : ((p : Pos 𝑝) → (snd P) (Shp↓ (fst P) c↓ p) (y p)))
+      → (d↓ : ((p : Pos 𝑝) → Cns↓ (fst P) (Shp↓ (fst P) c↓ p) (d p)))
+      → (z↓ : ((p : Pos 𝑝) (q : Pos (𝑞 p)) → (snd P) (Shp↓ (fst P) (d↓ p) q) (z p q)))
+      → (ψ↓ : ((p : Pos 𝑝) → Cns↓ P (Shp↓ (fst P) c↓ p , y↓ p , d↓ p , z↓ p) (ψ p)))
+      → NdCns↓ P x c y d z ψ (f↓ , x↓ , μ↓ (fst P) c↓ d↓ , λ p → z↓ (fstₚ 𝑝 𝑞 p) (sndₚ 𝑝 𝑞 p))
+
+  Cns↓ P {●} f c = Lift Unit
+  Cns↓ P {𝑜 ∣ ._} f {lfₒ} (lf x) = LfCns↓ P x f
+  Cns↓ P {𝑜 ∣ ._} f {ndₒ 𝑝 𝑞 𝑟} (nd x c y d z ψ) = NdCns↓ P x c y d z ψ f
+  
   Shp↓ P {●} {𝑝 = objₒ} c↓ p = tt*
-  Shp↓ P {𝑜 ∣ ._} {f↓ = f↓ , x↓ , ._ , ._} {c = nd x c y d z ψ} (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) (inl tt) = f↓ , x↓ , c↓ , y↓ 
-  Shp↓ P {𝑜 ∣ ._} {f↓ = f↓ , x↓ , ._ , ._} {c = nd x c y d z ψ} (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) (inr (p , q)) = Shp↓ P (ψ↓ p) q
+  Shp↓ P {𝑜 ∣ ._} {𝑝 = ndₒ 𝑝 𝑞 𝑟} {c = nd x c y d z ψ} (nd↓ x↓ c↓ y↓ d↓ z↓ ψ↓) (inl tt) = _ , x↓ , c↓ , y↓
+  Shp↓ P {𝑜 ∣ ._} {𝑝 = ndₒ 𝑝 𝑞 𝑟} {c = nd x c y d z ψ} (nd↓ x↓ c↓ y↓ d↓ z↓ ψ↓) (inr (p , q)) = Shp↓ P (ψ↓ p) q 
 
   graft↓ : ∀ {n ℓ₀ ℓ} {Xₙ : 𝕆Type n ℓ₀} {Xₛₙ : {𝑜 : 𝒪 n} (f : Frm Xₙ 𝑜) → Type ℓ₀}
     → (Pₙ : 𝕆Fam Xₙ ℓ) (Pₛₙ : {𝑜 : 𝒪 n} {f : Frm Xₙ 𝑜} (f↓ : Frm↓ Pₙ f) → Xₛₙ f → Type ℓ)
@@ -147,17 +153,17 @@ module Core.OpetopicFamily where
     → (ω↓ : (p : Pos 𝑝) → Cns↓ (Pₙ , Pₛₙ) (Shp↓ Pₙ c↓ p , y↓ p , d↓ p , z↓ p) (ω p))
     → Cns↓ (Pₙ , Pₛₙ) (f↓ , x↓ , μ↓ Pₙ c↓ d↓ , λ p → z↓ (fstₚ 𝑝 𝑟 p) (sndₚ 𝑝 𝑟 p))
            (graft Xₙ Xₛₙ x c y ψ d z ω)
-  graft↓ Pₙ Pₛₙ {𝑜} {ψ = lf x} x↓ ._ ._ idp d↓ z↓ ω↓ = ω↓ (ηₒ-pos 𝑜)
-  graft↓ Pₙ Pₛₙ {𝑟 = 𝑟𝑟} {ψ = nd {𝑜} {𝑝} {𝑟} x c y d z ψ} x↓ ._ ._ (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp)  dd↓ zz↓ ω↓ = 
-    let d↓' p   = μ↓ Pₙ (d↓ p) (λ q → dd↓ (pairₚ 𝑝 𝑟 p q))
-        z↓' p q = zz↓ (pairₚ 𝑝 𝑟 p (fstₚ (𝑟 p) (λ q → 𝑟𝑟 (pairₚ 𝑝 𝑟 p q)) q))
-                       (sndₚ (𝑟 p) (λ q → 𝑟𝑟 (pairₚ 𝑝 𝑟 p q)) q)
+  graft↓ Pₙ Pₛₙ {𝑜} {𝑞 = lfₒ} {ψ = lf x} .x↓ ._ ._ (lf↓ x↓) dd↓ zz↓ ω↓ = ω↓ (ηₒ-pos 𝑜)
+  graft↓ Pₙ Pₛₙ {𝑜} {𝑞 = ndₒ 𝑝 𝑞 𝑟} {𝑟 = 𝑟𝑟} {ψ = nd x c y d z ψ} .x↓ ._ ._ (nd↓ x↓ c↓ y↓ d↓ z↓ ψ↓) dd↓ zz↓ ω↓ = 
+    let d↓' p   = μ↓ Pₙ (d↓ p) (λ q → dd↓ (pairₚ 𝑝 𝑞 p q))
+        z↓' p q = zz↓ (pairₚ 𝑝 𝑞 p (fstₚ (𝑞 p) (λ q → 𝑟𝑟 (pairₚ 𝑝 𝑞 p q)) q))
+                       (sndₚ (𝑞 p) (λ q → 𝑟𝑟 (pairₚ 𝑝 𝑞 p q)) q)
         ψ↓' p   = graft↓ Pₙ Pₛₙ (y↓ p) (d↓ p) (z↓ p) (ψ↓ p)
-                    (λ q → dd↓ (pairₚ 𝑝 𝑟 p q))
-                    (λ q → zz↓ (pairₚ 𝑝 𝑟 p q))
-                    (λ q → ω↓ (pairₚ 𝑝 𝑟 p q))
-    in (c↓ , y↓ , d↓' , z↓' , ψ↓' , idp)
-
+                    (λ q → dd↓ (pairₚ 𝑝 𝑞 p q))
+                    (λ q → zz↓ (pairₚ 𝑝 𝑞 p q))
+                    (λ q → ω↓ (pairₚ 𝑝 𝑞 p q))
+    in nd↓ x↓ c↓ y↓ d↓' z↓' ψ↓' 
+  
   -- η↓ : ∀ {n ℓ₀ ℓ} {X : 𝕆Type n ℓ₀} (P : 𝕆Fam X ℓ)
   --   → {𝑜 : 𝒪 n} {f : Frm X 𝑜} (f↓ : Frm↓ P f)
   --   → Cns↓ P f↓ (η X f)
@@ -165,8 +171,8 @@ module Core.OpetopicFamily where
   η↓ (Pₙ , Pₛₙ) {𝑜 ∣ 𝑝} (f↓ , x↓ , c↓ , y↓) = 
     let d↓ p = η↓ Pₙ (Shp↓ Pₙ c↓ p)
         z↓ p q = y↓ p
-        ψ↓ p = idp
-    in (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) 
+        ψ↓ p = lf↓ (y↓ p)
+    in nd↓ x↓ c↓ y↓ d↓ z↓ ψ↓ 
 
   -- μ↓ : ∀ {n ℓ₀ ℓ} {X : 𝕆Type n ℓ₀} (P : 𝕆Fam X ℓ)
   --   → {𝑜 : 𝒪 n} {f : Frm X 𝑜} {f↓ : Frm↓ P f}
@@ -176,8 +182,8 @@ module Core.OpetopicFamily where
   --   → (d↓ : (p : Pos 𝑝) → Cns↓ P (Shp↓ P c↓ p) (d p))
   --   → Cns↓ P f↓ (μ X c d)
   μ↓ P {●} c↓ d↓ = tt*
-  μ↓ P {𝑜 ∣ ._} {c = lf x} c↓ d↓ = c↓
-  μ↓ (Pₙ , Pₛₙ) {𝑜 ∣ ._} {c = nd x c y d z ψ} (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) ω↓ = 
+  μ↓ P {𝑜 ∣ ._} {𝑝 = lfₒ} {c = lf x} c↓ d↓ = c↓
+  μ↓ (Pₙ , Pₛₙ) {𝑜 ∣ ._} {𝑝 = ndₒ 𝑝 𝑞 𝑟} {c = nd x c y d z ψ} (nd↓ x↓ c↓ y↓ d↓ z↓ ψ↓) ω↓ = 
     graft↓ Pₙ Pₛₙ _ c↓ y↓ (ω↓ (inl tt)) d↓ z↓
       (λ p → μ↓ (Pₙ , Pₛₙ) (ψ↓ p) (λ q → ω↓ (inr (p , q))))
 

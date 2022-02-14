@@ -102,18 +102,18 @@ module Core.OpetopicSigma where
     snd-frm f , sndₒ x , snd-cns c , λ p → sndₒ (y p)
 
   fst-cns {𝑜 = ●} c = tt*
-  fst-cns {𝑜 = 𝑜 ∣ ._} (lf x) = lf (fstₒ x)
-  fst-cns {𝑜 = 𝑜 ∣ ._} (nd x c y d z ψ) = 
+  fst-cns {𝑜 = 𝑜 ∣ ._} {𝑝 = lfₒ} (lf x) = lf (fstₒ x)
+  fst-cns {𝑜 = 𝑜 ∣ ._} {𝑝 = ndₒ 𝑝 𝑞 𝑟} (nd x c y d z ψ) = 
     nd (fstₒ x) (fst-cns c) (λ p → fstₒ (y p))
          (λ p → fst-cns (d p)) (λ p q → fstₒ (z p q))
          (λ p → fst-cns (ψ p))
 
   snd-cns {𝑜 = ●} c = tt*
-  snd-cns {𝑜 = 𝑜 ∣ ._} (lf x) = idp
-  snd-cns {𝑜 = 𝑜 ∣ ._} (nd x c y d z ψ) = 
-    snd-cns c , (λ p → sndₒ (y p)) ,
-      (λ p → snd-cns (d p)) , (λ p q → sndₒ (z p q)) ,
-      (λ p → snd-cns (ψ p)) , idp
+  snd-cns {𝑜 = 𝑜 ∣ ._} {𝑝 = lfₒ} (lf x) = lf↓ (sndₒ x)
+  snd-cns {𝑜 = 𝑜 ∣ ._} {𝑝 = ndₒ 𝑝 𝑞 𝑟} (nd x c y d z ψ) = 
+    nd↓ (sndₒ x) (snd-cns c) (λ p → sndₒ (y p))
+        (λ p → snd-cns (d p)) (λ p q → sndₒ (z p q))
+        (λ p → snd-cns (ψ p)) 
 
   --
   --  Pairing 
@@ -200,10 +200,8 @@ module Core.OpetopicSigma where
     pair-frm f f↓ , (x , x↓) , pair-cns c c↓ , λ p → (y p , y↓ p)
 
   pair-cns {𝑜 = ●} c c↓ = tt*
-  pair-cns {𝑜 = 𝑜 ∣ ._} {f = f , x , ._ , ._} {f↓ = f↓ , x↓ , ._ , ._} (lf x) idp = 
-    lf {f = pair-frm f f↓} (x , x↓)
-  pair-cns {𝑜 = 𝑜 ∣ ._} {f = f , x , ._ , ._} {f↓ = f↓ , x↓ , ._ , ._}
-    (nd .x c y d z ψ) (c↓ , y↓ , d↓ , z↓ , ψ↓ , idp) = 
-    nd {f = pair-frm f f↓} (x , x↓) (pair-cns c c↓) (λ p → (y p , y↓ p))
+  pair-cns {𝑜 = 𝑜 ∣ ._} {𝑝 = lfₒ} (lf x) (lf↓ x↓) = lf (x , x↓)
+  pair-cns {𝑜 = 𝑜 ∣ ._} {𝑝 = ndₒ 𝑝 𝑞 𝑟} (nd x c y d z ψ) (nd↓ x↓ c↓ y↓ d↓ z↓ ψ↓) = 
+    nd (x , x↓) (pair-cns c c↓) (λ p → (y p , y↓ p))
       (λ p → pair-cns (d p) (d↓ p)) (λ p q → (z p q , z↓ p q))
       (λ p → pair-cns (ψ p) (ψ↓ p))
