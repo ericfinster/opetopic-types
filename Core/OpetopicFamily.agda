@@ -198,8 +198,6 @@ module Core.OpetopicFamily where
       FillTy : {𝑜 : 𝒪 n} {f : Frm Xₙ 𝑜} → Frm↓ Pₙ f → Fill X f → Type ℓ₁
       HomTy : 𝕆Fam∞ (Hom X) (Pₙ , FillTy)
 
-  open 𝕆Fam∞ 
-
-
+  open 𝕆Fam∞ public
 
   

@@ -163,16 +163,9 @@ module Core.OpetopicType where
   μ X {𝑜 ∣ ._} {𝑝 = ndₒ 𝑝 𝑞 𝑟} (nd x c y d z ψ) ω = 
     graft (fst X) (snd X) x c y (ω (inl tt)) d z 
       (λ p → μ X (ψ p) (λ q → ω (inr (p , q))))
-      
-  --
-  --  The terminal opetopic context
-  --
-  𝕋 : (n : ℕ) {ℓ : Level} → 𝕆Type n ℓ
-  𝕋 zero = lift tt
-  𝕋 (suc n) = 𝕋 n , λ _ → Lift Unit 
 
   --
-  --  Infinite dimensional contexts
+  --  Infinite dimensional opetopic types
   --
   
   record 𝕆Type∞ {n ℓ} (X : 𝕆Type n ℓ) : Type (ℓ-suc ℓ) where
@@ -183,10 +176,33 @@ module Core.OpetopicType where
 
   open 𝕆Type∞ public
 
+  --
+  --  The skeleton of an infinite opetopic type
+  ---
+  
+  Skeleton : ∀ {ℓ} (X : 𝕆Type∞ {ℓ = ℓ} tt*)
+    → (n : ℕ) → 𝕆Type n ℓ
+
+  SkeletonExt : ∀ {ℓ} (X : 𝕆Type∞ {ℓ = ℓ} tt*)
+    → (n : ℕ) → 𝕆Type∞ {ℓ = ℓ} (Skeleton X n) 
+
+  Skeleton X zero = lift tt
+  Skeleton X (suc n) = Skeleton X n , Fill (SkeletonExt X n)
+
+  SkeletonExt X zero = X
+  SkeletonExt X (suc n) = Hom (SkeletonExt X n)
+
+  --
+  --  The terminal opetopic type
+  --
+
   𝕋Ext : ∀ {n ℓ} (X : 𝕆Type n ℓ) → 𝕆Type∞ X
   Fill (𝕋Ext X) _ = Lift Unit
   Hom (𝕋Ext X) = 𝕋Ext (X , (λ _ → Lift Unit))
+    
+  𝕋 : (n : ℕ) {ℓ : Level} → 𝕆Type n ℓ
+  𝕋 zero = lift tt
+  𝕋 (suc n) = 𝕋 n , λ _ → Lift Unit 
 
   𝕋∞ : ∀ {ℓ} → 𝕆Type∞ tt*
   𝕋∞ {ℓ} = 𝕋Ext {ℓ = ℓ} tt*
-

@@ -4,7 +4,9 @@
 
 open import Cubical.Foundations.Everything
 open import Cubical.Data.Sigma
+open import Cubical.Data.Empty 
 open import Cubical.Data.Nat 
+open import Cubical.Data.Sum
 
 open import Core.Everything
 open import Lib.Structures
@@ -23,4 +25,3 @@ module Lib.Groupoid where
   Pt {zero} x = tt*
   Pt {suc n} x = Pt {n} x , reflₒ x
 
-  

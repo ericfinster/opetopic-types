@@ -183,6 +183,8 @@ module Core.OpetopicMap where
       Fill⇒ : {o : 𝒪 n} {f : Frm X o} → Fill X∞ f → Fill Y∞ (Frm⇒ α f)
       Hom⇒ : [ Hom X∞ ⇒ Hom Y∞ ↓ α , Fill⇒ ]
 
+  open [_⇒_↓_] public
+  
   --  Pulling back an extension along a substitution
   Pb∞ : ∀ {n ℓ} {X : 𝕆Type n ℓ} {Y : 𝕆Type n ℓ}
     → (σ : X ⇒ Y) → 𝕆Type∞ Y → 𝕆Type∞ X 
@@ -199,3 +201,5 @@ module Core.OpetopicMap where
   Hom (Pf∞ {X = X} {Y} σ X∞) = Pf∞ {X = (X , Fill X∞)} {Y = (Y ,
        (λ {o} f → Σ-syntax (fiber (Frm⇒ σ) f) (λ f' → Fill X∞ (fst f'))))}
        (σ , λ {𝑜} {f} x → (f , refl) , x) (Hom X∞)
+
+

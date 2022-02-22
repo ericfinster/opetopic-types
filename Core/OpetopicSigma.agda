@@ -205,3 +205,10 @@ module Core.OpetopicSigma where
     nd (x , x↓) (pair-cns c c↓) (λ p → (y p , y↓ p))
       (λ p → pair-cns (d p) (d↓ p)) (λ p q → (z p q , z↓ p q))
       (λ p → pair-cns (ψ p) (ψ↓ p))
+
+  --
+  --  Testing ...
+  --
+  
+
+
