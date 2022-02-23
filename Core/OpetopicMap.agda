@@ -113,7 +113,7 @@ module Core.OpetopicMap where
     σₙ ⊚ τₙ , λ x → σₛₙ (τₛₙ x)
 
   --
-  --  Action of substitutions on familiesx
+  --  Action of substitutions on families
   --
 
   _[_]ty : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁}
