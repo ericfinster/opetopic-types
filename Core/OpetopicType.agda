@@ -92,11 +92,17 @@ module Core.OpetopicType where
     Σ[ x ∈ Xₛₙ f ]
     Σ[ c ∈ Cns Xₙ f 𝑝 ]
     ((p : Pos 𝑝) → Xₛₙ (Shp Xₙ c p))  
-  
+
+  η-dec : ∀ {n ℓ} (X : 𝕆Type (suc n) ℓ)
+    → {𝑜 : 𝒪 n} {f : Frm (fst X) 𝑜}
+    → (x : snd X f)
+    → (p : Pos (ηₒ 𝑜)) → snd X (Shp (fst X) (η (fst X) f) p)
+  η-dec (Xₙ , Xₛₙ) {𝑜} {f} x = ηₒ-pos-elim 𝑜 (λ p → Xₛₙ (Shp Xₙ (η Xₙ f) p)) x 
+
   data LfCns {n ℓ} (X : 𝕆Type (suc n) ℓ) {𝑜 : 𝒪 n} : Frm X (𝑜 ∣ ηₒ 𝑜) → Type ℓ where
 
     lf : {f : Frm (fst X) 𝑜} (x : (snd X) f)
-      → LfCns X (f , x , η (fst X) f , const x) 
+      → LfCns X (f , x , η (fst X) f , η-dec X x) 
 
   data NdCns {n ℓ} (X : 𝕆Type (suc n) ℓ)
         (𝑜 : 𝒪 n) (𝑝 : 𝒫 𝑜)
@@ -148,9 +154,9 @@ module Core.OpetopicType where
   η X {●} f = tt*
   η X {𝑜 ∣ 𝑝} (f , x , c , y) =
     let d p = η (fst X) (Shp (fst X) c p)
-        z p q = y p
+        z p q = η-dec X (y p) q
         ψ p = lf (y p)
-    in nd x c y d z ψ 
+    in nd x c y d z ψ
 
   -- μ : ∀ {n ℓ} (X : 𝕆Type n ℓ)
   --   → {𝑜 : 𝒪 n} {f : Frm X 𝑜}
