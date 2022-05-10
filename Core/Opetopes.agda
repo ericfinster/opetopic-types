@@ -25,7 +25,7 @@ module Core.Opetopes where
   --
   --  Monadic Structure
   --
-  
+
   ηₒ : {n : ℕ} (o : 𝒪 n) → 𝒫 o
 
   ηₒ-pos : {n : ℕ} (o : 𝒪 n)
@@ -89,7 +89,7 @@ module Core.Opetopes where
   -- 
   --  Position Laws
   --
-  
+
   postulate
   
     -- ηₒ-pos laws
@@ -366,28 +366,3 @@ module Core.Opetopes where
     graftₒ-pos-elim (𝑠 (inl tt)) (λ p → μₒ (𝑟 p) (λ q → 𝑠 (inr (p , q)))) _
       (λ p → p) (λ p q → sndₚ (𝑟 p) (λ q → 𝑠 (inr (p , q))) q)
       
-  --
-  --  Examples
-  --
-
-  obj : 𝒪 0
-  obj = ●
-
-  arrow : 𝒪 1
-  arrow = ● ∣ objₒ 
-  
-  n-path : ℕ → 𝒫 (● ∣ objₒ)
-  n-path zero = lfₒ 
-  n-path (suc n) = ndₒ objₒ (λ _ → objₒ) (λ _ → n-path n)
-
-  n-gon : ℕ → 𝒪 2
-  n-gon n = ● ∣ objₒ ∣ n-path n
-
-  2-drop : 𝒪 2
-  2-drop = n-gon 0 
-
-  2-globe : 𝒪 2
-  2-globe = n-gon 1
-
-  2-simplex : 𝒪 2
-  2-simplex = n-gon 2
