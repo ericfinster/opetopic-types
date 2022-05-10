@@ -52,8 +52,8 @@ module Lib.ExampleOpetopes where
           𝑟 (inl tt) = ndₒ {𝑜 = ● ∣ objₒ} lfₒ (λ { () }) (λ { () })
           𝑟 (inr (tt , inl tt)) = lfₒ
 
-  fake-unitor : 𝒫 2-globe
-  fake-unitor = ndₒ (n-path 2) 𝑞 𝑟   
+  left-drop-right-glob : 𝒫 2-globe
+  left-drop-right-glob = ndₒ (n-path 2) 𝑞 𝑟   
 
     where 𝑞 : (p : Pos (n-path 2)) → 𝒫 (Typ (n-path 2) p)
           𝑞 (inl tt) = n-path 0
@@ -63,5 +63,24 @@ module Lib.ExampleOpetopes where
           𝑟 (inl tt) = ndₒ {𝑜 = ● ∣ objₒ} lfₒ (λ { () }) (λ { () })
           𝑟 (inr (tt , inl tt)) = ηₒ (n-gon 1)
 
+  assoc-l : 𝒫 (n-gon 3)
+  assoc-l = ndₒ (n-path 2) 𝑞 𝑟   
 
+    where 𝑞 : (p : Pos (n-path 2)) → 𝒫 (Typ (n-path 2) p)
+          𝑞 (inl tt) = n-path 2
+          𝑞 (inr (tt , inl tt)) = n-path 1
 
+          𝑟 : (p : Pos (n-path 2)) → 𝒫 (Typ (n-path 2) p ∣ 𝑞 p)
+          𝑟 (inl tt) = ndₒ (n-path 2) (λ p → ηₒ (Typ (n-path 2) p)) λ _ → lfₒ
+          𝑟 (inr (tt , inl tt)) = lfₒ
+
+  assoc-r : 𝒫 (n-gon 3)
+  assoc-r = ndₒ (n-path 2) 𝑞 𝑟   
+
+    where 𝑞 : (p : Pos (n-path 2)) → 𝒫 (Typ (n-path 2) p)
+          𝑞 (inl tt) = n-path 1
+          𝑞 (inr (tt , inl tt)) = n-path 2
+
+          𝑟 : (p : Pos (n-path 2)) → 𝒫 (Typ (n-path 2) p ∣ 𝑞 p)
+          𝑟 (inl tt) = lfₒ
+          𝑟 (inr (tt , inl tt)) = ndₒ (n-path 2) (λ p → ηₒ (Typ (n-path 2) p)) λ _ → lfₒ
