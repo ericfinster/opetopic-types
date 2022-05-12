@@ -110,10 +110,10 @@ module Core.OpetopicFamily where
 
   data LfCns↓ {n ℓ₀ ℓ₁} {X : 𝕆Type (suc n) ℓ₀} (P : 𝕆Fam X ℓ₁)
       {𝑜 : 𝒪 n} {f : Frm (fst X) 𝑜} (x : (snd X) f)
-    : Frm↓ P (f , x , η (fst X) f , η-dec X x) → Type ℓ₁ where
+    : Frm↓ P (f , x , η (fst X) f , const x) → Type ℓ₁ where
 
     lf↓ : {f↓ : Frm↓ (fst P) f} (x↓ : (snd P) f↓ x)
-      → LfCns↓ P x (f↓ , x↓ , η↓ (fst P) f↓ , η↓-dec P x↓)
+      → LfCns↓ P x (f↓ , x↓ , η↓ (fst P) f↓ , const x↓)
 
   data NdCns↓ {n ℓ₀ ℓ₁} {X : 𝕆Type (suc n) ℓ₀} (P : 𝕆Fam X ℓ₁)
         {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
@@ -177,13 +177,9 @@ module Core.OpetopicFamily where
   η↓ P {●} f↓ = tt*
   η↓ (Pₙ , Pₛₙ) {𝑜 ∣ 𝑝} (f↓ , x↓ , c↓ , y↓) = 
     let d↓ p = η↓ Pₙ (Shp↓ Pₙ c↓ p)
-        z↓ p q = η↓-dec (Pₙ , Pₛₙ) (y↓ p) q 
+        z↓ p q = (y↓ p) 
         ψ↓ p = lf↓ (y↓ p)
     in nd↓ x↓ c↓ y↓ d↓ z↓ ψ↓
-
-        -- z p q = η-dec X (y p) q
-        -- ψ p = lf (y p)
-
 
   -- μ↓ : ∀ {n ℓ₀ ℓ} {X : 𝕆Type n ℓ₀} (P : 𝕆Fam X ℓ)
   --   → {𝑜 : 𝒪 n} {f : Frm X 𝑜} {f↓ : Frm↓ P f}

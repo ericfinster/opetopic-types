@@ -84,3 +84,4 @@ module Lib.ExampleOpetopes where
           𝑟 : (p : Pos (n-path 2)) → 𝒫 (Typ (n-path 2) p ∣ 𝑞 p)
           𝑟 (inl tt) = lfₒ
           𝑟 (inr (tt , inl tt)) = ndₒ (n-path 2) (λ p → ηₒ (Typ (n-path 2) p)) λ _ → lfₒ
+

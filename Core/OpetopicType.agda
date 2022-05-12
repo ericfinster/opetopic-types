@@ -102,7 +102,7 @@ module Core.OpetopicType where
   data LfCns {n ℓ} (X : 𝕆Type (suc n) ℓ) {𝑜 : 𝒪 n} : Frm X (𝑜 ∣ ηₒ 𝑜) → Type ℓ where
 
     lf : {f : Frm (fst X) 𝑜} (x : (snd X) f)
-      → LfCns X (f , x , η (fst X) f , η-dec X x) 
+      → LfCns X (f , x , η (fst X) f , const x) 
 
   data NdCns {n ℓ} (X : 𝕆Type (suc n) ℓ)
         (𝑜 : 𝒪 n) (𝑝 : 𝒫 𝑜)
@@ -154,7 +154,7 @@ module Core.OpetopicType where
   η X {●} f = tt*
   η X {𝑜 ∣ 𝑝} (f , x , c , y) =
     let d p = η (fst X) (Shp (fst X) c p)
-        z p q = η-dec X (y p) q
+        z p q = y p 
         ψ p = lf (y p)
     in nd x c y d z ψ
 
