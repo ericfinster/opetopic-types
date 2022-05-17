@@ -5,11 +5,13 @@
 open import Cubical.Foundations.Everything 
 open import Cubical.Data.Nat
 open import Cubical.Data.Sum
+open import Cubical.Data.Empty
+  renaming (elim to ⊥-elim) 
 
 open import Core.Prelude
 open import Core.Opetopes
 
-module Lib.ExampleOpetopes where
+module Lib.Shapes where
 
   -- Dim 0 
 
@@ -41,16 +43,16 @@ module Lib.ExampleOpetopes where
 
   -- Dim 3
 
+  left-unitor-𝑞 : (p : Pos (n-path 2)) → 𝒫 (Typ (n-path 2) p)
+  left-unitor-𝑞 (inl tt) = n-path 0
+  left-unitor-𝑞 (inr (tt , inl tt)) = n-path 1
+
+  left-unitor-𝑟 : (p : Pos (n-path 2)) → 𝒫 (Typ (n-path 2) p ∣ left-unitor-𝑞 p)
+  left-unitor-𝑟 (inl tt) = ndₒ {𝑜 = ● ∣ objₒ} lfₒ ⊥-elim ⊥-elim 
+  left-unitor-𝑟 (inr (tt , inl tt)) = lfₒ
+  
   left-unitor : 𝒫 2-globe
-  left-unitor = ndₒ (n-path 2) 𝑞 𝑟   
-
-    where 𝑞 : (p : Pos (n-path 2)) → 𝒫 (Typ (n-path 2) p)
-          𝑞 (inl tt) = n-path 0
-          𝑞 (inr (tt , inl tt)) = n-path 1
-
-          𝑟 : (p : Pos (n-path 2)) → 𝒫 (Typ (n-path 2) p ∣ 𝑞 p)
-          𝑟 (inl tt) = ndₒ {𝑜 = ● ∣ objₒ} lfₒ (λ { () }) (λ { () })
-          𝑟 (inr (tt , inl tt)) = lfₒ
+  left-unitor = ndₒ (n-path 2) left-unitor-𝑞 left-unitor-𝑟
 
   left-drop-right-glob : 𝒫 2-globe
   left-drop-right-glob = ndₒ (n-path 2) 𝑞 𝑟   
