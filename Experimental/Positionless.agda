@@ -32,14 +32,22 @@ module Experimental.Positionless where
     → {f : Frm Xₙ}
     → (x : Xₛₙ f) → Src Xₙ Xₛₙ f 
 
-  μ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-    → (Xₛₙ : Frm Xₙ → Type ℓ)
-    → {f : Frm Xₙ}
-    → Src Xₙ (Src Xₙ Xₛₙ) f
-    → Src Xₙ Xₛₙ f 
+  postulate
+  
+    μ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → (Xₛₙ : Frm Xₙ → Type ℓ)
+      → {f : Frm Xₙ}
+      → Src Xₙ (Src Xₙ Xₛₙ) f
+      → Src Xₙ Xₛₙ f 
 
   postulate
 
+    smap-id : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → {Xₛₙ : Frm Xₙ → Type ℓ}
+      → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
+      → smap Xₙ (λ f x → x) s ↦ s
+    {-# REWRITE smap-id #-} 
+      
     smap-∘ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
       → {Xₛₙ Xₛₙ' Xₛₙ'' : Frm Xₙ → Type ℓ}
       → (σ : (f : Frm Xₙ) → Xₛₙ f → Xₛₙ' f)
@@ -48,18 +56,24 @@ module Experimental.Positionless where
       → smap Xₙ σ' (smap Xₙ σ s) ↦ smap Xₙ (λ f x → σ' f (σ f x)) s
     {-# REWRITE smap-∘ #-}
 
-    unit-left : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+    unit-right : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
       → (Xₛₙ : Frm Xₙ → Type ℓ)
       → (f : Frm Xₙ) (pd : Src Xₙ Xₛₙ f)
       → μ Xₙ Xₛₙ (η Xₙ (Src Xₙ Xₛₙ) pd) ↦ pd
-    {-# REWRITE unit-left #-}
-
-    unit-right : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-      → (Xₛₙ : Frm Xₙ → Type ℓ)
-      → (f : Frm Xₙ) (pdpd : Src Xₙ (Src Xₙ Xₛₙ) f)
-      → η Xₙ (Src Xₙ Xₛₙ) (μ Xₙ Xₛₙ pdpd) ↦ pdpd
     {-# REWRITE unit-right #-}
 
+    unit-left : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → (Xₛₙ : Frm Xₙ → Type ℓ)
+      → (f : Frm Xₙ) (pd : Src Xₙ Xₛₙ f)
+      → μ Xₙ Xₛₙ (smap Xₙ (λ f x → η Xₙ Xₛₙ x) pd) ↦ pd
+    {-# REWRITE unit-left #-}
+
+    μ-assoc : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → (Xₛₙ : Frm Xₙ → Type ℓ)
+      → (f : Frm Xₙ) (t : Src Xₙ (Src Xₙ (Src Xₙ Xₛₙ)) f)
+      → μ Xₙ Xₛₙ (smap Xₙ (λ f → μ Xₙ Xₛₙ {f}) t) ↦ μ Xₙ Xₛₙ (μ Xₙ (Src Xₙ Xₛₙ) t) 
+    {-# REWRITE μ-assoc #-} 
+  
 
   𝕆Type zero ℓ = Lift Unit
   𝕆Type (suc n) ℓ =
@@ -104,5 +118,12 @@ module Experimental.Positionless where
                                  Pd Xₙ Xₛₙ Xₛₛₙ' (f' , τ' , σ')) f
           ih' = smap Xₙ (λ f τσρ → fst τσρ , fst (snd τσρ) , smap (Xₙ , Xₛₙ) σ (snd (snd τσρ))) ih 
 
-  η = {!!}
-  μ = {!!} 
+  η {zero} Xₙ Xₛₙ {tt*} x = x
+  η {suc n} (Xₙ , Xₛₙ) Xₛₛₙ {f , t , s} x = nd f t ih' x
+
+    where ih' : Src Xₙ (λ f' → Σ[ τ' ∈ Xₛₙ f' ]
+                               Σ[ σ' ∈ Src Xₙ Xₛₙ f' ]
+                                 Pd Xₙ Xₛₙ Xₛₛₙ (f' , τ' , σ')) f
+          ih' = smap Xₙ (λ f x' → x' , η Xₙ Xₛₙ x' , lf f x') s 
+
+  -- μ = {!!} 
