@@ -1,4 +1,3 @@
-{-# OPTIONS --no-positivity-check #-}
 --
 --  OpetopicType.agda - Opetopic Types
 --
@@ -73,6 +72,7 @@ module Experimental.Positionless where
     Σ[ tgt ∈ Xₛₙ f ] 
     Src Xₙ Xₛₙ f
 
+  {-# NO_POSITIVITY_CHECK #-}
   data Pd {n ℓ} (Xₙ : 𝕆Type n ℓ) (Xₛₙ : Frm Xₙ → Type ℓ) (Xₛₛₙ : Frm (Xₙ , Xₛₙ) → Type ℓ) : Frm (Xₙ , Xₛₙ) → Type ℓ where
 
     lf : (f : Frm Xₙ) (tgt : Xₛₙ f)
