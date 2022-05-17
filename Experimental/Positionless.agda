@@ -41,6 +41,14 @@ module Experimental.Positionless where
 
   postulate
 
+    smap-∘ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → {Xₛₙ Xₛₙ' Xₛₙ'' : Frm Xₙ → Type ℓ}
+      → (σ : (f : Frm Xₙ) → Xₛₙ f → Xₛₙ' f)
+      → (σ' : (f : Frm Xₙ) → Xₛₙ' f → Xₛₙ'' f)
+      → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
+      → smap Xₙ σ' (smap Xₙ σ s) ↦ smap Xₙ (λ f x → σ' f (σ f x)) s
+    {-# REWRITE smap-∘ #-}
+
     unit-left : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
       → (Xₛₙ : Frm Xₙ → Type ℓ)
       → (f : Frm Xₙ) (pd : Src Xₙ Xₛₙ f)
@@ -52,6 +60,7 @@ module Experimental.Positionless where
       → (f : Frm Xₙ) (pdpd : Src Xₙ (Src Xₙ Xₛₙ) f)
       → η Xₙ (Src Xₙ Xₛₙ) (μ Xₙ Xₛₙ pdpd) ↦ pdpd
     {-# REWRITE unit-right #-}
+
 
   𝕆Type zero ℓ = Lift Unit
   𝕆Type (suc n) ℓ =
@@ -85,26 +94,15 @@ module Experimental.Positionless where
   Src {zero} X Y f = Y tt*
   Src {suc n} (Xₙ , Xₛₙ) Xₛₛₙ = Pd Xₙ Xₛₙ Xₛₛₙ
 
-  smap = {!!}
+  {-# TERMINATING #-}
+  smap {zero} Xₙ {Xₛₙ} {Xₛₙ'} σ s = σ tt* s
+  smap {suc n} Xₙ {Xₛₙ} {Xₛₙ'} σ (lf _ tgt) = lf _ tgt
+  smap {suc n} (Xₙ , Xₛₙ) {Xₛₛₙ} {Xₛₛₙ'} σ (nd f tgt ih filler) = nd f tgt ih' (σ _ filler)
+
+    where ih' : Src Xₙ (λ f' → Σ[ τ' ∈ Xₛₙ f' ]
+                               Σ[ σ' ∈ Src Xₙ Xₛₙ f' ]
+                                 Pd Xₙ Xₛₙ Xₛₛₙ' (f' , τ' , σ')) f
+          ih' = smap Xₙ (λ f τσρ → fst τσρ , fst (snd τσρ) , smap (Xₙ , Xₛₙ) σ (snd (snd τσρ))) ih 
 
   η = {!!}
-
   μ = {!!} 
-
-  -- smap {zero} X {Y} {Z} σ f y = σ tt* y
-  -- smap {suc n} X {Y} {Z} σ ._ (lf f x) = lf f x
-  -- smap {suc n} X {Y} {Z} σ ._ (nd f s t y) = {!!} -- nd f s' t z
-
-  --   -- And as expected, we see that we need to definitionally combine two
-  --   -- functions here in order for this to typecheck....
-
-  --   where z : Z (f , t , smap (fst X) (λ _ → fst) f s)
-  --         z = σ _ y
-
-  --         Z' : Frm (fst X) → Type _
-  --         Z' f' = Σ[ τ' ∈ snd X f' ]
-  --                 Σ[ σ' ∈ Src (fst X) (snd X) f' ]
-  --                 Pd X Z (f' , τ' , σ')
-
-  --         s' : Src (fst X) Z' _
-  --         s' = smap (fst X) {Z = Z'} (λ f' (a , b , c) → a , b , smap X {Y} {Z} σ _ c) _ s
