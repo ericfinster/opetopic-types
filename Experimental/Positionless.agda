@@ -1,3 +1,4 @@
+{-# OPTIONS --no-positivity-check #-}
 --
 --  OpetopicType.agda - Opetopic Types
 --
@@ -21,6 +22,17 @@ module Experimental.Positionless where
     → (Xₛₙ : Frm Xₙ → Type ℓ)
     → Frm Xₙ → Type ℓ 
 
+  Pos : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+    → (Xₛₙ : Frm Xₙ → Type ℓ)
+    → (f : Frm Xₙ) (s : Src Xₙ Xₛₙ f)
+    → Frm Xₙ → Type ℓ 
+
+  Inhab : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+    → (Xₛₙ : Frm Xₙ → Type ℓ)
+    → (f : Frm Xₙ) (s : Src Xₙ Xₛₙ f)
+    → (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ f s f')
+    → Xₛₙ f' 
+
   smap : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
     → {Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ}
     → (σ : (f : Frm Xₙ) → Xₛₙ f → Xₛₙ' f)
@@ -32,13 +44,11 @@ module Experimental.Positionless where
     → {f : Frm Xₙ}
     → (x : Xₛₙ f) → Src Xₙ Xₛₙ f 
 
-  postulate
-  
-    μ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-      → (Xₛₙ : Frm Xₙ → Type ℓ)
-      → {f : Frm Xₙ}
-      → Src Xₙ (Src Xₙ Xₛₙ) f
-      → Src Xₙ Xₛₙ f 
+  μ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+    → (Xₛₙ : Frm Xₙ → Type ℓ)
+    → {f : Frm Xₙ}
+    → Src Xₙ (Src Xₙ Xₛₙ) f
+    → Src Xₙ Xₛₙ f 
 
   postulate
 
@@ -55,6 +65,20 @@ module Experimental.Positionless where
       → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
       → smap Xₙ σ' (smap Xₙ σ s) ↦ smap Xₙ (λ f x → σ' f (σ f x)) s
     {-# REWRITE smap-∘ #-}
+
+    smap-η : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → {Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ}
+      → (σ : (f : Frm Xₙ) → Xₛₙ f → Xₛₙ' f)
+      → (f : Frm Xₙ) (x : Xₛₙ f)
+      → smap Xₙ σ (η Xₙ Xₛₙ x) ↦ η Xₙ Xₛₙ' (σ f x)
+    {-# REWRITE smap-η #-}
+
+    smap-μ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → {Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ}
+      → (σ : (f : Frm Xₙ) → Xₛₙ f → Xₛₙ' f)
+      → {f : Frm Xₙ} (s : Src Xₙ (Src Xₙ Xₛₙ) f)
+      → smap Xₙ σ (μ Xₙ Xₛₙ s) ↦ μ Xₙ Xₛₙ' (smap Xₙ (λ f s' → smap Xₙ σ s') s) 
+    {-# REWRITE smap-μ #-} 
 
     unit-right : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
       → (Xₛₙ : Frm Xₙ → Type ℓ)
@@ -73,7 +97,7 @@ module Experimental.Positionless where
       → (f : Frm Xₙ) (t : Src Xₙ (Src Xₙ (Src Xₙ Xₛₙ)) f)
       → μ Xₙ Xₛₙ (smap Xₙ (λ f → μ Xₙ Xₛₙ {f}) t) ↦ μ Xₙ Xₛₙ (μ Xₙ (Src Xₙ Xₛₙ) t) 
     {-# REWRITE μ-assoc #-} 
-  
+
 
   𝕆Type zero ℓ = Lift Unit
   𝕆Type (suc n) ℓ =
@@ -86,44 +110,78 @@ module Experimental.Positionless where
     Σ[ tgt ∈ Xₛₙ f ] 
     Src Xₙ Xₛₙ f
 
-  {-# NO_POSITIVITY_CHECK #-}
-  data Pd {n ℓ} (Xₙ : 𝕆Type n ℓ) (Xₛₙ : Frm Xₙ → Type ℓ) (Xₛₛₙ : Frm (Xₙ , Xₛₙ) → Type ℓ) : Frm (Xₙ , Xₛₙ) → Type ℓ where
+  module _ {n ℓ} (Xₙ : 𝕆Type n ℓ) (Xₛₙ : Frm Xₙ → Type ℓ)
+           (Xₛₛₙ : Frm (Xₙ , Xₛₙ) → Type ℓ) where
 
-    lf : (f : Frm Xₙ) (tgt : Xₛₙ f)
-      → Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , η Xₙ Xₛₙ tgt) 
+    data Pd : Frm (Xₙ , Xₛₙ) → Type ℓ
 
-    nd : (f : Frm Xₙ) (tgt : Xₛₙ f)
+    record SubPd (f : Frm Xₙ) : Type ℓ where
+      inductive
+      eta-equality
+      constructor [_,_,_]
+      field
+        out : Xₛₙ f
+        lvs : Src Xₙ Xₛₙ f
+        sub : Pd (f , out , lvs)
+
+    open SubPd public
     
-      → (ih : Src Xₙ (λ f' →
-          Σ[ tgt' ∈ Xₛₙ f' ]
-          Σ[ lvs ∈ Src Xₙ Xₛₙ f' ]
-          Pd Xₙ Xₛₙ Xₛₛₙ (f' , tgt' , lvs)) f)
+    data Pd where
 
-      -- the map picks out the target of the subtrees...
-      → (filler : Xₛₛₙ (f , tgt , smap Xₙ (λ _ → fst) ih))
+      lf : (f : Frm Xₙ) (tgt : Xₛₙ f)
+        → Pd (f , tgt , η Xₙ Xₛₙ tgt) 
 
-      -- pick out the "leaves" of each subtree 
-      → Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , μ Xₙ Xₛₙ (smap Xₙ (λ _ → fst ∘ snd) ih))
+      nd : (f : Frm Xₙ) (tgt : Xₛₙ f)
+        → (ih : Src Xₙ SubPd f)
+        → (filler : Xₛₛₙ (f , tgt , smap Xₙ (λ _ → out) ih))
+        → Pd (f , tgt , μ Xₙ Xₛₙ (smap Xₙ (λ _ → lvs) ih))
+
+    data NdPos : {f : Frm (Xₙ , Xₛₙ)} → Pd f → Frm (Xₙ , Xₛₙ) → Type ℓ where
+
+       nd-here : (f : Frm Xₙ) (tgt : Xₛₙ f)
+               → (ih : Src Xₙ SubPd f)
+               → (filler : Xₛₛₙ (f , tgt , smap Xₙ (λ _ → out) ih))
+               → NdPos (nd f tgt ih filler) (f , tgt , smap Xₙ (λ _ → out) ih)
+
+       nd-there : (f : Frm Xₙ) (tgt : Xₛₙ f)
+                → (ih : Src Xₙ SubPd f)
+                → (filler : Xₛₛₙ (f , tgt , smap Xₙ (λ _ → out) ih))
+                → (f' : Frm Xₙ) (p : Pos Xₙ SubPd f ih f')
+                → (f'' : Frm (Xₙ , Xₛₙ))
+                → NdPos (sub (Inhab Xₙ SubPd f ih f' p)) f''
+                → NdPos (nd f tgt ih filler) f'' 
+
 
   Src {zero} X Y f = Y tt*
   Src {suc n} (Xₙ , Xₛₙ) Xₛₛₙ = Pd Xₙ Xₛₙ Xₛₛₙ
 
+  Pos = {!!} 
+  Inhab = {!!} 
+
   {-# TERMINATING #-}
   smap {zero} Xₙ {Xₛₙ} {Xₛₙ'} σ s = σ tt* s
   smap {suc n} Xₙ {Xₛₙ} {Xₛₙ'} σ (lf _ tgt) = lf _ tgt
-  smap {suc n} (Xₙ , Xₛₙ) {Xₛₛₙ} {Xₛₛₙ'} σ (nd f tgt ih filler) = nd f tgt ih' (σ _ filler)
-
-    where ih' : Src Xₙ (λ f' → Σ[ τ' ∈ Xₛₙ f' ]
-                               Σ[ σ' ∈ Src Xₙ Xₛₙ f' ]
-                                 Pd Xₙ Xₛₙ Xₛₛₙ' (f' , τ' , σ')) f
-          ih' = smap Xₙ (λ f τσρ → fst τσρ , fst (snd τσρ) , smap (Xₙ , Xₛₙ) σ (snd (snd τσρ))) ih 
+  smap {suc n} (Xₙ , Xₛₙ) {Xₛₛₙ} {Xₛₛₙ'} σ (nd f tgt ih filler) = 
+    let ih' = smap Xₙ (λ f spd → [ out spd , lvs spd , smap (Xₙ , Xₛₙ) σ (sub spd) ]) ih
+    in  nd f tgt ih' (σ _ filler)
 
   η {zero} Xₙ Xₛₙ {tt*} x = x
-  η {suc n} (Xₙ , Xₛₙ) Xₛₛₙ {f , t , s} x = nd f t ih' x
+  η {suc n} (Xₙ , Xₛₙ) Xₛₛₙ {f , t , s} x = 
+    let ih' = smap Xₙ (λ f x' → [ x' , η Xₙ Xₛₙ x' , lf f x' ]) s 
+    in nd f t ih' x
 
-    where ih' : Src Xₙ (λ f' → Σ[ τ' ∈ Xₛₙ f' ]
-                               Σ[ σ' ∈ Src Xₙ Xₛₙ f' ]
-                                 Pd Xₙ Xₛₙ Xₛₛₙ (f' , τ' , σ')) f
-          ih' = smap Xₙ (λ f x' → x' , η Xₙ Xₛₙ x' , lf f x') s 
+  γ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ) (Xₛₙ : Frm Xₙ → Type ℓ)
+    → (Xₛₛₙ : Frm (Xₙ , Xₛₙ) → Type ℓ)
+    → (f : Frm Xₙ) (tgt : Xₛₙ f)
+    → (ih : Src Xₙ (SubPd Xₙ Xₛₙ Xₛₛₙ) f)
+    → Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , smap Xₙ (λ _ → out) ih)
+    → Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , μ Xₙ Xₛₙ (smap Xₙ (λ _ → lvs) ih))
 
-  -- μ = {!!} 
+  μ {zero} Xₙ Xₛₙ pd = pd
+  μ {suc n} Xₙ Xₛₙ (lf f tgt) = lf f tgt
+  μ {suc n} (Xₙ , Xₛₙ) Xₛₛₙ (nd f tgt ih filler) =
+    let ih' = smap Xₙ (λ f spd → [ out spd , lvs spd , μ (Xₙ , Xₛₙ) Xₛₛₙ (sub spd) ]) ih  
+    in γ Xₙ Xₛₙ Xₛₛₙ f tgt ih' filler
+
+  γ {n} Xₙ Xₛₙ Xₛₛₙ f tgt ih pd = {!!}
+
