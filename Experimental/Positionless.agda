@@ -33,7 +33,6 @@ module Experimental.Positionless where
     → (x : Xₛₙ f) → Src Xₙ Xₛₙ f 
 
   postulate
-  
     μ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
       → (Xₛₙ : Frm Xₙ → Type ℓ)
       → {f : Frm Xₙ}
@@ -126,18 +125,18 @@ module Experimental.Positionless where
   smap {zero} Xₙ {Xₛₙ} {Xₛₙ'} σ s = σ tt* s
   smap {suc n} Xₙ {Xₛₙ} {Xₛₙ'} σ (lf _ tgt) = lf _ tgt
   smap {suc n} (Xₙ , Xₛₙ) {Xₛₛₙ} {Xₛₛₙ'} σ (nd f tgt ih filler) = nd f tgt ih' (σ _ filler)
-
     where ih' : Src Xₙ (λ f' → Σ[ τ' ∈ Xₛₙ f' ]
                                Σ[ σ' ∈ Src Xₙ Xₛₙ f' ]
                                  Pd Xₙ Xₛₙ Xₛₛₙ' (f' , τ' , σ')) f
           ih' = smap Xₙ (λ f τσρ → fst τσρ , fst (snd τσρ) , smap (Xₙ , Xₛₙ) σ (snd (snd τσρ))) ih 
 
-  η {zero} Xₙ Xₛₙ {tt*} x = x
+  η {zero} Xₙ Xₛₙ {f} x = x
   η {suc n} (Xₙ , Xₛₙ) Xₛₛₙ {f , t , s} x = nd f t ih' x
-
     where ih' : Src Xₙ (λ f' → Σ[ τ' ∈ Xₛₙ f' ]
                                Σ[ σ' ∈ Src Xₙ Xₛₙ f' ]
                                  Pd Xₙ Xₛₙ Xₛₛₙ (f' , τ' , σ')) f
-          ih' = smap Xₙ (λ f x' → x' , η Xₙ Xₛₙ x' , lf f x') s 
+          ih' = smap Xₙ (λ f x' → x' , η Xₙ Xₛₙ x' , lf f x') s
 
-  -- μ = {!!} 
+  --μ {zero} Xₙ Xₛₙ {f} x = x
+  --μ {suc n} (Xₙ , Xₛₙ) Xₛₛₙ {f , t , s} x = {!!}
+
