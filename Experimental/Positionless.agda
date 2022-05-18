@@ -40,7 +40,6 @@ module Experimental.Positionless where
     → Src Xₙ Xₛₙ f 
 
   postulate
-
     unit-left : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
       → (Xₛₙ : Frm Xₙ → Type ℓ)
       → (f : Frm Xₙ) (pd : Src Xₙ Xₛₙ f)
@@ -49,9 +48,39 @@ module Experimental.Positionless where
 
     unit-right : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
       → (Xₛₙ : Frm Xₙ → Type ℓ)
+      → (f : Frm Xₙ) (pd : Src Xₙ Xₛₙ f)
+      → μ Xₙ Xₛₙ (smap Xₙ (λ f → η Xₙ Xₛₙ) pd) ↦ pd
+    {-# REWRITE unit-right #-}
+
+    {-unit-right : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → (Xₛₙ : Frm Xₙ → Type ℓ)
       → (f : Frm Xₙ) (pdpd : Src Xₙ (Src Xₙ Xₛₙ) f)
       → η Xₙ (Src Xₙ Xₛₙ) (μ Xₙ Xₛₙ pdpd) ↦ pdpd
-    {-# REWRITE unit-right #-}
+    {-# REWRITE unit-right #-}-} ------------------- I don't think that's really "unit-right". Not sure what it is though.
+
+    μ-assoc : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → (Xₛₙ : Frm Xₙ → Type ℓ)
+      → (f : Frm Xₙ) (pd : Src Xₙ (Src Xₙ (Src Xₙ Xₛₙ)) f)
+      → μ Xₙ Xₛₙ (μ Xₙ (Src Xₙ Xₛₙ) pd) ↦ μ Xₙ Xₛₙ (smap Xₙ (λ f → μ Xₙ Xₛₙ) pd) -- The two ways to compose Src∘Src∘Src → Src using μ coincide
+    {-# REWRITE μ-assoc #-}
+
+    η-nat : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
+      → (σ : (f : Frm Xₙ) → Xₛₙ f → Xₛₙ' f)
+      → (f : Frm Xₙ) (x : Xₛₙ f)
+      → smap Xₙ σ (η Xₙ Xₛₙ x) ↦ η Xₙ Xₛₙ' (σ f x)
+    {-# REWRITE η-nat #-}
+
+    μ-nat : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
+      → (σ : (f : Frm Xₙ) → Xₛₙ f → Xₛₙ' f)
+      → (f : Frm Xₙ) (pd : Src Xₙ (Src Xₙ Xₛₙ) f)
+      → smap Xₙ σ (μ Xₙ Xₛₙ pd) ↦ μ Xₙ Xₛₙ' (smap Xₙ (λ f → smap Xₙ σ) pd)
+    {-# REWRITE μ-nat #-}
+    
+
+
+
 
   𝕆Type zero ℓ = Lift Unit
   𝕆Type (suc n) ℓ =
@@ -85,9 +114,12 @@ module Experimental.Positionless where
   Src {zero} X Y f = Y tt*
   Src {suc n} (Xₙ , Xₛₙ) Xₛₛₙ = Pd Xₙ Xₛₙ Xₛₛₙ
 
-  smap = {!!}
+  smap {zero} tt* σ = σ _
+  smap {suc n} Xₙ σ (lf f tgt) = lf f tgt
+  smap {suc n} (Xₙ , Xₛₙ) σ (nd f tgt ih filler) = {!!}
 
-  η = {!!}
+  η {zero} Xₙ Xₛₙ {f} x = x
+  η {suc n} (Xₙ , Xₛₙ) Xₛₛₙ {f} x = {!!}
 
   μ = {!!} 
 
