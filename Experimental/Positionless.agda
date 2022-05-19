@@ -51,7 +51,7 @@ module Experimental.Positionless where
     → Src Xₙ Xₛₙ f 
 
   postulate
-
+  
     smap-id : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
       → {Xₛₙ : Frm Xₙ → Type ℓ}
       → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
@@ -66,31 +66,31 @@ module Experimental.Positionless where
       → smap Xₙ σ' (smap Xₙ σ s) ↦ smap Xₙ (λ f x → σ' f (σ f x)) s
     {-# REWRITE smap-∘ #-}
 
-    smap-η : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-      → {Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ}
+    η-nat : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
       → (σ : (f : Frm Xₙ) → Xₛₙ f → Xₛₙ' f)
       → (f : Frm Xₙ) (x : Xₛₙ f)
       → smap Xₙ σ (η Xₙ Xₛₙ x) ↦ η Xₙ Xₛₙ' (σ f x)
-    {-# REWRITE smap-η #-}
+    {-# REWRITE η-nat #-}
 
-    smap-μ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-      → {Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ}
+    μ-nat : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
       → (σ : (f : Frm Xₙ) → Xₛₙ f → Xₛₙ' f)
-      → {f : Frm Xₙ} (s : Src Xₙ (Src Xₙ Xₛₙ) f)
-      → smap Xₙ σ (μ Xₙ Xₛₙ s) ↦ μ Xₙ Xₛₙ' (smap Xₙ (λ f s' → smap Xₙ σ s') s) 
-    {-# REWRITE smap-μ #-} 
-
-    unit-right : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-      → (Xₛₙ : Frm Xₙ → Type ℓ)
-      → (f : Frm Xₙ) (pd : Src Xₙ Xₛₙ f)
-      → μ Xₙ Xₛₙ (η Xₙ (Src Xₙ Xₛₙ) pd) ↦ pd
-    {-# REWRITE unit-right #-}
+      → (f : Frm Xₙ) (pd : Src Xₙ (Src Xₙ Xₛₙ) f)
+      → smap Xₙ σ (μ Xₙ Xₛₙ pd) ↦ μ Xₙ Xₛₙ' (smap Xₙ (λ f → smap Xₙ σ) pd)
+    {-# REWRITE μ-nat #-}
 
     unit-left : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
       → (Xₛₙ : Frm Xₙ → Type ℓ)
       → (f : Frm Xₙ) (pd : Src Xₙ Xₛₙ f)
-      → μ Xₙ Xₛₙ (smap Xₙ (λ f x → η Xₙ Xₛₙ x) pd) ↦ pd
+      → μ Xₙ Xₛₙ (η Xₙ (Src Xₙ Xₛₙ) pd) ↦ pd
     {-# REWRITE unit-left #-}
+
+    unit-right : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → (Xₛₙ : Frm Xₙ → Type ℓ)
+      → (f : Frm Xₙ) (pd : Src Xₙ Xₛₙ f)
+      → μ Xₙ Xₛₙ (smap Xₙ (λ f x → η Xₙ Xₛₙ x) pd) ↦ pd
+    {-# REWRITE unit-right #-}
 
     μ-assoc : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
       → (Xₛₙ : Frm Xₙ → Type ℓ)
