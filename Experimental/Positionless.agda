@@ -39,12 +39,6 @@ module Experimental.Positionless where
     → {f : Frm Xₙ}
     → Src Xₙ Xₛₙ f → Src Xₙ Xₛₙ' f 
 
-  smap-pos : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-    → {Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ}
-    → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
-    → (σ : (f : Frm Xₙ) (p : Pos Xₙ Xₛₙ s f) → Xₛₙ f → Xₛₙ' f)
-    → Src Xₙ Xₛₙ' f 
-
   η : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
     → (Xₛₙ : Frm Xₙ → Type ℓ)
     → {f : Frm Xₙ}
@@ -71,22 +65,6 @@ module Experimental.Positionless where
       → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
       → smap Xₙ σ' (smap Xₙ σ s) ↦ smap Xₙ (λ f x → σ' f (σ f x)) s
     {-# REWRITE smap-∘ #-}
-
-
-    smap-pos-id : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-      → {Xₛₙ : Frm Xₙ → Type ℓ}
-      → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
-      → smap-pos Xₙ s (λ _ _ x → x) ↦ s
-    {-# REWRITE smap-pos-id #-}
-
-    smap-pos-∘ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-      → {Xₛₙ Xₛₙ' Xₛₙ'' : Frm Xₙ → Type ℓ}
-      → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
-      → (σ : (f : Frm Xₙ) (p : Pos Xₙ Xₛₙ s f) → Xₛₙ f → Xₛₙ' f)
-      → (σ' : (f : Frm Xₙ) (p : Pos Xₙ Xₛₙ' (smap-pos Xₙ s σ) f) → Xₛₙ' f → Xₛₙ'' f)
-      → smap-pos Xₙ (smap-pos Xₙ s σ) σ' ↦ smap-pos Xₙ s (λ f p x → σ' f {!!} (σ f p x)) -- smap Xₙ (λ f x → σ' f (σ f x)) s
-
-
 
     η-nat : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
       → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
@@ -199,15 +177,7 @@ module Experimental.Positionless where
   smap {suc n} Xₙ {Xₛₙ} {Xₛₙ'} σ (lf tgt) = lf tgt
   smap {suc n} (Xₙ , Xₛₙ) {Xₛₛₙ} {Xₛₛₙ'} σ (nd f tgt ih filler) = 
     let ih' = smap Xₙ (λ f br → [ stm br , lvs br , smap (Xₙ , Xₛₙ) σ (brnch br) ]) ih
-    in  nd f tgt ih' (σ _ filler)
-
-
-  smap-pos {zero} Xₙ s σ = σ tt* tt* s
-  smap-pos {suc n} Xₙ (lf tgt) σ = lf tgt
-  smap-pos {suc n} (Xₙ , Xₛₙ) (nd f tgt ih filler) σ = {!!} 
-    -- let ih' = smap-pos Xₙ ih (λ f p br → [ stm br , lvs br , smap-pos (Xₙ , Xₛₙ) (brnch br) {!!} ]) 
-    -- in {!!} -- nd f tgt ih' ? -- (σ _ {!!} filler)
-
+    in nd f tgt ih' (σ _ filler)
 
   η {zero} Xₙ Xₛₙ {tt*} x = x
   η {suc n} (Xₙ , Xₛₙ) Xₛₛₙ {f , t , s} x = 
@@ -216,12 +186,12 @@ module Experimental.Positionless where
 
   graft : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ) (Xₛₙ : Frm Xₙ → Type ℓ)
     → (Xₛₛₙ : Frm (Xₙ , Xₛₙ) → Type ℓ)
-    → (f : Frm Xₙ) (tgt : Xₛₙ f) (src : Src Xₙ Xₛₙ f)
+    → (f : Frm Xₙ) (tgt : Xₛₙ f)
+    → (src : Src Xₙ Xₛₙ f) (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ src f) → Branch Xₙ Xₛₙ Xₛₛₙ f)
     → (pd : Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , src))
-    → (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ src f) → Branch Xₙ Xₛₙ Xₛₛₙ f)
-    → Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , μ Xₙ Xₛₙ (smap Xₙ (λ f' x → {!ϕ f'!}) src))
+    → Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , μ Xₙ Xₛₙ {!!})
   graft = {!!} 
-
+  
   γ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ) (Xₛₙ : Frm Xₙ → Type ℓ)
     → (Xₛₛₙ : Frm (Xₙ , Xₛₙ) → Type ℓ)
     → (f : Frm Xₙ) (tgt : Xₛₙ f)
