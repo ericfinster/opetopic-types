@@ -27,76 +27,124 @@ module Experimental.Positionless where
     → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
     → Frm Xₙ → Type ℓ 
 
+  {-# TERMINATING #-}
   Inhab : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
     → (Xₛₙ : Frm Xₙ → Type ℓ)
     → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
     → {f' : Frm Xₙ} (p : Pos Xₙ Xₛₙ s f')
     → Xₛₙ f' 
 
-  smap : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-    → {Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ}
-    → (σ : (f : Frm Xₙ) → Xₛₙ f → Xₛₙ' f)
-    → {f : Frm Xₙ}
-    → Src Xₙ Xₛₙ f → Src Xₙ Xₛₙ' f 
-
   η : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
     → (Xₛₙ : Frm Xₙ → Type ℓ)
-    → {f : Frm Xₙ}
-    → (x : Xₛₙ f) → Src Xₙ Xₛₙ f 
-
-  μ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-    → (Xₛₙ : Frm Xₙ → Type ℓ)
-    → {f : Frm Xₙ}
-    → Src Xₙ (Src Xₙ Xₛₙ) f
+    → {f : Frm Xₙ} (x : Xₛₙ f)
     → Src Xₙ Xₛₙ f 
 
+  η-pos : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+    → (Xₛₙ : Frm Xₙ → Type ℓ)
+    → {f : Frm Xₙ} (x : Xₛₙ f)
+    → Pos Xₙ Xₛₙ (η Xₙ Xₛₙ x) f
+
+  μ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+    → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
+    → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
+    → (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ s f') → Src Xₙ Xₛₙ' f')
+    → Src Xₙ Xₛₙ' f 
+
+  μ-pos : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+    → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
+    → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
+    → (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ s f') → Src Xₙ Xₛₙ' f')
+    → {f' : Frm Xₙ} (p : Pos Xₙ Xₛₙ s f')
+    → {f'' : Frm Xₙ} (q : Pos Xₙ Xₛₙ' (ϕ f' p) f'')
+    → Pos Xₙ Xₛₙ' (μ Xₙ Xₛₙ Xₛₙ' s ϕ) f''
+
+  μ-fst-frm : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+    → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
+    → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
+    → (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ s f') → Src Xₙ Xₛₙ' f')
+    → {f' : Frm Xₙ} (p : Pos Xₙ Xₛₙ' (μ Xₙ Xₛₙ Xₛₙ' s ϕ) f')
+    → Frm Xₙ
+
+  μ-fst : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+    → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
+    → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
+    → (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ s f') → Src Xₙ Xₛₙ' f')
+    → {f' : Frm Xₙ} (p : Pos Xₙ Xₛₙ' (μ Xₙ Xₛₙ Xₛₙ' s ϕ) f')
+    → Pos Xₙ Xₛₙ s (μ-fst-frm Xₙ Xₛₙ Xₛₙ' s ϕ p) 
+
+  μ-snd : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+    → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
+    → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
+    → (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ s f') → Src Xₙ Xₛₙ' f')
+    → {f' : Frm Xₙ} (p : Pos Xₙ Xₛₙ' (μ Xₙ Xₛₙ Xₛₙ' s ϕ) f')
+    → Pos Xₙ Xₛₙ' (ϕ (μ-fst-frm Xₙ Xₛₙ Xₛₙ' s ϕ p) (μ-fst Xₙ Xₛₙ Xₛₙ' s ϕ p)) f'
+
   postulate
-  
-    smap-id : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-      → {Xₛₙ : Frm Xₙ → Type ℓ}
+
+    Inhab-η : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → (Xₛₙ : Frm Xₙ → Type ℓ)
+      → {f : Frm Xₙ} (x : Xₛₙ f)
+      → (p : Pos Xₙ Xₛₙ (η Xₙ Xₛₙ x) f)
+      → Inhab Xₙ Xₛₙ (η Xₙ Xₛₙ x) p ↦ x
+    {-# REWRITE Inhab-η #-}
+
+    Inhab-μ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
       → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
-      → smap Xₙ (λ f x → x) s ↦ s
-    {-# REWRITE smap-id #-} 
+      → (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ s f') → Src Xₙ Xₛₙ' f')
+      → {f' : Frm Xₙ} (p : Pos Xₙ Xₛₙ' (μ Xₙ Xₛₙ Xₛₙ' s ϕ) f')
+      → Inhab Xₙ Xₛₙ' (μ Xₙ Xₛₙ Xₛₙ' s ϕ) p ↦
+        Inhab Xₙ Xₛₙ' (ϕ (μ-fst-frm Xₙ Xₛₙ Xₛₙ' s ϕ p) (μ-fst Xₙ Xₛₙ Xₛₙ' s ϕ p)) (μ-snd Xₙ Xₛₙ Xₛₙ' s ϕ p)
+    {-# REWRITE Inhab-μ #-}
+
+    μ-fst-frm-β : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
+      → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
+      → (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ s f') → Src Xₙ Xₛₙ' f')
+      → {f' : Frm Xₙ} (p : Pos Xₙ Xₛₙ s f')
+      → {f'' : Frm Xₙ} (q : Pos Xₙ Xₛₙ' (ϕ f' p) f'')
+      → μ-fst-frm Xₙ Xₛₙ Xₛₙ' s ϕ (μ-pos Xₙ Xₛₙ Xₛₙ' s ϕ p q) ↦ f'
+    {-# REWRITE μ-fst-frm-β #-} 
       
-    smap-∘ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-      → {Xₛₙ Xₛₙ' Xₛₙ'' : Frm Xₙ → Type ℓ}
-      → (σ : (f : Frm Xₙ) → Xₛₙ f → Xₛₙ' f)
-      → (σ' : (f : Frm Xₙ) → Xₛₙ' f → Xₛₙ'' f)
+    μ-fst-β : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+      → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
       → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
-      → smap Xₙ σ' (smap Xₙ σ s) ↦ smap Xₙ (λ f x → σ' f (σ f x)) s
-    {-# REWRITE smap-∘ #-}
+      → (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ s f') → Src Xₙ Xₛₙ' f')
+      → {f' : Frm Xₙ} (p : Pos Xₙ Xₛₙ s f')
+      → {f'' : Frm Xₙ} (q : Pos Xₙ Xₛₙ' (ϕ f' p) f'')
+      → μ-fst Xₙ Xₛₙ Xₛₙ' s ϕ (μ-pos Xₙ Xₛₙ Xₛₙ' s ϕ p q) ↦ p
+    {-# REWRITE μ-fst-β #-}
 
-    η-nat : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
+    μ-snd-β : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
       → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
-      → (σ : (f : Frm Xₙ) → Xₛₙ f → Xₛₙ' f)
-      → (f : Frm Xₙ) (x : Xₛₙ f)
-      → smap Xₙ σ (η Xₙ Xₛₙ x) ↦ η Xₙ Xₛₙ' (σ f x)
-    {-# REWRITE η-nat #-}
-
-    μ-nat : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-      → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
-      → (σ : (f : Frm Xₙ) → Xₛₙ f → Xₛₙ' f)
-      → (f : Frm Xₙ) (pd : Src Xₙ (Src Xₙ Xₛₙ) f)
-      → smap Xₙ σ (μ Xₙ Xₛₙ pd) ↦ μ Xₙ Xₛₙ' (smap Xₙ (λ f → smap Xₙ σ) pd)
-    {-# REWRITE μ-nat #-}
+      → {f : Frm Xₙ} (s : Src Xₙ Xₛₙ f)
+      → (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ s f') → Src Xₙ Xₛₙ' f')
+      → {f' : Frm Xₙ} (p : Pos Xₙ Xₛₙ s f')
+      → {f'' : Frm Xₙ} (q : Pos Xₙ Xₛₙ' (ϕ f' p) f'')
+      → μ-snd Xₙ Xₛₙ Xₛₙ' s ϕ (μ-pos Xₙ Xₛₙ Xₛₙ' s ϕ p q) ↦ q
+    {-# REWRITE μ-snd-β #-}
 
     unit-left : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-      → (Xₛₙ : Frm Xₙ → Type ℓ)
-      → (f : Frm Xₙ) (pd : Src Xₙ Xₛₙ f)
-      → μ Xₙ Xₛₙ (η Xₙ (Src Xₙ Xₛₙ) pd) ↦ pd
+      → (Xₛₙ Xₛₙ' : Frm Xₙ → Type ℓ)
+      → (f : Frm Xₙ) (x : Xₛₙ f)
+      → (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ (η Xₙ Xₛₙ x) f') → Src Xₙ Xₛₙ' f')
+      → μ Xₙ Xₛₙ Xₛₙ' (η Xₙ Xₛₙ x) ϕ ↦ ϕ f (η-pos Xₙ Xₛₙ x) 
     {-# REWRITE unit-left #-}
-
+    
     unit-right : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
       → (Xₛₙ : Frm Xₙ → Type ℓ)
-      → (f : Frm Xₙ) (pd : Src Xₙ Xₛₙ f)
-      → μ Xₙ Xₛₙ (smap Xₙ (λ f x → η Xₙ Xₛₙ x) pd) ↦ pd
+      → (f : Frm Xₙ) (s : Src Xₙ Xₛₙ f)
+      → μ Xₙ Xₛₙ Xₛₙ s (λ f p → η Xₙ Xₛₙ (Inhab Xₙ Xₛₙ s p)) ↦ s
     {-# REWRITE unit-right #-}
-
+    
     μ-assoc : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ)
-      → (Xₛₙ : Frm Xₙ → Type ℓ)
-      → (f : Frm Xₙ) (t : Src Xₙ (Src Xₙ (Src Xₙ Xₛₙ)) f)
-      → μ Xₙ Xₛₙ (smap Xₙ (λ f → μ Xₙ Xₛₙ {f}) t) ↦ μ Xₙ Xₛₙ (μ Xₙ (Src Xₙ Xₛₙ) t) 
-    {-# REWRITE μ-assoc #-} 
+      → (Xₛₙ Xₛₙ' Xₛₙ'' : Frm Xₙ → Type ℓ)
+      → (f : Frm Xₙ) (s : Src Xₙ Xₛₙ f)
+      → (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ s f') → Src Xₙ Xₛₙ' f')
+      → (ψ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ' (μ Xₙ Xₛₙ Xₛₙ' s ϕ) f') → Src Xₙ Xₛₙ'' f')
+      → μ Xₙ Xₛₙ' Xₛₙ'' (μ Xₙ Xₛₙ Xₛₙ' s ϕ) ψ ↦
+        μ Xₙ Xₛₙ Xₛₙ'' s (λ f' p → μ Xₙ Xₛₙ' Xₛₙ'' (ϕ f' p) (λ f'' q → ψ f'' (μ-pos Xₙ Xₛₙ Xₛₙ' s ϕ p q)))
+    {-# REWRITE μ-assoc #-}
 
   𝕆Type zero ℓ = Lift Unit
   𝕆Type (suc n) ℓ =
@@ -130,80 +178,70 @@ module Experimental.Positionless where
       lf : {f : Frm Xₙ} (tgt : Xₛₙ f)
          → Pd (f , tgt , η Xₙ Xₛₙ tgt) 
 
-      nd : (f : Frm Xₙ) (tgt : Xₛₙ f)
-         → (ih : Src Xₙ Branch f)
-         → (filler : Xₛₛₙ (f , tgt , smap Xₙ (λ _ → stm) ih))
-         → Pd (f , tgt , μ Xₙ Xₛₙ (smap Xₙ (λ _ → lvs) ih))
+      nd : {f : Frm Xₙ} (tgt : Xₛₙ f)
+         → (brs : Src Xₙ Branch f)
+         → (flr : Xₛₛₙ (f , tgt , μ Xₙ Branch Xₛₙ brs (λ f p → η Xₙ Xₛₙ (stm (Inhab Xₙ Branch brs p)))))
+         → Pd (f , tgt , μ Xₙ Branch Xₛₙ brs (λ f p → lvs (Inhab Xₙ Branch brs p)))
 
     data NdPos : {f : Frm (Xₙ , Xₛₙ)} → Pd f → Frm (Xₙ , Xₛₙ) → Type ℓ where
 
       nd-here : {f : Frm Xₙ} {tgt : Xₛₙ f}
-              → {ih : Src Xₙ Branch f}
-              → {filler : Xₛₛₙ (f , tgt , smap Xₙ (λ _ → stm) ih)}
-              → NdPos (nd f tgt ih filler) (f , tgt , smap Xₙ (λ _ → stm) ih)
+              → {brs : Src Xₙ Branch f}
+              → {flr : Xₛₛₙ (f , tgt , μ Xₙ Branch Xₛₙ brs (λ f p → η Xₙ Xₛₙ (stm (Inhab Xₙ Branch brs p))))}
+              → NdPos (nd tgt brs flr) (f , tgt , μ Xₙ Branch Xₛₙ brs (λ f p → η Xₙ Xₛₙ (stm (Inhab Xₙ Branch brs p))))
 
       nd-there : {f : Frm Xₙ} {tgt : Xₛₙ f}
-               → {ih : Src Xₙ Branch f}
-               → {filler : Xₛₛₙ (f , tgt , smap Xₙ (λ _ → stm) ih)}
-               → {f' : Frm Xₙ} (p : Pos Xₙ Branch ih f')
-               → {f'' : Frm (Xₙ , Xₛₙ)} (q : NdPos (brnch (Inhab Xₙ Branch ih p)) f'')
-               → NdPos (nd f tgt ih filler) f'' 
+               → {brs : Src Xₙ Branch f}
+               → {flr : Xₛₛₙ (f , tgt , μ Xₙ Branch Xₛₙ brs (λ f p → η Xₙ Xₛₙ (stm (Inhab Xₙ Branch brs p))))}
+               → {f' : Frm Xₙ} (p : Pos Xₙ Branch brs f')
+               → {f'' : Frm (Xₙ , Xₛₙ)} (q : NdPos (brnch (Inhab Xₙ Branch brs p)) f'')
+               → NdPos (nd tgt brs flr) f''
 
-    data LfPos : {f : Frm (Xₙ , Xₛₙ)} → Pd f → Frm Xₙ → Type ℓ where
-
-      lf-here : {f : Frm Xₙ} {tgt : Xₛₙ f}
-              → LfPos (lf tgt) f 
-        
-      nd-there : {f : Frm Xₙ} {tgt : Xₛₙ f}
-               → {ih : Src Xₙ Branch f}
-               → {filler : Xₛₛₙ (f , tgt , smap Xₙ (λ _ → stm) ih)}
-               → {f' : Frm Xₙ} (p : Pos Xₙ Branch ih f')
-               → {f'' : Frm Xₙ} (q : LfPos (brnch (Inhab Xₙ Branch ih p)) f'')
-               → LfPos (nd f tgt ih filler) f'' 
 
   Src {zero} X Y f = Y tt*
   Src {suc n} (Xₙ , Xₛₙ) Xₛₛₙ = Pd Xₙ Xₛₙ Xₛₛₙ
 
   Pos {zero} Xₙ Xₛₙ s f = Lift Unit
   Pos {suc n} (Xₙ , Xₛₙ) Xₛₛₙ = NdPos Xₙ Xₛₙ Xₛₛₙ 
-  
+
   Inhab {zero} Xₙ Xₛₙ s p = s
-  Inhab {suc n} (Xₙ , Xₛₙ) Xₛₛₙ ._ (nd-here {filler = flr}) = flr
-  Inhab {suc n} (Xₙ , Xₛₙ) Xₛₛₙ ._ (nd-there {ih = ih} p q) =
-    Inhab (Xₙ , Xₛₙ) Xₛₛₙ (brnch (Inhab Xₙ (Branch Xₙ Xₛₙ Xₛₛₙ) ih p)) q 
+  Inhab {suc n} (Xₙ , Xₛₙ) Xₛₛₙ ._ (nd-here {flr = flr}) = flr
+  Inhab {suc n} (Xₙ , Xₛₙ) Xₛₛₙ ._ (nd-there {brs = brs} p q) = 
+    Inhab (Xₙ , Xₛₙ) Xₛₛₙ (brnch (Inhab Xₙ (Branch Xₙ Xₛₙ Xₛₛₙ) brs p)) q 
 
-  {-# TERMINATING #-}
-  smap {zero} Xₙ {Xₛₙ} {Xₛₙ'} σ s = σ tt* s
-  smap {suc n} Xₙ {Xₛₙ} {Xₛₙ'} σ (lf tgt) = lf tgt
-  smap {suc n} (Xₙ , Xₛₙ) {Xₛₛₙ} {Xₛₛₙ'} σ (nd f tgt ih filler) = 
-    let ih' = smap Xₙ (λ f br → [ stm br , lvs br , smap (Xₙ , Xₛₙ) σ (brnch br) ]) ih
-    in nd f tgt ih' (σ _ filler)
-
-  η {zero} Xₙ Xₛₙ {tt*} x = x
-  η {suc n} (Xₙ , Xₛₙ) Xₛₛₙ {f , t , s} x = 
-    let ih' = smap Xₙ (λ f x' → [ x' , η Xₙ Xₛₙ x' , lf x' ]) s 
-    in nd f t ih' x
-
-  graft : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ) (Xₛₙ : Frm Xₙ → Type ℓ)
-    → (Xₛₛₙ : Frm (Xₙ , Xₛₙ) → Type ℓ)
-    → (f : Frm Xₙ) (tgt : Xₛₙ f)
-    → (src : Src Xₙ Xₛₙ f) (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ src f) → Branch Xₙ Xₛₙ Xₛₛₙ f)
-    → (pd : Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , src))
-    → Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , μ Xₙ Xₛₙ {!!})
-  graft = {!!} 
+  η {zero} Xₙ Xₛₙ x = x
+  η {suc n} (Xₙ , Xₛₙ) Xₛₛₙ {f , t , s} x =
+    let brs = μ Xₙ Xₛₙ (Branch Xₙ Xₛₙ Xₛₛₙ) s (λ _ p → η Xₙ (Branch Xₙ Xₛₙ Xₛₛₙ) [ Inhab Xₙ Xₛₙ s p , _ , lf (Inhab Xₙ Xₛₙ s p) ])
+    in nd t brs x 
   
-  γ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ) (Xₛₙ : Frm Xₙ → Type ℓ)
-    → (Xₛₛₙ : Frm (Xₙ , Xₛₙ) → Type ℓ)
-    → (f : Frm Xₙ) (tgt : Xₛₙ f)
-    → (ih : Src Xₙ (Branch Xₙ Xₛₙ Xₛₛₙ) f)
-    → Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , smap Xₙ (λ _ → stm) ih)
-    → Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , μ Xₙ Xₛₙ (smap Xₙ (λ _ → lvs) ih))
+  η-pos {zero} Xₙ Xₛₙ x = tt*
+  η-pos {suc n} Xₙ Xₛₙ x = nd-here
 
-  μ {zero} Xₙ Xₛₙ pd = pd
-  μ {suc n} Xₙ Xₛₙ (lf tgt) = lf tgt
-  μ {suc n} (Xₙ , Xₛₙ) Xₛₛₙ (nd f tgt ih filler) =
-    let ih' = smap Xₙ (λ f br → [ stm br , lvs br , μ (Xₙ , Xₛₙ) Xₛₛₙ (brnch br) ]) ih  
-    in γ Xₙ Xₛₙ Xₛₛₙ f tgt ih' filler
+  -- graft : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ) (Xₛₙ : Frm Xₙ → Type ℓ)
+  --   → (Xₛₛₙ : Frm (Xₙ , Xₛₙ) → Type ℓ)
+  --   → (f : Frm Xₙ) (tgt : Xₛₙ f)
+  --   → (src : Src Xₙ Xₛₙ f) (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ src f) → Branch Xₙ Xₛₙ Xₛₛₙ f)
+  --   → (pd : Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , src))
+  --   → Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , μ Xₙ Xₛₙ {!!})
+  -- graft = {!!} 
+  
+  -- γ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ) (Xₛₙ : Frm Xₙ → Type ℓ)
+  --   → (Xₛₛₙ : Frm (Xₙ , Xₛₙ) → Type ℓ)
+  --   → (f : Frm Xₙ) (tgt : Xₛₙ f)
+  --   → (ih : Src Xₙ (Branch Xₙ Xₛₙ Xₛₛₙ) f)
+  --   → Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , smap Xₙ (λ _ → stm) ih)
+  --   → Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , μ Xₙ Xₛₙ (smap Xₙ (λ _ → lvs) ih))
 
-  γ {n} Xₙ Xₛₙ Xₛₛₙ f tgt ih pd = {!!}
+  μ = {!!} 
+  -- μ {zero} Xₙ Xₛₙ pd = pd
+  -- μ {suc n} Xₙ Xₛₙ (lf tgt) = lf tgt
+  -- μ {suc n} (Xₙ , Xₛₙ) Xₛₛₙ (nd f tgt ih filler) =
+  --   let ih' = smap Xₙ (λ f br → [ stm br , lvs br , μ (Xₙ , Xₛₙ) Xₛₛₙ (brnch br) ]) ih  
+  --   in γ Xₙ Xₛₙ Xₛₛₙ f tgt ih' filler
 
+  μ-pos = {!!} 
+
+
+  μ-fst-frm = {!!}
+  μ-fst = {!!} 
+  μ-snd = {!!} 
