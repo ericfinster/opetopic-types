@@ -213,33 +213,32 @@ module Experimental.Positionless where
   η-pos {zero} x = tt*
   η-pos {suc n} x = inl tt
 
-  μ = {!!} 
+  γ : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+    → {P : Frm X → Type ℓ}
+    → (U : Frm (X , P) → Type ℓ) 
+    → {f : Frm X} (t : P f) (s : Src P f)
+    → Pd U (f , t , s)
+    → (ϕ : (p : Pos P s) → Σ[ lvs ∈ Src P (Typ s p) ]
+                           Pd U (Typ s p , s ⊚ p , lvs))
+    → Pd U (f , t , μ s (λ p → fst (ϕ p)))
+  γ U ._ ._ (lf tgt) ϕ = snd (ϕ (η-pos tgt))
+  γ U ._ ._ (nd tgt brs flr) ϕ = nd tgt ih flr
+
+    where ih : Src (Branch U) _
+          ih = μ {Q = Branch U} brs
+                (λ p → η {P = Branch U} [ stm (brs ⊚ p) , μ (lvs (brs ⊚ p)) (λ p₁ → fst (ϕ (μ-pos brs (λ p' → lvs (brs ⊚ p')) p p₁))) , γ U (stm (brs ⊚ p)) (lvs (brs ⊚ p)) (br (brs ⊚ p)) 
+                   (λ q → (ϕ (μ-pos brs (λ p' → lvs (brs ⊚ p')) p q))) ]) 
+
+  μ {zero} s ϕ = ϕ tt*
+  μ {suc n} (lf tgt) ϕ = lf tgt
+  μ {suc n} {X = X , P} {P = U₀} {Q = U} (nd tgt brs flr) ϕ = 
+    let w = ϕ (inl tt)
+        δ p = η {P = P} (stm (brs ⊚ p))
+    in γ U tgt (μ {Q = P} brs δ) w
+        (λ p → lvs (brs ⊚ (μ-fst brs δ p)) ,
+               μ {Q = U} (br (brs ⊚ (μ-fst brs δ p)))
+                 (λ q → ϕ (inr (μ-fst brs δ p , q))))
+                 
   μ-pos = {!!} 
   μ-fst = {!!} 
   μ-snd = {!!} 
-
-  
-  -- η-pos {zero} Xₙ Xₛₙ x = tt*
-  -- η-pos {suc n} Xₙ Xₛₙ x = nd-here
-
-  -- -- graft : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ) (Xₛₙ : Frm Xₙ → Type ℓ)
-  -- --   → (Xₛₛₙ : Frm (Xₙ , Xₛₙ) → Type ℓ)
-  -- --   → (f : Frm Xₙ) (tgt : Xₛₙ f)
-  -- --   → (src : Src Xₙ Xₛₙ f) (ϕ : (f' : Frm Xₙ) (p : Pos Xₙ Xₛₙ src f) → Branch Xₙ Xₛₙ Xₛₛₙ f)
-  -- --   → (pd : Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , src))
-  -- --   → Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , μ Xₙ Xₛₙ {!!})
-  -- -- graft = {!!} 
-  
-  -- -- γ : ∀ {n ℓ} (Xₙ : 𝕆Type n ℓ) (Xₛₙ : Frm Xₙ → Type ℓ)
-  -- --   → (Xₛₛₙ : Frm (Xₙ , Xₛₙ) → Type ℓ)
-  -- --   → (f : Frm Xₙ) (tgt : Xₛₙ f)
-  -- --   → (ih : Src Xₙ (Branch Xₙ Xₛₙ Xₛₛₙ) f)
-  -- --   → Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , smap Xₙ (λ _ → stm) ih)
-  -- --   → Pd Xₙ Xₛₙ Xₛₛₙ (f , tgt , μ Xₙ Xₛₙ (smap Xₙ (λ _ → lvs) ih))
-
-  -- μ = {!!} 
-  -- -- μ {zero} Xₙ Xₛₙ pd = pd
-  -- -- μ {suc n} Xₙ Xₛₙ (lf tgt) = lf tgt
-  -- -- μ {suc n} (Xₙ , Xₛₙ) Xₛₛₙ (nd f tgt ih filler) =
-  -- --   let ih' = smap Xₙ (λ f br → [ stm br , lvs br , μ (Xₙ , Xₛₙ) Xₛₛₙ (br br) ]) ih  
-  -- --   in γ Xₙ Xₛₙ Xₛₛₙ f tgt ih' filler
