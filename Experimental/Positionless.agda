@@ -200,26 +200,24 @@ module Experimental.Positionless where
     _ , tgt , μ {Q = P} brs (λ p → η {P = P} (stm (brs ⊚ p)))
   Typ {suc n} (nd tgt brs flr) (inr (p , q)) = Typ (br (brs ⊚ p)) q
 
-  _⊚_ = {!!} 
+  _⊚_ {zero} s p = s
+  _⊚_ {suc n} (nd tgt brs flr) (inl _) = flr
+  _⊚_ {suc n} (nd tgt brs flr) (inr (p , q)) = br (brs ⊚ p) ⊚ q
 
-  -- Inhab {zero} Xₙ Xₛₙ s p = s
-  -- Inhab {suc n} (Xₙ , Xₛₙ) Xₛₛₙ ._ (nd-here {flr = flr}) = flr
-  -- Inhab {suc n} (Xₙ , Xₛₙ) Xₛₛₙ ._ (nd-there {brs = brs} p q) = 
-  --   Inhab (Xₙ , Xₛₙ) Xₛₛₙ (br (Inhab Xₙ (Branch Xₙ Xₛₙ Xₛₛₙ) brs p)) q 
-
-
-  η = {!!} 
-  η-pos = {!!}
+  η {zero} x = x
+  η {suc n} {X = X , P} {U} {f = f , t , s} x = 
+    let brs = μ {Q = Branch U} s (λ p → η {P = Branch U}
+                [ s ⊚ p , η {P = P} (s ⊚ p) , lf (s ⊚ p) ])
+    in nd t brs x
+    
+  η-pos {zero} x = tt*
+  η-pos {suc n} x = inl tt
 
   μ = {!!} 
   μ-pos = {!!} 
   μ-fst = {!!} 
   μ-snd = {!!} 
 
-  -- η {zero} Xₙ Xₛₙ x = x
-  -- η {suc n} (Xₙ , Xₛₙ) Xₛₛₙ {f , t , s} x =
-  --   let brs = μ Xₙ Xₛₙ (Branch Xₙ Xₛₙ Xₛₛₙ) s (λ _ p → η Xₙ (Branch Xₙ Xₛₙ Xₛₛₙ) [ Inhab Xₙ Xₛₙ s p , _ , lf (Inhab Xₙ Xₛₙ s p) ])
-  --   in nd t brs x 
   
   -- η-pos {zero} Xₙ Xₛₙ x = tt*
   -- η-pos {suc n} Xₙ Xₛₙ x = nd-here
