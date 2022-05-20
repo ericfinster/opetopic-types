@@ -40,17 +40,18 @@ module Experimental.Positionless where
     → P (Typ s p)
 
   η : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → {P : Frm X → Type ℓ}
+    → (P : Frm X → Type ℓ)
     → {f : Frm X} (x : P f)
     → Src P f 
 
   η-pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → {P : Frm X → Type ℓ}
+    → (P : Frm X → Type ℓ)
     → {f : Frm X} (x : P f)
-    → Pos P (η x)
+    → Pos P (η P x)
 
   μ : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → {P Q : Frm X → Type ℓ}
+    → {P : Frm X → Type ℓ}
+    → (Q : Frm X → Type ℓ)
     → {f : Frm X} (s : Src P f)
     → (ϕ : (p : Pos P s) → Src Q (Typ s p))
     → Src Q f 
@@ -63,20 +64,20 @@ module Experimental.Positionless where
       → (ϕ : (p : Pos P s) → Src Q (Typ s p))
       → (p : Pos P s)
       → (q : Pos Q (ϕ p))
-      → Pos Q (μ s ϕ) 
+      → Pos Q (μ Q s ϕ) 
 
     μ-fst : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → {P Q : Frm X → Type ℓ}
       → {f : Frm X} (s : Src P f)
       → (ϕ : (p : Pos P s) → Src Q (Typ s p))
-      → (p : Pos Q (μ s ϕ))
+      → (p : Pos Q (μ Q s ϕ))
       → Pos P s  
 
     μ-snd : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → {P Q : Frm X → Type ℓ}
       → {f : Frm X} (s : Src P f)
       → (ϕ : (p : Pos P s) → Src Q (Typ s p))
-      → (p : Pos Q (μ s ϕ))
+      → (p : Pos Q (μ Q s ϕ))
       → Pos Q (ϕ (μ-fst s ϕ p))
 
   postulate
@@ -85,31 +86,31 @@ module Experimental.Positionless where
     Typ-η : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → {P : Frm X → Type ℓ}
       → {f : Frm X} (x : P f)
-      → (p : Pos P (η x))
-      → Typ (η x) p ↦ f
+      → (p : Pos P (η P x))
+      → Typ (η P x) p ↦ f
     {-# REWRITE Typ-η #-}
 
     ⊚-η : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → {P : Frm X → Type ℓ}
       → {f : Frm X} (x : P f)
-      → (p : Pos P (η x))
-      → η x ⊚ p ↦ x
+      → (p : Pos P (η P x))
+      → η P x ⊚ p ↦ x
     {-# REWRITE ⊚-η #-}
 
     Typ-μ : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → {P Q : Frm X → Type ℓ}
       → {f : Frm X} (s : Src P f)
       → (ϕ : (p : Pos P s) → Src Q (Typ s p))
-      → (p : Pos Q (μ s ϕ))
-      → Typ (μ s ϕ) p ↦ Typ (ϕ (μ-fst s ϕ p)) (μ-snd s ϕ p)
+      → (p : Pos Q (μ Q s ϕ))
+      → Typ (μ Q s ϕ) p ↦ Typ (ϕ (μ-fst s ϕ p)) (μ-snd s ϕ p)
     {-# REWRITE Typ-μ #-}
 
     ⊚-μ : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → {P Q : Frm X → Type ℓ}
       → {f : Frm X} (s : Src P f)
       → (ϕ : (p : Pos P s) → Src Q (Typ s p))
-      → (p : Pos Q (μ s ϕ))
-      → μ s ϕ ⊚ p ↦ ϕ (μ-fst s ϕ p) ⊚ μ-snd s ϕ p
+      → (p : Pos Q (μ Q s ϕ))
+      → μ Q s ϕ ⊚ p ↦ ϕ (μ-fst s ϕ p) ⊚ μ-snd s ϕ p
     {-# REWRITE ⊚-μ #-}
 
     -- Laws for positions
@@ -133,22 +134,22 @@ module Experimental.Positionless where
     unit-left : ∀ {n ℓ} (X : 𝕆Type n ℓ)
       → (P Q : Frm X → Type ℓ)
       → (f : Frm X) (x : P f)
-      → (ϕ : (p : Pos P (η x)) → Src Q f)
-      → μ (η x) ϕ ↦ ϕ (η-pos x)
+      → (ϕ : (p : Pos P (η P x)) → Src Q f)
+      → μ Q (η P x) ϕ ↦ ϕ (η-pos P x)
     {-# REWRITE unit-left #-}
     
     unit-right : ∀ {n ℓ} (X : 𝕆Type n ℓ)
       → (P : Frm X → Type ℓ)
       → (f : Frm X) (s : Src P f)
-      → μ s (λ p → η (s ⊚ p)) ↦ s
+      → μ P s (λ p → η P (s ⊚ p)) ↦ s
     {-# REWRITE unit-right #-}
     
     μ-assoc : ∀ {n ℓ} (X : 𝕆Type n ℓ)
       → (P Q R : Frm X → Type ℓ)
       → (f : Frm X) (s : Src P f)
       → (ϕ : (p : Pos P s) → Src Q (Typ s p))
-      → (ψ : (pq : Pos Q (μ s ϕ)) → Src R (Typ (μ s ϕ) pq))
-      → μ (μ s ϕ) ψ ↦ μ s (λ p → μ (ϕ p) (λ q → ψ (μ-pos s ϕ p q)))
+      → (ψ : (pq : Pos Q (μ Q s ϕ)) → Src R (Typ (μ Q s ϕ) pq))
+      → μ R (μ Q s ϕ) ψ ↦ μ R s (λ p → μ R (ϕ p) (λ q → ψ (μ-pos s ϕ p q)))
     {-# REWRITE μ-assoc #-}
 
   𝕆Type zero ℓ = Lift Unit
@@ -181,12 +182,12 @@ module Experimental.Positionless where
     data Pd where
 
       lf : {f : Frm X} (tgt : P f)
-         → Pd (f , tgt , η tgt) 
+         → Pd (f , tgt , η P tgt) 
 
       nd : {f : Frm X} (tgt : P f)
          → (brs : Src Branch f)
-         → (flr : U (f , tgt , μ brs (λ p → η (stm (brs ⊚ p)))))
-         → Pd (f , tgt , μ brs (λ p → lvs (brs ⊚ p)))
+         → (flr : U (f , tgt , μ P brs (λ p → η P (stm (brs ⊚ p)))))
+         → Pd (f , tgt , μ P brs (λ p → lvs (brs ⊚ p)))
 
   Src {zero} P _ = P tt*
   Src {suc n} U = Pd U
@@ -199,21 +200,21 @@ module Experimental.Positionless where
 
   Typ {zero} s p = tt*
   Typ {suc n} {X = X , P} {P = U} (nd tgt brs flr) (inl _) =
-    _ , tgt , μ {Q = P} brs (λ p → η {P = P} (stm (brs ⊚ p)))
+    _ , tgt , μ P brs (λ p → η P (stm (brs ⊚ p)))
   Typ {suc n} (nd tgt brs flr) (inr (p , q)) = Typ (br (brs ⊚ p)) q
 
   _⊚_ {zero} s p = s
   _⊚_ {suc n} (nd tgt brs flr) (inl _) = flr
   _⊚_ {suc n} (nd tgt brs flr) (inr (p , q)) = br (brs ⊚ p) ⊚ q
 
-  η {zero} x = x
-  η {suc n} {X = X , P} {U} {f = f , t , s} x = 
-    let brs = μ {Q = Branch U} s (λ p → η {P = Branch U}
-                [ s ⊚ p , η {P = P} (s ⊚ p) , lf (s ⊚ p) ])
+  η {zero} P x = x
+  η {suc n} {X = X , P} U {f = f , t , s} x = 
+    let brs = μ (Branch U) s (λ p → η (Branch U)
+                [ s ⊚ p , η P (s ⊚ p) , lf (s ⊚ p) ])
     in nd t brs x
     
-  η-pos {zero} x = tt*
-  η-pos {suc n} x = inl tt
+  η-pos {zero} P x = tt*
+  η-pos {suc n} U x = inl tt
 
   γ : ∀ {n ℓ} {X : 𝕆Type n ℓ}
     → {P : Frm X → Type ℓ}
@@ -222,31 +223,30 @@ module Experimental.Positionless where
     → Pd U (f , t , s)
     → (ϕ : (p : Pos P s) → Σ[ lvs ∈ Src P (Typ s p) ]
                            Pd U (Typ s p , s ⊚ p , lvs))
-    → Pd U (f , t , μ s (λ p → fst (ϕ p)))
-  γ U ._ ._ (lf tgt) ϕ = snd (ϕ (η-pos tgt))
-  γ U ._ ._ (nd tgt brs flr) ϕ =
-    -- let ϕ' p q = ϕ (μ-pos brs (λ p' → lvs (brs ⊚ p')) p q)
-    --     stm' p = stm (brs ⊚ p)
+    → Pd U (f , t , μ P s (λ p → fst (ϕ p)))
+  γ U ._ ._ (lf tgt) ϕ = snd (ϕ (η-pos _ tgt))
+  γ {P = P} U ._ ._ (nd tgt brs flr) ϕ =
+    let -- ϕ' p q = ϕ (μ-pos brs (λ p' → lvs (brs ⊚ p')) p q)
     --     lvs' p = μ (lvs (brs ⊚ p)) (λ q → fst (ϕ' p q))
     --     br' p = γ U (stm (brs ⊚ p)) (lvs (brs ⊚ p)) (br (brs ⊚ p)) (ϕ' p)
     --     brs' = μ {Q = Branch U} brs
-    --             (λ p → η {P = Branch U} [ stm' p , lvs' p , br' p ]) in 
-    nd tgt brs' flr
-
-    where brs' : Src (Branch U) _
-          brs' = μ {Q = Branch U} brs (λ p → η {P = Branch U} [
+    --             (λ p → η {P = Branch U} [ stm' p , lvs' p , br' p ]) in
+        brs' = μ (Branch U) brs (λ p → η (Branch U) [
                   stm (brs ⊚ p) ,
-                  μ (lvs (brs ⊚ p)) (λ p₁ → fst (ϕ (μ-pos brs (λ p' → lvs (brs ⊚ p')) p p₁))) ,
+                  μ P (lvs (brs ⊚ p)) (λ q → fst (ϕ (μ-pos brs (λ p' → lvs (brs ⊚ p')) p q))) ,
                   γ U (stm (brs ⊚ p)) (lvs (brs ⊚ p)) (br (brs ⊚ p)) 
-                     (λ q → (ϕ (μ-pos brs (λ p' → lvs (brs ⊚ p')) p q))) ]) 
+                     (λ q → (ϕ (μ-pos brs (λ p' → lvs (brs ⊚ p')) p q))) ])
+                     
+    in nd tgt brs' flr
 
-  μ {zero} s ϕ = ϕ tt*
-  μ {suc n} (lf tgt) ϕ = lf tgt
-  μ {suc n} {X = X , P} {P = U₀} {Q = U} (nd tgt brs flr) ϕ = 
+
+  μ {zero} Q s ϕ = ϕ tt*
+  μ {suc n} Q (lf tgt) ϕ = lf tgt
+  μ {suc n} {X = X , P} {P = U₀} U (nd tgt brs flr) ϕ = 
     let w = ϕ (inl tt)
-        δ p = η {P = P} (stm (brs ⊚ p))
-    in γ U tgt (μ {Q = P} brs δ) w
+        δ p = η P (stm (brs ⊚ p))
+    in γ U tgt (μ P brs δ) w
         (λ p → lvs (brs ⊚ (μ-fst brs δ p)) ,
-               μ {Q = U} (br (brs ⊚ (μ-fst brs δ p)))
+               μ U (br (brs ⊚ (μ-fst brs δ p)))
                  (λ q → ϕ (inr (μ-fst brs δ p , q))))
                  
