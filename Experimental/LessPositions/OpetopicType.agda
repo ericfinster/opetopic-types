@@ -250,3 +250,7 @@ module Experimental.LessPositions.OpetopicType where
                μ U (br (brs ⊚ (μ-fst brs δ p)))
                  (λ q → ϕ (inr (μ-fst brs δ p , q))))
                  
+  -- Old version of μ
+  μ' : ∀ {n ℓ} {Xₙ : 𝕆Type n ℓ} {Xₛₙ : Frm Xₙ → Type ℓ} {f : Frm Xₙ}
+    → Src (Src Xₛₙ) f → Src Xₛₙ f
+  μ' {Xₛₙ = Q} s = μ Q s (s ⊚_ )

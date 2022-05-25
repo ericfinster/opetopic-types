@@ -47,11 +47,3 @@ module Experimental.LessPositions.Structures where
 
     b : horn-filler (Fill (Hom X)) x
     b = y , σ
-
-
-
-
-
-    μ' : ∀ {n ℓ} {Xₙ : 𝕆Type n ℓ} {Xₛₙ : Frm Xₙ → Type ℓ} {f : Frm Xₙ}
-      → Src (Src Xₛₙ) f → Src Xₛₙ f
-    μ' {Xₛₙ = Q} s = μ Q s (s ⊚_ )
