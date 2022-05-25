@@ -12,7 +12,7 @@ open import Cubical.Data.Sum
 
 open import Core.Prelude
 
-module Experimental.Positionless where
+module Experimental.LessPositions.OpetopicType where
 
   𝕆Type : ℕ → (ℓ : Level) → Type (ℓ-suc ℓ)
 
