@@ -47,6 +47,8 @@ module Experimental.NoDecs.OpetopicType where
   --  Maps of Opetopic Types
   --
 
+  infixl 50 _⊙_
+  
   postulate
   
     _⇒_ : ∀ {n ℓ} → 𝕆Type n ℓ → 𝕆Type n ℓ → Type ℓ 
@@ -56,17 +58,46 @@ module Experimental.NoDecs.OpetopicType where
       → Frm X → Frm Y
 
     Src⇒ : ∀ {n ℓ} {X Y : 𝕆Type n ℓ}
-      → (P : Frm X → Type ℓ)
-      → (Q : Frm Y → Type ℓ) 
-      → (σ : X ⇒ Y) (f : Frm X)
-      → Src P f → Src Q (Frm⇒ σ f) 
+      → {P : Frm X → Type ℓ}
+      → {Q : Frm Y → Type ℓ}
+      → (σₙ : X ⇒ Y) (σₛₙ : {f : Frm X} → P f → Q (Frm⇒ σₙ f))
+      → {f : Frm X}
+      → Src P f → Src Q (Frm⇒ σₙ f) 
 
     id-map : ∀ {n ℓ} → (X : 𝕆Type n ℓ) → X ⇒ X
 
+    _⊙_ : ∀ {n ℓ} {X Y Z : 𝕆Type n ℓ}
+      → Y ⇒ Z → X ⇒ Y → X ⇒ Z
+
+  --
+  --  Equations for maps 
+  --
+  
+  postulate
+  
     Frm⇒-id : ∀ {n ℓ} (X : 𝕆Type n ℓ) (f : Frm X)
       → Frm⇒ (id-map X) f ↦ f
     {-# REWRITE Frm⇒-id #-}
 
+    Frm⇒-⊙ : ∀ {n ℓ} {X Y Z : 𝕆Type n ℓ}
+      → (σ : X ⇒ Y) (τ : Y ⇒ Z) (f : Frm X)
+      → Frm⇒ (τ ⊙ σ) f ↦ Frm⇒ τ (Frm⇒ σ f)
+    {-# REWRITE Frm⇒-⊙ #-}
+
+    map-unit-l : ∀ {n ℓ} {X Y : 𝕆Type n ℓ}
+      → (σ : X ⇒ Y)
+      → id-map Y ⊙ σ ↦ σ
+    {-# REWRITE map-unit-l #-}
+
+    map-unit-r : ∀ {n ℓ} {X Y : 𝕆Type n ℓ}
+      → (σ : X ⇒ Y)
+      → σ ⊙ id-map X ↦ σ
+    {-# REWRITE map-unit-r #-}
+
+    map-assoc : ∀ {n ℓ} {X Y Z W : 𝕆Type n ℓ}
+      → (ρ : X ⇒ Y) (σ : Y ⇒ Z) (τ : Z ⇒ W)
+      → τ ⊙ (σ ⊙ ρ) ↦ τ ⊙ σ ⊙ ρ
+    {-# REWRITE map-assoc #-} 
 
   --
   --  Monadic Structure
@@ -86,6 +117,29 @@ module Experimental.NoDecs.OpetopicType where
       → {f : Frm X} (s : Src P f)
       → (ϕ : (p : Pos P s) → Src Q (Frm⇒ σ (Typ s p)))
       → Src Q (Frm⇒ σ f)
+
+  --
+  --  Monadic Laws
+  --
+
+  postulate
+
+    Src⇒-η : ∀ {n ℓ} {X Y : 𝕆Type n ℓ}
+      → (P : Frm X → Type ℓ)
+      → (Q : Frm Y → Type ℓ) 
+      → (σₙ : X ⇒ Y) (σₛₙ : {f : Frm X} → P f → Q (Frm⇒ σₙ f))
+      → {f : Frm X} (p : P f)
+      → Src⇒ {Q = Q} σₙ σₛₙ (η P p) ↦ η Q (σₛₙ p) 
+
+    Src⇒-μ : ∀ {n ℓ} {X Y Z : 𝕆Type n ℓ}
+      → {P : Frm X → Type ℓ}
+      → (Q : Frm Y → Type ℓ)
+      → (R : Frm Z → Type ℓ)
+      → (σₙ : X ⇒ Y) 
+      → {f : Frm X} (s : Src P f)
+      → (ϕ : (p : Pos P s) → Src Q (Frm⇒ σₙ (Typ s p)))
+      → (τₙ : Y ⇒ Z) (τₛₙ : {f : Frm Y} → Q f → R (Frm⇒ τₙ f))
+      → Src⇒ {Q = R} τₙ τₛₙ (μ Q σₙ s ϕ) ↦ μ R (τₙ ⊙ σₙ) s (λ p → Src⇒ {Q = R} τₙ τₛₙ (ϕ p))
 
   𝕆Type zero ℓ = Lift Unit
   𝕆Type (suc n) ℓ =
