@@ -49,6 +49,13 @@ module Experimental.Positionless where
     → {f : Frm X} (x : P f)
     → Pos P (η P x)
 
+  η-pos-elim : ∀ {n ℓ ℓ'} {X : 𝕆Type n ℓ}
+    → {P : Frm X → Type ℓ}
+    → {f : Frm X} (x : P f)
+    → (Q : Pos P (η P x) → Type ℓ')
+    → (q : Q (η-pos P x))
+    → (p : Pos P (η P x)) → Q p
+
   μ : ∀ {n ℓ} {X : 𝕆Type n ℓ}
     → {P : Frm X → Type ℓ}
     → (Q : Frm X → Type ℓ)
@@ -56,29 +63,32 @@ module Experimental.Positionless where
     → (ϕ : (p : Pos P s) → Src Q (Typ s p))
     → Src Q f 
 
+  μ-pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+    → {P : Frm X → Type ℓ}
+    → (Q : Frm X → Type ℓ)
+    → {f : Frm X} (s : Src P f)
+    → (ϕ : (p : Pos P s) → Src Q (Typ s p))
+    → (p : Pos P s)
+    → (q : Pos Q (ϕ p))
+    → Pos Q (μ Q s ϕ) 
+
   postulate
-  
-    μ-pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → {P Q : Frm X → Type ℓ}
-      → {f : Frm X} (s : Src P f)
-      → (ϕ : (p : Pos P s) → Src Q (Typ s p))
-      → (p : Pos P s)
-      → (q : Pos Q (ϕ p))
-      → Pos Q (μ Q s ϕ) 
 
     μ-fst : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → {P Q : Frm X → Type ℓ}
+      → {P : Frm X → Type ℓ}
+      → (Q : Frm X → Type ℓ)
       → {f : Frm X} (s : Src P f)
       → (ϕ : (p : Pos P s) → Src Q (Typ s p))
       → (p : Pos Q (μ Q s ϕ))
       → Pos P s  
 
     μ-snd : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → {P Q : Frm X → Type ℓ}
+      → {P : Frm X → Type ℓ}
+      → (Q : Frm X → Type ℓ)
       → {f : Frm X} (s : Src P f)
       → (ϕ : (p : Pos P s) → Src Q (Typ s p))
       → (p : Pos Q (μ Q s ϕ))
-      → Pos Q (ϕ (μ-fst s ϕ p))
+      → Pos Q (ϕ (μ-fst Q s ϕ p))
 
   postulate
 
@@ -102,7 +112,7 @@ module Experimental.Positionless where
       → {f : Frm X} (s : Src P f)
       → (ϕ : (p : Pos P s) → Src Q (Typ s p))
       → (p : Pos Q (μ Q s ϕ))
-      → Typ (μ Q s ϕ) p ↦ Typ (ϕ (μ-fst s ϕ p)) (μ-snd s ϕ p)
+      → Typ (μ Q s ϕ) p ↦ Typ (ϕ (μ-fst Q s ϕ p)) (μ-snd Q s ϕ p)
     {-# REWRITE Typ-μ #-}
 
     ⊚-μ : ∀ {n ℓ} {X : 𝕆Type n ℓ}
@@ -110,16 +120,24 @@ module Experimental.Positionless where
       → {f : Frm X} (s : Src P f)
       → (ϕ : (p : Pos P s) → Src Q (Typ s p))
       → (p : Pos Q (μ Q s ϕ))
-      → μ Q s ϕ ⊚ p ↦ ϕ (μ-fst s ϕ p) ⊚ μ-snd s ϕ p
+      → μ Q s ϕ ⊚ p ↦ ϕ (μ-fst Q s ϕ p) ⊚ μ-snd Q s ϕ p
     {-# REWRITE ⊚-μ #-}
 
     -- Laws for positions
+    η-pos-elim-β : ∀ {n ℓ ℓ'} {X : 𝕆Type n ℓ}
+      → {P : Frm X → Type ℓ}
+      → {f : Frm X} (x : P f)
+      → (Q : Pos P (η P x) → Type ℓ')
+      → (q : Q (η-pos P x))
+      → η-pos-elim x Q q (η-pos P x) ↦ q
+    {-# REWRITE η-pos-elim-β #-}
+
     μ-fst-β : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → {P Q : Frm X → Type ℓ}
       → {f : Frm X} (s : Src P f)
       → (ϕ : (p : Pos P s) → Src Q (Typ s p))
       → (p : Pos P s) (q : Pos Q (ϕ p))
-      → μ-fst s ϕ (μ-pos s ϕ p q) ↦ p 
+      → μ-fst Q s ϕ (μ-pos Q s ϕ p q) ↦ p 
     {-# REWRITE μ-fst-β #-}
 
     μ-snd-β : ∀ {n ℓ} {X : 𝕆Type n ℓ}
@@ -127,9 +145,17 @@ module Experimental.Positionless where
       → {f : Frm X} (s : Src P f)
       → (ϕ : (p : Pos P s) → Src Q (Typ s p))
       → (p : Pos P s) (q : Pos Q (ϕ p))
-      → μ-snd s ϕ (μ-pos s ϕ p q) ↦ q
+      → μ-snd Q s ϕ (μ-pos Q s ϕ p q) ↦ q
     {-# REWRITE μ-snd-β #-}
 
+    μ-pos-η : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+      → {P Q : Frm X → Type ℓ}
+      → {f : Frm X} (s : Src P f)
+      → (ϕ : (p : Pos P s) → Src Q (Typ s p))
+      → (p : Pos Q (μ Q s ϕ))
+      → μ-pos Q s ϕ (μ-fst Q s ϕ p) (μ-snd Q s ϕ p) ↦ p
+    {-# REWRITE μ-pos-η #-}
+    
     -- Monad Laws
     unit-left : ∀ {n ℓ} (X : 𝕆Type n ℓ)
       → (P Q : Frm X → Type ℓ)
@@ -149,8 +175,35 @@ module Experimental.Positionless where
       → (f : Frm X) (s : Src P f)
       → (ϕ : (p : Pos P s) → Src Q (Typ s p))
       → (ψ : (pq : Pos Q (μ Q s ϕ)) → Src R (Typ (μ Q s ϕ) pq))
-      → μ R (μ Q s ϕ) ψ ↦ μ R s (λ p → μ R (ϕ p) (λ q → ψ (μ-pos s ϕ p q)))
+      → μ R (μ Q s ϕ) ψ ↦ μ R s (λ p → μ R (ϕ p) (λ q → ψ (μ-pos Q s ϕ p q)))
     {-# REWRITE μ-assoc #-}
+
+  smap : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+    → {P : Frm X → Type ℓ}
+    → (Q : Frm X → Type ℓ)
+    → {f : Frm X} (s : Src P f)
+    → (ϕ : (p : Pos P s) → Q (Typ s p))
+    → Src Q f
+  smap Q s ϕ = μ Q s (λ p → η Q (ϕ p)) 
+
+  smap-pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+    → {P : Frm X → Type ℓ}
+    → (Q : Frm X → Type ℓ)
+    → {f : Frm X} (s : Src P f)
+    → (ϕ : (p : Pos P s) → Q (Typ s p))
+    → (p : Pos P s) → Pos Q (smap Q s ϕ)
+  smap-pos Q s ϕ p = μ-pos Q s (λ p → η Q (ϕ p)) p (η-pos Q (ϕ p)) 
+
+  smap-pos-inv : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+    → {P : Frm X → Type ℓ}
+    → (Q : Frm X → Type ℓ)
+    → {f : Frm X} (s : Src P f)
+    → (ϕ : (p : Pos P s) → Q (Typ s p))
+    → Pos Q (smap Q s ϕ) → Pos P s
+  smap-pos-inv Q s ϕ p = μ-fst Q s (λ p → η Q (ϕ p)) p 
+
+  -- Hmmm.  So the roundtrip is only definitionally the identity in
+  -- one direction.  How could you fix this? 
 
   𝕆Type zero ℓ = Lift Unit
   𝕆Type (suc n) ℓ =
@@ -210,43 +263,119 @@ module Experimental.Positionless where
   η {zero} P x = x
   η {suc n} {X = X , P} U {f = f , t , s} x = 
     let brs = μ (Branch U) s (λ p → η (Branch U)
-                [ s ⊚ p , η P (s ⊚ p) , lf (s ⊚ p) ])
+          [ s ⊚ p , η P (s ⊚ p) , lf (s ⊚ p) ])
     in nd t brs x
     
   η-pos {zero} P x = tt*
   η-pos {suc n} U x = inl tt
 
+  η-pos-elim {zero} x Q q p = q
+  η-pos-elim {suc n} x Q q (inl tt) = q
+
   γ : ∀ {n ℓ} {X : 𝕆Type n ℓ}
     → {P : Frm X → Type ℓ}
     → (U : Frm (X , P) → Type ℓ) 
-    → {f : Frm X} (t : P f) (s : Src P f)
+    → {f : Frm X} {t : P f} {s : Src P f}
     → Pd U (f , t , s)
     → (ϕ : (p : Pos P s) → Σ[ lvs ∈ Src P (Typ s p) ]
                            Pd U (Typ s p , s ⊚ p , lvs))
     → Pd U (f , t , μ P s (λ p → fst (ϕ p)))
-  γ U ._ ._ (lf tgt) ϕ = snd (ϕ (η-pos _ tgt))
-  γ {P = P} U ._ ._ (nd tgt brs flr) ϕ =
-    let -- ϕ' p q = ϕ (μ-pos brs (λ p' → lvs (brs ⊚ p')) p q)
-    --     lvs' p = μ (lvs (brs ⊚ p)) (λ q → fst (ϕ' p q))
-    --     br' p = γ U (stm (brs ⊚ p)) (lvs (brs ⊚ p)) (br (brs ⊚ p)) (ϕ' p)
-    --     brs' = μ {Q = Branch U} brs
-    --             (λ p → η {P = Branch U} [ stm' p , lvs' p , br' p ]) in
-        brs' = μ (Branch U) brs (λ p → η (Branch U) [
-                  stm (brs ⊚ p) ,
-                  μ P (lvs (brs ⊚ p)) (λ q → fst (ϕ (μ-pos brs (λ p' → lvs (brs ⊚ p')) p q))) ,
-                  γ U (stm (brs ⊚ p)) (lvs (brs ⊚ p)) (br (brs ⊚ p)) 
-                     (λ q → (ϕ (μ-pos brs (λ p' → lvs (brs ⊚ p')) p q))) ])
-                     
-    in nd tgt brs' flr
+  γ {P = P} U (lf tgt) ϕ = snd (ϕ (η-pos P tgt))
+  γ {P = P} U (nd tgt brs flr) ϕ =
+    let ψ p = [ stm (brs ⊚ p)
+              , μ P (lvs (brs ⊚ p)) (λ q → fst (ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) p q)))
+              , γ U  (br (brs ⊚ p)) (λ q → ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) p q))
+              ]                            
+    in nd tgt (smap (Branch U) brs ψ) flr
 
+  γ-inl : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+    → {P : Frm X → Type ℓ}
+    → (U : Frm (X , P) → Type ℓ) 
+    → {f : Frm X} {t : P f} {s : Src P f}
+    → (θ : Pd U (f , t , s))
+    → (ϕ : (p : Pos P s) → Σ[ lvs ∈ Src P (Typ s p) ]
+                           Pd U (Typ s p , s ⊚ p , lvs))
+    → Pos U θ → Pos U (γ U θ ϕ)
+  γ-inl {P = P} U (nd tgt brs flr) ϕ (inl tt) = inl tt
+  γ-inl {P = P} U (nd tgt brs flr) ϕ (inr (p , q)) =
+    let ψ p = [ stm (brs ⊚ p)
+              , μ P (lvs (brs ⊚ p)) (λ q → fst (ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) p q)))
+              , γ U  (br (brs ⊚ p)) (λ q → ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) p q))
+              ]
+        p' = smap-pos (Branch U) brs ψ p 
+    in inr (p' , γ-inl U (br (brs ⊚ p)) (λ q → ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) p q)) q)
+
+  γ-inr : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+    → {P : Frm X → Type ℓ}
+    → (U : Frm (X , P) → Type ℓ) 
+    → {f : Frm X} {t : P f} {s : Src P f}
+    → (θ : Pd U (f , t , s))
+    → (ϕ : (p : Pos P s) → Σ[ lvs ∈ Src P (Typ s p) ]
+                           Pd U (Typ s p , s ⊚ p , lvs))
+    → (p : Pos P s) (q : Pos U (snd (ϕ p)))
+    → Pos U (γ U θ ϕ)
+  γ-inr {P = P} U (lf tgt) ϕ p q =
+    η-pos-elim tgt (λ p → Pos U (snd (ϕ p)) → Pos U (snd (ϕ (η-pos P tgt)))) (λ x → x) p q
+  γ-inr {P = P} U (nd tgt brs flr) ϕ pq r = 
+    let p = μ-fst P brs (λ p' → lvs (brs ⊚ p')) pq
+        q = μ-snd P brs (λ p' → lvs (brs ⊚ p')) pq
+        ψ p = [ stm (brs ⊚ p)
+              , μ P (lvs (brs ⊚ p)) (λ q → fst (ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) p q)))
+              , γ U  (br (brs ⊚ p)) (λ q → ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) p q))
+              ]
+        p' = smap-pos (Branch U) brs ψ p 
+    in inr (p' , γ-inr U (br (brs ⊚ p)) (λ q → ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) p q)) q r) 
+
+  γ-pos-elim : ∀ {n ℓ ℓ'} {X : 𝕆Type n ℓ}
+    → {P : Frm X → Type ℓ}
+    → (U : Frm (X , P) → Type ℓ) 
+    → {f : Frm X} {t : P f} {s : Src P f}
+    → (θ : Pd U (f , t , s))
+    → (ϕ : (p : Pos P s) → Σ[ lvs ∈ Src P (Typ s p) ]
+                           Pd U (Typ s p , s ⊚ p , lvs))
+    → (X : Pos U (γ U θ ϕ) → Type ℓ')
+    → (inl* : (p : Pos U θ) → X (γ-inl U θ ϕ p))
+    → (inr* : (p : Pos P s) (q : Pos U (snd (ϕ p))) → X (γ-inr U θ ϕ p q))
+    → (p : Pos U (γ U θ ϕ)) → X  p
+  γ-pos-elim {P = P} U (lf tgt) ϕ X inl* inr* p = inr* (η-pos P tgt) p
+  γ-pos-elim {P = P} U (nd tgt brs flr) ϕ X inl* inr* (inl tt) = inl* (inl tt)
+  γ-pos-elim {P = P} U (nd tgt brs flr) ϕ X inl* inr* (inr (u , v)) = 
+    let ψ p = [ stm (brs ⊚ p)
+              , μ P (lvs (brs ⊚ p)) (λ q → fst (ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) p q)))
+              , γ U  (br (brs ⊚ p)) (λ q → ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) p q))
+              ]
+        u' = smap-pos-inv (Branch U) brs ψ u
+    in γ-pos-elim U (br (brs ⊚ u')) (λ q → ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) u' q))
+        (λ q' → X (inr (u , q'))) {!!} {!!} v  
+
+    -- (λ q' → inl* (inr (p' , q')))
+    -- (λ p q → inr* (μ-pos P brs (λ p' → lvs (brs ⊚ p')) u' p) q)
+
+  -- Ech.  The lack of η expansion at unit positions bites us again ....
+  -- I guess this could be helped with a special rewrite for smap.
+  -- But it's pretty icky, isn't it .... ?
+  
+  -- graftₒ-pos-elim (ndₒ 𝑝 𝑞 𝑟) 𝑡 X inl* inr* (inl tt)  = inl* (inl tt)
+  -- graftₒ-pos-elim (ndₒ 𝑝 𝑞 𝑟) 𝑡 X inl* inr* (inr (u , v)) = 
+  --   graftₒ-pos-elim (𝑟 u) (λ q → 𝑡 (pairₚ 𝑝 𝑞 u q)) 
+  --     (λ q → X (inr (u , q)))
+  --     (λ q → inl* (inr (u , q)))
+  --     (λ p q → inr* (pairₚ 𝑝 𝑞 u p) q) v
 
   μ {zero} Q s ϕ = ϕ tt*
   μ {suc n} Q (lf tgt) ϕ = lf tgt
   μ {suc n} {X = X , P} {P = U₀} U (nd tgt brs flr) ϕ = 
     let w = ϕ (inl tt)
         δ p = η P (stm (brs ⊚ p))
-    in γ U tgt (μ P brs δ) w
-        (λ p → lvs (brs ⊚ (μ-fst brs δ p)) ,
-               μ U (br (brs ⊚ (μ-fst brs δ p)))
-                 (λ q → ϕ (inr (μ-fst brs δ p , q))))
+    in γ U w (λ p → lvs (brs ⊚ (μ-fst P brs δ p)) ,
+                    μ U (br (brs ⊚ (μ-fst P brs δ p)))
+                        (λ q → ϕ (inr (μ-fst P brs δ p , q))))
                  
+  -- μ-pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+  --   → {P Q : Frm X → Type ℓ}
+  --   → {f : Frm X} (s : Src P f)
+  --   → (ϕ : (p : Pos P s) → Src Q (Typ s p))
+  --   → (p : Pos P s)
+  --   → (q : Pos Q (ϕ p))
+  --   → Pos Q (μ Q s ϕ) 
+  μ-pos s ϕ p q = {!s!}
