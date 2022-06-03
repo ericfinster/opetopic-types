@@ -12,7 +12,7 @@ open import Cubical.Data.Sum
 
 open import Core.Prelude
 
-module Experimental.Positionless where
+module Experimental.LessPositions.OpetopicType where
 
   𝕆Type : ℕ → (ℓ : Level) → Type (ℓ-suc ℓ)
 
@@ -371,11 +371,7 @@ module Experimental.Positionless where
                     μ U (br (brs ⊚ (μ-fst P brs δ p)))
                         (λ q → ϕ (inr (μ-fst P brs δ p , q))))
                  
-  -- μ-pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-  --   → {P Q : Frm X → Type ℓ}
-  --   → {f : Frm X} (s : Src P f)
-  --   → (ϕ : (p : Pos P s) → Src Q (Typ s p))
-  --   → (p : Pos P s)
-  --   → (q : Pos Q (ϕ p))
-  --   → Pos Q (μ Q s ϕ) 
-  μ-pos s ϕ p q = {!s!}
+  -- Old version of μ
+  μ' : ∀ {n ℓ} {Xₙ : 𝕆Type n ℓ} {Xₛₙ : Frm Xₙ → Type ℓ} {f : Frm Xₙ}
+    → Src (Src Xₛₙ) f → Src Xₛₙ f
+  μ' {Xₛₙ = Q} s = μ Q s (s ⊚_ )
