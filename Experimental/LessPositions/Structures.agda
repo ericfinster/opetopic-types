@@ -6,6 +6,7 @@ open import Experimental.LessPositions.Shapes
 
 open import Cubical.Data.Nat
 open import Cubical.Data.Sigma
+open import Cubical.Foundations.Equiv.Fiberwise
 
 module Experimental.LessPositions.Structures where
   record 𝕆Type∞ {n ℓ} (Xₙ : 𝕆Type n ℓ) : Type (ℓ-suc ℓ) where
@@ -65,7 +66,7 @@ module Experimental.LessPositions.Structures where
     → Fill (Hom X∞) (globe-Frm _ t u) → t ≡ u
   hom→path X∞ fib {f} {t} {u} cell = cong fst (isContr→isProp (fib .fill-fib f (η (Fill X∞) t)) (t , Id-cell X∞ fib t) (u , cell))
 
-  module _ {n ℓ} {X : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ X) (fib : is-fibrant-ext X∞) {f : Frm X} {t u : Fill X∞ f} where
+  module IsoHomPath {n ℓ} {X : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ X) (fib : is-fibrant-ext X∞) {f : Frm X} {t u : Fill X∞ f} where
     sec : section (path→hom X∞ fib {f} {t} {u}) (hom→path X∞ fib {f} {t} {u})
     sec cell = fromPathP (cong snd (isContr→isProp (fib .fill-fib f (η (Fill X∞) t)) (t , Id-cell X∞ fib t) (u , cell)))
     -- Wow ! Might need to take a look back at this later cause I didn't expect it to be so "simple".
@@ -96,38 +97,20 @@ module Experimental.LessPositions.Structures where
   src-comp : ∀ {n ℓ} {X : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ X) → is-fibrant-ext X∞ → {f : Frm X} → Src (Fill X∞) f → Fill X∞ f
   src-comp X∞ fib s = fib .fill-fib _ s .fst .fst
 
-  {-module Cell-Charac {n ℓ} {X : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ X) (fib : is-fibrant-ext X∞) {f : Frm X} (s : Src (Fill X∞) f) (t : Fill X∞ f) where
-    cell→path : Fill (Hom X∞) (f , t , s) → src-comp X∞ fib s ≡ t
-    cell→path H = cong fst test where
-      test : fib .fill-fib f s .fst ≡ (t , H)
-      test = (fib .fill-fib f s) .snd (t , H)
+  -- More general version of the equivalence between hom and path, using the fundamental theorem of identity types
+  cell≃path : ∀ {n ℓ} {X : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ X) (fib : is-fibrant-ext X∞) {f : Frm X} (s : Src (Fill X∞) f) (t : Fill X∞ f)
+    → (src-comp X∞ fib s ≡ t) ≃ Fill (Hom X∞) (f , t , s)
+  cell≃path X∞ fib s t = recognizeId (λ t → (Fill (Hom X∞)) (_ , t , s)) (fib .fill-fib _ s .fst .snd) (fib .fill-fib _ s) t
 
-    module Pasting (H : src-comp X∞ fib s ≡ t) where
-      cell1 : Fill (Hom X∞) (globe-Frm (Fill X∞) (src-comp X∞ fib s) t)
-      cell1 = path→hom X∞ fib H
+  isOfHLevelPathPred : ∀ (n : ℕ) {ℓ} {A : Type ℓ} → isOfHLevel n A → {x y : A} → isOfHLevel (predℕ n) (x ≡ y)
+  isOfHLevelPathPred zero h = isContr→isContrPath h _ _
+  isOfHLevelPathPred (suc n) h = isOfHLevelPath' n h _ _
 
-      cell2 : Fill (Hom X∞) (_ , src-comp X∞ fib s , s)
-      cell2 = fib .fill-fib _ s .fst .snd
-
-      src : Src (Fill (Hom X∞)) (_ , t , s)
-      src = nd t (η (Branch (Fill (Hom X∞))) [ src-comp X∞ fib s , s , η (Fill (Hom X∞)) cell2 ]) cell1
-
-    path→cell : src-comp X∞ fib s ≡ t → Fill (Hom X∞) (f , t , s)
-    path→cell H = src-comp (Hom X∞) (hom-fib fib) (Pasting.src H)
-
-    sec : section cell→path path→cell
-    sec H = {!Pasting.src H!}
-    
-    ret : retract cell→path path→cell
-    ret H = {!cell→pa!} where --cong fst ((hom-fib fib) .fill-fib (f , t , s) (Pasting.src (cell→path H)) .snd (H , {!!}))
-      test : Src (Fill (Hom (Hom X∞))) (globe-Frm _ (path→cell (cell→path H)) H)
-      test = {!!}-}
-
-  {-lemma-test : ∀ {m ℓ} (n : ℕ) {X : 𝕆Type m ℓ} (X∞ : 𝕆Type∞ X) → ((f : Frm X) → isOfHLevel n (X∞ .Fill f)) → is-fibrant-ext X∞ → is-n-trunc n X∞
-  hLevel (lemma-test n {X} X∞ h1 hfib) = h1
-  is-trunc-ext (lemma-test n {X} X∞ h1 hfib) = lemma-test _ _ lemma (hfib .hom-fib) where
+  is-n-trunc-fib : ∀ {m ℓ} (n : ℕ) {X : 𝕆Type m ℓ} (X∞ : 𝕆Type∞ X) → is-fibrant-ext X∞ → ((f : Frm X) → isOfHLevel n (X∞ .Fill f)) → is-n-trunc n X∞
+  hLevel (is-n-trunc-fib n {X} X∞ fib h) = h
+  is-trunc-ext (is-n-trunc-fib n {X} X∞ fib h) = is-n-trunc-fib _ _ (fib .hom-fib) lemma where
     lemma : (f : Frm (X , Fill X∞)) → isOfHLevel (predℕ n) (X∞ .Hom .Fill f)
-    lemma (f , t , s) = {!!}-}
+    lemma (f , t , s) = isOfHLevelRespectEquiv (predℕ n) (cell≃path X∞ fib s t) (isOfHLevelPathPred n (h f))
 
 {-
   is-n-cat : ∀ {m ℓ} (n : ℕ) {X : 𝕆Type m ℓ} (X∞ : 𝕆Type∞ X) → Type ℓ
