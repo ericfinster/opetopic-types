@@ -23,6 +23,9 @@ module Experimental.LessPositions.Structures where
   is-fibrant : ∀ {n ℓ} → 𝕆Type (suc (suc n)) ℓ → Type ℓ
   is-fibrant ((Xₙ , Xₛₙ) , Xₛₛₙ) = (f : Frm Xₙ) (s : Src Xₛₙ f) → isContr (horn-filler Xₛₛₙ s)
 
+  isProp-is-fibrant : ∀ {n ℓ} {X : 𝕆Type (suc (suc n)) ℓ} → isProp (is-fibrant X)
+  isProp-is-fibrant = isPropΠ2 (λ _ _ → isPropIsContr)
+
   record is-fibrant-ext {n ℓ} {Xₙ : 𝕆Type n ℓ} (X : 𝕆Type∞ Xₙ) : Type ℓ where
     coinductive
     field
@@ -30,6 +33,14 @@ module Experimental.LessPositions.Structures where
       hom-fib : is-fibrant-ext (Hom X)
 
   open is-fibrant-ext
+  
+  eta-fib-ext : ∀ {m ℓ} {X : 𝕆Type m ℓ} {X∞ : 𝕆Type∞ X} → X∞ ≡ record { Fill = Fill X∞ ; Hom = Hom X∞ }
+  Fill (eta-fib-ext {X∞ = X∞} i) = Fill X∞
+  Hom (eta-fib-ext {X∞ = X∞} i) = Hom X∞
+
+  isProp-is-fibrant-ext : ∀ {n ℓ} {X : 𝕆Type n ℓ} {X∞ : 𝕆Type∞ X} → isProp (is-fibrant-ext X∞)
+  fill-fib (isProp-is-fibrant-ext x y i) = isProp-is-fibrant (fill-fib x) (fill-fib y) i
+  hom-fib (isProp-is-fibrant-ext x y i) = isProp-is-fibrant-ext (hom-fib x) (hom-fib y) i
 
   𝕋 : ∀ {ℓ} (n : ℕ) → 𝕆Type n ℓ
   𝕋 zero = tt*
@@ -111,6 +122,42 @@ module Experimental.LessPositions.Structures where
   is-trunc-ext (is-n-trunc-fib n {X} X∞ fib h) = is-n-trunc-fib _ _ (fib .hom-fib) lemma where
     lemma : (f : Frm (X , Fill X∞)) → isOfHLevel (predℕ n) (X∞ .Hom .Fill f)
     lemma (f , t , s) = isOfHLevelRespectEquiv (predℕ n) (cell≃path X∞ fib s t) (isOfHLevelPathPred n (h f))
+
+  𝕆∞Path : ∀ {m ℓ} {X : 𝕆Type m ℓ} (X∞ X∞' : 𝕆Type∞ X) (p : Fill X∞ ≡ Fill X∞') → PathP (λ i → 𝕆Type∞ (X , p i)) (Hom X∞) (Hom X∞') → X∞ ≡ X∞'
+  Fill (𝕆∞Path X∞ X∞' p q i) = p i
+  Hom (𝕆∞Path X∞ X∞' p q i) = q i
+
+  -- Trying to prove that fibrant opetopic types with same base-type are equal
+  lemma0 : ∀ {m ℓ} {X X' : 𝕆Type m ℓ} (p : X ≡ X')
+    → (P : Frm X → Type ℓ) (P' : Frm X' → Type ℓ)
+    → (q : PathP (λ i → Frm (p i) → Type ℓ) P P')
+    → (P∞ : 𝕆Type∞ (X , P)) (P∞' : 𝕆Type∞ (X' , P'))
+    → is-fibrant-ext (record {Fill = P ; Hom = P∞}) → is-fibrant-ext (record { Fill = P' ; Hom = P∞' })
+    → PathP (λ i → Frm (p i , q i) → Type ℓ) (Fill P∞) (Fill P∞')
+  lemma0 {ℓ = ℓ} {X = X} =
+    J
+      (λ X' p → (P : Frm X → Type ℓ) (P' : Frm X' → Type ℓ)
+        → (q : PathP (λ i → Frm (p i) → Type ℓ) P P')
+        → (P∞ : 𝕆Type∞ (X , P)) (P∞' : 𝕆Type∞ (X' , P'))
+        → is-fibrant-ext (record {Fill = P ; Hom = P∞}) → is-fibrant-ext (record { Fill = P' ; Hom = P∞' })
+        → PathP (λ i → Frm (p i , q i) → Type ℓ) (Fill P∞) (Fill P∞'))
+        
+    λ P _ → J
+
+      (λ P' q → (P∞ : 𝕆Type∞ (X , P)) (P∞' : 𝕆Type∞ (X , P'))
+      → is-fibrant-ext (record {Fill = P ; Hom = P∞}) → is-fibrant-ext (record { Fill = P' ; Hom = P∞' })
+      → PathP (λ i → Frm (refl i , q i) → Type ℓ) (Fill P∞) (Fill P∞'))
+ 
+    λ P∞ _ fib fib' → funExt λ x → ua (invEquiv (cell≃path _ fib _ _)) ∙ cong (_≡ (fst (snd x))) {!!} ∙ ua (cell≃path _ fib' _ _)
+      
+  fibrant→≡ : ∀ {m ℓ} {X X' : 𝕆Type m ℓ} (p : X ≡ X')
+    → (X∞ : 𝕆Type∞ X) (X∞' : 𝕆Type∞ X') → PathP (λ i → Frm (p i) → Type ℓ) (Fill X∞) (Fill X∞')
+    → is-fibrant-ext X∞ → is-fibrant-ext X∞'
+    → PathP (λ i → 𝕆Type∞ (p i)) X∞ X∞'
+  Fill (fibrant→≡ p X∞ X∞' q fib fib' i) = q i
+  Hom (fibrant→≡ {ℓ = ℓ} p X∞ X∞' q fib fib' i) = fibrant→≡ (λ i → (p i , q i)) (Hom X∞) (Hom X∞') lemma (hom-fib fib) (hom-fib fib') i where
+    lemma : PathP (λ i → Frm (p i , q i) → Type ℓ) (Fill (Hom X∞)) (Fill (Hom X∞'))
+    lemma  = lemma0 p _ _ _ (Hom X∞) (Hom X∞') (subst is-fibrant-ext eta-fib-ext fib) (subst is-fibrant-ext eta-fib-ext fib')
 
 {-
   is-n-cat : ∀ {m ℓ} (n : ℕ) {X : 𝕆Type m ℓ} (X∞ : 𝕆Type∞ X) → Type ℓ
