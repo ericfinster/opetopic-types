@@ -31,7 +31,6 @@ module Experimental.NoDecs.Shapes where
         2Glob : {x y : Obj} (f g : Hom x y) → Type ℓ
         2Glob {x} {y} f g = X₂ ((tt* , x , y) , nd y [ x , x , lf x ] f , g)
 
-        Simplex : {x y z : Obj} (f : Hom x y) (g : Hom y z)
-          → (h : Hom x z) → Type ℓ
+        Simplex : {x y z : Obj} (f : Hom x y) (g : Hom y z) (h : Hom x z) → Type ℓ
         Simplex {x} {y} {z} f g h = X₂ ((tt* , x , z) , nd z [ y , x , nd y [ x , x , lf x ] f ] g , h) 
         
