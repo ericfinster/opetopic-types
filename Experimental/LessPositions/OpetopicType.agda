@@ -64,7 +64,6 @@ module Experimental.LessPositions.OpetopicType where
     → Src Q f 
 
   postulate
-  
     μ-pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → {P : Frm X → Type ℓ}
       → (Q : Frm X → Type ℓ)
@@ -326,27 +325,28 @@ module Experimental.LessPositions.OpetopicType where
         p' = smap-pos (Branch U) brs ψ p 
     in inr (p' , γ-inr U (br (brs ⊚ p)) (λ q → ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) p q)) q r) 
 
-  -- γ-pos-elim : ∀ {n ℓ ℓ'} {X : 𝕆Type n ℓ}
-  --   → {P : Frm X → Type ℓ}
-  --   → (U : Frm (X , P) → Type ℓ) 
-  --   → {f : Frm X} {t : P f} {s : Src P f}
-  --   → (θ : Pd U (f , t , s))
-  --   → (ϕ : (p : Pos P s) → Σ[ lvs ∈ Src P (Typ s p) ]
-  --                          Pd U (Typ s p , s ⊚ p , lvs))
-  --   → (X : Pos U (γ U θ ϕ) → Type ℓ')
-  --   → (inl* : (p : Pos U θ) → X (γ-inl U θ ϕ p))
-  --   → (inr* : (p : Pos P s) (q : Pos U (snd (ϕ p))) → X (γ-inr U θ ϕ p q))
-  --   → (p : Pos U (γ U θ ϕ)) → X  p
-  -- γ-pos-elim {P = P} U (lf tgt) ϕ X inl* inr* p = inr* (η-pos P tgt) p
-  -- γ-pos-elim {P = P} U (nd tgt brs flr) ϕ X inl* inr* (inl tt) = inl* (inl tt)
-  -- γ-pos-elim {P = P} U (nd tgt brs flr) ϕ X inl* inr* (inr (u , v)) = 
-  --   let ψ p = [ stm (brs ⊚ p)
-  --             , μ P (lvs (brs ⊚ p)) (λ q → fst (ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) p q)))
-  --             , γ U  (br (brs ⊚ p)) (λ q → ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) p q))
-  --             ]
-  --       u' = smap-pos-inv (Branch U) brs ψ u
-  --   in γ-pos-elim U (br (brs ⊚ u')) (λ q → ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) u' q))
-  --       (λ q' → X (inr (u , q'))) {!!} {!!} v  
+  postulate
+    γ-pos-elim : ∀ {n ℓ ℓ'} {X : 𝕆Type n ℓ}
+      → {P : Frm X → Type ℓ}
+      → (U : Frm (X , P) → Type ℓ) 
+      → {f : Frm X} {t : P f} {s : Src P f}
+      → (θ : Pd U (f , t , s))
+      → (ϕ : (p : Pos P s) → Σ[ lvs ∈ Src P (Typ s p) ]
+                             Pd U (Typ s p , s ⊚ p , lvs))
+      → (X : Pos U (γ U θ ϕ) → Type ℓ')
+      → (inl* : (p : Pos U θ) → X (γ-inl U θ ϕ p))
+      → (inr* : (p : Pos P s) (q : Pos U (snd (ϕ p))) → X (γ-inr U θ ϕ p q))
+      → (p : Pos U (γ U θ ϕ)) → X  p
+  {-γ-pos-elim {P = P} U (lf tgt) ϕ X inl* inr* p = inr* (η-pos P tgt) p
+  γ-pos-elim {P = P} U (nd tgt brs flr) ϕ X inl* inr* (inl tt) = inl* (inl tt)
+  γ-pos-elim {P = P} U (nd tgt brs flr) ϕ X inl* inr* (inr (u , v)) = 
+    let ψ p = [ stm (brs ⊚ p)
+              , μ P (lvs (brs ⊚ p)) (λ q → fst (ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) p q)))
+              , γ U  (br (brs ⊚ p)) (λ q → ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) p q))
+              ]
+        u' = smap-pos-inv (Branch U) brs ψ u
+    in γ-pos-elim U (br (brs ⊚ u')) (λ q → ϕ (μ-pos P brs (λ p' → lvs (brs ⊚ p')) u' q))
+        (λ q' → X (inr (u , q'))) {!!} {!!} v-}
 
     -- (λ q' → inl* (inr (p' , q')))
     -- (λ p q → inr* (μ-pos P brs (λ p' → lvs (brs ⊚ p')) u' p) q)
