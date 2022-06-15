@@ -48,19 +48,17 @@ module Experimental.NoDecs.OpetopicType where
   --
 
   infixl 50 _⊙_
-  
-  postulate
-  
-    _⇒_ : ∀ {n ℓ} → 𝕆Type n ℓ → 𝕆Type n ℓ → Type ℓ 
 
-    id-map : ∀ {n ℓ} → (X : 𝕆Type n ℓ) → X ⇒ X
+  _⇒_ : ∀ {n ℓ} → 𝕆Type n ℓ → 𝕆Type n ℓ → Type ℓ 
 
-    _⊙_ : ∀ {n ℓ} {X Y Z : 𝕆Type n ℓ}
-      → Y ⇒ Z → X ⇒ Y → X ⇒ Z
+  id-map : ∀ {n ℓ} → (X : 𝕆Type n ℓ) → X ⇒ X
 
-    Frm⇒ : ∀ {n ℓ} {X Y : 𝕆Type n ℓ}
-      → (σ : X ⇒ Y)
-      → Frm X → Frm Y
+  _⊙_ : ∀ {n ℓ} {X Y Z : 𝕆Type n ℓ}
+    → Y ⇒ Z → X ⇒ Y → X ⇒ Z
+
+  Frm⇒ : ∀ {n ℓ} {X Y : 𝕆Type n ℓ}
+    → (σ : X ⇒ Y)
+    → Frm X → Frm Y
 
   --
   --  Monadic Structure
@@ -71,19 +69,19 @@ module Experimental.NoDecs.OpetopicType where
     → {f : Frm X} (x : P f)
     → Src P f 
 
+  η-pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+    → (P : Frm X → Type ℓ)
+    → {f : Frm X} (x : P f)
+    → Pos P (η P x)
+
+  μ : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (σ : X ⇒ Y)
+    → (P : Frm X → Type ℓ)
+    → (Q : Frm Y → Type ℓ)
+    → {f : Frm X} (s : Src P f)
+    → (ϕ : (p : Pos P s) → Src Q (Frm⇒ σ (Typ P s p)))
+    → Src Q (Frm⇒ σ f)
+    
   postulate
-
-    η-pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → (P : Frm X → Type ℓ)
-      → {f : Frm X} (x : P f)
-      → Pos P (η P x)
-
-    μ : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (σ : X ⇒ Y)
-      → (P : Frm X → Type ℓ)
-      → (Q : Frm Y → Type ℓ)
-      → {f : Frm X} (s : Src P f)
-      → (ϕ : (p : Pos P s) → Src Q (Frm⇒ σ (Typ P s p)))
-      → Src Q (Frm⇒ σ f)
 
     μ-pos : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (σ : X ⇒ Y)
       → (P : Frm X → Type ℓ)
@@ -111,10 +109,14 @@ module Experimental.NoDecs.OpetopicType where
 
 
   --
-  --  Equations for maps 
+  --  Equational Structure
   --
   
   postulate
+
+    --
+    --  Laws for maps
+    -- 
   
     Frm⇒-id : ∀ {n ℓ} (X : 𝕆Type n ℓ) (f : Frm X)
       → Frm⇒ (id-map X) f ↦ f
@@ -140,11 +142,9 @@ module Experimental.NoDecs.OpetopicType where
       → τ ⊙ (σ ⊙ ρ) ↦ τ ⊙ σ ⊙ ρ
     {-# REWRITE map-assoc #-} 
 
-  --
-  --  Monadic Laws
-  --
-
-  postulate
+    --
+    --  Laws for positions types and inhabitants
+    --
 
     -- Typing and Inhabitants of μ and η
     Typ-η : ∀ {n ℓ} {X : 𝕆Type n ℓ}
@@ -202,7 +202,10 @@ module Experimental.NoDecs.OpetopicType where
       → μ (id-map X) P Q s ϕ ⊚ p ↦ (ϕ (μ-fst (id-map X) P Q s ϕ p) ⊚ μ-snd (id-map X) P Q s ϕ p) 
     {-# REWRITE ⊚-μ-idmap #-}
 
+    --
     -- Laws for positions
+    --
+    
     -- η-pos-elim-β : ∀ {n ℓ ℓ'} {X : 𝕆Type n ℓ}
     --   → {P : Frm X → Type ℓ}
     --   → {f : Frm X} (x : P f)
@@ -237,8 +240,11 @@ module Experimental.NoDecs.OpetopicType where
       → (p : Pos Q (μ σ P Q s ϕ))
       → μ-pos σ P Q s ϕ (μ-fst σ P Q s ϕ p) (μ-snd σ P Q s ϕ p) ↦ p
     {-# REWRITE μ-pos-η #-}
-    
+
+    --
     -- Monad Laws
+    --
+    
     unit-left : ∀ {n ℓ} (X Y : 𝕆Type n ℓ)
       → (P : Frm X → Type ℓ)
       → (Q : Frm Y → Type ℓ)
@@ -265,6 +271,7 @@ module Experimental.NoDecs.OpetopicType where
       → μ τ Q R (μ σ P Q s ϕ) ψ ↦ μ (τ ⊙ σ) P R s (λ p → μ τ Q R (ϕ p) (λ q → ψ (μ-pos σ P Q s ϕ p q)))
     {-# REWRITE μ-assoc #-}
 
+    -- BUG!  Specialized for id-map ...
     μ-assoc-idmap-l : ∀ {n ℓ} (X Z : 𝕆Type n ℓ)
       → (P : Frm X → Type ℓ)
       → (Q : Frm X → Type ℓ)
@@ -276,29 +283,31 @@ module Experimental.NoDecs.OpetopicType where
       → μ τ Q R (μ (id-map X) P Q s ϕ) ψ ↦ μ τ P R s (λ p → μ τ Q R (ϕ p) (λ q → ψ (μ-pos (id-map X) P Q s ϕ p q)))
     {-# REWRITE μ-assoc-idmap-l #-}
 
-  smap : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+  map-src : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (σ : X ⇒ Y)
     → (P : Frm X → Type ℓ)
-    → (Q : Frm X → Type ℓ)
+    → (Q : Frm Y → Type ℓ)
     → {f : Frm X} (s : Src P f)
-    → (ϕ : (p : Pos P s) → Q (Typ P s p))
-    → Src Q f
-  smap {X = X} P Q s ϕ = μ (id-map X) P Q s (λ p → η Q (ϕ p))
+    → (ϕ : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+    → Src Q (Frm⇒ σ f)
+  map-src σ P Q s ϕ = μ σ P Q s (λ p → η Q (ϕ p))
 
-  smap-pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+  map-src-lift : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (σ : X ⇒ Y)
     → (P : Frm X → Type ℓ)
-    → (Q : Frm X → Type ℓ)
+    → (Q : Frm Y → Type ℓ)
     → {f : Frm X} (s : Src P f)
-    → (ϕ : (p : Pos P s) → Q (Typ P s p))
-    → (p : Pos P s) → Pos Q (smap P Q s ϕ)
-  smap-pos {X = X} P Q s ϕ p = μ-pos (id-map X) P Q s (λ p → η Q (ϕ p)) p (η-pos Q (ϕ p)) 
+    → (ϕ : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+    → (p : Pos Q (map-src σ P Q s ϕ))
+    → Pos P s
+  map-src-lift σ P Q s ϕ = μ-fst σ P Q s (λ p → η Q (ϕ p))  
 
-  smap-pos-inv : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → (P : Frm X → Type ℓ)
-    → (Q : Frm X → Type ℓ)
-    → {f : Frm X} (s : Src P f)
-    → (ϕ : (p : Pos P s) → Q (Typ P s p))
-    → Pos Q (smap P Q s ϕ) → Pos P s
-  smap-pos-inv {X = X} P Q s ϕ p = μ-fst (id-map X) P Q s (λ p → η Q (ϕ p)) p 
+  -- map-src-pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+  --   → (P : Frm X → Type ℓ)
+  --   → (Q : Frm X → Type ℓ)
+  --   → {f : Frm X} (s : Src P f)
+  --   → (ϕ : (p : Pos P s) → Q (Typ P s p))
+  --   → (p : Pos P s) → Pos Q (map-src P Q s ϕ)
+  -- map-src-pos {X = X} P Q s ϕ p = μ-pos (id-map X) P Q s (λ p → η Q (ϕ p)) p (η-pos Q (ϕ p)) 
+
 
   𝕆Type zero ℓ = Lift Unit
   𝕆Type (suc n) ℓ =
@@ -337,6 +346,19 @@ module Experimental.NoDecs.OpetopicType where
          → (flr : U (f , μ (id-map X) Branch P brs (λ p → η P (stm (brs ⊚ p))) , tgt))
          → Pd (f , μ (id-map X) Branch P brs (λ p → lvs (brs ⊚ p)) , tgt)
 
+    γ : {frm : Frm X} {src : Src P frm} {tgt : P frm} (pd : Pd (frm , src , tgt ))
+      → (ϕ : (p : Pos P src) → Σ[ lvs ∈ Src P (Typ P src p) ] Pd (Typ P src p , lvs , src ⊚ p))
+      → Pd (frm , μ (id-map X) P P src (λ p → fst (ϕ p)) , tgt)
+    γ (lf tgt) ϕ = snd (ϕ (η-pos P tgt))
+    γ (nd tgt brs flr) ϕ = 
+      let ψ p = [ stm (brs ⊚ p)
+                , μ (id-map X) P P (lvs (brs ⊚ p))
+                    (λ p₁ → fst (ϕ (μ-pos (id-map X) Branch P brs (λ r → lvs (brs ⊚ r)) p p₁))) 
+                , γ (br (brs ⊚ p)) (λ q → ϕ (μ-pos (id-map X) Branch P brs (λ r → lvs (brs ⊚ r)) p q))
+                ] 
+      in nd tgt (map-src (id-map X) Branch Branch brs ψ) flr  
+
+
   Src {zero} P _ = P tt*
   Src {suc n} U = Pd U
 
@@ -355,9 +377,45 @@ module Experimental.NoDecs.OpetopicType where
   _⊚_ {suc n} (nd tgt brs flr) (inl _) = flr
   _⊚_ {suc n} (nd tgt brs flr) (inr (p , q)) = br (brs ⊚ p) ⊚ q
 
+  _⇒_ {zero} X Y = Lift Unit
+  _⇒_ {suc n} (X , P) (Y , Q) =
+    Σ[ σ ∈ X ⇒ Y ]
+    ({f : Frm X} → P f → Q (Frm⇒ σ f))
+
+  id-map {zero} X = tt*
+  id-map {suc n} (X , P) = id-map X , λ p → p
+
+  _⊙_ {zero} {X = X} {Y} {Z} σ τ = tt*
+  _⊙_ {suc n} {X = X , P} {Y , Q} {Z , R} (σₙ , σₛₙ) (τₙ , τₛₙ) =
+    σₙ ⊙ τₙ , λ p → σₛₙ (τₛₙ p)
+
+  Frm⇒ {zero} σ f = tt*
+  Frm⇒ {suc n} {X = X , P} {Y = Y , Q} (σₙ , σₛₙ) (frm , src , tgt) =
+    Frm⇒ σₙ frm , map-src σₙ P Q src (λ p → σₛₙ (src ⊚ p)) , σₛₙ tgt
+
   η {zero} P x = x
-  η {suc n} {X = X , P} U {f = f , s , t} x =
-    let brs = μ (id-map X) P (Branch U) s (λ p → η (Branch U) [ s ⊚ p , η P (s ⊚ p) , lf (s ⊚ p) ])
-    in nd t brs x
-      
+  η {suc n} {X = X , P} U {f = frm , src , tgt} x =
+    let brs = map-src (id-map X) P (Branch U) src (λ p → [ src ⊚ p , η P (src ⊚ p) , lf (src ⊚ p) ])
+    in nd tgt brs x
+
+  η-pos {zero} P x = tt*
+  η-pos {suc n} P x = inl tt
+
+  μ {zero} {X = X} σ P Q s ϕ = ϕ tt*
+  μ {suc n} {X = X , P} (σₙ , σₛₙ) U V (lf tgt) ϕ = lf (σₛₙ tgt)
+  μ {suc n} {X = X , P} {Y , Q} (σₙ , σₛₙ) U V (nd {f} tgt brs flr) ϕ = γ V w ϕ'
+
+    where src' : Src Q (Frm⇒ σₙ f)
+          src' = map-src σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p)))
+
+          w : Pd V (Frm⇒ σₙ f , src' , σₛₙ tgt)
+          w = ϕ (inl tt)
+
+          ϕ' : (p : Pos Q src') → Σ[ lvs ∈ Src Q (Typ Q src' p) ] (Pd V (Typ Q src' p , lvs , src' ⊚ p))
+          ϕ' p = map-src σₙ P Q (lvs (brs ⊚ p')) (λ q → σₛₙ (lvs (brs ⊚ p') ⊚ q)) ,
+                 μ (σₙ , σₛₙ) U V (br (brs ⊚ p')) (λ q → ϕ (inr (p' , q)))
+
+            where p' : Pos (Branch U) brs
+                  p' = map-src-lift σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p))) p
+
 
