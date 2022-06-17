@@ -13,6 +13,15 @@ open import Experimental.NoDecs.Structures
 
 module Experimental.NoDecs.Category where
 
+open import Core.Prelude
+μ' : ∀ {n ℓ} {X : 𝕆Type n ℓ} (P : Frm X → Type ℓ) {f : Frm X} → Src (Src P) f → Src P f
+μ' {X = X} P s = μ (id-map X) (Src P) P s (λ p → s ⊚ p)
+                                                         
+{-μ-factors : ∀ {n ℓ} {X Y : 𝕆Type (suc n) ℓ} (σ : X ⇒ Y) (P : Frm X → Type ℓ) (Q : Frm Y → Type ℓ) {f : Frm X} (s : Src P f) →
+  (m : (p : Pos P s) → Src Q (Frm⇒ σ (Typ P s p))) →
+  μ σ P Q s m ≡ μ' Q (map-src σ P (Src Q) s m)
+  μ-factors σ P Q s m = {!!}-}
+
 module _ {ℓ} (C : Category ℓ ℓ) where
   open Category C renaming (id to C-id ; _⋆_ to _⨀_)
 
@@ -35,11 +44,28 @@ module _ {ℓ} (C : Category ℓ ℓ) where
     X₂ : Frm ((tt* , X₀) , X₁) → Type ℓ
     X₂ (f , s , t) = C-src-comp s ≡ t
 
+    -- lemma relating C-src-comp to μ
+    {-# TERMINATING #-}
+    pre-big-lemma : {f : Frm (tt* , X₀)} (brs : Src (Src X₁) f) →
+      C-src-comp (μ (id-map _) (Src X₁) X₁ brs λ p → brs ⊚ p) ≡
+      C-src-comp (μ (id-map _) (Src X₁) X₁ brs λ p → η X₁ (C-src-comp (brs ⊚ p)))
+    pre-big-lemma (lf tgt) = refl
+    pre-big-lemma (nd _ brs (lf _)) = pre-big-lemma (br brs) ∙ sym (⋆IdR _)
+    pre-big-lemma (nd tgt brs (nd _ [ stm₁ , _ , br₁ ] flr)) = (cong (_⨀ flr) (pre-big-lemma (nd stm₁ brs br₁))) ∙ ⋆Assoc _ (C-src-comp br₁) flr
+
     big-lemma : {X₁' : Frm (tt* , X₀) → Type ℓ} {f : Frm (tt* , X₀)} (brs : Src X₁' f) →
       (truc : (p : Pos X₁' brs) → Src X₁ (Frm⇒ (id-map _) (Typ X₁' brs p))) →
       C-src-comp (μ (id-map _) X₁' X₁ brs truc) ≡
       C-src-comp (μ (id-map _) X₁' X₁ brs λ p → η X₁ (C-src-comp (truc p)))
-    big-lemma = {!!}
+    big-lemma {X₁'} (lf tgt) truc = refl
+    big-lemma {X₁'} (nd tgt brs flr) truc with (truc nd-here) -- doesn't work as intended
+    ... | lf .(stm brs) = {!!}
+    ... | nd _ [ stm₁ , .(stm brs) , br₁ ] flr₁ = {!!}
+
+    {-cong C-src-comp (μ-factors (id-map (tt* , X₀)) X₁' X₁ s truc) ∙
+      pre-big-lemma (map-src (id-map (tt* , X₀)) X₁' (Src X₁) s truc) ∙
+      {!!}
+      -- ∙ sym (cong C-src-comp (μ-factors ((id-map (tt* , X₀))) X₁' X₁ s λ p → η X₁ (C-src-comp (truc p))))-}
 
     {-# TERMINATING #-}
     C-2-src-comp : {f : Frm ((tt* , X₀) , X₁)} → Src X₂ f → X₂ f
@@ -83,3 +109,4 @@ module _ {ℓ} (C : Category ℓ ℓ) where
     fill-fib isInfCatCat f s = lemma
     hom-fib (hom-fib isInfCatCat) = is-fib-ext-𝕋Ext
     fill-fib (hom-fib isInfCatCat) (f , s , t) s' = (C-2-src-comp s' , tt*) , λ y → Σ≡Prop (λ _ _ _ → refl) (isSetHom _ _ _ _)
+
