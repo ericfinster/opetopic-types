@@ -564,3 +564,17 @@ module Experimental.NoDecs.OpetopicType where
     in γ-pos-elim V w ϕ' (λ p → PdPos V (ϕ (μ-fst (σₙ , σₛₙ) U V (nd tgt brs flr) ϕ p)))
           (λ p → p) (λ p q → let p' = map-pos↑ σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p))) p
                              in μ-snd (σₙ , σₛₙ) U V (br (brs ⊚ p')) (λ q → ϕ (nd-there p' q)) q) p
+
+
+  -- Useful definitions a posteriori
+  Inhab : ∀ {n ℓ} {X : 𝕆Type n ℓ} (P : Frm X → Type ℓ) {f : Frm X} (s : Src P f) (p : Pos P s) → P (Typ P s p)
+  Inhab {zero} P s p = s
+  Inhab {suc n} P s p = PdInhab P s p
+
+  Src⇒ : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (σ : X ⇒ Y)
+    → (P : Frm X → Type ℓ)
+    → (Q : Frm Y → Type ℓ)
+    → ({f : Frm X} → P f → Q (Frm⇒ σ f))
+    → {f : Frm X} (s : Src P f)
+    → Src Q (Frm⇒ σ f)
+  Src⇒ σ P Q σ' {f} s = map-src σ P Q s λ p → σ' (Inhab _ _ p)
