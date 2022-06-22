@@ -48,3 +48,36 @@ open import Experimental.NoDecs.Shapes
 
 test3 : snd test2 _ -- since we use records everywhere, agda understands there is only one frame in the product
 test3 = 3 ∣ 4
+
+
+-- Fibrancy
+fst-src : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (P : Frm X → Type ℓ) (Q : Frm Y → Type ℓ) {f : Frm (prod X Y)} → Src (prod-cell P Q) f → Src P (Frm⇒ Fst f)
+fst-src {n} {ℓ} {X} {Y} P Q {f} s = Src⇒ Fst (prod-cell P Q) P fstₒ s
+
+snd-src : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (P : Frm X → Type ℓ) (Q : Frm Y → Type ℓ) {f : Frm (prod X Y)} → Src (prod-cell P Q) f → Src Q (Frm⇒ Snd f)
+snd-src {n} {ℓ} {X} {Y} P Q {f} s = Src⇒ Snd (prod-cell P Q) Q sndₒ s
+
+open import Experimental.NoDecs.Structures
+-- Since Inhab is defined differently when n=0 or n=(suc k), the following pattern matching is required for agda to type-check
+charac-filler-prod : ∀ {n ℓ} {X Y : 𝕆Type (suc n) ℓ} (P : Frm X → Type ℓ) (Q : Frm Y → Type ℓ)
+  {f : Frm (prod (fst X) (fst Y))} (s : Src (prod-cell (snd X) (snd Y)) f) →
+  Iso
+    (horn-filler (prod-cell P Q) s)
+    (horn-filler P (fst-src (snd X) (snd Y) s) × horn-filler Q (snd-src (snd X) (snd Y) s))
+charac-filler-prod {zero} P Q s = iso g h (λ _ → refl) (λ _ → refl) where
+  g : _
+  g (tgt , cell) = (fstₒ tgt , fstₒ cell) , (sndₒ tgt , sndₒ cell)
+  h : _
+  h ((tgt₁ , cell₁) , (tgt₂ , cell₂)) = (tgt₁ ∣ tgt₂) , (cell₁ ∣ cell₂)
+charac-filler-prod {suc n} P Q s = iso g h (λ _ → refl) λ _ → refl where
+  g : _
+  g (tgt , cell) = (fstₒ tgt , fstₒ cell) , (sndₒ tgt , sndₒ cell)
+  h : _
+  h ((tgt₁ , cell₁) , (tgt₂ , cell₂)) = (tgt₁ ∣ tgt₂) , (cell₁ ∣ cell₂)
+
+is-fib-prod : ∀ {n ℓ} {X Y : 𝕆Type (suc (suc n)) ℓ} → is-fibrant X → is-fibrant Y → is-fibrant (prod X Y)
+is-fib-prod {X = (X , P) , P'} {Y = (Y , Q) , Q'} fibX fibY f s =
+  -- I'm sure there's a proof in the library that isos/equivs respect HLevel, but I can't find it anymore, so instead I used isContrRetract
+  isContrRetract (Iso.fun charac) (Iso.inv charac) (Iso.leftInv charac) (isContrΣ (fibX _ _) λ _ → fibY _ _)
+  where
+  charac = charac-filler-prod P' Q' s
