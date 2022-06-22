@@ -81,7 +81,7 @@ module Experimental.NoDecs.Representables where
     (η _ {f = max-frm n (π , _ , tt*)} (lf-cell π)) ,
     (lf-cell π)
 
-  -- Dimension 2 
+  -- Dimension 2 - ngons for n > 0
   max-frm (suc zero) ((π , ._ , tt*) , nd .tt* vbr tt* , tt*) = 
     tt* , nd-cell-there tt* vbr tt* (max-frm (suc zero) (_ , br vbr , tt*) .snd .fst) ,
           nd-cell-here tt* vbr
@@ -95,7 +95,18 @@ module Experimental.NoDecs.Representables where
     {!!} , {!!} , {!!}
   
   -- Dimension ≥ 3 - climbing the root box
-  max-frm (suc (suc n)) ((._ , ._ , tt*) , nd .tt* (nd tt* hbrs [ tt* , ._ , nd .tt* brs flr ]) tt* , tt*) = {!!}
+  max-frm (suc (suc n)) ((._ , ._ , tt*) , nd .tt* (nd tt* hbrs [ tt* , ._ , nd .tt* brs tt* ]) tt* , tt*) = {!!}
+
+
+
+-- brs  : Pd (Branch (λ _ → Lift Unit))
+--        (f ,
+--         μ (id-map (𝕋 n)) (Branch (Branch (λ _ → Lift Unit)))
+--         (λ _ → Lift Unit) hbrs (λ p → η (λ _ → Lift Unit) (stm (hbrs ⊚ p)))
+--         , tt*)
+-- hbrs : Src (Branch (Branch (λ _ → Lift Unit))) f
+-- f    : Frm (𝕋 n)   (not in scope)
+-- n    : ℕ
 
 
   -- -- Dimension 2 - The output cell is always the nd-cell-here

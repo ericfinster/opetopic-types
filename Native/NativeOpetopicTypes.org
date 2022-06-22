@@ -1,0 +1,64 @@
+
+* Hacking Notes for Native Opetopic Types
+
+** Compiling Agda
+
+make install-bin 
+
+** Places to change when adding a new builtin
+
+*** Give a name to the builtin in [[file:~/Code/agda/Agda-2.6.3/src/full/Agda/Syntax/Builtin.hs::builtinNat, builtinSuc, builtinZero, builtinNatPlus, builtinNatMinus,][Syntax/Builtin.hs]]
+*** Add to list of primitives in [[file:~/Code/agda/Agda-2.6.3/src/full/Agda/TypeChecking/Monad/Builtin.hs::primInteger, primIntegerPos, primIntegerNegSuc,][Monad/Builtin.hs]]
+*** Define the builtin in [[file:~/Code/agda/Agda-2.6.3/src/full/Agda/TypeChecking/Rules/Builtin.hs::, (builtinOpetope |-> BuiltinData (tnat --> tset) \[\])][Rules/Builtin.hs]]
+
+** Places to change to add a new primitive
+
+*** Link the implementation in [[file:~/Code/agda/Agda-2.6.3/src/full/Agda/TypeChecking/Primitive.hs::, "primInhab" |-> primInhab'][Primitive.hs]]
+
+** References to various interesting files
+
+*** Cubical
+
+**** Cubical primitive [[file:~/Code/agda/Agda-2.6.3/src/full/Agda/TypeChecking/Primitive/Cubical.hs::requireCubical][implementations]]
+**** Cubical primitive Agda [[file:~/Code/agda/Agda-2.6.3/src/data/lib/prim/Agda/Primitive/Cubical.agda::{-# OPTIONS --erased-cubical #-}][links]]
+**** Implementation of native [[file:~/Code/agda/Agda-2.6.3/src/data/lib/prim/Agda/Builtin/Cubical/Glue.agda::_≃_ : ∀ {ℓ ℓ'} (A : Set ℓ) (B : Set ℓ') → Set (ℓ ⊔ ℓ')][equivalences]]
+
+This shows how BuiltinUnknown is used for a builtin which can be given
+a definition in Agda, but it's type must be known for the whole
+signature to work.
+
+*** Agda
+
+**** [[file:~/Code/agda/Agda-2.6.3/src/full/Agda/Syntax/Internal.hs::data Term = Var {-# UNPACK #-} !Int Elims -- ^ @x es@ neutral][Internal Syntax]] (i.e Terms)
+
+**** Smart term constructors: [[file:~/Code/agda/Agda-2.6.3/src/full/Agda/TypeChecking/Primitive/Base.hs::gpi :: (MonadAddContext m, MonadDebug m)][Primitive/Base.hs]]
+
+These are the main tools for writing internal code as far as I can
+see...
+
+**** Definition of [[file:~/Code/agda/Agda-2.6.3/src/full/Agda/TypeChecking/Names.hs::cl :: Monad m => m a -> NamesT m a][cl]]
+
+Appears to just be lifting a monadic computation into the names guy...
+
+**** Definition of Sigma "Kit": [[file:~/Code/agda/Agda-2.6.3/src/full/Agda/TypeChecking/Primitive/Base.hs::data SigmaKit = SigmaKit][sigma kit]]
+
+Shows how to retrieve constructors and so on.
+
+**** Level view and an example of using the debug print is [[file:~/Code/agda/Agda-2.6.3/src/full/Agda/TypeChecking/Level.hs::levelView :: PureTCM m => Term -> m Level][here]].
+
+Shows how to match on definitions
+
+** Things To Do
+
+*** TODO Builtins should depend on --opetopic-types
+
+*** Local Signature which needs adding
+
+**** TODO Branch
+**** TODO Tr
+**** TODO TrPos
+**** TODO Gamma
+**** TODO GammaInl
+**** TODO GammaInr
+**** TODO GammaElim
+
