@@ -205,4 +205,8 @@ module Native.Opetopes where
     → Frm⇒ (id-map X) f ≡ f
   Frm⇒-id X f = refl 
 
-  -- Nice!!!
+  Frm⇒-⊙ : ∀ {n ℓ} {X Y Z : 𝕆Type n ℓ}
+    → (σ : X ⇒ Y) (τ : Y ⇒ Z) (f : Frm X)
+    → Frm⇒ (τ ⊙ σ) f ≡ Frm⇒ τ (Frm⇒ σ f)
+  Frm⇒-⊙ σ τ f = refl 
+
