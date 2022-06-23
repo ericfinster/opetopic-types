@@ -15,15 +15,6 @@ module Native.Opetopes where
     renaming (Nat to ℕ)
 
   open import Agda.Builtin.Sigma public
-  open import Agda.Builtin.Unit public
-
-  -- Need lifting 
-  record Lift {i j} (A : Type i) : Type (ℓ-max i j) where
-    constructor lift
-    field
-      lower : A
-
-  open Lift public
 
   -- Σ-types
   infix 2 Σ-syntax
@@ -34,6 +25,15 @@ module Native.Opetopes where
   syntax Σ-syntax A (λ x → B) = Σ[ x ∈ A ] B
 
   --
+  --  Universe Polymorphic Unit Type
+  -- 
+  
+  record ● {ℓ} : Type ℓ where
+    constructor ∙
+
+  {-# BUILTIN POLYUNIT ● #-}
+  
+  --
   --  Opetopic Types 
   --
 
@@ -41,45 +41,44 @@ module Native.Opetopes where
   Frm : ∀ {n ℓ} → 𝕆Type n ℓ → Type ℓ
 
   postulate
-
-    Pd : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+    
+    Src : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → (P : Frm X → Type ℓ)
       → Frm X → Type ℓ
 
+  𝕆Type zero ℓ = ●
+  𝕆Type (suc n) ℓ =
+    Σ[ X ∈ 𝕆Type n ℓ ]
+    (Frm X → Type ℓ)
+
+  Frm {zero} X = ●
+  Frm {suc n} (X , P) =
+    Σ[ f ∈ Frm X ]
+    Σ[ src ∈ Src P f ]
+    P f
+
+  {-# BUILTIN OPETOPICTYPE 𝕆Type #-}
+  {-# BUILTIN FRM Frm #-}
+
+  postulate
+
     Pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → (P : Frm X → Type ℓ)
-      → {f : Frm X} (s : Pd P f)
+      → {f : Frm X} (s : Src P f)
       → Type ℓ
 
     Typ : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → (P : Frm X → Type ℓ)
-      → {f : Frm X} (s : Pd P f)
+      → {f : Frm X} (s : Src P f)
       → (p : Pos P s) → Frm X 
 
     Inhab : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → (P : Frm X → Type ℓ)
-      → {f : Frm X} (s : Pd P f)
+      → {f : Frm X} (s : Src P f)
       → (p : Pos P s)
-      → P (Typ P s p)
+      → P (Typ P s p)  
 
-  -- data OType {ℓ} : ℕ → Type (ℓ-suc ℓ) where
-  --   ● : OType zero
-  --   _▸_ : {n : ℕ} (X : OType n) (P : Frm X → Type ℓ)
-  --     → OType (suc n)
-
-  𝕆Type zero ℓ = Lift ⊤ 
-  𝕆Type (suc n) ℓ =
-    Σ[ X ∈ 𝕆Type n ℓ ]
-    ((f : Frm X) → Type ℓ)
-
-  Frm {zero} X = Lift ⊤ 
-  Frm {suc n} (X , P) = 
-    Σ[ f ∈ Frm X ]
-    Σ[ pd ∈ Pd P f ] P f
-  
-  {-# BUILTIN OPETOPICTYPE 𝕆Type #-} 
-  {-# BUILTIN FRM Frm #-}
-  {-# BUILTIN PD Pd #-} 
+  {-# BUILTIN SRC Src #-}
   {-# BUILTIN POS Pos #-}
   {-# BUILTIN TYP Typ #-}
   {-# BUILTIN INHAB Inhab #-}
@@ -88,23 +87,33 @@ module Native.Opetopes where
   --  Maps of Opetopic Types
   --
 
+  _⇒_ : ∀ {n ℓ} → 𝕆Type n ℓ → 𝕆Type n ℓ → Type ℓ
+  id-map : ∀ {n ℓ} → (X : 𝕆Type n ℓ) → X ⇒ X
+  
   postulate
-
-    _⇒_ : ∀ {n ℓ} → 𝕆Type n ℓ → 𝕆Type n ℓ → Type ℓ 
-
-    id-map : ∀ {n ℓ} → (X : 𝕆Type n ℓ) → X ⇒ X
-
-    _⊙_ : ∀ {n ℓ} {X Y Z : 𝕆Type n ℓ}
-      → Y ⇒ Z → X ⇒ Y → X ⇒ Z
 
     Frm⇒ : ∀ {n ℓ} {X Y : 𝕆Type n ℓ}
       → (σ : X ⇒ Y)
       → Frm X → Frm Y
 
   {-# BUILTIN OPETOPICMAP _⇒_ #-}
-  {-# BUILTIN IDMAP id-map #-}
-  {-# BUILTIN MAPCOMP _⊙_ #-}
   {-# BUILTIN FRMMAP Frm⇒ #-}
+  {-# BUILTIN IDMAP id-map #-}
+
+  _⇒_ {zero} X Y = ●
+  _⇒_ {suc n} (X , P) (Y , Q) =
+    Σ[ σ ∈ X ⇒ Y ]
+    ({f : Frm X} → P f → Q (Frm⇒ σ f))
+
+  id-map {zero} X = ∙
+  id-map {suc n} (X , P) = id-map X , λ p → p
+
+  postulate
+  
+    _⊙_ : ∀ {n ℓ} {X Y Z : 𝕆Type n ℓ}
+      → Y ⇒ Z → X ⇒ Y → X ⇒ Z
+
+  {-# BUILTIN MAPCOMP _⊙_ #-}
 
   --
   --  Monadic Signature
@@ -115,7 +124,7 @@ module Native.Opetopes where
     η : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → (P : Frm X → Type ℓ)
       → {f : Frm X} (x : P f)
-      → Pd P f 
+      → Src P f 
 
     η-pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → (P : Frm X → Type ℓ)
@@ -125,34 +134,34 @@ module Native.Opetopes where
     μ : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (σ : X ⇒ Y)
       → (P : Frm X → Type ℓ)
       → (Q : Frm Y → Type ℓ)
-      → {f : Frm X} (s : Pd P f)
-      → (ϕ : (p : Pos P s) → Pd Q (Frm⇒ σ (Typ P s p)))
-      → Pd Q (Frm⇒ σ f)
+      → {f : Frm X} (s : Src P f)
+      → (ϕ : (p : Pos P s) → Src Q (Frm⇒ σ (Typ P s p)))
+      → Src Q (Frm⇒ σ f)
 
     μ-pos : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (σ : X ⇒ Y)
       → (P : Frm X → Type ℓ)
       → (Q : Frm Y → Type ℓ)
-      → {f : Frm X} (s : Pd P f)
-      → (ϕ : (p : Pos P s) → Pd Q (Frm⇒ σ (Typ P s p)))
+      → {f : Frm X} (s : Src P f)
+      → (ϕ : (p : Pos P s) → Src Q (Frm⇒ σ (Typ P s p)))
       → (p : Pos P s) (q : Pos Q (ϕ p))
       → Pos Q (μ σ P Q s ϕ) 
 
     μ-fst : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (σ : X ⇒ Y)
       → (P : Frm X → Type ℓ)
       → (Q : Frm Y → Type ℓ)
-      → {f : Frm X} (s : Pd P f)
-      → (ϕ : (p : Pos P s) → Pd Q (Frm⇒ σ (Typ P s p)))
+      → {f : Frm X} (s : Src P f)
+      → (ϕ : (p : Pos P s) → Src Q (Frm⇒ σ (Typ P s p)))
       → (p : Pos Q (μ σ P Q s ϕ))
       → Pos P s  
 
     μ-snd : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (σ : X ⇒ Y)
       → (P : Frm X → Type ℓ)
       → (Q : Frm Y → Type ℓ)
-      → {f : Frm X} (s : Pd P f)
-      → (ϕ : (p : Pos P s) → Pd Q (Frm⇒ σ (Typ P s p)))
+      → {f : Frm X} (s : Src P f)
+      → (ϕ : (p : Pos P s) → Src Q (Frm⇒ σ (Typ P s p)))
       → (p : Pos Q (μ σ P Q s ϕ))
       → Pos Q (ϕ (μ-fst σ P Q s ϕ p))
-
+ 
   {-# BUILTIN UNT η #-} 
   {-# BUILTIN UNTPOS η-pos #-} 
 
@@ -160,7 +169,7 @@ module Native.Opetopes where
   {-# BUILTIN SUBSTPOS μ-pos #-}
   {-# BUILTIN SUBSTFST μ-fst #-}
   {-# BUILTIN SUBSTSND μ-snd #-}
-  
+
   --
   --  Trees and Their Positions
   --
@@ -177,7 +186,7 @@ module Native.Opetopes where
       constructor [_,_,_]
       field
         stm : P f
-        lvs : Pd P f
+        lvs : Src P f
         br : Tr (f , lvs , stm)
 
     open Branch public
@@ -188,7 +197,7 @@ module Native.Opetopes where
          → Tr (f , η P tgt , tgt) 
 
       nd : {f : Frm X} (tgt : P f)
-         → (brs : Pd Branch f)
+         → (brs : Src Branch f)
          → (flr : U (f , μ (id-map X) Branch P brs (λ p → η P (stm (Inhab Branch brs p))) , tgt)) 
          → Tr (f , μ (id-map X) Branch P  brs (λ p → lvs (Inhab Branch brs p)) , tgt)
 
