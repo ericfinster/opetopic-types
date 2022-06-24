@@ -258,6 +258,20 @@ postulate
     → μ↓ τ↓ Q↓ R↓ (μ↓ (id-map↓ X↓) P↓ Q↓ s↓ ϕ↓) ψ↓ ↦ μ↓ τ↓ P↓ R↓ s↓ λ p → μ↓ τ↓ Q↓ R↓ (ϕ↓ p) (λ q → ψ↓ (μ-pos (id-map X) P Q s ϕ p q))
   {-# REWRITE μ↓-assoc-idmap-l #-}
 
+map-src↓ : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
+  → {X↓ : 𝕆Fam X ℓ} {Y↓ : 𝕆Fam Y ℓ}
+  → (σ↓ : X↓ ⇒[ σ ] Y↓)
+  → {P : Frm X → Type ℓ₀}
+  → {Q : Frm Y → Type ℓ₀}
+  → (P↓ : {f : Frm X} (f↓ : Frm↓ X↓ f) → P f → Type ℓ)
+  → (Q↓ : {f : Frm Y} (f↓ : Frm↓ Y↓ f) → Q f → Type ℓ)
+  → {f : Frm X} {s : Src P f}
+  → {f↓ : Frm↓ X↓ f} (s↓ : Src↓ P↓ f↓ s)
+  → {ϕ : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p))}
+  → (ϕ↓ : (p : Pos P s) → Q↓ (Frm↓⇒ σ↓ (Typ↓ P↓ s↓ p)) (ϕ p))
+  → Src↓ Q↓ (Frm↓⇒ σ↓ f↓) (map-src σ P Q s ϕ)
+map-src↓ σ↓ P↓ Q↓ s↓ ϕ↓ = μ↓ σ↓ P↓ Q↓ s↓ (λ p → η↓ Q↓ (ϕ↓ p))
+
 --
 --  Definitions of opetopic families and frames
 𝕆Fam {zero} X ℓ = Lift Unit
@@ -312,7 +326,20 @@ module _ {n ℓ₀ ℓ}
   PdInhab↓ (nd↓ tgt↓ brs↓ flr↓) nd-here = flr↓
   PdInhab↓ (nd↓ tgt↓ brs↓ flr↓) (nd-there p q) = PdInhab↓ (br↓ (brs↓ ⊚↓ p)) q
 
-  --γ↓ : ?
+  {-# TERMINATING #-} -- Not sure why needed here and not in the normal γ
+  γ↓ : {frm : Frm X} {src : Src P frm} {tgt : P frm}
+    → {frm↓ : Frm↓ X↓ frm} {src↓ : Src↓ P↓ frm↓ src} {tgt↓ : P↓ frm↓ tgt}
+    → {pd : Pd U (frm , src , tgt)}
+    → (pd↓ : Pd↓ (frm↓ , src↓ , tgt↓) pd)
+    → {ϕ : (p : Pos P src) → Σ[ lvs ∈ Src P (Typ P src p) ] Pd U (Typ P src p , lvs , src ⊚ p)}
+    → (ϕ↓ : (p : Pos P src) → Σ[ lvs↓ ∈ Src↓ P↓ (Typ↓ P↓ src↓ p) (fst (ϕ p)) ] Pd↓ (Typ↓ P↓ src↓ p , lvs↓ , src↓ ⊚↓ p) (snd (ϕ p)))
+    → Pd↓ (frm↓ , μ↓ (id-map↓ X↓) P↓ P↓ src↓ (λ p → fst (ϕ↓ p)) , tgt↓) (γ U pd ϕ)
+  γ↓ {pd = lf tgt} (lf↓ tgt↓) ϕ↓ = snd (ϕ↓ (η-pos P tgt))
+  γ↓ {pd = nd tgt brs flr} (nd↓ tgt↓ brs↓ flr↓) ϕ↓ =
+    let ψ↓ p = [ stm↓ (brs↓ ⊚↓ p)
+              , μ↓ (id-map↓ X↓) P↓ P↓ (lvs↓ (brs↓ ⊚↓ p)) (λ q → fst (ϕ↓ (μ-pos (id-map X) (Branch U) P brs (λ r → lvs (brs ⊚ r)) p q)))
+              , (γ↓ (br↓ (brs↓ ⊚↓ p)) (λ q → (ϕ↓ (μ-pos (id-map X) (Branch U) P brs (λ r → lvs (brs ⊚ r)) p q)))) ]↓
+    in nd↓ tgt↓ (map-src↓ (id-map↓ X↓) Branch↓ Branch↓ brs↓ ψ↓) flr↓
 
 
 Src↓ {zero} P↓ f↓ s = P↓ f↓ s
@@ -343,13 +370,50 @@ _⊙↓_ {suc n} (σ↓ , σₛ) (σ↓' , σₛ') = σ↓ ⊙↓ σ↓' , λ x�
   let brs = μ↓ (id-map↓ X↓) P↓ (Branch↓ U↓) s↓ (λ p → η↓ (Branch↓ U↓) [ s↓ ⊚↓ p , η↓ P↓ (s↓ ⊚↓ p) , lf↓ (s↓ ⊚↓ p) ]↓)
   in nd↓ t↓ brs x↓
 
+
+
+
+{-
+
+𝕋↓ : ∀ {n ℓ₀} (X : 𝕆Type n ℓ₀) (ℓ : Level) → 𝕆Fam X ℓ
+𝕋↓ {zero} {ℓ₀} X ℓ = tt*
+𝕋↓ {suc n} {ℓ₀} (X , P) ℓ = (𝕋↓ X ℓ) , (λ f x → Lift Unit)
+
+
+
 _⇛[_]_ : ∀ {n ℓ₀ ℓ} (X : 𝕆Type n ℓ₀) {Y : 𝕆Type n ℓ₀} → (X ⇒ Y) → 𝕆Fam Y ℓ → Type (ℓ-max ℓ₀ ℓ)
 
-postulate
-  Frm⇛ : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
-    {Y↓ : 𝕆Fam Y ℓ} (σ↓ : X ⇛[ σ ] Y↓)
-    (f : Frm X)
-    → Frm↓ Y↓ (Frm⇒ σ f)
+Frm⇛ : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
+  {Y↓ : 𝕆Fam Y ℓ} (σ↓ : X ⇛[ σ ] Y↓)
+  (f : Frm X)
+  → Frm↓ Y↓ (Frm⇒ σ f)
+
+-- "ℒ" for "lift" 
+--ℒ : ∀ {n ℓ₀ ℓ} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y} {Y↓ : 𝕆Fam Y ℓ} → X ⇛[ σ ] Y↓ → 𝕋↓ X ℓ ⇒[ σ ] Y↓
+
+μ↓' : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
+  → {P : Frm X → Type ℓ₀} {Q : Frm Y → Type ℓ₀}
+  → {Y↓ : 𝕆Fam Y ℓ}
+  → (σ↓ : X ⇛[ σ ] Y↓)
+  → (Q↓ : {f : Frm Y} (f↓ : Frm↓ Y↓ f) → Q f → Type ℓ)
+  → {f : Frm X}
+  → {s : Src P f}
+  → {ϕ : (p : Pos P s) → Src Q (Frm⇒ σ (Typ P s p))}
+  → (ϕ↓ : (p : Pos P s) → Src↓ Q↓ (Frm⇛ σ↓ (Typ P s p)) (ϕ p))
+  → Src↓ Q↓ (Frm⇛ σ↓ f) (μ σ P Q s ϕ)
+
+
+{-postulate
+  test-rewrite : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
+    → {Y↓ : 𝕆Fam Y ℓ} (σ↓ : X ⇛[ σ ] Y↓)
+    → (f : Frm X) (f↓ : Frm↓ (𝕋↓ X ℓ) f)
+    → Frm↓⇒ (ℒ σ↓) f↓ ↦ Frm⇛ σ↓ f
+  {-# REWRITE test-rewrite #-}
+-}
 
 _⇛[_]_ {zero} X σ Y↓ = Lift Unit
 _⇛[_]_ {suc n} (X , P) (σ , σₛ) (Y↓ , Q↓) = Σ[ σ↓ ∈ (X ⇛[ σ ] Y↓)] ({f : Frm X} (x : P f) → Q↓ (Frm⇛ σ↓ f) (σₛ x))
+
+Frm⇛ {zero} σ↓ f = tt*
+Frm⇛ {suc n} {Y↓ = Y↓ , Q↓} (σ↓ , σₛ↓) (f , s , t) = Frm⇛ σ↓ f , μ↓' σ↓ Q↓ (λ p → η↓ Q↓ (σₛ↓ (s ⊚ p))) , σₛ↓ t
+-}
