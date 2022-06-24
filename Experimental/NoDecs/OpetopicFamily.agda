@@ -65,12 +65,12 @@ Frm↓⇒ : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
 --  Monadic Structure
 --
 
-postulate
-  η↓ : ∀ {n ℓ₀ ℓ} {X : 𝕆Type n ℓ₀} {P : Frm X → Type ℓ₀} {X↓ : 𝕆Fam X ℓ}
-    → (P↓ : {f : Frm X} (f↓ : Frm↓ X↓ f) → P f → Type ℓ)
-    → {f : Frm X} {f↓ : Frm↓ X↓ f} {x : P f} (x↓ : P↓ f↓ x)
-    → Src↓ {X↓ = X↓} P↓ f↓ (η P x)
+η↓ : ∀ {n ℓ₀ ℓ} {X : 𝕆Type n ℓ₀} {P : Frm X → Type ℓ₀} {X↓ : 𝕆Fam X ℓ}
+   → (P↓ : {f : Frm X} (f↓ : Frm↓ X↓ f) → P f → Type ℓ)
+   → {f : Frm X} {f↓ : Frm↓ X↓ f} {x : P f} (x↓ : P↓ f↓ x)
+   → Src↓ {X↓ = X↓} P↓ f↓ (η P x)
 
+postulate
   μ↓ : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
     → {P : Frm X → Type ℓ₀} {Q : Frm Y → Type ℓ₀}
     → {X↓ : 𝕆Fam X ℓ} {Y↓ : 𝕆Fam Y ℓ}
@@ -215,6 +215,7 @@ postulate
     → {ϕ : (p : Pos P (η P x)) → Src Q (Frm⇒ σ f)}
     → (ϕ↓ : (p : Pos P (η P x)) → Src↓ Q↓ (Frm↓⇒ σ↓ f↓) (ϕ p))
     → μ↓ σ↓ P↓ Q↓ (η↓ P↓ x↓) ϕ↓ ↦ ϕ↓ (η-pos P x)
+  {-# REWRITE μ↓-unit-l #-}
 
   μ↓-unit-r : ∀ {n ℓ₀ ℓ} {X : 𝕆Type n ℓ₀} {P : Frm X → Type ℓ₀}
     → {X↓ : 𝕆Fam X ℓ} {P↓ : {f : Frm X} (f↓ : Frm↓ X↓ f) → P f → Type ℓ}
@@ -337,11 +338,10 @@ id-map↓ {suc n} (X↓ , P↓) = id-map↓ X↓ , λ x → x
 _⊙↓_ {zero} σ↓ σ'↓ = tt*
 _⊙↓_ {suc n} (σ↓ , σₛ) (σ↓' , σₛ') = σ↓ ⊙↓ σ↓' , λ x↓ → σₛ (σₛ' x↓)
 
-
-{-
 η↓ {zero} P↓ x↓ = x↓
-η↓ {suc n} {X = X , P} {P = U} {X↓ = X↓ , P↓} U↓ {f = f , s , t} {f↓ = f↓ , s↓ , t↓} x↓ = nd↓ t↓ (μ↓ (id-map↓ X↓) P↓ (Branch↓ U↓) s↓ (λ p → η↓ (Branch↓ U↓) [ s↓ ⊚↓ p , η↓ P↓ (s↓ ⊚↓ p) , lf↓ (s↓ ⊚↓ p) ]↓)) x↓
--}
+η↓ {suc n} {X↓ = X↓ , P↓} U↓ {f↓ = f↓ , s↓ , t↓} x↓ =
+  let brs = μ↓ (id-map↓ X↓) P↓ (Branch↓ U↓) s↓ (λ p → η↓ (Branch↓ U↓) [ s↓ ⊚↓ p , η↓ P↓ (s↓ ⊚↓ p) , lf↓ (s↓ ⊚↓ p) ]↓)
+  in nd↓ t↓ brs x↓
 
 _⇛[_]_ : ∀ {n ℓ₀ ℓ} (X : 𝕆Type n ℓ₀) {Y : 𝕆Type n ℓ₀} → (X ⇒ Y) → 𝕆Fam Y ℓ → Type (ℓ-max ℓ₀ ℓ)
 
