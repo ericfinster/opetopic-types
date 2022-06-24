@@ -65,22 +65,23 @@ Frm↓⇒ : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
 --  Monadic Structure
 --
 
-η↓ : ∀ {n ℓ₀ ℓ} {X : 𝕆Type n ℓ₀} {P : Frm X → Type ℓ₀} {X↓ : 𝕆Fam X ℓ}
-  → (P↓ : {f : Frm X} (f↓ : Frm↓ X↓ f) → P f → Type ℓ)
-  → {f : Frm X} {f↓ : Frm↓ X↓ f} {x : P f} (x↓ : P↓ f↓ x)
-  → Src↓ {X↓ = X↓} P↓ f↓ (η P x)
+postulate
+  η↓ : ∀ {n ℓ₀ ℓ} {X : 𝕆Type n ℓ₀} {P : Frm X → Type ℓ₀} {X↓ : 𝕆Fam X ℓ}
+    → (P↓ : {f : Frm X} (f↓ : Frm↓ X↓ f) → P f → Type ℓ)
+    → {f : Frm X} {f↓ : Frm↓ X↓ f} {x : P f} (x↓ : P↓ f↓ x)
+    → Src↓ {X↓ = X↓} P↓ f↓ (η P x)
 
-μ↓ : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
-  → {P : Frm X → Type ℓ₀} {Q : Frm Y → Type ℓ₀}
-  → {X↓ : 𝕆Fam X ℓ} {Y↓ : 𝕆Fam Y ℓ}
-  → (σ↓ : X↓ ⇒[ σ ] Y↓)
-  → (P↓ : {f : Frm X} (f↓ : Frm↓ X↓ f) → P f → Type ℓ)
-  → (Q↓ : {f : Frm Y} (f↓ : Frm↓ Y↓ f) → Q f → Type ℓ)
-  → {f : Frm X} {f↓ : Frm↓ X↓ f}
-  → {s : Src P f} (s↓ : Src↓ P↓ f↓ s)
-  → {ϕ : (p : Pos P s) → Src Q (Frm⇒ σ (Typ P s p))}
-  → (ϕ↓ : (p : Pos P s) → Src↓ Q↓ (Frm↓⇒ σ↓ (Typ↓ P↓ s↓ p)) (ϕ p))
-  → Src↓ Q↓ (Frm↓⇒ σ↓ f↓) (μ σ P Q s ϕ)
+  μ↓ : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
+    → {P : Frm X → Type ℓ₀} {Q : Frm Y → Type ℓ₀}
+    → {X↓ : 𝕆Fam X ℓ} {Y↓ : 𝕆Fam Y ℓ}
+    → (σ↓ : X↓ ⇒[ σ ] Y↓)
+    → (P↓ : {f : Frm X} (f↓ : Frm↓ X↓ f) → P f → Type ℓ)
+    → (Q↓ : {f : Frm Y} (f↓ : Frm↓ Y↓ f) → Q f → Type ℓ)
+    → {f : Frm X} {f↓ : Frm↓ X↓ f}
+    → {s : Src P f} (s↓ : Src↓ P↓ f↓ s)
+    → {ϕ : (p : Pos P s) → Src Q (Frm⇒ σ (Typ P s p))}
+    → (ϕ↓ : (p : Pos P s) → Src↓ Q↓ (Frm↓⇒ σ↓ (Typ↓ P↓ s↓ p)) (ϕ p))
+    → Src↓ Q↓ (Frm↓⇒ σ↓ f↓) (μ σ P Q s ϕ)
 
 
 --
@@ -337,6 +338,18 @@ _⊙↓_ {zero} σ↓ σ'↓ = tt*
 _⊙↓_ {suc n} (σ↓ , σₛ) (σ↓' , σₛ') = σ↓ ⊙↓ σ↓' , λ x↓ → σₛ (σₛ' x↓)
 
 
-
+{-
 η↓ {zero} P↓ x↓ = x↓
-η↓ {suc n} {X = X , P} {P = U} {X↓ = X↓ , P↓} U↓ {f = f , s , t} {f↓ = f↓ , s↓ , t↓} x↓ = nd↓ t↓ (μ↓ (id-map↓ X↓) P↓ (Branch↓ U↓) s↓ (λ p → η↓ (Branch↓ U↓) [ s↓ ⊚↓ p , η↓ P↓ (s↓ ⊚↓ p) , lf↓ (s↓ ⊚↓ p) ]↓)) {!!}
+η↓ {suc n} {X = X , P} {P = U} {X↓ = X↓ , P↓} U↓ {f = f , s , t} {f↓ = f↓ , s↓ , t↓} x↓ = nd↓ t↓ (μ↓ (id-map↓ X↓) P↓ (Branch↓ U↓) s↓ (λ p → η↓ (Branch↓ U↓) [ s↓ ⊚↓ p , η↓ P↓ (s↓ ⊚↓ p) , lf↓ (s↓ ⊚↓ p) ]↓)) x↓
+-}
+
+_⇛[_]_ : ∀ {n ℓ₀ ℓ} (X : 𝕆Type n ℓ₀) {Y : 𝕆Type n ℓ₀} → (X ⇒ Y) → 𝕆Fam Y ℓ → Type (ℓ-max ℓ₀ ℓ)
+
+postulate
+  Frm⇛ : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
+    {Y↓ : 𝕆Fam Y ℓ} (σ↓ : X ⇛[ σ ] Y↓)
+    (f : Frm X)
+    → Frm↓ Y↓ (Frm⇒ σ f)
+
+_⇛[_]_ {zero} X σ Y↓ = Lift Unit
+_⇛[_]_ {suc n} (X , P) (σ , σₛ) (Y↓ , Q↓) = Σ[ σ↓ ∈ (X ⇛[ σ ] Y↓)] ({f : Frm X} (x : P f) → Q↓ (Frm⇛ σ↓ f) (σₛ x))
