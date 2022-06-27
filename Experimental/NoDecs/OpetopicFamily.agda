@@ -1,4 +1,4 @@
-{-# OPTIONS --no-positivity-check #-}
+{-# OPTIONS --no-positivity-check --no-termination-check #-}
 --
 --  OpetopicFamily.agda - Opetopic Families (dependent opetopic types)
 --
@@ -70,18 +70,17 @@ Frm↓⇒ : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
    → {f : Frm X} {f↓ : Frm↓ X↓ f} {x : P f} (x↓ : P↓ f↓ x)
    → Src↓ {X↓ = X↓} P↓ f↓ (η P x)
 
-postulate
-  μ↓ : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
-    → {P : Frm X → Type ℓ₀} {Q : Frm Y → Type ℓ₀}
-    → {X↓ : 𝕆Fam X ℓ} {Y↓ : 𝕆Fam Y ℓ}
-    → (σ↓ : X↓ ⇒[ σ ] Y↓)
-    → (P↓ : {f : Frm X} (f↓ : Frm↓ X↓ f) → P f → Type ℓ)
-    → (Q↓ : {f : Frm Y} (f↓ : Frm↓ Y↓ f) → Q f → Type ℓ)
-    → {f : Frm X} {f↓ : Frm↓ X↓ f}
-    → {s : Src P f} (s↓ : Src↓ P↓ f↓ s)
-    → {ϕ : (p : Pos P s) → Src Q (Frm⇒ σ (Typ P s p))}
-    → (ϕ↓ : (p : Pos P s) → Src↓ Q↓ (Frm↓⇒ σ↓ (Typ↓ P↓ s↓ p)) (ϕ p))
-    → Src↓ Q↓ (Frm↓⇒ σ↓ f↓) (μ σ P Q s ϕ)
+μ↓ : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
+   → {P : Frm X → Type ℓ₀} {Q : Frm Y → Type ℓ₀}
+   → {X↓ : 𝕆Fam X ℓ} {Y↓ : 𝕆Fam Y ℓ}
+   → (σ↓ : X↓ ⇒[ σ ] Y↓)
+   → (P↓ : {f : Frm X} (f↓ : Frm↓ X↓ f) → P f → Type ℓ)
+   → (Q↓ : {f : Frm Y} (f↓ : Frm↓ Y↓ f) → Q f → Type ℓ)
+   → {f : Frm X} {f↓ : Frm↓ X↓ f}
+   → {s : Src P f} (s↓ : Src↓ P↓ f↓ s)
+   → {ϕ : (p : Pos P s) → Src Q (Frm⇒ σ (Typ P s p))}
+   → (ϕ↓ : (p : Pos P s) → Src↓ Q↓ (Frm↓⇒ σ↓ (Typ↓ P↓ s↓ p)) (ϕ p))
+   → Src↓ Q↓ (Frm↓⇒ σ↓ f↓) (μ σ P Q s ϕ)
 
 
 --
@@ -326,7 +325,6 @@ module _ {n ℓ₀ ℓ}
   PdInhab↓ (nd↓ tgt↓ brs↓ flr↓) nd-here = flr↓
   PdInhab↓ (nd↓ tgt↓ brs↓ flr↓) (nd-there p q) = PdInhab↓ (br↓ (brs↓ ⊚↓ p)) q
 
-  {-# TERMINATING #-} -- Not sure why needed here and not in the normal γ
   γ↓ : {frm : Frm X} {src : Src P frm} {tgt : P frm}
     → {frm↓ : Frm↓ X↓ frm} {src↓ : Src↓ P↓ frm↓ src} {tgt↓ : P↓ frm↓ tgt}
     → {pd : Pd U (frm , src , tgt)}
@@ -370,10 +368,14 @@ _⊙↓_ {suc n} (σ↓ , σₛ) (σ↓' , σₛ') = σ↓ ⊙↓ σ↓' , λ x�
   let brs = μ↓ (id-map↓ X↓) P↓ (Branch↓ U↓) s↓ (λ p → η↓ (Branch↓ U↓) [ s↓ ⊚↓ p , η↓ P↓ (s↓ ⊚↓ p) , lf↓ (s↓ ⊚↓ p) ]↓)
   in nd↓ t↓ brs x↓
 
+μ↓ {zero} σ↓ P↓ Q↓ s↓ ϕ↓ = ϕ↓ tt*
+μ↓ {suc n} (σ↓ , σₛ↓) U↓ V↓ {s = lf tgt} (lf↓ x↓) ϕ↓ = lf↓ (σₛ↓ x↓)
+μ↓ {suc n} {Y = Y , Q} {σ = σ , σₛ} {P = U} {X↓ = X↓ , P↓} {Y↓ = Y↓ , Q↓} (σ↓ , σₛ↓) U↓ V↓ {s = nd tgt brs flr} (nd↓ tgt↓ brs↓ flr↓) ϕ↓ =
+  let ϕ'↓ p = let p' = map-pos↑ σ (Branch U) Q brs (λ p → σₛ (stm (brs ⊚ p))) p
+             in map-src↓ σ↓ P↓ Q↓ (lvs↓ (brs↓ ⊚↓ p')) (λ q → σₛ↓ (lvs↓ (brs↓ ⊚↓ p') ⊚↓ q)) ,
+                 μ↓ (σ↓ , σₛ↓) U↓ V↓ (br↓ (brs↓ ⊚↓ p')) (λ q → ϕ↓ (nd-there p' q))
+  in γ↓ V↓ (ϕ↓ nd-here) ϕ'↓
 
-
-
-{-
 
 𝕋↓ : ∀ {n ℓ₀} (X : 𝕆Type n ℓ₀) (ℓ : Level) → 𝕆Fam X ℓ
 𝕋↓ {zero} {ℓ₀} X ℓ = tt*
@@ -391,16 +393,17 @@ Frm⇛ : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
 -- "ℒ" for "lift" 
 --ℒ : ∀ {n ℓ₀ ℓ} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y} {Y↓ : 𝕆Fam Y ℓ} → X ⇛[ σ ] Y↓ → 𝕋↓ X ℓ ⇒[ σ ] Y↓
 
-μ↓' : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
-  → {P : Frm X → Type ℓ₀} {Q : Frm Y → Type ℓ₀}
-  → {Y↓ : 𝕆Fam Y ℓ}
-  → (σ↓ : X ⇛[ σ ] Y↓)
-  → (Q↓ : {f : Frm Y} (f↓ : Frm↓ Y↓ f) → Q f → Type ℓ)
-  → {f : Frm X}
-  → {s : Src P f}
-  → {ϕ : (p : Pos P s) → Src Q (Frm⇒ σ (Typ P s p))}
-  → (ϕ↓ : (p : Pos P s) → Src↓ Q↓ (Frm⇛ σ↓ (Typ P s p)) (ϕ p))
-  → Src↓ Q↓ (Frm⇛ σ↓ f) (μ σ P Q s ϕ)
+postulate
+  μ↓' : ∀ {n ℓ₀ ℓ} {X Y : 𝕆Type n ℓ₀} {σ : X ⇒ Y}
+    → {P : Frm X → Type ℓ₀} {Q : Frm Y → Type ℓ₀}
+    → {Y↓ : 𝕆Fam Y ℓ}
+    → (σ↓ : X ⇛[ σ ] Y↓)
+    → (Q↓ : {f : Frm Y} (f↓ : Frm↓ Y↓ f) → Q f → Type ℓ)
+    → {f : Frm X}
+    → (s : Src P f)
+    → {ϕ : (p : Pos P s) → Src Q (Frm⇒ σ (Typ P s p))}
+    → (ϕ↓ : (p : Pos P s) → Src↓ Q↓ (Frm⇛ σ↓ (Typ P s p)) (ϕ p))
+    → Src↓ Q↓ (Frm⇛ σ↓ f) (μ σ P Q s ϕ)
 
 
 {-postulate
@@ -415,5 +418,9 @@ _⇛[_]_ {zero} X σ Y↓ = Lift Unit
 _⇛[_]_ {suc n} (X , P) (σ , σₛ) (Y↓ , Q↓) = Σ[ σ↓ ∈ (X ⇛[ σ ] Y↓)] ({f : Frm X} (x : P f) → Q↓ (Frm⇛ σ↓ f) (σₛ x))
 
 Frm⇛ {zero} σ↓ f = tt*
-Frm⇛ {suc n} {Y↓ = Y↓ , Q↓} (σ↓ , σₛ↓) (f , s , t) = Frm⇛ σ↓ f , μ↓' σ↓ Q↓ (λ p → η↓ Q↓ (σₛ↓ (s ⊚ p))) , σₛ↓ t
+Frm⇛ {suc n} {Y↓ = Y↓ , Q↓} (σ↓ , σₛ↓) (f , s , t) = Frm⇛ σ↓ f , μ↓' σ↓ Q↓ s (λ p → η↓ Q↓ (σₛ↓ (s ⊚ p))) , σₛ↓ t
+{-
+μ↓' {zero} σ↓ Q↓ s ϕ↓ = ϕ↓ tt*
+μ↓' {suc n} (σ↓ , σₛ↓) Q↓ (lf tgt) ϕ↓ = {!lf↓ (σₛ↓ tgt)!}
+μ↓' {suc n} (σ↓ , σₛ↓) Q↓ (nd tgt brs flr) ϕ↓ = {!!}
 -}
