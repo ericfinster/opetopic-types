@@ -73,6 +73,8 @@ module Native.Opetopes where
   --
   --  Maps of Opetopic Types
   --
+  
+  infixl 50 _⊙_
 
   postulate
 

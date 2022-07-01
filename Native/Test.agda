@@ -55,6 +55,14 @@ module Native.Test where
     → _⊙_ {suc n} {X = X} {Y} {Z} τ σ ≡ (fst τ ⊙ fst σ , λ {f} p → snd τ (snd σ p))
   map-comp-suc X Y Z σ τ = refl
 
+  map-comp-unit-right : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (σ : X ⇒ Y)
+    → (σ ⊙ id-map X) ≡ σ
+  map-comp-unit-right σ = refl
+
+  map-comp-unit-left : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (σ : X ⇒ Y)
+    → (id-map Y ⊙ σ) ≡ σ
+  map-comp-unit-left σ = {!refl!} 
+
   Frm⇒-id : ∀ {n ℓ} (X : 𝕆Type n ℓ) (f : Frm X)
     → Frm⇒ (id-map X) f ≡ f
   Frm⇒-id X f = refl 
