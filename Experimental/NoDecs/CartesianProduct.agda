@@ -81,3 +81,7 @@ is-fib-prod {X = (X , P) , P'} {Y = (Y , Q) , Q'} fibX fibY f s =
   isContrRetract (Iso.fun charac) (Iso.inv charac) (Iso.leftInv charac) (isContrΣ (fibX _ _) λ _ → fibY _ _)
   where
   charac = charac-filler-prod P' Q' s
+
+prod∞ : ∀ {n ℓ} {Xₙ Yₙ : 𝕆Type ℓ n} (X : 𝕆Type∞ Xₙ) (Y : 𝕆Type∞ Yₙ) → 𝕆Type∞ (prod Xₙ Yₙ)
+Fill (prod∞ X Y) = prod-cell (Fill X) (Fill Y)
+Hom (prod∞ X Y) = prod∞ (Hom X) (Hom Y)
