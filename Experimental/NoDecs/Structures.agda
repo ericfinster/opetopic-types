@@ -14,8 +14,14 @@ module Experimental.NoDecs.Structures where
     field
       Fill : Frm Xₙ → Type ℓ
       Hom : 𝕆Type∞ (Xₙ , Fill)
-
   open 𝕆Type∞ public
+
+  record Map {n ℓ} {Xₙ Yₙ : 𝕆Type n ℓ} (σ : Xₙ ⇒ Yₙ) (X : 𝕆Type∞ Xₙ) (Y : 𝕆Type∞ Yₙ) : Type ℓ where
+    coinductive
+    field
+      Fill⇒ : {f : Frm Xₙ} → (Fill X) f → (Fill Y) (Frm⇒ σ f)
+      Hom⇒ : Map (σ , Fill⇒) (Hom X) (Hom Y)
+  open Map public
 
   horn-filler : ∀ {n ℓ} {Xₙ : 𝕆Type n ℓ} {Xₛₙ : Frm Xₙ → Type ℓ} (Xₛₛₙ : Frm (Xₙ , Xₛₙ) → Type ℓ) {f : Frm Xₙ} → Src Xₛₙ f → Type ℓ
   horn-filler {n} {ℓ} {Xₙ} {Xₛₙ} Xₛₛₙ {f} s = Σ[ tgt ∈ Xₛₙ f ] Xₛₛₙ (f , s , tgt)
@@ -32,7 +38,7 @@ module Experimental.NoDecs.Structures where
       fill-fib : is-fibrant ((Xₙ , (Fill X)) , (Fill (Hom X)))
       hom-fib : is-fibrant-ext (Hom X)
 
-  open is-fibrant-ext
+  open is-fibrant-ext public
   
   eta-fib-ext : ∀ {m ℓ} {X : 𝕆Type m ℓ} {X∞ : 𝕆Type∞ X} → X∞ ≡ record { Fill = Fill X∞ ; Hom = Hom X∞ }
   Fill (eta-fib-ext {X∞ = X∞} i) = Fill X∞
