@@ -9,6 +9,7 @@ open import Cubical.Data.Sigma
 open import Cubical.Foundations.Equiv.Fiberwise
 
 module Experimental.NoDecs.Structures where
+
   record 𝕆Type∞ {n ℓ} (Xₙ : 𝕆Type n ℓ) : Type (ℓ-suc ℓ) where
     coinductive
     field
@@ -59,8 +60,6 @@ module Experimental.NoDecs.Structures where
   is-fib-ext-𝕋Ext : ∀ {n ℓ} {X : 𝕆Type n ℓ} → is-fibrant-ext (𝕋Ext X)
   fill-fib is-fib-ext-𝕋Ext f s = (tt* , tt*) , λ (tt* , tt*) → refl
   hom-fib is-fib-ext-𝕋Ext = is-fib-ext-𝕋Ext
-
-
 
 
 

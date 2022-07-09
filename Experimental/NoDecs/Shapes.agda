@@ -90,3 +90,4 @@ module Experimental.NoDecs.Shapes where
           → Src X₂ (hom-Frm x t , n-path 3 (h , g , f) , j) --nd t [ _ , _ , (nd _ [ _ , _ , (nd _ [ _ , _ , (lf _) ] f) ] g) ] h)
         associator1 x y z t f g h i j Δ₁ Δ₂ = nd j (nd t [ z , x , (nd z [ x , x , (lf x) ] [ i , nd z [ y , x , (nd _ _ _) ] g , nd i (nd z [ y , x , nd y [ x , x , (lf x) ] [ f , _ , lf f ] ] [ g , _ , (lf g) ]) Δ₁ ]) ] [ h , _ , (lf h) ]) Δ₂
 
+ 

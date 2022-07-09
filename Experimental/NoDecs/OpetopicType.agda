@@ -1,4 +1,4 @@
-{-# OPTIONS --no-positivity-check #-}
+{-# OPTIONS --no-positivity-check --no-termination-check #-}
 --
 --  OpetopicType.agda - Opetopic Types
 --
@@ -26,7 +26,6 @@ module Experimental.NoDecs.OpetopicType where
     → (P : Frm X → Type ℓ)
     → Frm X → Type ℓ
 
-  {-# TERMINATING #-}
   Pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
     → (P : Frm X → Type ℓ)
     → {f : Frm X} (s : Src P f)
@@ -367,7 +366,40 @@ module Experimental.NoDecs.OpetopicType where
         br : Pd (f , lvs , stm)
 
     open Branch public
-    
+
+    -- understory : {f : Frm X} → Src Branch f → Src P f
+    -- understory brs = ν brs (id-map X) (λ p → stm (brs ⊚ p))
+
+    -- understory-pos : {f : Frm X} (brs : Src Branch f)
+    --   → Pos Branch brs → Pos P (understory brs) 
+    -- understory-pos brs = ν-pos brs (id-map X) (λ p → stm (brs ⊚ p))
+
+    -- understory-lift : {f : Frm X} (brs : Src Branch f)
+    --   → Pos P (understory brs) → Pos Branch brs
+    -- understory-lift brs = ν-lift brs (id-map X) (λ p → stm (brs ⊚ p))
+
+    -- canopy : {f : Frm X} → Src Branch f → Src P f
+    -- canopy brs = μ P (ν brs (id-map X) (λ p → lvs (brs ⊚ p)))
+
+    -- canopy-pos : {f : Frm X} (brs : Src Branch f)
+    --   → (p : Pos Branch brs) (q : Pos P (lvs (brs ⊚ p)))
+    --   → Pos P (canopy brs) 
+    -- canopy-pos brs p q =
+    --   μ-pos P (ν brs (id-map X) (λ r → lvs (brs ⊚ r)))
+    --     (ν-pos brs (id-map X) (λ r → lvs (brs ⊚ r)) p) q 
+
+    -- canopy-fst : {f : Frm X} (brs : Src Branch f)
+    --   → Pos P (canopy brs) → Pos Branch brs
+    -- canopy-fst brs p = ν-lift brs (id-map X) (λ r → lvs (brs ⊚ r))
+    --   (μ-fst P (ν brs (id-map X) (λ p → lvs (brs ⊚ p))) p) 
+
+    -- canopy-snd : {f : Frm X} (brs : Src Branch f)
+    --   → (p : Pos P (canopy brs)) → Pos P (lvs (brs ⊚ canopy-fst brs p))
+    -- canopy-snd brs p = μ-snd P (ν brs (id-map X) (λ p → lvs (brs ⊚ p))) p
+
+    -- Branch' : {f : Frm X} → P f → Type ℓ
+    -- Branch' {f} tgt = Σ[ cn ∈ Src P f ] Pd (f , cn , tgt)
+
     data Pd where
 
       lf : {f : Frm X} (tgt : P f)
