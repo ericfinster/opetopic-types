@@ -243,7 +243,7 @@ module Experimental.NoDecs.OpetopicType where
     {-# REWRITE μ-pos-η #-}
 
     -- Extra law needed due to lack of η-expansion for positions
-    map-η : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} (σ : X ⇒ Y)
+    ν-η : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} (σ : X ⇒ Y)
       → (P : Frm X → Type ℓ₀)
       → (Q : Frm Y → Type ℓ₁)
       → {f : Frm X} (s : Src P f)
@@ -251,10 +251,10 @@ module Experimental.NoDecs.OpetopicType where
       → (p : Pos Q (μ σ P Q s (λ p → η Q (ϕ p))))
       → μ-pos σ P Q s (λ p → η Q (ϕ p)) (μ-fst σ P Q s (λ p → η Q (ϕ p)) p)
          (η-pos Q (ϕ (μ-fst σ P Q s (λ p → η Q (ϕ p)) p))) ↦ p
-    {-# REWRITE map-η #-}
+    {-# REWRITE ν-η #-}
 
     -- BUG! id-map version of above
-    map-η-idmap : ∀ {n ℓ} {X : 𝕆Type n ℓ} 
+    ν-η-idmap : ∀ {n ℓ} {X : 𝕆Type n ℓ} 
       → (P : Frm X → Type ℓ)
       → (Q : Frm X → Type ℓ)
       → {f : Frm X} (s : Src P f)
@@ -262,7 +262,7 @@ module Experimental.NoDecs.OpetopicType where
       → (p : Pos Q (μ (id-map X) P Q s (λ p → η Q (ϕ p))))
       → μ-pos (id-map X) P Q s (λ p → η Q (ϕ p)) (μ-fst (id-map X) P Q s (λ p → η Q (ϕ p)) p)
          (η-pos Q (ϕ (μ-fst (id-map X) P Q s (λ p → η Q (ϕ p)) p))) ↦ p
-    {-# REWRITE map-η-idmap #-}
+    {-# REWRITE ν-η-idmap #-}
 
     --
     -- Monad Laws
@@ -307,31 +307,31 @@ module Experimental.NoDecs.OpetopicType where
       → μ τ Q R (μ (id-map X) P Q s ϕ) ψ ↦ μ τ P R s (λ p → μ τ Q R (ϕ p) (λ q → ψ (μ-pos (id-map X) P Q s ϕ p q)))
     {-# REWRITE μ-assoc-idmap-l #-}
 
-  map-src : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} (σ : X ⇒ Y)
+  ν : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} (σ : X ⇒ Y)
     → (P : Frm X → Type ℓ₀)
     → (Q : Frm Y → Type ℓ₁)
     → {f : Frm X} (s : Src P f)
     → (ϕ : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
     → Src Q (Frm⇒ σ f)
-  map-src σ P Q s ϕ = μ σ P Q s (λ p → η Q (ϕ p))
+  ν σ P Q s ϕ = μ σ P Q s (λ p → η Q (ϕ p))
 
-  map-pos↑ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} (σ : X ⇒ Y)
+  ν-pos↑ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} (σ : X ⇒ Y)
     → (P : Frm X → Type ℓ₀)
     → (Q : Frm Y → Type ℓ₁)
     → {f : Frm X} (s : Src P f)
     → (ϕ : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
-    → (p : Pos Q (map-src σ P Q s ϕ))
+    → (p : Pos Q (ν σ P Q s ϕ))
     → Pos P s
-  map-pos↑ σ P Q s ϕ = μ-fst σ P Q s (λ p → η Q (ϕ p))  
+  ν-pos↑ σ P Q s ϕ = μ-fst σ P Q s (λ p → η Q (ϕ p))  
 
-  map-pos↓ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} (σ : X ⇒ Y)
+  ν-pos↓ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} (σ : X ⇒ Y)
     → (P : Frm X → Type ℓ₀)
     → (Q : Frm Y → Type ℓ₁)
     → {f : Frm X} (s : Src P f)
     → (ϕ : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
     → (p : Pos P s)
-    → Pos Q (map-src σ P Q s ϕ)
-  map-pos↓ σ P Q s ϕ p = μ-pos σ P Q s (λ p → η Q (ϕ p)) p (η-pos Q (ϕ p))
+    → Pos Q (ν σ P Q s ϕ)
+  ν-pos↓ σ P Q s ϕ p = μ-pos σ P Q s (λ p → η Q (ϕ p)) p (η-pos Q (ϕ p))
 
   --
   --  Definitions of opeotpic types and frames
@@ -367,38 +367,35 @@ module Experimental.NoDecs.OpetopicType where
 
     open Branch public
 
-    -- understory : {f : Frm X} → Src Branch f → Src P f
-    -- understory brs = ν brs (id-map X) (λ p → stm (brs ⊚ p))
+    understory : {f : Frm X} → Src Branch f → Src P f
+    understory brs = ν (id-map X) Branch P brs (λ p → stm (brs ⊚ p))
 
-    -- understory-pos : {f : Frm X} (brs : Src Branch f)
-    --   → Pos Branch brs → Pos P (understory brs) 
-    -- understory-pos brs = ν-pos brs (id-map X) (λ p → stm (brs ⊚ p))
+    understory-pos↓ : {f : Frm X} (brs : Src Branch f)
+      → Pos Branch brs → Pos P (understory brs) 
+    understory-pos↓ brs = ν-pos↓ (id-map X) Branch P brs (λ p → stm (brs ⊚ p))
 
-    -- understory-lift : {f : Frm X} (brs : Src Branch f)
-    --   → Pos P (understory brs) → Pos Branch brs
-    -- understory-lift brs = ν-lift brs (id-map X) (λ p → stm (brs ⊚ p))
+    understory-pos↑ : {f : Frm X} (brs : Src Branch f)
+      → Pos P (understory brs) → Pos Branch brs
+    understory-pos↑ brs = ν-pos↑ (id-map X) Branch P brs (λ p → stm (brs ⊚ p))
 
-    -- canopy : {f : Frm X} → Src Branch f → Src P f
-    -- canopy brs = μ P (ν brs (id-map X) (λ p → lvs (brs ⊚ p)))
+    canopy : {f : Frm X} → Src Branch f → Src P f
+    canopy brs = μ (id-map X) Branch P brs (λ p → lvs (brs ⊚ p))
 
-    -- canopy-pos : {f : Frm X} (brs : Src Branch f)
-    --   → (p : Pos Branch brs) (q : Pos P (lvs (brs ⊚ p)))
-    --   → Pos P (canopy brs) 
-    -- canopy-pos brs p q =
-    --   μ-pos P (ν brs (id-map X) (λ r → lvs (brs ⊚ r)))
-    --     (ν-pos brs (id-map X) (λ r → lvs (brs ⊚ r)) p) q 
+    canopy-pos : {f : Frm X} (brs : Src Branch f)
+      → (p : Pos Branch brs) (q : Pos P (lvs (brs ⊚ p)))
+      → Pos P (canopy brs) 
+    canopy-pos brs p q = μ-pos (id-map X) Branch P brs (λ p → lvs (brs ⊚ p)) p q 
 
-    -- canopy-fst : {f : Frm X} (brs : Src Branch f)
-    --   → Pos P (canopy brs) → Pos Branch brs
-    -- canopy-fst brs p = ν-lift brs (id-map X) (λ r → lvs (brs ⊚ r))
-    --   (μ-fst P (ν brs (id-map X) (λ p → lvs (brs ⊚ p))) p) 
+    canopy-fst : {f : Frm X} (brs : Src Branch f)
+      → Pos P (canopy brs) → Pos Branch brs
+    canopy-fst brs p = μ-fst (id-map X) Branch P brs (λ p → lvs (brs ⊚ p)) p 
 
-    -- canopy-snd : {f : Frm X} (brs : Src Branch f)
-    --   → (p : Pos P (canopy brs)) → Pos P (lvs (brs ⊚ canopy-fst brs p))
-    -- canopy-snd brs p = μ-snd P (ν brs (id-map X) (λ p → lvs (brs ⊚ p))) p
+    canopy-snd : {f : Frm X} (brs : Src Branch f)
+      → (p : Pos P (canopy brs)) → Pos P (lvs (brs ⊚ canopy-fst brs p))
+    canopy-snd brs p = μ-snd (id-map X) Branch P brs (λ p → lvs (brs ⊚ p)) p 
 
-    -- Branch' : {f : Frm X} → P f → Type ℓ
-    -- Branch' {f} tgt = Σ[ cn ∈ Src P f ] Pd (f , cn , tgt)
+    Branch' : {f : Frm X} → P f → Type ℓ
+    Branch' {f} tgt = Σ[ cn ∈ Src P f ] Pd (f , cn , tgt)
 
     data Pd where
 
@@ -407,25 +404,24 @@ module Experimental.NoDecs.OpetopicType where
 
       nd : {f : Frm X} (tgt : P f)
          → (brs : Src Branch f)
-         → (flr : U (f , μ (id-map X) Branch P brs (λ p → η P (stm (brs ⊚ p))) , tgt))
-         → Pd (f , μ (id-map X) Branch P brs (λ p → lvs (brs ⊚ p)) , tgt)
-
+         → (flr : U (f , understory brs , tgt))
+         → Pd (f , canopy brs , tgt)
 
     data PdPos : {f : Frm (X , P)} → Pd f → Type ℓ where
 
       nd-here : {f : Frm X} {tgt : P f}
          → {brs : Src Branch f}
-         → {flr : U (f , μ (id-map X) Branch P brs (λ p → η P (stm (brs ⊚ p))) , tgt)}
+         → {flr : U (f , understory brs , tgt)}
          → PdPos (nd tgt brs flr)
 
       nd-there : {f : Frm X} {tgt : P f}
          → {brs : Src Branch f}
-         → {flr : U (f , μ (id-map X) Branch P brs (λ p → η P (stm (brs ⊚ p))) , tgt)}
+         → {flr : U (f , understory brs , tgt)}
          → (p : Pos Branch brs) (q : PdPos (br (brs ⊚ p)))
          → PdPos (nd tgt brs flr)
 
     PdTyp : {f : Frm (X , P)} (pd : Pd f) → PdPos pd → Frm (X , P)
-    PdTyp (nd tgt brs flr) (nd-here {f} {tgt} {brs}) = (f , μ (id-map X) Branch P brs (λ p → η P (stm (brs ⊚ p))) , tgt)
+    PdTyp (nd tgt brs flr) (nd-here {f} {tgt} {brs}) = (f , understory brs , tgt)
     PdTyp (nd tgt brs flr) (nd-there p q) = PdTyp (br (brs ⊚ p)) q
 
     PdInhab : {f : Frm (X , P)} (pd : Pd f) (p : PdPos pd) → U (PdTyp pd p)
@@ -434,49 +430,46 @@ module Experimental.NoDecs.OpetopicType where
 
     γ : {frm : Frm X} {src : Src P frm} {tgt : P frm}
       → (pd : Pd (frm , src , tgt ))
-      → (ϕ : (p : Pos P src) → Σ[ lvs ∈ Src P (Typ P src p) ] Pd (Typ P src p , lvs , src ⊚ p))
+      → (ϕ : (p : Pos P src) → Branch' (src ⊚ p))
       → Pd (frm , μ (id-map X) P P src (λ p → fst (ϕ p)) , tgt)
+
+    γ-brs : {frm : Frm X} (brs : Src Branch frm)
+      → (ϕ : (p : Pos P (canopy brs)) → Branch' (canopy brs ⊚ p))
+      → (p : Pos Branch brs) → Branch (Typ Branch brs p)
+    γ-brs brs ϕ p =
+      [ stm (brs ⊚ p)
+      , μ (id-map X) P P (lvs (brs ⊚ p)) (λ q → fst (ϕ (canopy-pos brs p q)))
+      , γ (br (brs ⊚ p)) (λ q → ϕ (canopy-pos brs p q))
+      ] 
+
     γ (lf tgt) ϕ = snd (ϕ (η-pos P tgt))
-    γ (nd tgt brs flr) ϕ = 
-      let ψ p = [ stm (brs ⊚ p)
-                , μ (id-map X) P P (lvs (brs ⊚ p)) (λ q → fst (ϕ (μ-pos (id-map X) Branch P brs (λ r → lvs (brs ⊚ r)) p q)))
-                , γ (br (brs ⊚ p)) (λ q → ϕ (μ-pos (id-map X) Branch P brs (λ r → lvs (brs ⊚ r)) p q))
-                ] 
-      in nd tgt (map-src (id-map X) Branch Branch brs ψ) flr
+    γ (nd tgt brs flr) ϕ = nd tgt (ν (id-map X) Branch Branch brs (γ-brs brs ϕ)) flr
 
     γ-inl : {frm : Frm X} {src : Src P frm} {tgt : P frm}
       → (pd : Pd (frm , src , tgt ))
-      → (ϕ : (p : Pos P src) → Σ[ lvs ∈ Src P (Typ P src p) ] Pd (Typ P src p , lvs , src ⊚ p))
+      → (ϕ : (p : Pos P src) → Branch' (src ⊚ p))
       → (p : PdPos pd) → PdPos (γ pd ϕ)
     γ-inl (nd tgt brs flr) ϕ nd-here = nd-here
     γ-inl (nd tgt brs flr) ϕ (nd-there p q) = 
-      let ψ p = [ stm (brs ⊚ p)
-                , μ (id-map X) P P (lvs (brs ⊚ p)) (λ q → fst (ϕ (μ-pos (id-map X) Branch P brs (λ r → lvs (brs ⊚ r)) p q)))
-                , γ (br (brs ⊚ p)) (λ q → ϕ (μ-pos (id-map X) Branch P brs (λ r → lvs (brs ⊚ r)) p q))
-                ] 
-          p' = map-pos↓ (id-map X) Branch Branch brs ψ p 
-      in nd-there p' (γ-inl (br (brs ⊚ p)) (λ q → ϕ (μ-pos (id-map X) Branch P brs (λ r → lvs (brs ⊚ r)) p q)) q )
+      let p' = ν-pos↓ (id-map X) Branch Branch brs (γ-brs brs ϕ) p 
+      in nd-there p' (γ-inl (br (brs ⊚ p)) (λ q → ϕ (canopy-pos brs p q)) q)
 
     γ-inr : {frm : Frm X} {src : Src P frm} {tgt : P frm}
       → (pd : Pd (frm , src , tgt ))
-      → (ϕ : (p : Pos P src) → Σ[ lvs ∈ Src P (Typ P src p) ] Pd (Typ P src p , lvs , src ⊚ p))
+      → (ϕ : (p : Pos P src) → Branch' (src ⊚ p))
       → (p : Pos P src) (q : PdPos (snd (ϕ p)))
       → PdPos (γ pd ϕ)
     γ-inr (lf tgt) ϕ p q = 
       η-pos-elim tgt (λ p → PdPos (snd (ϕ p)) → PdPos (snd (ϕ (η-pos P tgt)))) (λ x → x) p q
     γ-inr (nd tgt brs flr) ϕ pq r = 
-      let p = μ-fst (id-map X) Branch P brs (λ p' → lvs (brs ⊚ p')) pq
-          q = μ-snd (id-map X) Branch P brs (λ p' → lvs (brs ⊚ p')) pq
-          ψ p = [ stm (brs ⊚ p)
-                , μ (id-map X) P P (lvs (brs ⊚ p)) (λ q → fst (ϕ (μ-pos (id-map X) Branch P brs (λ r → lvs (brs ⊚ r)) p q)))
-                , γ (br (brs ⊚ p)) (λ q → ϕ (μ-pos (id-map X) Branch P brs (λ r → lvs (brs ⊚ r)) p q))
-                ] 
-          p' = map-pos↓ (id-map X) Branch Branch brs ψ p 
-      in nd-there p' (γ-inr (br (brs ⊚ p)) (λ q → ϕ (μ-pos (id-map X) Branch P brs (λ r → lvs (brs ⊚ r)) p q)) q r) 
+      let p = canopy-fst brs pq
+          q = canopy-snd brs pq
+          p' = ν-pos↓ (id-map X) Branch Branch brs (γ-brs brs ϕ) p 
+      in nd-there p' (γ-inr (br (brs ⊚ p)) (λ q → ϕ (canopy-pos brs p q)) q r) 
 
     γ-pos-elim : {frm : Frm X} {src : Src P frm} {tgt : P frm}
       → (pd : Pd (frm , src , tgt ))
-      → (ϕ : (p : Pos P src) → Σ[ lvs ∈ Src P (Typ P src p) ] Pd (Typ P src p , lvs , src ⊚ p))
+      → (ϕ : (p : Pos P src) → Branch' (src ⊚ p))
       → ∀ {ℓ'} (B : PdPos (γ pd ϕ) → Type ℓ')
       → (inl* : (p : PdPos pd) → B (γ-inl pd ϕ p))
       → (inr* : (p : Pos P src) (q : PdPos (snd (ϕ p))) → B (γ-inr pd ϕ p q))
@@ -484,20 +477,16 @@ module Experimental.NoDecs.OpetopicType where
     γ-pos-elim (lf tgt) ϕ B inl* inr* p = inr* (η-pos P tgt) p
     γ-pos-elim (nd tgt brs flr) ϕ B inl* inr* nd-here = inl* nd-here
     γ-pos-elim (nd tgt brs flr) ϕ B inl* inr* (nd-there u v) = 
-      let ψ p = [ stm (brs ⊚ p)
-                , μ (id-map X) P P (lvs (brs ⊚ p)) (λ q → fst (ϕ (μ-pos (id-map X) Branch P brs (λ r → lvs (brs ⊚ r)) p q)))
-                , γ (br (brs ⊚ p)) (λ q → ϕ (μ-pos (id-map X) Branch P brs (λ r → lvs (brs ⊚ r)) p q))
-                ] 
-          u' = map-pos↑ (id-map X) Branch Branch brs ψ u
-      in γ-pos-elim (br (brs ⊚ u')) (λ q → ϕ (μ-pos (id-map X) Branch P brs (λ r → lvs (brs ⊚ r)) u' q))
+      let u' = ν-pos↑ (id-map X) Branch Branch brs (γ-brs brs ϕ) u
+      in γ-pos-elim (br (brs ⊚ u')) (λ q → ϕ (canopy-pos brs u' q))
            (λ v' → B (nd-there u v')) (λ q → inl* (nd-there u' q))
-           (λ q → inr* (μ-pos (id-map X) Branch P brs (λ r → lvs (brs ⊚ r)) u' q)) v
+           (λ q → inr* (canopy-pos brs u' q)) v
 
     postulate
 
       γ-pos-elim-inl-β : {frm : Frm X} {src : Src P frm} {tgt : P frm}
         → (pd : Pd (frm , src , tgt ))
-        → (ϕ : (p : Pos P src) → Σ[ lvs ∈ Src P (Typ P src p) ] Pd (Typ P src p , lvs , src ⊚ p))
+        → (ϕ : (p : Pos P src) → Branch' (src ⊚ p))
         → ∀ {ℓ'} (B : PdPos (γ pd ϕ) → Type ℓ')
         → (inl* : (p : PdPos pd) → B (γ-inl pd ϕ p))
         → (inr* : (p : Pos P src) (q : PdPos (snd (ϕ p))) → B (γ-inr pd ϕ p q))
@@ -507,7 +496,7 @@ module Experimental.NoDecs.OpetopicType where
         
       γ-pos-elim-inr-β : {frm : Frm X} {src : Src P frm} {tgt : P frm}
         → (pd : Pd (frm , src , tgt ))
-        → (ϕ : (p : Pos P src) → Σ[ lvs ∈ Src P (Typ P src p) ] Pd (Typ P src p , lvs , src ⊚ p))
+        → (ϕ : (p : Pos P src) → Branch' (src ⊚ p))
         → ∀ {ℓ'} (B : PdPos (γ pd ϕ) → Type ℓ')
         → (inl* : (p : PdPos pd) → B (γ-inl pd ϕ p))
         → (inr* : (p : Pos P src) (q : PdPos (snd (ϕ p))) → B (γ-inr pd ϕ p q))
@@ -515,7 +504,6 @@ module Experimental.NoDecs.OpetopicType where
         → γ-pos-elim pd ϕ B inl* inr* (γ-inr pd ϕ p q) ↦ inr* p q
       {-# REWRITE γ-pos-elim-inr-β #-}
       
-
   Src {zero} P _ = P tt*
   Src {suc n} U = Pd U
 
@@ -542,11 +530,11 @@ module Experimental.NoDecs.OpetopicType where
 
   Frm⇒ {zero} σ f = tt*
   Frm⇒ {suc n} {X = X , P} {Y = Y , Q} (σₙ , σₛₙ) (frm , src , tgt) =
-    Frm⇒ σₙ frm , map-src σₙ P Q src (λ p → σₛₙ (src ⊚ p)) , σₛₙ tgt
+    Frm⇒ σₙ frm , ν σₙ P Q src (λ p → σₛₙ (src ⊚ p)) , σₛₙ tgt
 
   η {zero} P x = x
   η {suc n} {X = X , P} U {f = frm , src , tgt} x =
-    let brs = map-src (id-map X) P (Branch U) src (λ p → [ src ⊚ p , η P (src ⊚ p) , lf (src ⊚ p) ])
+    let brs = ν (id-map X) P (Branch U) src (λ p → [ src ⊚ p , η P (src ⊚ p) , lf (src ⊚ p) ])
     in nd tgt brs x
 
   η-pos {zero} P x = tt*
@@ -555,50 +543,47 @@ module Experimental.NoDecs.OpetopicType where
   η-pos-elim {zero} x Q q p = q
   η-pos-elim {suc n} x Q q nd-here = q
 
+  -- Oh my god clean up this type.
+  μ-brs : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type (suc n) ℓ₀} {Y : 𝕆Type (suc n) ℓ₁} (σ : X ⇒ Y)
+    → {U : Frm X → Type ℓ₀}
+    → {V : Frm Y → Type ℓ₁}
+    → {f : Frm (fst X)} (tgt : snd X f) (brs : Src (Branch U) f)
+    → (flr : U (f , understory U brs , tgt))
+    → (ϕ : (p : Pos U (nd tgt brs flr)) → Src V (Frm⇒ σ (Typ U (nd tgt brs flr) p)))
+    → (p : Pos (snd Y) ((ν (fst σ) (snd X) (snd Y) (understory U brs)
+          (λ p₁ → snd σ (stm (brs ⊚ μ-fst (id-map (fst X)) (Branch U) (snd X) brs (λ p₂ → η (snd X) (stm (brs ⊚ p₂))) p₁))))))
+    → Branch' V (snd σ (stm (brs ⊚ μ-fst (fst σ) (Branch U) (snd Y) brs (λ p₁ → η (snd Y) (snd σ (stm (brs ⊚ p₁)))) p)))
+  μ-brs {X = X , P} {Y = Y , Q} (σₙ , σₛₙ) {U} {V} tgt brs flr ϕ p =
+    let p' = ν-pos↑ σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p))) p
+    in ν σₙ P Q (lvs (brs ⊚ p')) (λ q → σₛₙ (lvs (brs ⊚ p') ⊚ q)) ,
+       μ (σₙ , σₛₙ) U V (br (brs ⊚ p')) (λ q → ϕ (nd-there p' q))
+
   μ {zero} {X = X} σ P Q s ϕ = ϕ tt*
   μ {suc n} {X = X , P} (σₙ , σₛₙ) U V (lf tgt) ϕ = lf (σₛₙ tgt)
   μ {suc n} {X = X , P} {Y , Q} (σₙ , σₛₙ) U V (nd {f} tgt brs flr) ϕ =
-    let w = ϕ nd-here
-        ϕ' p = let p' = map-pos↑ σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p))) p
-               in map-src σₙ P Q (lvs (brs ⊚ p')) (λ q → σₛₙ (lvs (brs ⊚ p') ⊚ q)) ,
-                 μ (σₙ , σₛₙ) U V (br (brs ⊚ p')) (λ q → ϕ (nd-there p' q))
-    in γ V w ϕ'
+    γ V (ϕ nd-here) (μ-brs (σₙ , σₛₙ) tgt brs flr ϕ)
 
   μ-pos {zero} σ P Q s ϕ p q = tt*
   μ-pos {suc n} {X = X , P} {Y , Q} (σₙ , σₛₙ) U V  (nd tgt brs flr) ϕ nd-here r = 
-    let w = ϕ nd-here
-        ϕ' p = let p' = map-pos↑ σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p))) p
-               in map-src σₙ P Q (lvs (brs ⊚ p')) (λ q → σₛₙ (lvs (brs ⊚ p') ⊚ q)) ,
-                 μ (σₙ , σₛₙ) U V (br (brs ⊚ p')) (λ q → ϕ (nd-there p' q))
-    in γ-inl V w ϕ' r  
+    γ-inl V (ϕ nd-here) (μ-brs (σₙ , σₛₙ) tgt brs flr ϕ) r  
   μ-pos {suc n} {X = X , P} {Y , Q} (σₙ , σₛₙ) U V (nd tgt brs flr) ϕ (nd-there p q) r = 
-    let w = ϕ nd-here
-        ϕ' p = let p' = map-pos↑ σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p))) p
-               in map-src σₙ P Q (lvs (brs ⊚ p')) (λ q → σₛₙ (lvs (brs ⊚ p') ⊚ q)) ,
-                 μ (σₙ , σₛₙ) U V (br (brs ⊚ p')) (λ q → ϕ (nd-there p' q))
-        p' = map-pos↓ σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p))) p
-    in γ-inr V w ϕ' p' (μ-pos (σₙ , σₛₙ) U V (br (brs ⊚ p)) (λ q → ϕ (nd-there p q)) q r)
+    let p' = ν-pos↓ σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p))) p
+    in γ-inr V (ϕ nd-here) (μ-brs (σₙ , σₛₙ) tgt brs flr ϕ) p'
+        (μ-pos (σₙ , σₛₙ) U V (br (brs ⊚ p)) (λ q → ϕ (nd-there p q)) q r)
 
   μ-fst {zero} σ P Q s ϕ p = tt*
   μ-fst {suc n} {X = X , P} {Y = Y , Q} (σₙ , σₛₙ) U V (nd tgt brs flr) ϕ p =
-    let w = ϕ nd-here
-        ϕ' p = let p' = map-pos↑ σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p))) p
-               in map-src σₙ P Q (lvs (brs ⊚ p')) (λ q → σₛₙ (lvs (brs ⊚ p') ⊚ q)) ,
-                 μ (σₙ , σₛₙ) U V (br (brs ⊚ p')) (λ q → ϕ (nd-there p' q))
-    in γ-pos-elim V w ϕ' (λ _ → PdPos U (nd tgt brs flr)) (λ p → nd-here)
-        (λ p q → let p' = map-pos↑ σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p))) p
-                 in nd-there p' (μ-fst (σₙ , σₛₙ) U V (br (brs ⊚ p')) (λ q → ϕ (nd-there p' q)) q)) p
+    γ-pos-elim V (ϕ nd-here) (μ-brs (σₙ , σₛₙ) tgt brs flr ϕ)
+     (λ _ → PdPos U (nd tgt brs flr)) (λ p → nd-here)
+     (λ p q → let p' = ν-pos↑ σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p))) p
+              in nd-there p' (μ-fst (σₙ , σₛₙ) U V (br (brs ⊚ p')) (λ q → ϕ (nd-there p' q)) q)) p
 
   μ-snd {zero} σ P Q s ϕ p = tt*
   μ-snd {suc n} {X = X , P} {Y = Y , Q} (σₙ , σₛₙ) U V (nd tgt brs flr) ϕ p = 
-    let w = ϕ nd-here
-        ϕ' p = let p' = map-pos↑ σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p))) p
-               in map-src σₙ P Q (lvs (brs ⊚ p')) (λ q → σₛₙ (lvs (brs ⊚ p') ⊚ q)) ,
-                 μ (σₙ , σₛₙ) U V (br (brs ⊚ p')) (λ q → ϕ (nd-there p' q))
-    in γ-pos-elim V w ϕ' (λ p → PdPos V (ϕ (μ-fst (σₙ , σₛₙ) U V (nd tgt brs flr) ϕ p)))
-          (λ p → p) (λ p q → let p' = map-pos↑ σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p))) p
-                             in μ-snd (σₙ , σₛₙ) U V (br (brs ⊚ p')) (λ q → ϕ (nd-there p' q)) q) p
-
+    γ-pos-elim V (ϕ nd-here) (μ-brs (σₙ , σₛₙ) tgt brs flr ϕ)
+       (λ p → PdPos V (ϕ (μ-fst (σₙ , σₛₙ) U V (nd tgt brs flr) ϕ p)))
+       (λ p → p) (λ p q → let p' = ν-pos↑ σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p))) p
+                          in μ-snd (σₙ , σₛₙ) U V (br (brs ⊚ p')) (λ q → ϕ (nd-there p' q)) q) p
 
   -- Useful definitions a posteriori
   Inhab : ∀ {n ℓ} {X : 𝕆Type n ℓ} (P : Frm X → Type ℓ) {f : Frm X} (s : Src P f) (p : Pos P s) → P (Typ P s p)
@@ -611,4 +596,4 @@ module Experimental.NoDecs.OpetopicType where
     → ({f : Frm X} → P f → Q (Frm⇒ σ f))
     → {f : Frm X} (s : Src P f)
     → Src Q (Frm⇒ σ f)
-  Src⇒ σ P Q σ' {f} s = map-src σ P Q s λ p → σ' (Inhab _ _ p)
+  Src⇒ σ P Q σ' {f} s = ν σ P Q s λ p → σ' (Inhab _ _ p)
