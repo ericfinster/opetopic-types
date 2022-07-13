@@ -333,6 +333,15 @@ module Experimental.NoDecs.OpetopicType where
     → Pos Q (ν σ P Q s ϕ)
   ν-pos↓ σ P Q s ϕ p = μ-pos σ P Q s (λ p → η Q (ϕ p)) p (η-pos Q (ϕ p))
 
+  Src⇒ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} (σ : X ⇒ Y)
+    → (P : Frm X → Type ℓ₀)
+    → (Q : Frm Y → Type ℓ₁)
+    → ({f : Frm X} → P f → Q (Frm⇒ σ f))
+    → {f : Frm X} (s : Src P f)
+    → Src Q (Frm⇒ σ f)
+  Src⇒ σ P Q σ' {f} s = ν σ P Q s λ p → σ' (s ⊚ p)
+
+
   --
   --  Definitions of opeotpic types and frames
   --
@@ -585,15 +594,4 @@ module Experimental.NoDecs.OpetopicType where
        (λ p → p) (λ p q → let p' = ν-pos↑ σₙ (Branch U) Q brs (λ p → σₛₙ (stm (brs ⊚ p))) p
                           in μ-snd (σₙ , σₛₙ) U V (br (brs ⊚ p')) (λ q → ϕ (nd-there p' q)) q) p
 
-  -- Useful definitions a posteriori
-  Inhab : ∀ {n ℓ} {X : 𝕆Type n ℓ} (P : Frm X → Type ℓ) {f : Frm X} (s : Src P f) (p : Pos P s) → P (Typ P s p)
-  Inhab {zero} P s p = s
-  Inhab {suc n} P s p = PdInhab P s p
 
-  Src⇒ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} (σ : X ⇒ Y)
-    → (P : Frm X → Type ℓ₀)
-    → (Q : Frm Y → Type ℓ₁)
-    → ({f : Frm X} → P f → Q (Frm⇒ σ f))
-    → {f : Frm X} (s : Src P f)
-    → Src Q (Frm⇒ σ f)
-  Src⇒ σ P Q σ' {f} s = ν σ P Q s λ p → σ' (Inhab _ _ p)
