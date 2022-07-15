@@ -462,13 +462,6 @@ module Experimental.NoDecs.RevisedOpetopicType where
          → (p : Pos Branch brs) (q : PdPos (br (brs ⊚ p)))
          → PdPos (nd tgt brs flr)
 
-    PdTyp : {f : Frm (X , P)} (pd : Pd f) → PdPos pd → Frm (X , P)
-    PdTyp (nd tgt brs flr) (nd-here {f} {tgt} {brs}) = (f , understory brs , tgt)
-    PdTyp (nd tgt brs flr) (nd-there p q) = PdTyp (br (brs ⊚ p)) q
-
-    PdInhab : {f : Frm (X , P)} (pd : Pd f) (p : PdPos pd) → U (PdTyp pd p)
-    PdInhab (nd tgt brs flr) (nd-here {flr = flr}) = flr
-    PdInhab (nd tgt brs flr) (nd-there p q) = PdInhab (br (brs ⊚ p)) q
 
     γ : {frm : Frm X} {src : Src P frm} {tgt : P frm}
       → (pd : Pd (frm , src , tgt ))
@@ -546,13 +539,15 @@ module Experimental.NoDecs.RevisedOpetopicType where
   Src {suc n} U = Pd U
 
   Pos {zero} P s = Lift Unit
-  Pos {suc n} U pd = PdPos U pd 
+  Pos {suc n} U pd = PdPos U pd
 
   Typ {zero} P s p = tt*
-  Typ {suc n} U pd p = PdTyp U pd p
+  Typ {suc n} U (nd tgt brs flr) nd-here = (_ , understory U brs , tgt)
+  Typ {suc n} U (nd tgt brs flr) (nd-there p q) = Typ {suc n} U (br (brs ⊚ p)) q
 
   _⊚_ {zero} s p = s
-  _⊚_ {suc n} {P = U} pd p = PdInhab U pd p
+  _⊚_ {suc n} {P = U} (nd tgt brs flr) nd-here = flr
+  _⊚_ {suc n} {P = U} (nd tgt brs flr) (nd-there p q) = _⊚_ (br (brs ⊚ p)) q
 
   _⇒_ {zero} X Y = Lift Unit
   _⇒_ {suc n} (X , P) (Y , Q) =
@@ -576,7 +571,7 @@ module Experimental.NoDecs.RevisedOpetopicType where
     → {f : Frm X} {tgt : P f} (brs : Src (Branch U) f)
     → (flr : U (f , understory U brs , tgt))
     → {σ : X ⇒ Y} (σ' : {f : Frm X} → P f → Q (Frm⇒ σ f))
-    → (ϕ : (p : PdPos U (nd tgt brs flr)) → V (Frm⇒ (σ , σ') (PdTyp U (nd tgt brs flr) p)))
+    → (ϕ : (p : PdPos U (nd tgt brs flr)) → V (Frm⇒ (σ , σ') (Typ U (nd tgt brs flr) p)))
     → (p : Pos (Branch U) brs) → Branch V (Frm⇒ σ (Typ (Branch U) brs p))
   ν-brs brs flr {σ = σ} σ' ϕ p =
     [ σ' (stm (brs ⊚ p)) ,
