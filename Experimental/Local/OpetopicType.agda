@@ -250,10 +250,16 @@ module Experimental.Local.OpetopicType where
       → μ P s ⊚ p ↦ (s ⊚ (μ-fst P s p)) ⊚ (μ-snd P s p)
     {-# REWRITE ⊚-μ #-}
 
-    -- 
-    -- Naturality Laws
+    --
+    --  Functoriality of ν 
     --
 
+    ν-id : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+      → (P : Frm X → Type ℓ)
+      → {f : Frm X} (s : Src P f)
+      → ν {Q = P} s (_⊚_ s) ↦ s
+    {-# REWRITE ν-id #-}
+    
     ν-ν : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → (P Q R : Frm X → Type ℓ)
       → {f : Frm X} (s : Src P f)
@@ -261,6 +267,10 @@ module Experimental.Local.OpetopicType where
       → (ψ : (p : Pos Q (ν s ϕ)) → R (Typ Q (ν s ϕ) p))
       → ν {Q = R} (ν s ϕ) ψ ↦ ν s (λ p → ψ (ν-pos s ϕ p))
     {-# REWRITE ν-ν #-} 
+
+    -- 
+    -- Naturality Laws
+    --
       
     ν-η : ∀ {n ℓ} {X : 𝕆Type n ℓ}
       → (P Q : Frm X → Type ℓ)
