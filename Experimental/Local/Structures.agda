@@ -91,30 +91,34 @@ module Experimental.Local.Structures where
 --         test : test0 ≡ refl
 --         test = isProp→isSet (isContr→isProp (fib .fill-fib f (η (Fill X∞) t))) (t , Id-cell X∞ fib t) (t , Id-cell X∞ fib t) test0 refl
 
---   record is-n-trunc {m ℓ} (n : ℕ) {X : 𝕆Type m ℓ} (X∞ : 𝕆Type∞ X) : Type ℓ where
---     coinductive
---     field
---       hLevel : (f : Frm X) → isOfHLevel n (X∞ .Fill f)
---       is-trunc-ext : is-n-trunc (predℕ n) (X∞ .Hom)
---   open is-n-trunc
+  record is-n-trunc {m ℓ} (n : ℕ) {X : 𝕆Type m ℓ} (X∞ : 𝕆Type∞ X) : Type ℓ where
+    coinductive
+    field
+      hLevel : (f : Frm X) → isOfHLevel n (X∞ .Fill f)
+      is-trunc-ext : is-n-trunc (predℕ n) (X∞ .Hom)
+  open is-n-trunc
 
---   src-comp : ∀ {n ℓ} {X : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ X) → is-fibrant-ext X∞ → {f : Frm X} → Src (Fill X∞) f → Fill X∞ f
---   src-comp X∞ fib s = fib .fill-fib _ s .fst .fst
+  isProp-is-trunc : ∀ {m ℓ n} {X : 𝕆Type m ℓ} {X∞ : 𝕆Type∞ X} → isProp (is-n-trunc n X∞)
+  hLevel (isProp-is-trunc x y i) f = isPropIsOfHLevel _ (hLevel x f) (hLevel y f) i
+  is-trunc-ext (isProp-is-trunc x y i) = isProp-is-trunc (is-trunc-ext x) (is-trunc-ext y) i
 
---   -- More general version of the equivalence between hom and path, using the fundamental theorem of identity types
---   cell≃path : ∀ {n ℓ} {X : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ X) (fib : is-fibrant-ext X∞) {f : Frm X} (s : Src (Fill X∞) f) (t : Fill X∞ f)
---     → (src-comp X∞ fib s ≡ t) ≃ Fill (Hom X∞) (f , s , t)
---   cell≃path X∞ fib s t = recognizeId (λ t → (Fill (Hom X∞)) (_ , s , t)) (fib .fill-fib _ s .fst .snd) (fib .fill-fib _ s) t
+  src-comp : ∀ {n ℓ} {X : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ X) → is-fibrant-ext X∞ → {f : Frm X} → Src (Fill X∞) f → Fill X∞ f
+  src-comp X∞ fib s = fib .fill-fib _ s .fst .fst
 
---   isOfHLevelPathPred : ∀ (n : ℕ) {ℓ} {A : Type ℓ} → isOfHLevel n A → {x y : A} → isOfHLevel (predℕ n) (x ≡ y)
---   isOfHLevelPathPred zero h = isContr→isContrPath h _ _
---   isOfHLevelPathPred (suc n) h = isOfHLevelPath' n h _ _
+  -- More general version of the equivalence between hom and path, using the fundamental theorem of identity types
+  cell≃path : ∀ {n ℓ} {X : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ X) (fib : is-fibrant-ext X∞) {f : Frm X} (s : Src (Fill X∞) f) (t : Fill X∞ f)
+    → (src-comp X∞ fib s ≡ t) ≃ Fill (Hom X∞) (f , s , t)
+  cell≃path X∞ fib s t = recognizeId (λ t → (Fill (Hom X∞)) (_ , s , t)) (fib .fill-fib _ s .fst .snd) (fib .fill-fib _ s) t
 
---   is-n-trunc-fib : ∀ {m ℓ} (n : ℕ) {X : 𝕆Type m ℓ} (X∞ : 𝕆Type∞ X) → is-fibrant-ext X∞ → ((f : Frm X) → isOfHLevel n (X∞ .Fill f)) → is-n-trunc n X∞
---   hLevel (is-n-trunc-fib n {X} X∞ fib h) = h
---   is-trunc-ext (is-n-trunc-fib n {X} X∞ fib h) = is-n-trunc-fib _ _ (fib .hom-fib) lemma where
---     lemma : (f : Frm (X , Fill X∞)) → isOfHLevel (predℕ n) (X∞ .Hom .Fill f)
---     lemma (f , s , t) = isOfHLevelRespectEquiv (predℕ n) (cell≃path X∞ fib s t) (isOfHLevelPathPred n (h f))
+  isOfHLevelPathPred : ∀ (n : ℕ) {ℓ} {A : Type ℓ} → isOfHLevel n A → {x y : A} → isOfHLevel (predℕ n) (x ≡ y)
+  isOfHLevelPathPred zero h = isContr→isContrPath h _ _
+  isOfHLevelPathPred (suc n) h = isOfHLevelPath' n h _ _
+
+  is-n-trunc-fib : ∀ {m ℓ} (n : ℕ) {X : 𝕆Type m ℓ} (X∞ : 𝕆Type∞ X) → is-fibrant-ext X∞ → ((f : Frm X) → isOfHLevel n (X∞ .Fill f)) → is-n-trunc n X∞
+  hLevel (is-n-trunc-fib n {X} X∞ fib h) = h
+  is-trunc-ext (is-n-trunc-fib n {X} X∞ fib h) = is-n-trunc-fib _ _ (fib .hom-fib) lemma where
+    lemma : (f : Frm (X , Fill X∞)) → isOfHLevel (predℕ n) (X∞ .Hom .Fill f)
+    lemma (f , s , t) = isOfHLevelRespectEquiv (predℕ n) (cell≃path X∞ fib s t) (isOfHLevelPathPred n (h f))
 
 --   𝕆∞Path : ∀ {m ℓ} {X : 𝕆Type m ℓ} (X∞ X∞' : 𝕆Type∞ X) (p : Fill X∞ ≡ Fill X∞') → PathP (λ i → 𝕆Type∞ (X , p i)) (Hom X∞) (Hom X∞') → X∞ ≡ X∞'
 --   Fill (𝕆∞Path X∞ X∞' p q i) = p i
