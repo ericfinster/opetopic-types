@@ -203,8 +203,13 @@ sec (X , infCat , hom-trunc) = Σ≡Prop (λ X → isProp× isProp-is-fibrant-ex
   eq : Nerve (CoNerve X infCat hom-trunc) ≡ X
   Fill (eq i) _ = Fill X tt*
   Fill (Hom (eq i)) (_ , x , y) = Fill (Hom X) (_ , x , y)
-  Fill (Hom (Hom (eq i))) f = {!!}
-  Hom (Hom (Hom (eq i))) = {!!}
+  Fill (Hom (Hom (eq i))) f = eq2 f i
+  Hom (Hom (Hom (eq i))) = lemm i where
+    lemm : PathP (λ j → 𝕆Type∞ (_ , λ f → eq2 f j)) (𝕋Ext _) (Hom (Hom (Hom X)))
+    lemm = 0-trunc-≡ (λ j → _ , λ f → eq2 f j)
+      is-0-trunc-𝕋Ext
+      (hom-trunc .is-trunc-ext .is-trunc-ext)
+      where open is-n-trunc
 
 module _ where
   open Category renaming (id to idt)
@@ -245,3 +250,6 @@ ret : {ℓ : Level} → retract (Cat→1-Cat {ℓ}) 1-Cat→Cat
 ret C = Category≡ refl refl refl
   (implicitFunExt (implicitFunExt (implicitFunExt (funExt (λ f → funExt (λ g → ⋆Assoc _ _ _ ∙ ⋆IdL _)))))) where
   open Category C
+
+Cat≃1-Cat : ∀ {ℓ} → Category ℓ ℓ ≃ 1-Cat ℓ
+Cat≃1-Cat = isoToEquiv (iso Cat→1-Cat 1-Cat→Cat sec ret)

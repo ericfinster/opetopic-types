@@ -105,6 +105,10 @@ module Experimental.Local.Structures where
   src-comp : ∀ {n ℓ} {X : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ X) → is-fibrant-ext X∞ → {f : Frm X} → Src (Fill X∞) f → Fill X∞ f
   src-comp X∞ fib s = fib .fill-fib _ s .fst .fst
 
+  src-comp-witness : ∀ {n ℓ} {X : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ X) (fib-ext : is-fibrant-ext X∞) {f : Frm X} (s : Src (Fill X∞) f)
+    → Fill (Hom X∞) (f , s , src-comp X∞ fib-ext s)
+  src-comp-witness X∞ fib s = fib .fill-fib _ s .fst .snd
+
   -- More general version of the equivalence between hom and path, using the fundamental theorem of identity types
   cell≃path : ∀ {n ℓ} {X : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ X) (fib : is-fibrant-ext X∞) {f : Frm X} (s : Src (Fill X∞) f) (t : Fill X∞ f)
     → (src-comp X∞ fib s ≡ t) ≃ Fill (Hom X∞) (f , s , t)
@@ -120,9 +124,21 @@ module Experimental.Local.Structures where
     lemma : (f : Frm (X , Fill X∞)) → isOfHLevel (predℕ n) (X∞ .Hom .Fill f)
     lemma (f , s , t) = isOfHLevelRespectEquiv (predℕ n) (cell≃path X∞ fib s t) (isOfHLevelPathPred n (h f))
 
---   𝕆∞Path : ∀ {m ℓ} {X : 𝕆Type m ℓ} (X∞ X∞' : 𝕆Type∞ X) (p : Fill X∞ ≡ Fill X∞') → PathP (λ i → 𝕆Type∞ (X , p i)) (Hom X∞) (Hom X∞') → X∞ ≡ X∞'
---   Fill (𝕆∞Path X∞ X∞' p q i) = p i
---   Hom (𝕆∞Path X∞ X∞' p q i) = q i
+  total : ∀ {n ℓ} {X : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ X) → 𝕆Type∞ {ℓ = ℓ} tt*
+  total {zero} X∞ = X∞
+  total {suc n} {ℓ} {X , P} X∞ = total (record { Fill = P ; Hom = X∞ })
+
+  𝕆∞Path : ∀ {m ℓ} {X : 𝕆Type m ℓ} {X∞ X∞' : 𝕆Type∞ X} (p : Fill X∞ ≡ Fill X∞') → PathP (λ i → 𝕆Type∞ (X , p i)) (Hom X∞) (Hom X∞') → X∞ ≡ X∞'
+  Fill (𝕆∞Path p q i) = p i
+  Hom (𝕆∞Path p q i) = q i
+
+  0-trunc-≡ : ∀ {n ℓ} {X : 𝕆Type n ℓ} {X' : 𝕆Type n ℓ} (p : X ≡ X') {X∞ : 𝕆Type∞ X} {X∞' : 𝕆Type∞ X'}
+    → is-n-trunc 0 X∞ → is-n-trunc 0 X∞'
+    → PathP (λ i → 𝕆Type∞ (p i)) X∞ X∞'
+  Fill (0-trunc-≡ p {X∞} {X∞'} trunc trunc' i) = eq i where
+    eq : PathP (λ i → Frm (p i) → Type _) (Fill X∞) (Fill X∞')
+    eq = toPathP (funExt λ f → isoToPath (isContr→Iso (trunc .hLevel _) (trunc' .hLevel _)))
+  Hom (0-trunc-≡ p trunc trunc' i) = 0-trunc-≡ (λ j → p j , Fill (0-trunc-≡ p trunc trunc' j)) (trunc .is-trunc-ext) (trunc' .is-trunc-ext) i
 
 --   -- Trying to prove that fibrant opetopic types with same base-type are equal
 -- {-
