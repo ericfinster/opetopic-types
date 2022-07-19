@@ -13,10 +13,25 @@ open import Experimental.Local.Shapes
 open import Experimental.Local.Structures
 open import Experimental.Local.Terminal
 
+
 module Experimental.Local.Category where
 
-module _ {ℓ} (C : Category ℓ ℓ) where
+postulate
+  {-test-rewrite : ∀ {n ℓ} {X : 𝕆Type n ℓ} (P : Frm X → Type ℓ) (U : Frm (X , P) → Type ℓ)
+    → {frm : Frm X} {src : Src P frm} {tgt : P frm}
+    → (s : Src U (frm , src , tgt ))
+    → γ U s (λ p → [ _ , lf (src ⊚ p) ]) ↦ s
+  {-# REWRITE test-rewrite #-}-}
 
+  test-rewrite2 : ∀ {ℓ} {X : 𝕆Type 0 ℓ} (P : Frm X → Type ℓ) (U : Frm (X , P) → Type ℓ)
+    → {tgt : P tt*}
+    → (lvs : P tt*)
+    → (br : Pd U (tt* , lvs , tgt))
+    → γ {X = X} {P = P} U {src = lvs} br (λ p → [ lvs , lf (lvs) ]) ↦ br
+  {-# REWRITE test-rewrite2 #-}
+
+
+module Cat-to-∞Cat {ℓ} (C : Category ℓ ℓ) where
   open Category C renaming (id to C-id ; _⋆_ to _⨀_)
 
   n-comp : {n : ℕ} {t : ob ** (suc n)} → path-chain Hom[_,_] n t → Hom[ last t , fstt t ]
@@ -24,39 +39,38 @@ module _ {ℓ} (C : Category ℓ ℓ) where
   n-comp {suc zero} {y , x} f = f
   n-comp {suc (suc n)} {y , x , t} (f , l) = n-comp {suc n} {x , t} l ⨀ f
 
-  private
-    X₀ : Frm (𝕋 {ℓ = ℓ} 0) → Type ℓ
-    X₀ _ = ob
+  X₀ : Frm (𝕋 {ℓ = ℓ} 0) → Type ℓ
+  X₀ _ = ob
 
-    X₁ : Frm (tt* , X₀) → Type ℓ
-    X₁ (_ , x , y) = Hom[ x , y ]
+  X₁ : Frm (tt* , X₀) → Type ℓ
+  X₁ (_ , x , y) = Hom[ x , y ]
 
-    C-src-comp : {f : Frm (tt* , X₀)} → Src X₁ f → X₁ f
-    C-src-comp (lf tgt) = C-id {x = tgt}
-    C-src-comp (nd src tgt flr brs) = C-src-comp (br brs) ⨀ flr
+  C-src-comp : {f : Frm (tt* , X₀)} → Src X₁ f → X₁ f
+  C-src-comp (lf tgt) = C-id {x = tgt}
+  C-src-comp (nd src tgt flr brs) = C-src-comp (br brs) ⨀ flr
 
-    X₂ : Frm ((tt* , X₀) , X₁) → Type ℓ
-    X₂ (f , s , t) = C-src-comp s ≡ t
+  X₂ : Frm ((tt* , X₀) , X₁) → Type ℓ
+  X₂ (f , s , t) = C-src-comp s ≡ t
 
-    {-# TERMINATING #-}
-    big-lemma : {f : Frm (tt* , X₀)} (brs : Src (Src X₁) f) →
-      C-src-comp (μ X₁ brs) ≡
-      C-src-comp (ν {Q = X₁} brs λ p → C-src-comp (brs ⊚ p))
-    big-lemma (lf tgt) = refl
-    big-lemma (nd src .src (lf .src) brs) = big-lemma (br brs) ∙ sym (⋆IdR _)
-    big-lemma (nd ._ tgt (nd src .tgt flr lbrs) brs) =
-      cong (_⨀ flr) (big-lemma (nd (lvs lbrs) src (br lbrs) brs)) ∙
-      (⋆Assoc _ (C-src-comp (br lbrs)) flr)
+  {-# TERMINATING #-}
+  big-lemma : {f : Frm (tt* , X₀)} (brs : Src (Src X₁) f) →
+    C-src-comp (μ X₁ brs) ≡
+    C-src-comp (ν {Q = X₁} brs λ p → C-src-comp (brs ⊚ p))
+  big-lemma (lf tgt) = refl
+  big-lemma (nd src .src (lf .src) brs) = big-lemma (br brs) ∙ sym (⋆IdR _)
+  big-lemma (nd ._ tgt (nd src .tgt flr lbrs) brs) =
+    cong (_⨀ flr) (big-lemma (nd (lvs lbrs) src (br lbrs) brs)) ∙
+    (⋆Assoc _ (C-src-comp (br lbrs)) flr)
 
-    {-# TERMINATING #-}
-    C-2-src-comp : {f : Frm ((tt* , X₀) , X₁)} → Src X₂ f → X₂ f
-    C-2-src-comp (lf tgt) = ⋆IdL tgt
-    C-2-src-comp (nd src tgt flr brs) =
-      big-lemma (ν {Q = Pd X₁} src (λ p → lvs (brs ⊛ p))) ∙ IH ∙ flr
-
-      where IH : C-src-comp (ν {Q = X₁} src (λ p → C-src-comp (lvs (brs ⊛ p)))) ≡ 
-                 C-src-comp src
-            IH i =  C-src-comp (ν {Q = X₁} src (λ p → C-2-src-comp (br (brs ⊛ p)) i))
+  {-# TERMINATING #-}
+  C-2-src-comp : {f : Frm ((tt* , X₀) , X₁)} → Src X₂ f → X₂ f
+  C-2-src-comp (lf tgt) = ⋆IdL tgt
+  C-2-src-comp (nd src tgt flr brs) =
+    big-lemma (ν {Q = Pd X₁} src (λ p → lvs (brs ⊛ p))) ∙ IH ∙ flr
+                                                               
+    where IH : C-src-comp (ν {Q = X₁} src (λ p → C-src-comp (lvs (brs ⊛ p)))) ≡ 
+               C-src-comp src
+          IH i =  C-src-comp (ν {Q = X₁} src (λ p → C-2-src-comp (br (brs ⊛ p)) i))
 
   Nerve : 𝕆Type∞ {ℓ = ℓ} tt*
   Fill Nerve = X₀
@@ -77,7 +91,7 @@ module _ {ℓ} (C : Category ℓ ℓ) where
   is-trunc-Nerve : is-n-trunc 2 (Hom Nerve)
   is-trunc-Nerve = is-n-trunc-fib _ _ isInfCatCat (λ _ → isSetHom)
 
-
+open Cat-to-∞Cat public
 
 module _ {ℓ} (X : 𝕆Type∞ (𝕋 {ℓ} 0)) (infCat : is-fibrant-ext (Hom X)) (hom-trunc : is-n-trunc 2 (Hom X)) where
   obj : Type ℓ
@@ -158,16 +172,39 @@ Cat→1-Cat {ℓ} C = Nerve C , isInfCatCat C , is-trunc-Nerve C
 1-Cat→Cat : {ℓ : Level} → 1-Cat ℓ → Category ℓ ℓ
 1-Cat→Cat {ℓ} (X , infCat , hom-trunc) = CoNerve X infCat hom-trunc
 
-{-sec : {ℓ : Level} → section (Cat→1-Cat {ℓ}) 1-Cat→Cat
-sec (X , infCat , hom-trunc) = Σ≡Prop (λ X → isProp× isProp-is-fibrant-ext isProp-is-trunc) {!!} where
+sec : {ℓ : Level} → section (Cat→1-Cat {ℓ}) 1-Cat→Cat
+sec (X , infCat , hom-trunc) = Σ≡Prop (λ X → isProp× isProp-is-fibrant-ext isProp-is-trunc) eq where
   eq2 : (f : Frm ((tt* , Fill X) , Fill (Hom X))) → Fill (Hom (Hom (Nerve (CoNerve X infCat hom-trunc)))) f ≡ Fill (Hom (Hom X)) f
-  eq2 (f , x , y) = {!!}
+  eq2 (f , x , y) = cong (_≡ y) (lemm f x) ∙ ua (cell≃path (Hom X) infCat x y) where
+    lemm : (f : Frm (tt* , Fill X)) (x : Src (Fill (Hom X)) f)
+      → C-src-comp (CoNerve X infCat hom-trunc) x ≡ src-comp (Hom X) infCat x
+    lemm _ (lf tgt) = refl
+    lemm _ (nd src tgt flr brs) = cong (λ x → infCat .fill-fib _ x .fst .fst) p1 ∙ p2 where
+      p1 :
+        nd {U = Fill (Hom X)} src tgt flr ([ lvs brs , nd (lvs brs) src (C-src-comp (CoNerve X infCat hom-trunc) (br brs)) ([ lvs brs , lf (lvs brs) ]) ])
+        ≡
+        nd src tgt flr ([ lvs brs , nd (lvs brs) src (src-comp _ infCat (br brs)) ([ lvs brs , lf (lvs brs) ]) ])
+      p1 = cong (λ t → nd src tgt flr ([ lvs brs , nd (lvs brs) src t ([ lvs brs , lf (lvs brs) ]) ])) (lemm _ (br brs))
+
+      p2 : src-comp _ infCat (n-path (Fill (Hom X)) 2 (flr , src-comp _ infCat (br brs))) ≡ src-comp _ infCat (nd src tgt flr brs)
+      p2 = cong fst (isContr→isProp (infCat .fill-fib _ _) horn2 horn1) where
+        horn1 : horn-filler (Fill (Hom (Hom X))) _
+        horn1 = infCat .fill-fib _ (nd src tgt flr brs) .fst
+
+        horn2 : horn-filler (Fill (Hom (Hom X))) _
+        horn2 =
+          src-comp _ infCat (n-path (Fill (Hom X)) 2 (flr , src-comp _ infCat (br brs))) ,
+          src-comp _ (infCat .hom-fib) (nd
+            (n-path (Fill (Hom X)) 2 (flr , src-comp _ infCat (br brs)))
+            _
+            (src-comp-witness _ infCat _)
+            ([ _ , lf flr ] , [ br brs , η (Fill (Hom (Hom X))) (src-comp-witness _ infCat _) ] , tt*))
 
   eq : Nerve (CoNerve X infCat hom-trunc) ≡ X
   Fill (eq i) _ = Fill X tt*
   Fill (Hom (eq i)) (_ , x , y) = Fill (Hom X) (_ , x , y)
   Fill (Hom (Hom (eq i))) f = {!!}
-  Hom (Hom (Hom (eq i))) = {!!}-}
+  Hom (Hom (Hom (eq i))) = {!!}
 
 module _ where
   open Category renaming (id to idt)
