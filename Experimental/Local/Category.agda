@@ -80,16 +80,69 @@ module _ {ℓ} (C : Category ℓ ℓ) where
 
 
 module _ {ℓ} (X : 𝕆Type∞ (𝕋 {ℓ} 0)) (infCat : is-fibrant-ext (Hom X)) (hom-trunc : is-n-trunc 2 (Hom X)) where
+  obj : Type ℓ
+  obj = Fill X tt*
+
+  Mor : obj → obj → Type ℓ
+  Mor x y = Fill (Hom X) (_ , x , y)
+
+  Idt : {x : obj} → Mor x x
+  Idt {x} = src-comp (Hom X) infCat (lf _)
+
+  Comp : {x y z : obj} → Mor x y → Mor y z → Mor x z
+  Comp f g = src-comp (Hom X) infCat (n-path (Fill (Hom X)) 2 (g , f))
+
+  -- There is a lot that can be factored here
+  ⋆leftUnit : ∀ {x y} (f : Mor x y) → Comp Idt f ≡ f
+  ⋆leftUnit {x} {y} f = cong fst (isContr→isProp (infCat .fill-fib _ _) horn2 horn1) where
+    horn1 : horn-filler (Fill (Hom (Hom X))) (η (Fill (Hom X)) f)
+    horn1 = f , src-comp (Hom (Hom X)) (infCat .hom-fib) (lf f)
+
+    horn2 : horn-filler (Fill (Hom (Hom X))) (η (Fill (Hom X)) f)
+    horn2 = _ , infCat .hom-fib .fill-fib _ src .fst .fst where
+      src : Src (Fill (Hom (Hom X))) _
+      src = left-unitor-Src _ _ (Fill (Hom (Hom X)))
+        x y Idt f (Comp Idt f)
+        (src-comp-witness (Hom X) infCat _)
+        (src-comp-witness (Hom X) infCat (lf _))
+
+  ⋆rightUnit : ∀ {x y} (f : Mor x y) → Comp f Idt ≡ f
+  ⋆rightUnit {x} {y} f = cong fst (isContr→isProp (infCat .fill-fib _ _) horn2 horn1) where
+    horn1 : horn-filler (Fill (Hom (Hom X))) (η (Fill (Hom X)) f)
+    horn1 = f , src-comp (Hom (Hom X)) (infCat .hom-fib) (lf f)
+
+    horn2 : horn-filler (Fill (Hom (Hom X))) (η (Fill (Hom X)) f)
+    horn2 = _ , infCat .hom-fib .fill-fib _ src .fst .fst where
+      src : Src (Fill (Hom (Hom X))) _
+      src = right-unitor-Src _ _ (Fill (Hom (Hom X)))
+        x y Idt f (Comp f Idt)
+        (src-comp-witness (Hom X) infCat _)
+        (src-comp-witness (Hom X) infCat (lf _))
+
+  ⋆assoc : ∀ {x y z w} (f : Mor x y) (g : Mor y z) (h : Mor z w) → Comp (Comp f g) h ≡ Comp f (Comp g h)
+  ⋆assoc {x} {y} {z} {w} f g h = cong fst (isContr→isProp (infCat .fill-fib _ _) horn1 horn2) where
+    horn1 : horn-filler (Fill (Hom (Hom X))) _
+    horn1 = _ , infCat .hom-fib .fill-fib _ src .fst .fst where
+      src : Src (Fill (Hom (Hom X))) _
+      src = left-associator-Src _ _ (Fill (Hom (Hom X))) x y z w f g h (Comp f g) (Comp (Comp f g) h)
+        (src-comp-witness (Hom X) infCat _)
+        (src-comp-witness (Hom X) infCat _)
+
+    horn2 : horn-filler (Fill (Hom (Hom X))) _
+    horn2 = _ , infCat .hom-fib .fill-fib _ src .fst .fst where
+      src : Src (Fill (Hom (Hom X))) _
+      src = right-associator-Src _ _ (Fill (Hom (Hom X))) x y z w f g h (Comp g h) (Comp f (Comp g h))
+        (src-comp-witness (Hom X) infCat _)
+        (src-comp-witness (Hom X) infCat _)
+
   CoNerve : Category ℓ ℓ
-  Category.ob CoNerve = Fill X tt*
-  Category.Hom[_,_] CoNerve = λ x y → Fill (Hom X) (_ , x , y)
-  Category.id CoNerve = src-comp (Hom X) infCat (lf _)
-  Category._⋆_ CoNerve = λ f g → src-comp (Hom X) infCat (n-path {X = (tt* , Fill X) , Fill (Hom X)} 2 (g , f))
-  Category.⋆IdL CoNerve f = cong fst (isContr→isProp (infCat .fill-fib _ (η (Fill (Hom X)) f)) {!!} {!!})
-  --λ f → invEq (cell≃path (Hom X) infCat {!(n-path 2 (f , Category.id CoNerve))!} f) {!!}
-  -- (src-comp (Hom (Hom X)) (infCat .hom-fib) (nd {!!} f {!!} {!!}))
-  Category.⋆IdR CoNerve = {!!}
-  Category.⋆Assoc CoNerve = {!!}
+  Category.ob CoNerve = obj
+  Category.Hom[_,_] CoNerve = Mor
+  Category.id CoNerve = Idt
+  Category._⋆_ CoNerve = Comp
+  Category.⋆IdL CoNerve = ⋆leftUnit
+  Category.⋆IdR CoNerve = ⋆rightUnit
+  Category.⋆Assoc CoNerve = ⋆assoc
   Category.isSetHom CoNerve {x = x} {y = y} = is-n-trunc.hLevel hom-trunc (_ , x , y)
 
 
@@ -104,11 +157,11 @@ Cat→1-Cat {ℓ} C = Nerve C , isInfCatCat C , is-trunc-Nerve C
 
 1-Cat→Cat : {ℓ : Level} → 1-Cat ℓ → Category ℓ ℓ
 1-Cat→Cat {ℓ} (X , infCat , hom-trunc) = CoNerve X infCat hom-trunc
-{-
-sec : {ℓ : Level} → section (Cat→1-Cat {ℓ}) 1-Cat→Cat
+
+{-sec : {ℓ : Level} → section (Cat→1-Cat {ℓ}) 1-Cat→Cat
 sec (X , infCat , hom-trunc) = Σ≡Prop (λ X → isProp× isProp-is-fibrant-ext isProp-is-trunc) {!!} where
-  eq2 : Hom (Hom (Nerve (CoNerve X infCat hom-trunc))) ≡ Hom (Hom X)
-  eq2 = {!!}
+  eq2 : (f : Frm ((tt* , Fill X) , Fill (Hom X))) → Fill (Hom (Hom (Nerve (CoNerve X infCat hom-trunc)))) f ≡ Fill (Hom (Hom X)) f
+  eq2 (f , x , y) = {!!}
 
   eq : Nerve (CoNerve X infCat hom-trunc) ≡ X
   Fill (eq i) _ = Fill X tt*
