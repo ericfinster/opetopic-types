@@ -16,20 +16,13 @@ open import Experimental.Local.Terminal
 
 module Experimental.Local.Category where
 
-postulate
-  {-test-rewrite : ∀ {n ℓ} {X : 𝕆Type n ℓ} (P : Frm X → Type ℓ) (U : Frm (X , P) → Type ℓ)
-    → {frm : Frm X} {src : Src P frm} {tgt : P frm}
-    → (s : Src U (frm , src , tgt ))
-    → γ U s (λ p → [ _ , lf (src ⊚ p) ]) ↦ s
-  {-# REWRITE test-rewrite #-}-}
-
-  test-rewrite2 : ∀ {ℓ} {X : 𝕆Type 0 ℓ} (P : Frm X → Type ℓ) (U : Frm (X , P) → Type ℓ)
-    → {tgt : P tt*}
-    → (lvs : P tt*)
-    → (br : Pd U (tt* , lvs , tgt))
-    → γ {X = X} {P = P} U {src = lvs} br (λ p → [ lvs , lf (lvs) ]) ↦ br
-  {-# REWRITE test-rewrite2 #-}
-
+grafting-leaves-0 : ∀ {ℓ} {X : 𝕆Type 0 ℓ} (P : Frm X → Type ℓ) (U : Frm (X , P) → Type ℓ)
+  → {tgt : P tt*}
+  → (lvs : P tt*)
+  → (br : Pd U (tt* , lvs , tgt))
+  → γ {X = X} {P = P} U {src = lvs} br (λ p → [ lvs , lf (lvs) ]) ≡ br
+grafting-leaves-0 P U _ (lf _) = refl
+grafting-leaves-0 P U _ (nd src _ flr brs) = cong (λ x → nd src _ flr ([ lvs brs , x ])) (grafting-leaves-0 P U _ (br brs))
 
 module Cat-to-∞Cat {ℓ} (C : Category ℓ ℓ) where
   open Category C renaming (id to C-id ; _⋆_ to _⨀_)
@@ -187,7 +180,7 @@ sec (X , infCat , hom-trunc) = Σ≡Prop (λ X → isProp× isProp-is-fibrant-ex
       p1 = cong (λ t → nd src tgt flr ([ lvs brs , nd (lvs brs) src t ([ lvs brs , lf (lvs brs) ]) ])) (lemm _ (br brs))
 
       p2 : src-comp _ infCat (n-path (Fill (Hom X)) 2 (flr , src-comp _ infCat (br brs))) ≡ src-comp _ infCat (nd src tgt flr brs)
-      p2 = cong fst (isContr→isProp (infCat .fill-fib _ _) horn2 horn1) where
+      p2 = cong fst (isContr→isProp (infCat .fill-fib _ _) horn3 horn1) where
         horn1 : horn-filler (Fill (Hom (Hom X))) _
         horn1 = infCat .fill-fib _ (nd src tgt flr brs) .fst
 
@@ -199,6 +192,13 @@ sec (X , infCat , hom-trunc) = Σ≡Prop (λ X → isProp× isProp-is-fibrant-ex
             _
             (src-comp-witness _ infCat _)
             ([ _ , lf flr ] , [ br brs , η (Fill (Hom (Hom X))) (src-comp-witness _ infCat _) ] , tt*))
+
+        horn3 : horn-filler (Fill (Hom (Hom X))) _
+        horn3 = fst horn2 , transport final-lemma (snd horn2) where
+          final-lemma :
+            Fill (Hom (Hom X)) (_ , nd src tgt flr ([ lvs brs , γ (Fill (Hom X)) (br brs) (λ p → [ lvs brs , lf (lvs brs) ]) ]) , fst horn2) ≡
+            Fill (Hom (Hom X)) (_ , nd src tgt flr brs , fst horn2)
+          final-lemma = cong (λ x → Fill (Hom (Hom X)) (_ , nd src tgt flr ([ lvs brs , x ]) , fst horn2)) (grafting-leaves-0 _ _ _ _)
 
   eq : Nerve (CoNerve X infCat hom-trunc) ≡ X
   Fill (eq i) _ = Fill X tt*
