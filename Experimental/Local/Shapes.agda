@@ -41,12 +41,12 @@ module Experimental.Local.Shapes where
   chain-cons Y {suc n} {y} {t} p f = f , p
 
  -- Sequences of arrows
-  n-path : ∀ {ℓ} {X : 𝕆Type 2 ℓ} (n : ℕ) {t : (X .fst .snd tt*) ** suc n}
-    → path-chain (λ x y → X .snd (tt* , x , y)) n t
-    → Src (X .snd) (tt* , last t , fstt t)
-  n-path zero {x} f = lf x
-  n-path (suc zero) {y , x} f = nd x y f [ x , lf x ] 
-  n-path (suc (suc n)) {y , x , t} (f , l) = nd x y f [ last t , n-path (suc n) l ]
+  n-path : ∀ {ℓ} {X₀ : 𝕆Type 1 ℓ} (X₁ : Frm X₀ → Type ℓ) (n : ℕ) {t : (X₀ .snd tt*) ** suc n}
+    → path-chain (λ x y → X₁ (tt* , x , y)) n t
+    → Src X₁ (tt* , last t , fstt t)
+  n-path X₁ zero {x} f = lf x
+  n-path X₁ (suc zero) {y , x} f = nd x y f [ x , lf x ] 
+  n-path X₁ (suc (suc n)) {y , x , t} (f , l) = nd x y f [ last t , n-path X₁ (suc n) l ]
 
 --   -- Sequences of unary higher cells
 --   n-path' : ∀ {ℓ} {m : ℕ} {X : 𝕆Type m ℓ} (n : ℕ) {P : Frm X → Type ℓ} (Q : Frm (X , P) → Type ℓ) {f : Frm X}
@@ -69,7 +69,7 @@ module Experimental.Local.Shapes where
       hom x y = X₁ (hom-Frm x y)
 
       simplex-Frm : {x y z : Obj} (f : hom x y) (g : hom y z) (h : hom x z) → Frm (X₀ , X₁)
-      simplex-Frm {x} {y} {z} f g h = hom-Frm x z , n-path 2 (g , f) , h 
+      simplex-Frm {x} {y} {z} f g h = hom-Frm x z , n-path X₁ 2 (g , f) , h 
 
       2-drop-Frm : (x : Obj) (f : hom x x) → Frm (X₀ , X₁)
       2-drop-Frm x f = hom-Frm x x , lf x , f
@@ -93,15 +93,35 @@ module Experimental.Local.Shapes where
           → (h : hom x z) → Type ℓ
         Simplex {x} {y} {z} f g h = X₂ (simplex-Frm f g h)
 
---         unitor-Frm : (x y : Obj) (f : hom x x) (g : hom x y) (h : hom x y)
---           → (Δ : X₂ (simplex-Frm f g h))
---           → (Γ : X₂ (2-drop-Frm x f))
---           → (O : X₂ (globe-Frm X₁ g h))
---           → Frm ((X₀ , X₁) , X₂)
---         unitor-Frm x y f g h Δ Γ O = _ , nd h (nd y [ x , x , nd x [ x , η _ x , lf x ] [ f , lf x , nd f (lf x) Γ ] ] [ g , _ , lf g ]) Δ , O
+        right-unitor-Src : (x y : Obj) (f : hom y y) (g h : hom x y)
+          → (Δ : X₂ (simplex-Frm g f h))
+          → (Γ : X₂ (2-drop-Frm y f))
+          → Src X₂ (globe-Frm X₁ g h)
+        right-unitor-Src x y f g h Δ Γ = nd (n-path X₁ 2 (f , g)) h Δ ([ lf y , nd (lf y) f Γ tt* ] , [ η X₁ g , (lf g) ] , tt*)
 
---         associator1 : (x y z t : Obj) (f : hom x y) (g : hom y z) (h : hom z t) (i : hom x z) (j : hom x t)
---           → (Δ₁ : X₂ (simplex-Frm f g i))
---           → (Δ₂ : X₂ (simplex-Frm i h j))
---           → Src X₂ (hom-Frm x t , n-path 3 (h , g , f) , j) --nd t [ _ , _ , (nd _ [ _ , _ , (nd _ [ _ , _ , (lf _) ] f) ] g) ] h)
---         associator1 x y z t f g h i j Δ₁ Δ₂ = nd j (nd t [ z , x , (nd z [ x , x , (lf x) ] [ i , nd z [ y , x , (nd _ _ _) ] g , nd i (nd z [ y , x , nd y [ x , x , (lf x) ] [ f , _ , lf f ] ] [ g , _ , (lf g) ]) Δ₁ ]) ] [ h , _ , (lf h) ]) Δ₂
+        left-unitor-Src : (x y : Obj) (f : hom x x) (g h : hom x y)
+          → (Δ : X₂ (simplex-Frm f g h))
+          → (Γ : X₂ (2-drop-Frm x f))
+          → Src X₂ (globe-Frm X₁ g h)
+        left-unitor-Src x y f g h Δ Γ = nd (n-path X₁ 2 (g , f)) h Δ ([ η X₁ g , (lf g) ] , [ lf x , nd (lf x) f Γ tt* ] , tt*)
+
+
+        -- (h | g | f) → ((h ∘ g) | f) → ((h ∘ g) ∘ f)
+        right-associator-Src : (x y z w : Obj) (f : hom x y) (g : hom y z) (h : hom z w) (i : hom y w) (j : hom x w)
+          → (Δ₁ : X₂ (simplex-Frm f i j))
+          → (Δ₂ : X₂ (simplex-Frm g h i))
+          → Src X₂ (_ , n-path X₁ 3 (h , g , f) , j)
+        right-associator-Src x y z w f g h i j Δ₁ Δ₂ = nd (n-path X₁ 2 (i , f)) j Δ₁ (
+          [ _ {-"n-path X₁ 2 (h , g)" here should work but doesn't-} , (nd (n-path X₁ 2 (h , g)) i Δ₂ ([ _ , lf h ] , [ _ , lf g ] , tt*)) ] ,
+          [ _ , lf f ] ,
+          tt*)
+
+        -- (h | g | f) → (h | (g ∘ f)) → (h ∘ (g ∘ f))
+        left-associator-Src : (x y z w : Obj) (f : hom x y) (g : hom y z) (h : hom z w) (i : hom x z) (j : hom x w)
+          → (Δ₁ : X₂ (simplex-Frm  i h j))
+          → (Δ₂ : X₂ (simplex-Frm f g i))
+          → Src X₂ (_ , n-path X₁ 3 (h , g , f) , j)
+        left-associator-Src x y z w f g h i j Δ₁ Δ₂ = nd (n-path X₁ 2 (h , i)) j Δ₁ (
+          [ _ , lf h ] ,
+          [ _ , nd (n-path X₁ 2 (g , f)) i Δ₂ ([ _ , lf g ] , [ _ , lf f ] , tt*) ] ,
+          tt*)
