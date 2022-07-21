@@ -29,6 +29,7 @@ module Experimental.Local.OpetopicMap where
     → {Y : 𝕆Type n ℓ₁} {Z : 𝕆Type n ℓ₂}
     → Y ⇒ Z → X ⇒ Y → X ⇒ Z
 
+
   Frm⇒ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
     → (σ : X ⇒ Y) → Frm X → Frm Y
 
@@ -76,6 +77,50 @@ module Experimental.Local.OpetopicMap where
     {-# REWRITE map-assoc #-} 
 
     --
+    --  Typing and Inhabitants
+    --
+
+    Pos⇐-Typ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {f : Frm X} (s : Src P f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+      → (p : Pos Q (Src⇒ s σ σ'))
+      → Typ Q (Src⇒ s σ σ') p ↦ Frm⇒ σ (Typ P s (Pos⇐ s σ σ' p))
+    {-# REWRITE Pos⇐-Typ #-}
+
+    Pos⇐-⊚ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {f : Frm X} (s : Src P f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+      → (p : Pos Q (Src⇒ s σ σ'))
+      → Src⇒ s σ σ' ⊚ p ↦ σ' (Pos⇐ s σ σ' p) 
+    {-# REWRITE Pos⇐-⊚ #-}
+
+    --
+    --  Pos β and η rules
+    --
+
+    Pos⇒-β : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {f : Frm X} (s : Src P f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+      → (p : Pos P s)
+      → Pos⇐ {Q = Q} s σ σ' (Pos⇒ {Q = Q} s σ σ' p) ↦ p 
+    {-# REWRITE Pos⇒-β #-}
+
+    Pos⇒-η : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {f : Frm X} (s : Src P f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+      → (p : Pos Q (Src⇒ s σ σ'))
+      → Pos⇒ {Q = Q} s σ σ' (Pos⇐ {Q = Q} s σ σ' p) ↦ p 
+    {-# REWRITE Pos⇒-η #-}
+
+    --
     --  Frame compatibilities
     --
     
@@ -99,8 +144,18 @@ module Experimental.Local.OpetopicMap where
       → Src⇒ {Q = P} s (id-map X) (λ p → s ⊚ p) ↦ s 
     {-# REWRITE Src⇒-id #-}
 
-    -- Src⇒ and composition?
-    
+    Src⇒-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂}
+      → {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} {Z : 𝕆Type n ℓ₂}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {R : Frm Z → Type ℓ₂}
+      → {f : Frm X} (s : Src P f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+      → (τ : Y ⇒ Z) (τ' : (p : Pos Q (Src⇒ s σ σ')) → R (Frm⇒ τ (Typ Q (Src⇒ s σ σ') p)))
+      → Src⇒ {Q = R} (Src⇒ s σ σ') τ τ' ↦
+        Src⇒ {Q = R} s (τ ⊙ σ) (λ p → τ' (Pos⇒ s σ σ' p))
+    {-# REWRITE Src⇒-⊙ #-} 
+
     Src⇒-ν : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
       → {P Q : Frm X → Type ℓ₀}
       → {R : Frm Y → Type ℓ₁}
@@ -125,51 +180,7 @@ module Experimental.Local.OpetopicMap where
       → (σ : X ⇒ Y) (σ' : (p : Pos P (μ P s)) → Q (Frm⇒ σ (Typ P (μ P s) p)))
       → Src⇒ (μ P s) σ σ' ↦ μ Q (Src⇒ s σ (λ p → Src⇒ (s ⊚ p) σ (λ q → σ' (μ-pos P s p q))))
     {-# REWRITE Src⇒-μ #-}
-
-    --
-    --  Pos⇒ definitional inverse
-    --
-
-    Pos⇒-β : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
-      → {P : Frm X → Type ℓ₀}
-      → {Q : Frm Y → Type ℓ₁}
-      → {f : Frm X} (s : Src P f) 
-      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
-      → (p : Pos P s)
-      → Pos⇐ {Q = Q} s σ σ' (Pos⇒ {Q = Q} s σ σ' p) ↦ p 
-    {-# REWRITE Pos⇒-β #-}
-
-    Pos⇒-η : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
-      → {P : Frm X → Type ℓ₀}
-      → {Q : Frm Y → Type ℓ₁}
-      → {f : Frm X} (s : Src P f) 
-      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
-      → (p : Pos Q (Src⇒ s σ σ'))
-      → Pos⇒ {Q = Q} s σ σ' (Pos⇐ {Q = Q} s σ σ' p) ↦ p 
-    {-# REWRITE Pos⇒-η #-}
-
-    --
-    --  Typing and Inhabitants
-    --
-
-    Pos⇐-Typ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
-      → {P : Frm X → Type ℓ₀}
-      → {Q : Frm Y → Type ℓ₁}
-      → {f : Frm X} (s : Src P f) 
-      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
-      → (p : Pos Q (Src⇒ s σ σ'))
-      → Typ Q (Src⇒ s σ σ') p ↦ Frm⇒ σ (Typ P s (Pos⇐ s σ σ' p))
-    {-# REWRITE Pos⇐-Typ #-}
-
-    Pos⇐-⊚ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
-      → {P : Frm X → Type ℓ₀}
-      → {Q : Frm Y → Type ℓ₁}
-      → {f : Frm X} (s : Src P f) 
-      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
-      → (p : Pos Q (Src⇒ s σ σ'))
-      → Src⇒ s σ σ' ⊚ p ↦ σ' (Pos⇐ s σ σ' p) 
-    {-# REWRITE Pos⇐-⊚ #-}
-
+    
     ν-Src⇒ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
       → {P : Frm X → Type ℓ₀}
       → {Q R : Frm Y → Type ℓ₁}
@@ -179,7 +190,51 @@ module Experimental.Local.OpetopicMap where
       → ν {Q = R} (Src⇒ s σ σ') ϕ ↦ Src⇒ s σ (λ p → ϕ (Pos⇒ s σ σ' p))
     {-# REWRITE ν-Src⇒ #-}
 
-    -- Pos⇒ and id-map and ⊙ ? 
+
+    --
+    --  Position Compatibilities
+    --
+
+    Pos⇒-id : ∀ {n ℓ} (X : 𝕆Type n ℓ)
+      → (P : Frm X → Type ℓ)
+      → (f : Frm X) (s : Src P f)
+      → (p : Pos P s)
+      → Pos⇒ {Q = P} s (id-map X) (λ p → s ⊚ p) p ↦ p
+    {-# REWRITE Pos⇒-id #-}
+
+    Pos⇒-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂}
+      → {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} {Z : 𝕆Type n ℓ₂}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {R : Frm Z → Type ℓ₂}
+      → {f : Frm X} (s : Src P f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+      → (τ : Y ⇒ Z) (τ' : (p : Pos Q (Src⇒ s σ σ')) → R (Frm⇒ τ (Typ Q (Src⇒ s σ σ') p)))
+      → (p : Pos P s)
+      → Pos⇒ {Q = R} (Src⇒ s σ σ') τ τ' (Pos⇒ s σ σ' p) ↦
+          Pos⇒ {Q = R} s (τ ⊙ σ) (λ p → τ' (Pos⇒ s σ σ' p)) p
+    {-# REWRITE Pos⇒-⊙ #-}
+
+    Pos⇐-id : ∀ {n ℓ} (X : 𝕆Type n ℓ)
+      → (P : Frm X → Type ℓ)
+      → (f : Frm X) (s : Src P f)
+      → (p : Pos P s)
+      → Pos⇐ {Q = P} s (id-map X) (λ p → s ⊚ p) p ↦ p 
+    {-# REWRITE Pos⇐-id #-}
+    
+    Pos⇐-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂}
+      → {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} {Z : 𝕆Type n ℓ₂}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {R : Frm Z → Type ℓ₂}
+      → {f : Frm X} (s : Src P f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+      → (τ : Y ⇒ Z) (τ' : (p : Pos Q (Src⇒ s σ σ')) → R (Frm⇒ τ (Typ Q (Src⇒ s σ σ') p)))
+      → (p : Pos R (Src⇒ {Q = R} s (τ ⊙ σ) (λ p → τ' (Pos⇒ s σ σ' p))))
+      → Pos⇐ {Q = Q} s σ σ' (Pos⇐ {Q = R} (Src⇒ s σ σ') τ τ' p) ↦
+          Pos⇐ {Q = R} s (τ ⊙ σ) (λ p → τ' (Pos⇒ s σ σ' p)) p  
+    {-# REWRITE Pos⇐-⊙ #-}
+
 
   _⇒_ {zero} X Y = Lift Unit
   _⇒_ {suc n} (X , P) (Y , Q) =
