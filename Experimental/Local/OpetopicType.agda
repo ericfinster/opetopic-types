@@ -511,9 +511,18 @@ module Experimental.Local.OpetopicType where
   ν-lift {suc n} (nd src tgt flr brs) ϕ (nd-there p q) =
     nd-there p (ν-lift (br (brs ⊛ p)) (λ q → ϕ (nd-there p q)) q)
 
+  η-dec : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+    → {P : Frm X → Type ℓ}
+    → (U : Frm (X , P) → Type ℓ)
+    → {f : Frm X} (s : Src P f)
+    → Dec {X = X} (Branch U) s
+  η-dec {X = X} {P} U s =
+    λ-dec {X = X} {P} (Branch U) s
+      (λ p → [ η P (s ⊚ p) , lf (s ⊚ p) ])
+
   η {zero} P x = x
   η {suc n} {X = X , P} U {f = _ , src , tgt} x =
-    nd src tgt x (λ-dec {P = P} (Branch U) src λ p → [ η P (src ⊚ p) , lf (src ⊚ p) ])
+    nd src tgt x (η-dec U src)
 
   η-pos {zero} P x = tt*
   η-pos {suc n} {X = X , P} U {f = _ , src , tgt} x = nd-here

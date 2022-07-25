@@ -23,7 +23,7 @@ module Experimental.Local.Universe where
   CellFib {ℓ = ℓ} F = Frm↓ F → Type ℓ
 
   Src↓ : ∀ {n ℓ} 
-    → (X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
+    → {X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
     → (P : {F : Frm (𝕆U n ℓ)} → X F → Frm↓ F → Type ℓ)
     → {F : Frm (𝕆U n ℓ)} (S : Src X F)
     → Frm↓ F → Type ℓ 
@@ -32,7 +32,7 @@ module Experimental.Local.Universe where
     → {X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
     → (P : {F : Frm (𝕆U n ℓ)} → X F → Frm↓ F → Type ℓ)
     → {F : Frm (𝕆U n ℓ)} {S : Src X F}
-    → {f : Frm↓ F} (s : Src↓ X P S f)
+    → {f : Frm↓ F} (s : Src↓ P S f)
     → (p : Pos {X = 𝕆U n ℓ} X S)
     → Frm↓ (Typ X S p)
 
@@ -40,7 +40,7 @@ module Experimental.Local.Universe where
     → {X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
     → {P : {F : Frm (𝕆U n ℓ)} → X F → Frm↓ F → Type ℓ}
     → {F : Frm (𝕆U n ℓ)} {S : Src X F}
-    → {f : Frm↓ F} (s : Src↓ X P S f)
+    → {f : Frm↓ F} (s : Src↓ P S f)
     → (p : Pos {X = 𝕆U n ℓ} X S)
     → P (S ⊚ p) (Typ↓ P s p) 
 
@@ -50,7 +50,7 @@ module Experimental.Local.Universe where
     → {P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ}
     → (Q : {F : Frm (𝕆U n ℓ)} {C : X F} → Y C → {f : Frm↓ F} → P C f → Type ℓ)
     → {F : Frm (𝕆U n ℓ)} (S : Src X F) (D : Dec {X = 𝕆U n ℓ} Y S)
-    → {f : Frm↓ F} (s : Src↓ X P S f)
+    → {f : Frm↓ F} (s : Src↓ P S f)
     → Type ℓ
 
   _⊛↓_ : ∀ {n ℓ} 
@@ -59,7 +59,7 @@ module Experimental.Local.Universe where
     → {P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ}
     → {Q : {F : Frm (𝕆U n ℓ)} {C : X F} → Y C → {f : Frm↓ F} → P C f → Type ℓ}
     → {F : Frm (𝕆U n ℓ)} {S : Src X F} {D : Dec {X = 𝕆U n ℓ} Y S}
-    → {f : Frm↓ F} {s : Src↓ X P S f}
+    → {f : Frm↓ F} {s : Src↓ P S f}
     → Dec↓ Y Q S D s
     → (p : Pos X S) → Q (D ⊛ p) (s ⊚↓ p) 
 
@@ -70,7 +70,7 @@ module Experimental.Local.Universe where
     → (Q : {F : Frm (𝕆U n ℓ)} {C : X F} → Y C → {f : Frm↓ F} → P C f → Type ℓ)
     → {F : Frm (𝕆U n ℓ)} {S : Src X F}
     → (D : (p : Pos X S) → Y (S ⊚ p))
-    → {f : Frm↓ F} {s : Src↓ X P S f}
+    → {f : Frm↓ F} {s : Src↓ P S f}
     → (δ : (p : Pos X S) → Q (D p) (s ⊚↓ p))
     → Dec↓ Y Q S (λ-dec Y S D) s
 
@@ -80,23 +80,23 @@ module Experimental.Local.Universe where
     → {Q : {F : Frm (𝕆U n ℓ)} → Y F → (f : Frm↓ F) → Type ℓ}
     → {F : Frm (𝕆U n ℓ)} {S : Src X F}
     → {ϕ : (p : Pos X S) → Y (Typ X S p)}
-    → {f : Frm↓ F} (s : Src↓ X P S f)
+    → {f : Frm↓ F} (s : Src↓ P S f)
     → (ψ : (p : Pos X S) → Q (ϕ p) (Typ↓ P s p))
-    → Src↓ Y Q (ν S ϕ) f
+    → Src↓ Q (ν S ϕ) f
 
   η↓ : ∀ {n ℓ} 
     → {X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
     → (P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ)
     → {F : Frm (𝕆U n ℓ)} {f : Frm↓ F}
     → {C : X F} (x : P C f)
-    → Src↓ X P (η X C) f
+    → Src↓ P (η X C) f
 
   μ↓ : ∀ {n ℓ} 
     → {X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
     → (P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ)
     → {F : Frm (𝕆U n ℓ)} {f : Frm↓ F}
-    → {S : Src (Src X) F} (s : Src↓ (Src X) (Src↓ X P) S f)
-    → Src↓ X P (μ X S) f
+    → {S : Src (Src X) F} (s : Src↓ (Src↓ P) S f)
+    → Src↓ P (μ X S) f
 
   𝕆U zero ℓ = tt*
   𝕆U (suc n) ℓ = 𝕆U n ℓ , CellFib 
@@ -104,7 +104,7 @@ module Experimental.Local.Universe where
   Frm↓ {zero} _ = Unit*
   Frm↓ {suc n} (F , S , T) = 
     Σ[ f ∈ Frm↓ F ]
-    Σ[ s ∈ Src↓ CellFib (λ C → C) S f ]
+    Σ[ s ∈ Src↓ {X = CellFib} (λ C → C) S f ]
     T f
 
   postulate
@@ -120,7 +120,7 @@ module Experimental.Local.Universe where
       → {Q : {F : Frm (𝕆U n ℓ)} {C : X F} → Y C → {f : Frm↓ F} → P C f → Type ℓ}
       → {F : Frm (𝕆U n ℓ)} {S : Src X F}
       → (D : (p : Pos X S) → Y (S ⊚ p))
-      → {f : Frm↓ F} {s : Src↓ X P S f}
+      → {f : Frm↓ F} {s : Src↓ P S f}
       → (δ : (p : Pos X S) → Q (D p) (s ⊚↓ p))
       → (p : Pos X S)
       → λ-dec↓ Q D δ ⊛↓ p ↦ δ p 
@@ -136,7 +136,7 @@ module Experimental.Local.Universe where
       → {Q : {F : Frm (𝕆U n ℓ)} → Y F → (f : Frm↓ F) → Type ℓ}
       → {F : Frm (𝕆U n ℓ)} {S : Src X F}
       → {ϕ : (p : Pos X S) → Y (Typ X S p)}
-      → {f : Frm↓ F} (s : Src↓ X P S f)
+      → {f : Frm↓ F} (s : Src↓ P S f)
       → (ψ : (p : Pos X S) → Q (ϕ p) (Typ↓ P s p))
       → (p : Pos Y (ν S ϕ))
       → Typ↓ Q (ν↓ s ψ) p ↦ Typ↓ P s (ν-lift S ϕ p)
@@ -148,7 +148,7 @@ module Experimental.Local.Universe where
       → {Q : {F : Frm (𝕆U n ℓ)} → Y F → (f : Frm↓ F) → Type ℓ}
       → {F : Frm (𝕆U n ℓ)} {S : Src X F}
       → {ϕ : (p : Pos X S) → Y (Typ X S p)}
-      → {f : Frm↓ F} (s : Src↓ X P S f)
+      → {f : Frm↓ F} (s : Src↓ P S f)
       → (ψ : (p : Pos X S) → Q (ϕ p) (Typ↓ P s p))
       → (p : Pos Y (ν S ϕ))
       → ν↓ {Q = Q} s ψ ⊚↓ p ↦ ψ (ν-lift S ϕ p)
@@ -176,7 +176,7 @@ module Experimental.Local.Universe where
       → (X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
       → (P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ)
       → {F : Frm (𝕆U n ℓ)} {f : Frm↓ F}
-      → {S : Src (Src X) F} (s : Src↓ (Src X) (Src↓ X P) S f)
+      → {S : Src (Src X) F} (s : Src↓ (Src↓ P) S f)
       → (p : Pos X (μ X S))
       → Typ↓ P (μ↓ P s) p ↦ Typ↓ P (s ⊚↓ μ-fst X S p) (μ-snd X S p)
     {-# REWRITE Typ↓-μ↓ #-}
@@ -185,7 +185,7 @@ module Experimental.Local.Universe where
       → (X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
       → (P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ)
       → {F : Frm (𝕆U n ℓ)} {f : Frm↓ F}
-      → {S : Src (Src X) F} (s : Src↓ (Src X) (Src↓ X P) S f)
+      → {S : Src (Src X) F} (s : Src↓ (Src↓ P) S f)
       → (p : Pos X (μ X S))
       → μ↓ P s ⊚↓ p ↦ ((s ⊚↓ μ-fst X S p) ⊚↓ μ-snd X S p)
     {-# REWRITE ⊚↓-μ↓ #-}
@@ -198,7 +198,7 @@ module Experimental.Local.Universe where
       → {X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
       → {P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ}
       → {F : Frm (𝕆U n ℓ)} {S : Src X F}
-      → {f : Frm↓ F} (s : Src↓ X P S f)
+      → {f : Frm↓ F} (s : Src↓ P S f)
       → ν↓ {Q = P} s (_⊚↓_ s) ↦ s
     {-# REWRITE ν↓-id #-}
 
@@ -210,7 +210,7 @@ module Experimental.Local.Universe where
       → {F : Frm (𝕆U n ℓ)} {S : Src X F}
       → {ϕ : (p : Pos X S) → Y (Typ X S p)}
       → {ϕ' : (p : Pos Y (ν S ϕ)) → Z (Typ Y (ν S ϕ) p)}
-      → {f : Frm↓ F} (s : Src↓ X P S f)
+      → {f : Frm↓ F} (s : Src↓ P S f)
       → (ψ : (p : Pos X S) → Q (ϕ p) (Typ↓ P s p))
       → (ψ' : (p : Pos Y (ν S ϕ)) → R (ϕ' p) (Typ↓ Q (ν↓ s ψ) p))
       → ν↓ {Q = R} (ν↓ {Q = Q} s ψ) ψ' ↦ ν↓ {Q = R} s (λ p → ψ' (ν-pos S ϕ p))
@@ -236,7 +236,7 @@ module Experimental.Local.Universe where
       → (P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ)
       → {Q : {F : Frm (𝕆U n ℓ)} → Y F → (f : Frm↓ F) → Type ℓ}
       → {F : Frm (𝕆U n ℓ)} {f : Frm↓ F}
-      → {S : Src (Src X) F} (s : Src↓ (Src X) (Src↓ X P) S f)
+      → {S : Src (Src X) F} (s : Src↓ (Src↓ P) S f)
       → (ϕ : (p : Pos X (μ X S)) → Y (Typ X (μ X S) p))
       → (ψ : (p : Pos X (μ X S)) → Q (ϕ p) (Typ↓ P (μ↓ P s) p))
       → ν↓ (μ↓ P s) ψ ↦ μ↓ Q (ν↓ s λ p → ν↓ (s ⊚↓ p) (λ q → ψ (μ-pos X S p q)))
@@ -250,15 +250,15 @@ module Experimental.Local.Universe where
       → {X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
       → (P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ)
       → {F : Frm (𝕆U n ℓ)} {f : Frm↓ F}
-      → {S : Src X F} (s : Src↓ X P S f)
-      → μ↓ P (η↓ (Src↓ X P) s) ↦ s
+      → {S : Src X F} (s : Src↓ P S f)
+      → μ↓ P (η↓ (Src↓ P) s) ↦ s
     {-# REWRITE μ↓-unit-l #-}
 
     μ↓-unit-r : ∀ {n ℓ} 
       → {X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
       → (P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ)
       → {F : Frm (𝕆U n ℓ)} {f : Frm↓ F}
-      → {S : Src X F} (s : Src↓ X P S f)
+      → {S : Src X F} (s : Src↓ P S f)
       → μ↓ P (ν↓ s (λ p → η↓ P (s ⊚↓ p))) ↦ s 
     {-# REWRITE μ↓-unit-r #-}
 
@@ -267,8 +267,8 @@ module Experimental.Local.Universe where
       → (P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ)
       → {F : Frm (𝕆U n ℓ)} {f : Frm↓ F}
       → {S : Src (Src (Src X)) F}
-      → (s : Src↓ (Src (Src X)) (Src↓ (Src X) (Src↓ X P)) S f)
-      → μ↓ P (μ↓ (Src↓ X P) s) ↦ μ↓ P (ν↓ s λ p → μ↓ P (s ⊚↓ p)) 
+      → (s : Src↓ (Src↓ (Src↓ P)) S f)
+      → μ↓ P (μ↓ (Src↓ P) s) ↦ μ↓ P (ν↓ s λ p → μ↓ P (s ⊚↓ p)) 
     {-# REWRITE μ↓-assoc #-}
 
 
@@ -284,11 +284,11 @@ module Experimental.Local.Universe where
       eta-equality
       constructor [_,_]↓
       field
-        lvs↓ : Src↓ CellFib (λ C → C) (lvs B) f
+        lvs↓ : Src↓ {X = CellFib} (λ C → C) (lvs B) f
         br↓ : Pd↓ (br B) (f , lvs↓ , t)
 
     open Branch↓ public
-     
+
     data Pd↓Lf {F : Frm (𝕆U n ℓ)} (C : Frm↓ F → Type ℓ)
       : Frm↓ {suc n} (F , η {X = 𝕆U n ℓ} CellFib C , C) → Type ℓ where
 
@@ -298,7 +298,7 @@ module Experimental.Local.Universe where
       (C : X (F , S , T)) (Brs : Dec {X = 𝕆U n ℓ} (Branch X) S)
       : Frm↓ {suc n} (F , μ {X = 𝕆U n ℓ} CellFib (ν {X = 𝕆U n ℓ} S (λ p → lvs (Brs ⊛ p))) , T) → Type ℓ where
 
-      nd↓ : {frm : Frm↓ F} (src : Src↓ CellFib (λ C → C) S frm) (tgt : T frm)
+      nd↓ : {frm : Frm↓ F} (src : Src↓ {X = CellFib} (λ C → C) S frm) (tgt : T frm)
         → (flr : P C (frm , src , tgt))
         → (brs : Dec↓ (Branch X) Branch↓ S Brs src)
         → Pd↓Nd S T C Brs (frm , μ↓ (λ C → C) (ν↓ src (λ p → lvs↓ (brs ⊛↓ p))) , tgt)
@@ -309,7 +309,7 @@ module Experimental.Local.Universe where
     γ↓ : {F : Frm (𝕆U n ℓ)} {S : Src CellFib F} {T : CellFib F}
       → {Upd : Pd X (F , S , T)}
       → {Brs : (p : Pos {X = 𝕆U n ℓ} CellFib S) → Branch X (S ⊚ p)}
-      → {f : Frm↓ F} {s : Src↓ CellFib (λ C → C) S f} {t : T f}
+      → {f : Frm↓ F} {s : Src↓ {X = CellFib} (λ C → C) S f} {t : T f}
       → (pd : Pd↓ Upd (f , s , t))
       → (brs : (p : Pos {X = 𝕆U n ℓ} CellFib S) → Branch↓ (Brs p) (s ⊚↓ p))
       → Pd↓ (γ X Upd Brs) (f , μ↓ (λ C → C) (ν↓ s (λ p → lvs↓ (brs p))) , t)
@@ -318,8 +318,8 @@ module Experimental.Local.Universe where
       nd↓ src tgt flr (λ-dec↓ Branch↓ (γ-brs X LBrs Brs) λ p →
         [ _ , γ↓ (br↓ (lbrs ⊛↓ p)) (λ q → brs (canopy-pos X LBrs p q)) ]↓)
 
-  Src↓ {zero} X P S F = P S tt*
-  Src↓ {suc n} X P S F = Pd↓ X P S F 
+  Src↓ {zero} P S F = P S tt*
+  Src↓ {suc n} {X = X} P S F = Pd↓ X P S F 
 
   Typ↓ {zero} P s p = tt*
   Typ↓ {suc n} P {S = nd S T C Brs} (nd↓ src tgt flr brs) nd-here = _ , src , tgt
