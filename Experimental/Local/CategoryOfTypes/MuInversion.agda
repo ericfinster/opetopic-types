@@ -1,5 +1,5 @@
 --
---  GammaInversion.agda - Inverting γ
+--  MuInversion.agda - Inverting μ↓
 --
 
 open import Cubical.Foundations.Everything
@@ -12,43 +12,9 @@ open import Experimental.Local.OpetopicType
 open import Experimental.Local.Universe
 
 open import Experimental.Local.CategoryOfTypes.Lemmas
+open import Experimental.Local.CategoryOfTypes.GammaInversion
 
 module Experimental.Local.CategoryOfTypes.MuInversion where
-
-  module _ {n ℓ}
-    (X : (F : Frm (𝕆U (suc n) ℓ)) → Type (ℓ-suc ℓ))
-    (P : {F : Frm (𝕆U (suc n) ℓ)} → X F → (f : Frm↓ F) → Type ℓ) where
-
-    postulate
-    
-      γ↓-cnpy : {F : Frm (𝕆U n ℓ)} {S : Src CellFib F} {T : CellFib F}
-        → (Upd : Pd X (F , S , T))
-        → (Brs : (p : UPos S) → Branch X (S ⊚ p))
-        → {f : Frm↓ F} {s : USrc↓ (canopyU' S Brs) f} {t : T f}
-        → Pd↓ X P (γ X Upd Brs) (f , s , t)
-        → USrc↓ S f
-
-      γ↓-base : {F : Frm (𝕆U n ℓ)} {S : Src CellFib F} {T : CellFib F}
-         → (Upd : Pd X (F , S , T))
-         → (Brs : (p : UPos S) → Branch X (S ⊚ p))
-         → {f : Frm↓ F} {s : USrc↓ (canopyU' S Brs) f} {t : T f}
-         → (ρ : Pd↓ X P (γ X Upd Brs) (f , s , t))
-         → Pd↓ X P Upd (f , γ↓-cnpy Upd Brs ρ  , t)
-
-      γ↓-dec : {F : Frm (𝕆U n ℓ)} {S : Src CellFib F} {T : CellFib F}
-         → (Upd : Pd X (F , S , T))
-         → (Brs : (p : UPos S) → Branch X (S ⊚ p))
-         → {f : Frm↓ F} {s : USrc↓ (canopyU' S Brs) f} {t : T f}
-         → (ρ : Pd↓ X P (γ X Upd Brs) (f , s , t))
-         → Dec↓ (Branch X) (Branch↓ X P) S (λ-dec (Branch X) S Brs) (γ↓-cnpy Upd Brs ρ)
-
-      γ↓-coh : {F : Frm (𝕆U n ℓ)} {S : Src CellFib F} {T : CellFib F}
-         → (Upd : Pd X (F , S , T))
-         → (Brs : (p : UPos S) → Branch X (S ⊚ p))
-         → {f : Frm↓ F} {s : USrc↓ (canopyU' S Brs) f} {t : T f}
-         → (ρ : Pd↓ X P (γ X Upd Brs) (f , s , t))
-         → μ↓ {X = CellFib} (λ C → C) {F = F} {S = ν {f = F} S (λ p → lvs (Brs p))}
-              (ν↓ {F = F} {S = S} {ϕ = λ p → lvs (Brs p)} {f = f} (γ↓-cnpy Upd Brs ρ) (λ p → lvs↓ (γ↓-dec Upd Brs ρ ⊛↓ p))) ≡ s
 
   {-# TERMINATING #-}
   μ↓-inv : ∀ {n ℓ} 
