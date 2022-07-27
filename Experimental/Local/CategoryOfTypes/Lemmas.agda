@@ -24,12 +24,26 @@ module Experimental.Local.CategoryOfTypes.Lemmas where
   USrc : ∀ {n ℓ} → UFrm n ℓ → Type (ℓ-suc ℓ)
   USrc F = Src CellFib F 
 
+  UPos : ∀ {n ℓ} {F : UFrm n ℓ} (S : USrc F) → Type (ℓ-suc ℓ)
+  UPos {n} {ℓ} {F} S = Pos {X = 𝕆U n ℓ} CellFib S
+
   USrc↓ : ∀ {n ℓ} {F : UFrm n ℓ} (S : USrc F) → Frm↓ F → Type ℓ
   USrc↓ S f = Src↓ {X = CellFib} (λ C → C) S f 
 
   ηU : ∀ {n ℓ} {F : UFrm n ℓ}
     → CellFib F → USrc F
   ηU {n} {ℓ} C = η {X = 𝕆U n ℓ} CellFib C 
+
+  μU : ∀ {n ℓ} (F : UFrm n ℓ)
+    → Src (Src CellFib) F → Src CellFib F
+  μU {n} {ℓ} F S = μ {X = 𝕆U n ℓ} CellFib {f = F} S 
+
+  νU : ∀ {n ℓ} 
+    → {Q : UFrm n ℓ → Type (ℓ-suc ℓ)}
+    → {F : UFrm n ℓ} (S : USrc F)
+    → (ϕ : (p : Pos CellFib S) → Q (Typ CellFib S p))
+    → Src {X = 𝕆U n ℓ} Q F
+  νU {n} {ℓ} {Q} {F} S ϕ = ν {X = 𝕆U n ℓ} {P = CellFib} {Q = Q} {f = F} S ϕ 
 
   ηU-pos : ∀ {n ℓ} {F : UFrm n ℓ} (C : CellFib F)
     → Pos {X = 𝕆U n ℓ} CellFib (ηU C)
@@ -38,6 +52,27 @@ module Experimental.Local.CategoryOfTypes.Lemmas where
   ηU↓ : ∀ {n ℓ} {F : UFrm n ℓ} (C : CellFib F)
     → {f : Frm↓ F} → C f → USrc↓ (ηU C) f
   ηU↓ C c = η↓ (λ C → C) {C = C} c
+
+  μU↓ : ∀ {n ℓ} {F : UFrm n ℓ} (S : Src (Src CellFib) F)
+    → {f : Frm↓ F} (s : Src↓ (Src↓ (λ C → C)) S f)
+    → USrc↓ (μU F S) f
+  μU↓ {F = F} S s = μ↓ {X = CellFib} (λ C → C) {F = F} {S = S} s 
+
+  canopyU : ∀ {n ℓ}
+    → {F : UFrm n ℓ} (S : Src CellFib F)
+    → (D : Dec (Branch {X = 𝕆U n ℓ} {P = CellFib} CellFib) {f = F} S)
+    → Src CellFib F
+  canopyU {n} {ℓ} {F} S D =
+    canopy {X = 𝕆U n ℓ} {P = CellFib} CellFib
+      {f = F} {s = S} D 
+
+  canopyU' : ∀ {n ℓ}
+    → {X : (F : Frm (𝕆U (suc n) ℓ)) → Type (ℓ-suc ℓ)}
+    → {F : UFrm n ℓ} (S : Src CellFib F)
+    → (D : (p : UPos {F = F} S) → Branch X (S ⊚ p))
+    → Src CellFib F
+  canopyU' {n} {ℓ} {F} S D = 
+    μ {X = 𝕆U n ℓ} CellFib (ν S λ p → lvs (D p))
 
   --
   --  General lemmas

@@ -151,6 +151,15 @@ module Experimental.Local.OpetopicType where
       → λ-dec Q s δ ⊛ p ↦ δ p
     {-# REWRITE λ-dec-β #-} 
 
+    -- Do we want this? 
+    λ-dec-η : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+      → {P : Frm X → Type ℓ}
+      → (Q : {f : Frm X} → P f → Type ℓ)
+      → {f : Frm X} (s : Src P f) 
+      → (δ : Dec Q s)
+      → λ-dec Q s (λ p → δ ⊛ p) ↦ δ
+    {-# REWRITE λ-dec-η #-} 
+
     --
     --  Position Computation
     --
