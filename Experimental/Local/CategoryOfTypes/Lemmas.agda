@@ -148,4 +148,16 @@ module Experimental.Local.CategoryOfTypes.Lemmas where
        ϕ a₀ b₀                            ≡[ i ]⟨ transportRefl (ϕ a₀ b₀) (~ i) ⟩
        transport (λ i → C a₀) (ϕ a₀ b₀)   ∎) 
 
+  -- transport-natural' : ∀ {ℓ₀ ℓ₁} {A : Type ℓ₀} {B C : A → Type ℓ₁}
+  --   → (ϕ : (a : A) → B a → C a)
+  --   → {a₀ a₁ : A} (b₀ : B a₀) (p : a₀ ≡ a₁) 
+  --   → ϕ a₁ (transport (λ i → B (p i)) b₀) ≡
+  --     transport (λ i → C (p i)) (ϕ a₀ b₀)
+  -- transport-natural' {B = B} {C} ϕ {a₀} {a₁} b₀ =
+  --   J (λ a p → ϕ a (transport (λ i → B (p i)) b₀) ≡
+  --              transport (λ i → C (p i)) (ϕ a₀ b₀))
+  --     (ϕ a₀ (transport (λ i → B a₀) b₀)   ≡[ i ]⟨ ϕ a₀ (transportRefl b₀ i) ⟩
+  --      ϕ a₀ b₀                            ≡[ i ]⟨ transportRefl (ϕ a₀ b₀) (~ i) ⟩
+  --      transport (λ i → C a₀) (ϕ a₀ b₀)   ∎) 
+
 
