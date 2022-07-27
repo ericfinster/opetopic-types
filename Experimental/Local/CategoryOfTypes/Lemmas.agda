@@ -119,7 +119,7 @@ module Experimental.Local.CategoryOfTypes.Lemmas where
       (η-dec CellFib {f = F} S) s
   η↓-dec {n} {ℓ} {F} {S} src =
     λ-dec↓ {X = CellFib} {Y = Branch CellFib} (Branch↓ CellFib (λ C → C)) {F = F} {S = S}
-      (λ p → [ η {X = 𝕆U n ℓ} CellFib (S ⊚ p) , lf (S ⊚ p) ])
+      (η-dec {X = 𝕆U n ℓ} {P = CellFib} CellFib S)
       (λ p → [ η↓ (λ C → C) {C = S ⊚ p} (src ⊚↓ p) , lf↓ (src ⊚↓ p) ]↓)
 
   canopy↓ : ∀ {n ℓ}

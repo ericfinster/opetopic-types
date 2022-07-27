@@ -69,10 +69,10 @@ module Experimental.Local.Universe where
     → {P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ}
     → (Q : {F : Frm (𝕆U n ℓ)} {C : X F} → Y C → {f : Frm↓ F} → P C f → Type ℓ)
     → {F : Frm (𝕆U n ℓ)} {S : Src X F}
-    → (D : (p : Pos X S) → Y (S ⊚ p))
+    → (D : Dec {X = 𝕆U n ℓ} Y S)
     → {f : Frm↓ F} {s : Src↓ P S f}
-    → (δ : (p : Pos X S) → Q (D p) (s ⊚↓ p))
-    → Dec↓ Y Q S (λ-dec Y S D) s
+    → (δ : (p : Pos X S) → Q (D ⊛ p) (s ⊚↓ p))
+    → Dec↓ Y Q S D s
 
   ν↓ : ∀ {n ℓ} 
     → {X Y : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
@@ -119,13 +119,25 @@ module Experimental.Local.Universe where
       → {P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ}
       → {Q : {F : Frm (𝕆U n ℓ)} {C : X F} → Y C → {f : Frm↓ F} → P C f → Type ℓ}
       → {F : Frm (𝕆U n ℓ)} {S : Src X F}
-      → (D : (p : Pos X S) → Y (S ⊚ p))
+      → (D : Dec {X = 𝕆U n ℓ} Y S)
       → {f : Frm↓ F} {s : Src↓ P S f}
-      → (δ : (p : Pos X S) → Q (D p) (s ⊚↓ p))
+      → (δ : (p : Pos X S) → Q (D ⊛ p) (s ⊚↓ p))
       → (p : Pos X S)
       → λ-dec↓ Q D δ ⊛↓ p ↦ δ p 
     {-# REWRITE λ-dec↓-β #-} 
 
+    λ-dec↓-η : ∀ {n ℓ} 
+      → {X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
+      → {Y : {F : Frm (𝕆U n ℓ)} → X F → Type (ℓ-suc ℓ)}
+      → {P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ}
+      → {Q : {F : Frm (𝕆U n ℓ)} {C : X F} → Y C → {f : Frm↓ F} → P C f → Type ℓ}
+      → {F : Frm (𝕆U n ℓ)} {S : Src X F}
+      → (D : Dec {X = 𝕆U n ℓ} Y S)
+      → {f : Frm↓ F} {s : Src↓ P S f}
+      → (δ : Dec↓ Y Q S D s)
+      → λ-dec↓ Q D (λ p → δ ⊛↓ p) ↦ δ
+    {-# REWRITE λ-dec↓-η #-}
+    
     --
     --  Typing and Inhabitants
     --
@@ -315,7 +327,7 @@ module Experimental.Local.Universe where
       → Pd↓ (γ X Upd Brs) (f , μ↓ (λ C → C) (ν↓ s (λ p → lvs↓ (brs p))) , t)
     γ↓ {Upd = lf C} (lf↓ x) brs = br↓ (brs (η-pos CellFib C))
     γ↓ {Upd = nd S T C LBrs} {Brs} (nd↓ src tgt flr lbrs) brs =
-      nd↓ src tgt flr (λ-dec↓ Branch↓ (γ-brs X LBrs Brs) λ p →
+      nd↓ src tgt flr (λ-dec↓ Branch↓ (λ-dec (Branch X) S (γ-brs X LBrs Brs)) λ p → 
         [ _ , γ↓ (br↓ (lbrs ⊛↓ p)) (λ q → brs (canopy-pos X LBrs p q)) ]↓)
 
   Src↓ {zero} P S F = P S tt*
@@ -350,11 +362,8 @@ module Experimental.Local.Universe where
     δ nd-here , λ-dec↓ {n} {X = λ F → Σ (CellFib F) (Branch X)}
                   {Y = λ CB → Dec {X = 𝕆U n ℓ , CellFib} Y (br (snd CB))}
                   {P = λ pr f → Σ (fst pr f) (Branch↓ X P (snd pr))}
-                  (λ {F} {CB} D' {f} cb → Dec↓ Y Q (br (snd CB)) D' (br↓ (snd cb)))
-                  (λ p → λ-dec {X = 𝕆U n ℓ , CellFib} Y (br (Brs ⊛ ν-lift S (λ p → (S ⊚ p) , (Brs ⊛ p)) p))
-                         λ q → D (nd-there (ν-lift S (λ p → (S ⊚ p) , (Brs ⊛ p)) p) q))
-                  (λ p → λ-dec↓ Q (λ q → D (nd-there (ν-lift S (λ p → (S ⊚ p) , (Brs ⊛ p)) p) q))
-                                  (λ q → δ (nd-there (ν-lift S (λ p → (S ⊚ p) , (Brs ⊛ p)) p) q)))
+                  (λ {F} {CB} D' {f} cb → Dec↓ Y Q (br (snd CB)) D' (br↓ (snd cb))) (snd D) 
+                  (λ p → λ-dec↓ Q (snd D ⊛ p) (λ q → δ (nd-there (ν-lift S (λ p → (S ⊚ p) , (Brs ⊛ p)) p) q)))
 
   ν↓ {zero} {S = S} s ψ = ψ tt*
   ν↓ {suc n} {S = lf C} (lf↓ x) ψ = lf↓ x
@@ -365,7 +374,7 @@ module Experimental.Local.Universe where
   η↓ {zero} P x = x
   η↓ {suc n} {ℓ} {X} P {F = F , S , T} {f = f , s , t} x =
     nd↓ s t x (λ-dec↓ (Branch↓ X P)
-        (λ p → [ η {X = 𝕆U n ℓ} CellFib (S ⊚ p) , lf (S ⊚ p) ])
+        (η-dec {X = 𝕆U n ℓ} {P = CellFib} X S) 
         (λ p → [ η↓ (λ C → C) {C = S ⊚ p} (s ⊚↓ p) , lf↓ (s ⊚↓ p) ]↓))
   
   μ↓ {zero} P {S = S} s = s
