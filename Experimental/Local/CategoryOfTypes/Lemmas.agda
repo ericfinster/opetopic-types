@@ -10,9 +10,29 @@ open import Cubical.Data.Nat
 
 open import Core.Prelude
 open import Experimental.Local.OpetopicType
+open import Experimental.Local.Structures
 open import Experimental.Local.Universe
 
 module Experimental.Local.CategoryOfTypes.Lemmas where
+
+  --
+  --  Foundational definitions
+  --
+
+  ∞Cat : (ℓ : Level) → Type (ℓ-suc ℓ)
+  ∞Cat ℓ = Σ[ X ∈ 𝕆Type∞ tt* ] is-fibrant-ext (Hom X)
+
+  is-fib-rel : ∀ {n ℓ} {F : Frm (𝕆U n ℓ)} → CellFib F → Type ℓ
+  is-fib-rel {zero} C = Unit*
+  is-fib-rel {suc n} {F = F , S , T} C = 
+      (f : Frm↓ F) (s : Src↓ (λ C → C) S f)
+    → isContr (Σ[ t ∈ T f ] C (f , s , t)) 
+
+  is-prop-is-fib-rel : ∀ {n ℓ} {F : Frm (𝕆U n ℓ)} (C : CellFib F)
+    → isProp (is-fib-rel C)
+  is-prop-is-fib-rel {zero} C = isOfHLevelLift 1 isPropUnit
+  is-prop-is-fib-rel {suc n} C = isPropΠ (λ f → isPropΠ (λ s → isPropIsContr))
+
 
   --
   --  Helper notation for working in the universal fibration
