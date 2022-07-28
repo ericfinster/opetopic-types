@@ -88,4 +88,15 @@ module Experimental.Local.CategoryOfTypes.Uniqueness where
            
       c ∎ 
 
+    -- Hmm.  More interesting this one ...
+    comp-from-to : (f : Frm↓ (F , S , T)) (uc : ucomp Pd ϕ f) → comp-from f (comp-to f uc) ≡ uc
+    comp-from-to (f , s , t) uc = 
+
+        transport (λ i → USrc↓ Pd (f , s , fst (C-hf-unique (ucomp-comp f s) (ucomp-competitor f s) t (comp-to (f , s , t) uc) i)))
+                (ucomp-fill f s)
+
+                ≡⟨ {!!} ⟩
+
+        uc ∎
+                
 
