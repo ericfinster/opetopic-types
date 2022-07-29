@@ -32,24 +32,16 @@ module Experimental.Local.Sigma where
   Σₒ {zero} A B = tt*
   Σₒ {suc n} (A , A') (B , B') = Σₒ A B , λ f →
     Σ[ a ∈ A' (Frm⇒ (fstₒ A B) f) ]
-      B' a (transp (λ i → Frm↓ (Frm⇒ (Σₒ-≡ A B i) f)) i0 (π-Frm (Frm⇒ (sndₒ A B) f))) 
+    transport⁻ (λ i → CellFib (Frm⇒ (Σₒ-≡ A B i) f)) (B' a) (π-Frm (Frm⇒ (sndₒ A B) f))   
 
   fstₒ {zero} A B = tt*
   fstₒ {suc n} (A , A') (B , B') = fstₒ A B , fst
 
   sndₒ {zero} A B = tt*
   sndₒ {suc n} (A , A') (B , B') = sndₒ A B ,
-    λ {f} pr → (λ f' → B' (fst pr) (transp (λ i → Frm↓ (Frm⇒ (Σₒ-≡ A B i) f)) i0 (π-Frm (Frm⇒ (sndₒ A B) f)))) , snd pr
+    λ {f} pr → transport⁻ (λ i → CellFib (Frm⇒ (Σₒ-≡ A B i) f)) (B' (fst pr)) , snd pr 
 
   Σₒ-≡ {zero} A B = refl
-  Σₒ-≡ {suc n} (A , A') (B , B') i = Σₒ-≡ A B i ,
-    λ {f} pr → (λ f' → {!!})
+  Σₒ-≡ {suc n} (A , A') (B , B') i = Σₒ-≡ A B i , 
+    λ {f} pr → transport⁻-filler (λ i → CellFib (Frm⇒ (Σₒ-≡ A B i) f)) (B' (fst pr)) (~ i)
 
-
--- ———— Constraints ———————————————————————————————————————————
--- B' (fst pr) f' = ?0 (i = i1) : Type ℓ₁ (blocked on _164)
--- B' (fst pr) (transp (λ i₁ → Frm↓ (Frm⇒ (Σₒ-≡ A B i₁) f)) i0 (π-Frm (Frm⇒ (sndₒ A B) f)))
-
--- So here you could also transport B' itself, right?
--- and then the equality you are looking for would just
--- be somehow the canonical path over? 
