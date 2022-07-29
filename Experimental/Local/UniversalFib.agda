@@ -1,6 +1,6 @@
 {-# OPTIONS --no-termination-check #-}
 --
---  Sigma.agda - Sigma of opetopic types
+--  UniversalFib - The universal fibration
 --
 
 open import Cubical.Foundations.Everything
@@ -34,7 +34,7 @@ module Experimental.Local.UniversalFib where
     → (X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
     → (P : {F : Frm (𝕆U n ℓ)} → X F → Frm↓ F → Type ℓ)
     → {f : Frm (𝕆V n ℓ)} (s : Src (ElFib X P) f)
-    → Src↓ X P (Src⇒ s (𝕆π n ℓ) (λ p → fst (s ⊚ p))) (π-Frm f)
+    → Src↓ P (Src⇒ s (𝕆π n ℓ) (λ p → fst (s ⊚ p))) (π-Frm f)
 
   postulate
 
@@ -80,8 +80,8 @@ module Experimental.Local.UniversalFib where
       → (P : {F : Frm (𝕆U n ℓ)} → X F → Frm↓ F → Type ℓ)
       → {f : Frm (𝕆V n ℓ)} (s : Src (Src (ElFib X P)) f)
       → π-Src X P (μ {X = 𝕆V n ℓ} (ElFib X P) s) ↦
-        μ↓ P (π-Src (Src X) (Src↓ X P)
-          (ν {Q = ElFib (Src X) (Src↓ X P)} s
+        μ↓ P (π-Src (Src X) (Src↓ P)
+          (ν {Q = ElFib (Src X) (Src↓ P)} s
             (λ p → Src⇒ (s ⊚ p) (𝕆π n ℓ) (λ q → fst ((s ⊚ p) ⊚ q)) ,
                    π-Src X P (s ⊚ p))))
     {-# REWRITE π-Src-μ #-} 
@@ -138,10 +138,12 @@ module Experimental.Local.UniversalFib where
   π-Src {suc n} {ℓ} X P (nd {frm} src tgt flr brs) =
     nd↓ (π-Src {n} CellFib (λ C → C) src) (snd tgt) (snd flr)
       (λ-dec↓ (Branch↓ X P)
-          (Src⇒-brs src tgt flr brs (𝕆π n ℓ) fst
-              (λ p → fst (nd src tgt flr brs ⊚ p)))
+          (λ-dec (Branch X) (Src⇒ src (𝕆π n ℓ) (λ q → fst (src ⊚ q)))
+            (Src⇒-brs src tgt flr brs (𝕆π n ℓ) fst (λ p → fst (nd src tgt flr brs ⊚ p))))
           {s = π-Src CellFib (λ C → C) {frm} src}
           (π-Src-brs X P src tgt flr brs))
-                              
+
+
+
           
 

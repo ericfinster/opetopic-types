@@ -55,13 +55,19 @@ module Experimental.Local.CategoryOfTypes.Uniqueness where
 
     ucomp-competitor : (f : Frm↓ F) (s : USrc↓ S f) → C (f , s , ucomp-comp f s)
     ucomp-competitor f s = fst (fst (R-is-fib-rel (f , s , ucomp-comp f s) (ucomp-fill f s)))
-    
+
     C-hf-unique : {f : Frm↓ F} {s : USrc↓ S f}
       → (t₀ : T f) (c₀ : C (f , s , t₀))
       → (t₁ : T f) (c₁ : C (f , s , t₁))
       → Path (Σ[ t ∈ T f ] C (f , s , t)) (t₀ , c₀) (t₁ , c₁)
     C-hf-unique {f} {s} t₀ c₀ t₁ c₁ = isContr→isProp (C-is-fib-rel f s) (t₀ , c₀) (t₁ , c₁)   
 
+    Src-hf-unique : {f : Frm↓ F} {s : USrc↓ S f}
+      → (t₀ : T f) (us₀ : USrc↓ Pd (f , s , t₀))
+      → (t₁ : T f) (us₁ : USrc↓ Pd (f , s , t₁))
+      → Path (Σ[ t ∈ T f ] USrc↓ Pd (f , s , t)) (t₀ , us₀) (t₁ , us₁)
+    Src-hf-unique {f} {s} t₀ us₀ t₁ us₁ = isContr→isProp (ucomp-is-fib-rel Pd ϕ f s) (t₀ , us₀) (t₁ , us₁)    
+  
     comp-to : (f : Frm↓ (F , S , T)) → ucomp Pd ϕ f → C f
     comp-to (f , s , t) uc = fst (fst (R-is-fib-rel (f , s , t) uc)) 
 
@@ -93,10 +99,44 @@ module Experimental.Local.CategoryOfTypes.Uniqueness where
     comp-from-to (f , s , t) uc = 
 
         transport (λ i → USrc↓ Pd (f , s , fst (C-hf-unique (ucomp-comp f s) (ucomp-competitor f s) t (comp-to (f , s , t) uc) i)))
-                (ucomp-fill f s)
+            (ucomp-fill f s)
+  
+                  -- This has to be some compatibility of transporting and 'ap'ing
+                  ≡⟨ {!!} ⟩
+                  
+        transport (λ i → USrc↓ Pd (f , s , fst (Src-hf-unique (ucomp-comp f s) (ucomp-fill f s) t uc i)))
+            (ucomp-fill f s)
 
-                ≡⟨ {!!} ⟩
-
+                ≡⟨ fst (PathP≃Path (λ i → USrc↓ Pd (f , s , fst (Src-hf-unique (ucomp-comp f s) (ucomp-fill f s) t uc i))) (ucomp-fill f s) uc)
+                    (λ i → snd (Src-hf-unique (ucomp-comp f s) (ucomp-fill f s) t uc i))  ⟩
+        
         uc ∎
                 
+    --
+    --  Now the filler ....
+    --
 
+    fill-to : (f : Frm↓ (F , S , T)) (s t : USrc↓ Pd f) → ufill Pd ϕ (f , s , t) → R (f , s , comp-to f t)
+    fill-to (f , s , t) α β p = J (λ β' _ → R ((f , s , t) , α , comp-to (f , s , t) β'))
+        (snd (fst (R-is-fib-rel (f , s , t) α)) ) p
+
+
+    -- But I wonder if there is not a better way.  We should have
+    --
+    --   R (f , s , t) ≃ comp-to f s ≡ t 
+    --
+    -- from the fundamental theorem.
+    --
+    -- So shouldn't this say that we have
+    --
+    --  R (f , s , comp-to f t) ≃ comp-to f s ≡ comp-to f t
+    --                          ≃ s ≡ t
+    --
+    -- Since we have already shown that the map comp-to is an equivalence.
+    -- This seems correct.  Only thing to figure out, then, is how to see
+    -- that this is "over" the equivalence stated....
+    
+
+
+
+    
