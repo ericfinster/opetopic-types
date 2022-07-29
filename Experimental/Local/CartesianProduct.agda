@@ -33,7 +33,7 @@ module Experimental.Local.CartesianProduct where
       fstₒ : P (Frm⇒ Fst f)
       sndₒ : Q (Frm⇒ Snd f)
       
-  open ×-cell
+  open ×-cell public  
 
   _×ₒ_ {zero} X Y = tt*
   _×ₒ_ {suc n} (X , P) (Y , Q) = X ×ₒ Y , ×-cell P Q
