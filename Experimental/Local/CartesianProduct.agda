@@ -17,72 +17,70 @@ open import Experimental.Local.Structures
 
 module Experimental.Local.CartesianProduct where
 
-prod : ∀ {n ℓ} (X Y : 𝕆Type n ℓ) → 𝕆Type n ℓ
+  infixl 60 _×ₒ_
+  
+  _×ₒ_ : ∀ {n ℓ₀ ℓ₁} (X : 𝕆Type n ℓ₀) (Y : 𝕆Type n ℓ₁) → 𝕆Type n (ℓ-max ℓ₀ ℓ₁)
 
--- The use of opetopic maps circumvents any need for additional rewrite rules
-Fst : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} → prod X Y ⇒ X
-Snd : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} → prod X Y ⇒ Y
+  -- The use of opetopic maps circumvents any need for additional rewrite rules
+  Fst : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} → X ×ₒ Y ⇒ X
+  Snd : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} → X ×ₒ Y ⇒ Y
 
-record prod-cell {n ℓ} {X Y : 𝕆Type n ℓ} (P : Frm X → Type ℓ) (Q : Frm Y → Type ℓ) (f : Frm (prod X Y)) : Type ℓ where
-  constructor _∣_
-  field
-    fstₒ : P (Frm⇒ Fst f)
-    sndₒ : Q (Frm⇒ Snd f)
-open prod-cell
+  record ×-cell {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+    (P : Frm X → Type ℓ₀)
+    (Q : Frm Y → Type ℓ₁) (f : Frm (X ×ₒ Y)) : Type (ℓ-max ℓ₀ ℓ₁) where
+    constructor _∣_
+    field
+      fstₒ : P (Frm⇒ Fst f)
+      sndₒ : Q (Frm⇒ Snd f)
+      
+  open ×-cell
 
-prod {zero} X Y = tt*
-prod {suc n} (X , P) (Y , Q) = prod X Y , prod-cell P Q
+  _×ₒ_ {zero} X Y = tt*
+  _×ₒ_ {suc n} (X , P) (Y , Q) = X ×ₒ Y , ×-cell P Q
 
-Fst {zero} = tt*
-Fst {suc n} {ℓ} {X , P} {Y , Q} = Fst , fstₒ
+  Fst {zero} = tt*
+  Fst {suc n} {X = X , P} {Y , Q} = Fst , fstₒ
 
-Snd {zero} = tt*
-Snd {suc n} {ℓ} {X , P} {Y , Q} = Snd , sndₒ
+  Snd {zero} = tt*
+  Snd {suc n} {X = X , P} {Y , Q} = Snd , sndₒ
 
+  -- Fibrancy
+  fst-src : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+    → (P : Frm X → Type ℓ₀) (Q : Frm Y → Type ℓ₁)
+    → {f : Frm (X ×ₒ Y)} → Src (×-cell P Q) f → Src P (Frm⇒ Fst f)
+  fst-src {n} {ℓ} {X} {Y} P Q {f} s = Src⇒ {P = ×-cell P Q} s Fst (λ p → fstₒ (s ⊚ p))
 
----------- Tests
-test1 : 𝕆Type 2 ℓ-zero
-test1 = (tt* , (λ _ → Unit)) , λ _ → ℕ
+  snd-src : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+    → (P : Frm X → Type ℓ₀) (Q : Frm Y → Type ℓ₁)
+    → {f : Frm (X ×ₒ Y)} → Src (×-cell P Q) f → Src Q (Frm⇒ Snd f)
+  snd-src {n} {ℓ} {X} {Y} P Q {f} s = Src⇒ {P = ×-cell P Q} s Snd (λ p → sndₒ (s ⊚ p))
 
-test2 : 𝕆Type 2 ℓ-zero
-test2 = prod test1 test1
+  -- Since Inhab is defined differently when n=0 or n=(suc k), the following pattern matching is required for agda to type-check
+  charac-filler-prod : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type (suc n) ℓ₀} {Y : 𝕆Type (suc n) ℓ₁}
+    → (P : Frm X → Type ℓ₀) (Q : Frm Y → Type ℓ₁)
+    → {f : Frm (fst X ×ₒ fst Y)} (s : Src (×-cell (snd X) (snd Y)) f) 
+    → Iso (horn-filler (×-cell P Q) s)
+          (horn-filler P (fst-src (snd X) (snd Y) s) × horn-filler Q (snd-src (snd X) (snd Y) s))
+  charac-filler-prod {zero} P Q s = iso g h (λ _ → refl) (λ _ → refl) where
+    g : _
+    g (tgt , cell) = (fstₒ tgt , fstₒ cell) , (sndₒ tgt , sndₒ cell)
+    h : _
+    h ((tgt₁ , cell₁) , (tgt₂ , cell₂)) = (tgt₁ ∣ tgt₂) , (cell₁ ∣ cell₂)
+  charac-filler-prod {suc n} P Q s = iso g h (λ _ → refl) λ _ → refl where
+    g : _
+    g (tgt , cell) = (fstₒ tgt , fstₒ cell) , (sndₒ tgt , sndₒ cell)
+    h : _
+    h ((tgt₁ , cell₁) , (tgt₂ , cell₂)) = (tgt₁ ∣ tgt₂) , (cell₁ ∣ cell₂)
 
+  is-fib-prod : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type (suc (suc n)) ℓ₀} {Y : 𝕆Type (suc (suc n)) ℓ₁}
+    → is-fibrant X → is-fibrant Y
+    → is-fibrant (X ×ₒ Y)
+  is-fib-prod {X = (X , P) , P'} {Y = (Y , Q) , Q'} fibX fibY f s =
+    isOfHLevelRespectEquiv 0 (invEquiv (isoToEquiv (charac-filler-prod P' Q' s)))
+                             (isContrΣ (fibX _ _) λ _ → fibY _ _)
 
-test3 : snd test2 _ -- since we use records everywhere, agda understands there is only one frame in the product
-test3 = 3 ∣ 4
-
-
--- Fibrancy
-fst-src : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (P : Frm X → Type ℓ) (Q : Frm Y → Type ℓ) {f : Frm (prod X Y)} → Src (prod-cell P Q) f → Src P (Frm⇒ Fst f)
-fst-src {n} {ℓ} {X} {Y} P Q {f} s = Src⇒ {P = prod-cell P Q} s Fst (λ p → fstₒ (s ⊚ p))
-
-snd-src : ∀ {n ℓ} {X Y : 𝕆Type n ℓ} (P : Frm X → Type ℓ) (Q : Frm Y → Type ℓ) {f : Frm (prod X Y)} → Src (prod-cell P Q) f → Src Q (Frm⇒ Snd f)
-snd-src {n} {ℓ} {X} {Y} P Q {f} s = Src⇒ {P = prod-cell P Q} s Snd (λ p → sndₒ (s ⊚ p))
-
--- Since Inhab is defined differently when n=0 or n=(suc k), the following pattern matching is required for agda to type-check
-charac-filler-prod : ∀ {n ℓ} {X Y : 𝕆Type (suc n) ℓ} (P : Frm X → Type ℓ) (Q : Frm Y → Type ℓ)
-  {f : Frm (prod (fst X) (fst Y))} (s : Src (prod-cell (snd X) (snd Y)) f) →
-  Iso
-    (horn-filler (prod-cell P Q) s)
-    (horn-filler P (fst-src (snd X) (snd Y) s) × horn-filler Q (snd-src (snd X) (snd Y) s))
-charac-filler-prod {zero} P Q s = iso g h (λ _ → refl) (λ _ → refl) where
-  g : _
-  g (tgt , cell) = (fstₒ tgt , fstₒ cell) , (sndₒ tgt , sndₒ cell)
-  h : _
-  h ((tgt₁ , cell₁) , (tgt₂ , cell₂)) = (tgt₁ ∣ tgt₂) , (cell₁ ∣ cell₂)
-charac-filler-prod {suc n} P Q s = iso g h (λ _ → refl) λ _ → refl where
-  g : _
-  g (tgt , cell) = (fstₒ tgt , fstₒ cell) , (sndₒ tgt , sndₒ cell)
-  h : _
-  h ((tgt₁ , cell₁) , (tgt₂ , cell₂)) = (tgt₁ ∣ tgt₂) , (cell₁ ∣ cell₂)
-
-is-fib-prod : ∀ {n ℓ} {X Y : 𝕆Type (suc (suc n)) ℓ} → is-fibrant X → is-fibrant Y → is-fibrant (prod X Y)
-is-fib-prod {X = (X , P) , P'} {Y = (Y , Q) , Q'} fibX fibY f s =
-  -- I'm sure there's a proof in the library that isos/equivs respect HLevel, but I can't find it anymore, so instead I used isContrRetract
-  isContrRetract (Iso.fun charac) (Iso.inv charac) (Iso.leftInv charac) (isContrΣ (fibX _ _) λ _ → fibY _ _)
-  where
-  charac = charac-filler-prod P' Q' s
-
-prod∞ : ∀ {n ℓ} {Xₙ Yₙ : 𝕆Type ℓ n} (X : 𝕆Type∞ Xₙ) (Y : 𝕆Type∞ Yₙ) → 𝕆Type∞ (prod Xₙ Yₙ)
-Fill (prod∞ X Y) = prod-cell (Fill X) (Fill Y)
-Hom (prod∞ X Y) = prod∞ (Hom X) (Hom Y)
+  prod∞ : ∀ {n ℓ₀ ℓ₁} {Xₙ : 𝕆Type n ℓ₀} {Yₙ : 𝕆Type n ℓ₁}
+    → (X : 𝕆Type∞ Xₙ) (Y : 𝕆Type∞ Yₙ)
+    → 𝕆Type∞ (Xₙ ×ₒ Yₙ)
+  Fill (prod∞ X Y) = ×-cell (Fill X) (Fill Y)
+  Hom (prod∞ X Y) = prod∞ (Hom X) (Hom Y)
