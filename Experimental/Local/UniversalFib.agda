@@ -30,6 +30,17 @@ module Experimental.Local.UniversalFib where
     Σ[ C ∈ X (Frm⇒ (𝕆π n ℓ) f) ]
     P C (π-Frm f) 
 
+
+  -- I think this is actually unnecessary.  The point is that ν↓ is
+  -- actually kind of unnecessary.  I think instead you can just have
+  -- a single function which "create" elements over from having an
+  -- appropriately type section.  Then ν↓ can be defined in terms
+  -- of that.  If you do it that way, then I don't think you'll need
+  -- these rewrites.  It seems like the encode/decode of terms over
+  -- will be provable.  And then I think you have pairing of frames
+  -- in the universal fibration, and this should then work for Σ
+  -- also....
+  
   π-Src : ∀ {n ℓ}
     → (X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
     → (P : {F : Frm (𝕆U n ℓ)} → X F → Frm↓ F → Type ℓ)
@@ -115,6 +126,7 @@ module Experimental.Local.UniversalFib where
   π-Frm {zero} f = tt*
   π-Frm {suc n} (f , s , t) =
     π-Frm f , π-Src {n} CellFib (λ C → C) s , snd t
+
 
   π-Src-brs : ∀ {n ℓ}
     → (X : Frm (𝕆U (suc n) ℓ) → Type (ℓ-suc ℓ))

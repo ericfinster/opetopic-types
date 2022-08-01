@@ -45,3 +45,4 @@ module Experimental.Local.Sigma where
   Σₒ-≡ {suc n} (A , A') (B , B') i = Σₒ-≡ A B i , 
     λ {f} pr → transport⁻-filler (λ i → CellFib (Frm⇒ (Σₒ-≡ A B i) f)) (B' (fst pr)) (~ i)
 
+

@@ -25,3 +25,5 @@ module Experimental.Local.Terminal where
   is-0-trunc-𝕋Ext : ∀ {n ℓ} {X : 𝕆Type n ℓ} → is-n-trunc 0 (𝕋Ext X)
   is-n-trunc.hLevel is-0-trunc-𝕋Ext f = tt* , λ _ → refl
   is-n-trunc.is-trunc-ext is-0-trunc-𝕋Ext = is-0-trunc-𝕋Ext
+
+
