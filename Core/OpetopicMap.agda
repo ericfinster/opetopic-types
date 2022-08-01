@@ -1,205 +1,290 @@
+{-# OPTIONS --no-termination-check #-}
 --
---  OpetopicMap.agda - Maps of opetopic types
+--  OpetopicType.agda - Opetopic Types
 --
 
 open import Cubical.Foundations.Everything
 open import Cubical.Data.Sigma
+open import Cubical.Data.Empty
 open import Cubical.Data.Unit
-open import Cubical.Data.Nat
+open import Cubical.Data.Nat 
+open import Cubical.Data.Sum
 
 open import Core.Prelude
-open import Core.Opetopes
 open import Core.OpetopicType
-open import Core.OpetopicFamily
 
 module Core.OpetopicMap where
 
-  infixr 40 _⇒_
+  --
+  --  Maps of Opetopic Types
+  --
 
-  _⇒_ : ∀ {n ℓ₀ ℓ₁} → 𝕆Type n ℓ₀ → 𝕆Type n ℓ₁
-    → Type (ℓ-max ℓ₀ ℓ₁)
+  infixl 50 _⊙_
 
-  Frm⇒ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} (σ : X ⇒ Y)
-    → {o : 𝒪 n} → Frm X o → Frm Y o
+  _⇒_ : ∀ {n ℓ₀ ℓ₁} → 𝕆Type n ℓ₀ → 𝕆Type n ℓ₁ → Type (ℓ-max ℓ₀ ℓ₁)
+
+  id-map : ∀ {n ℓ} → (X : 𝕆Type n ℓ) → X ⇒ X
+
+  _⊙_ : ∀ {n ℓ₀ ℓ₁ ℓ₂} {X : 𝕆Type n ℓ₀}
+    → {Y : 𝕆Type n ℓ₁} {Z : 𝕆Type n ℓ₂}
+    → Y ⇒ Z → X ⇒ Y → X ⇒ Z
+
+
+  Frm⇒ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+    → (σ : X ⇒ Y) → Frm X → Frm Y
+
+  Src⇒ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+    → {P : Frm X → Type ℓ₀}
+    → {Q : Frm Y → Type ℓ₁}
+    → {f : Frm X} (s : Src P f) 
+    → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+    → Src Q (Frm⇒ σ f)
+
+  Pos⇒ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+    → {P : Frm X → Type ℓ₀}
+    → {Q : Frm Y → Type ℓ₁}
+    → {f : Frm X} (s : Src P f) 
+    → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+    → Pos P s → Pos Q (Src⇒ s σ σ')
+
+  Pos⇐ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+    → {P : Frm X → Type ℓ₀}
+    → {Q : Frm Y → Type ℓ₁}
+    → {f : Frm X} (s : Src P f) 
+    → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+    → Pos Q (Src⇒ s σ σ') → Pos P s 
+
+  postulate
+
+    --
+    --  Equations for maps
+    -- 
+
+    map-unit-l : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+      → (σ : X ⇒ Y)
+      → id-map Y ⊙ σ ↦ σ
+    {-# REWRITE map-unit-l #-}
+
+    map-unit-r : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+      → (σ : X ⇒ Y)
+      → σ ⊙ id-map X ↦ σ
+    {-# REWRITE map-unit-r #-}
+
+    map-assoc : ∀ {n ℓ₀ ℓ₁ ℓ₂ ℓ₃} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+      → {Z : 𝕆Type n ℓ₂} {W : 𝕆Type n ℓ₃}
+      → (ρ : X ⇒ Y) (σ : Y ⇒ Z) (τ : Z ⇒ W)
+      → τ ⊙ (σ ⊙ ρ) ↦ τ ⊙ σ ⊙ ρ
+    {-# REWRITE map-assoc #-} 
+
+    --
+    --  Typing and Inhabitants
+    --
+
+    Pos⇐-Typ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {f : Frm X} (s : Src P f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+      → (p : Pos Q (Src⇒ s σ σ'))
+      → Typ Q (Src⇒ s σ σ') p ↦ Frm⇒ σ (Typ P s (Pos⇐ s σ σ' p))
+    {-# REWRITE Pos⇐-Typ #-}
+
+    Pos⇐-⊚ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {f : Frm X} (s : Src P f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+      → (p : Pos Q (Src⇒ s σ σ'))
+      → Src⇒ s σ σ' ⊚ p ↦ σ' (Pos⇐ s σ σ' p) 
+    {-# REWRITE Pos⇐-⊚ #-}
+
+    --
+    --  Pos β and η rules
+    --
+
+    Pos⇒-β : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {f : Frm X} (s : Src P f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+      → (p : Pos P s)
+      → Pos⇐ {Q = Q} s σ σ' (Pos⇒ {Q = Q} s σ σ' p) ↦ p 
+    {-# REWRITE Pos⇒-β #-}
+
+    Pos⇒-η : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {f : Frm X} (s : Src P f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+      → (p : Pos Q (Src⇒ s σ σ'))
+      → Pos⇒ {Q = Q} s σ σ' (Pos⇐ {Q = Q} s σ σ' p) ↦ p 
+    {-# REWRITE Pos⇒-η #-}
+
+    --
+    --  Frame compatibilities
+    --
     
-  Cns⇒ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} (σ : X ⇒ Y)
-    → {o : 𝒪 n} {𝑝 : 𝒫 o} {f : Frm X o}
-    → Cns X f 𝑝 → Cns Y (Frm⇒ σ f) 𝑝
+    Frm⇒-id : ∀ {n ℓ} (X : 𝕆Type n ℓ) (f : Frm X)
+      → Frm⇒ (id-map X) f ↦ f
+    {-# REWRITE Frm⇒-id #-}
 
-  postulate
+    Frm⇒-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂} {X : 𝕆Type n ℓ₀}
+      → {Y : 𝕆Type n ℓ₁} {Z : 𝕆Type n ℓ₂}
+      → (σ : X ⇒ Y) (τ : Y ⇒ Z) (f : Frm X)
+      → Frm⇒ τ (Frm⇒ σ f) ↦ Frm⇒ (τ ⊙ σ) f 
+    {-# REWRITE Frm⇒-⊙ #-}
 
-    Shp-Frm⇒ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} (σ : X ⇒ Y)
-      → {o : 𝒪 n} {𝑝 : 𝒫 o} {f : Frm X o} (c : Cns X f 𝑝) (p : Pos 𝑝)
-      → Frm⇒ σ (Shp X c p) ↦ Shp Y (Cns⇒ σ c) p
-    {-# REWRITE Shp-Frm⇒ #-} 
+    --
+    --  Src compatibilities
+    --
 
-    η⇒ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} (σ : X ⇒ Y)
-      → {o : 𝒪 n} (f : Frm X o)
-      → Cns⇒ σ (η X f) ↦ η Y (Frm⇒ σ f)
-    {-# REWRITE η⇒ #-} 
+    Src⇒-id : ∀ {n ℓ} (X : 𝕆Type n ℓ)
+      → (P : Frm X → Type ℓ)
+      → (f : Frm X) (s : Src P f)
+      → Src⇒ {Q = P} s (id-map X) (λ p → s ⊚ p) ↦ s 
+    {-# REWRITE Src⇒-id #-}
 
-    μ⇒ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} (σ : X ⇒ Y)
-      → {o : 𝒪 n} {f : Frm X o}
-      → {𝑝 : 𝒫 o} (c : Cns X f 𝑝)
-      → {ι : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
-      → (κ : (p : Pos 𝑝) → Cns X (Shp X c p) (ι p))
-      → Cns⇒ σ (μ X c κ) ↦ μ Y (Cns⇒ σ c) (λ p → Cns⇒ σ (κ p))
-    {-# REWRITE μ⇒ #-}
+    Src⇒-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂}
+      → {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} {Z : 𝕆Type n ℓ₂}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {R : Frm Z → Type ℓ₂}
+      → {f : Frm X} (s : Src P f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+      → (τ : Y ⇒ Z) (τ' : (p : Pos Q (Src⇒ s σ σ')) → R (Frm⇒ τ (Typ Q (Src⇒ s σ σ') p)))
+      → Src⇒ {Q = R} (Src⇒ s σ σ') τ τ' ↦
+        Src⇒ {Q = R} s (τ ⊙ σ) (λ p → τ' (Pos⇒ s σ σ' p))
+    {-# REWRITE Src⇒-⊙ #-} 
 
-  _⇒_ {zero} _ _ = Lift Unit
-  _⇒_ {suc n} (Xₙ , Xₛₙ) (Yₙ , Yₛₙ) =
-    Σ (Xₙ ⇒ Yₙ) (λ σ →
-     {o : 𝒪 n} {f : Frm Xₙ o}
-     → Xₛₙ f → Yₛₙ (Frm⇒ σ f))
+    Src⇒-ν : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+      → {P Q : Frm X → Type ℓ₀}
+      → {R : Frm Y → Type ℓ₁}
+      → {f : Frm X} (s : Src P f) 
+      → (ϕ : (p : Pos P s) → Q (Typ P s p))
+      → (σ : X ⇒ Y) (σ' : (p : Pos Q (ν s ϕ)) → R (Frm⇒ σ (Typ Q (ν s ϕ) p)))
+      → Src⇒ {Q = R} (ν s ϕ) σ σ' ↦ Src⇒ s σ (λ p → σ' (ν-pos s ϕ p))
+    {-# REWRITE Src⇒-ν #-}
 
-  Frm⇒ σ {●} f = tt*
-  Frm⇒ (σₙ , σₛₙ) {𝑜 ∣ 𝑝} (f , x , c , y) =
-    Frm⇒ σₙ f , σₛₙ x , Cns⇒ σₙ c , λ p → σₛₙ (y p) 
+    Src⇒-η : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {f : Frm X} (x : P f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P (η P x)) → Q (Frm⇒ σ f))
+      → Src⇒ (η P x) σ σ' ↦ η Q (σ' (η-pos P x))
+    {-# REWRITE Src⇒-η #-}
 
-  Cns⇒ σ {●} c = tt*
-  Cns⇒ (σₙ , σₛₙ) {𝑜 ∣ ._} {𝑝 = lfₒ} (lf x) = lf (σₛₙ x)
-  Cns⇒ (σₙ , σₛₙ) {𝑜 ∣ ._} {𝑝 = ndₒ 𝑝 𝑞 𝑟} (nd x c y d z ψ) = 
-    nd (σₛₙ x) (Cns⇒ σₙ c) (σₛₙ ∘ y) (Cns⇒ σₙ ∘ d)
-       (λ p q → σₛₙ (z p q)) (λ p → Cns⇒ (σₙ , σₛₙ) (ψ p))
-       
-  --
-  --  The identity substitution
-  --
+    Src⇒-μ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {f : Frm X} (s : Src (Src P) f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P (μ P s)) → Q (Frm⇒ σ (Typ P (μ P s) p)))
+      → Src⇒ (μ P s) σ σ' ↦ μ Q (Src⇒ s σ (λ p → Src⇒ (s ⊚ p) σ (λ q → σ' (μ-pos P s p q))))
+    {-# REWRITE Src⇒-μ #-}
+    
+    ν-Src⇒ : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+      → {P : Frm X → Type ℓ₀}
+      → {Q R : Frm Y → Type ℓ₁}
+      → {f : Frm X} (s : Src P f)
+      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+      → (ϕ : (p : Pos Q (Src⇒ s σ σ')) → R (Typ Q (Src⇒ s σ σ') p))
+      → ν {Q = R} (Src⇒ s σ σ') ϕ ↦ Src⇒ s σ (λ p → ϕ (Pos⇒ s σ σ' p))
+    {-# REWRITE ν-Src⇒ #-}
 
-  id-sub : ∀ {n ℓ} (X : 𝕆Type n ℓ) → X ⇒ X
 
-  postulate
+    --
+    --  Position Compatibilities
+    --
 
-    id-frm : ∀ {n ℓ} (X : 𝕆Type n ℓ)
-      → {𝑜 : 𝒪 n} (f : Frm X 𝑜)
-      → Frm⇒ (id-sub X) f ↦ f
-    {-# REWRITE id-frm #-}
+    Pos⇒-id : ∀ {n ℓ} (X : 𝕆Type n ℓ)
+      → (P : Frm X → Type ℓ)
+      → (f : Frm X) (s : Src P f)
+      → (p : Pos P s)
+      → Pos⇒ {Q = P} s (id-map X) (λ p → s ⊚ p) p ↦ p
+    {-# REWRITE Pos⇒-id #-}
 
-    id-cns : ∀ {n ℓ} (X : 𝕆Type n ℓ)
-      → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜}
-      → (f : Frm X 𝑜) (c : Cns X f 𝑝)
-      → Cns⇒ (id-sub X) c ↦ c
-    {-# REWRITE id-cns #-}
+    Pos⇒-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂}
+      → {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} {Z : 𝕆Type n ℓ₂}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {R : Frm Z → Type ℓ₂}
+      → {f : Frm X} (s : Src P f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+      → (τ : Y ⇒ Z) (τ' : (p : Pos Q (Src⇒ s σ σ')) → R (Frm⇒ τ (Typ Q (Src⇒ s σ σ') p)))
+      → (p : Pos P s)
+      → Pos⇒ {Q = R} (Src⇒ s σ σ') τ τ' (Pos⇒ s σ σ' p) ↦
+          Pos⇒ {Q = R} s (τ ⊙ σ) (λ p → τ' (Pos⇒ s σ σ' p)) p
+    {-# REWRITE Pos⇒-⊙ #-}
 
-  id-sub {zero} X = tt*
-  id-sub {suc n} (Xₙ , Xₛₙ) = id-sub Xₙ , λ x → x
+    Pos⇐-id : ∀ {n ℓ} (X : 𝕆Type n ℓ)
+      → (P : Frm X → Type ℓ)
+      → (f : Frm X) (s : Src P f)
+      → (p : Pos P s)
+      → Pos⇐ {Q = P} s (id-map X) (λ p → s ⊚ p) p ↦ p 
+    {-# REWRITE Pos⇐-id #-}
+    
+    Pos⇐-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂}
+      → {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} {Z : 𝕆Type n ℓ₂}
+      → {P : Frm X → Type ℓ₀}
+      → {Q : Frm Y → Type ℓ₁}
+      → {R : Frm Z → Type ℓ₂}
+      → {f : Frm X} (s : Src P f) 
+      → (σ : X ⇒ Y) (σ' : (p : Pos P s) → Q (Frm⇒ σ (Typ P s p)))
+      → (τ : Y ⇒ Z) (τ' : (p : Pos Q (Src⇒ s σ σ')) → R (Frm⇒ τ (Typ Q (Src⇒ s σ σ') p)))
+      → (p : Pos R (Src⇒ {Q = R} s (τ ⊙ σ) (λ p → τ' (Pos⇒ s σ σ' p))))
+      → Pos⇐ {Q = Q} s σ σ' (Pos⇐ {Q = R} (Src⇒ s σ σ') τ τ' p) ↦
+          Pos⇐ {Q = R} s (τ ⊙ σ) (λ p → τ' (Pos⇒ s σ σ' p)) p  
+    {-# REWRITE Pos⇐-⊙ #-}
+
+
+  _⇒_ {zero} X Y = Lift Unit
+  _⇒_ {suc n} (X , P) (Y , Q) =
+    Σ[ σ ∈ X ⇒ Y ]
+    ({f : Frm X} → P f → Q (Frm⇒ σ f))
+
+  id-map {zero} X = tt*
+  id-map {suc n} (X , P) = id-map X , λ p → p
+
+  _⊙_ {zero} {X = X} {Y} {Z} σ τ = tt*
+  _⊙_ {suc n} {X = X , P} {Y , Q} {Z , R} (σₙ , σₛₙ) (τₙ , τₛₙ) =
+    σₙ ⊙ τₙ , λ p → σₛₙ (τₛₙ p)
+
+  Frm⇒ {zero} σ f = tt*
+  Frm⇒ {suc n} {X = X , P} {Y = Y , Q} (σₙ , σₛₙ) (frm , src , tgt) = 
+    Frm⇒ σₙ frm , Src⇒ src σₙ (λ p → σₛₙ (src ⊚ p)) , σₛₙ tgt
+
+  Src⇒-brs : ∀ {n ℓ₀ ℓ₁} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁}
+    → {P : Frm X → Type ℓ₀} {Q : Frm Y → Type ℓ₁}
+    → {U : Frm (X , P) → Type ℓ₀} {V : Frm (Y , Q) → Type ℓ₁}
+    → {f : Frm X} (src : Src P f) (tgt : P f) (flr : U (f , src , tgt))
+    → (brs : Dec {P = P} (Branch U) src)
+    → (σₙ : X ⇒ Y) (σₛₙ : {f : Frm X} → P f → Q (Frm⇒ σₙ f))
+    → (σ' : (p : PdPos U (nd src tgt flr brs))
+        → V (Frm⇒ (σₙ , σₛₙ) (Typ U (nd src tgt flr brs) p)))
+    → (p : Pos Q (Src⇒ src σₙ (λ p₁ → σₛₙ (src ⊚ p₁))))
+    → Branch V (σₛₙ (src ⊚ Pos⇐ src σₙ (λ p₁ → σₛₙ (src ⊚ p₁)) p))
+  Src⇒-brs {X = X} {Y} {P} {Q} {U} {V} src tgt flr brs σₙ σₛₙ σ' p =
+    let p' = Pos⇐ src σₙ (λ p₁ → σₛₙ (src ⊚ p₁)) p
+    in [ Src⇒ (lvs (brs ⊛ p')) σₙ (λ q → σₛₙ (lvs (brs ⊛ p') ⊚ q))
+       , Src⇒ {X = X , P} {Y = Y , Q} {P = U} {Q = V} (br (brs ⊛ p')) (σₙ , σₛₙ)
+           (λ q → σ' (nd-there p' q)) ]
+
+  Src⇒ {zero} σ σ' s = s tt*
+  Src⇒ {suc n} {Q = Q} (lf tgt) (σₙ , σₛₙ) σ'  = lf (σₛₙ tgt)
+  Src⇒ {suc n} {X = X , P} {Y = Y , Q} {P = U} {Q = V} (nd src tgt flr brs) (σₙ , σₛₙ) σ'  = 
+    nd (Src⇒ src σₙ (λ p → σₛₙ (src ⊚ p))) (σₛₙ tgt) (σ' nd-here)
+       (λ-dec {P = Q} (Branch V) (Src⇒ src σₙ (λ p → σₛₙ (src ⊚ p)))
+                                 (Src⇒-brs src tgt flr brs σₙ σₛₙ σ')) 
+
+  Pos⇒ {zero} s σ σ' p = tt*
+  Pos⇒ {suc n} (nd src tgt flr brs) (σₙ , σₛₙ) σ' nd-here = nd-here
+  Pos⇒ {suc n} (nd src tgt flr brs) (σₙ , σₛₙ) σ' (nd-there p q) =
+    nd-there (Pos⇒ src σₙ (λ q → σₛₙ (src ⊚ q)) p)
+             (Pos⇒ (br (brs ⊛ p)) (σₙ , σₛₙ) (λ q → σ' (nd-there p q)) q)
   
-  --
-  --  Composition
-  --
-
-  infixr 30 _⊚_
-  
-  _⊚_ : ∀ {n ℓ₀ ℓ₁ ℓ₂} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} {Z : 𝕆Type n ℓ₂}
-    → (Y ⇒ Z) → (X ⇒ Y) → (X ⇒ Z)
-
-  postulate
-
-    ⊚-Frm : ∀ {n ℓ₀ ℓ₁ ℓ₂} {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} {Z : 𝕆Type n ℓ₂}
-      → (σ : Y ⇒ Z) (τ : X ⇒ Y) (o : 𝒪 n) (f : Frm X o)
-      → Frm⇒ (σ ⊚ τ) f ↦ Frm⇒ σ (Frm⇒ τ f)
-    {-# REWRITE ⊚-Frm #-}
-
-    ⊚-assoc : ∀ {n ℓ₀ ℓ₁ ℓ₂ ℓ₃}
-      → {X : 𝕆Type n ℓ₀} {Y : 𝕆Type n ℓ₁} {Z : 𝕆Type n ℓ₂} {W : 𝕆Type n ℓ₃}
-      → (σ : Z ⇒ W) (τ : Y ⇒ Z) (γ : X ⇒ Y)
-      → (σ ⊚ τ) ⊚ γ ↦ σ ⊚ τ ⊚ γ
-    {-# REWRITE ⊚-assoc #-}
-
-    -- And unit laws ...
-
-  _⊚_ {zero} σ τ = lift tt
-  _⊚_ {suc n} {X = Xₙ , Xₛₙ} {Yₙ , Yₛₙ} {Zₙ , Zₛₙ} (σₙ , σₛₙ) (τₙ , τₛₙ) =
-    σₙ ⊚ τₙ , λ x → σₛₙ (τₛₙ x)
-
-  --
-  --  Action of substitutions on families
-  --
-
-  _[_]ty : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁}
-    → (X : 𝕆Fam Δ ℓ₂) (σ : Γ ⇒ Δ) 
-    → 𝕆Fam Γ ℓ₂
-
-  [_⊙_] : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁}
-    → {X : 𝕆Fam Δ ℓ₂} (σ : Γ ⇒ Δ)
-    → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
-    → Frm↓ (X [ σ ]ty) f 
-    → Frm↓ X (Frm⇒ σ f)
-
-  [_⊙_]c : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁}
-    → {X : 𝕆Fam Δ ℓ₂} (σ : Γ ⇒ Δ)
-    → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {f : Frm Γ 𝑜} {c : Cns Γ f 𝑝} 
-    → {f↓ : Frm↓ (X [ σ ]ty) f} (c↓ : Cns↓ (X [ σ ]ty) f↓ c)
-    → Cns↓ X [ σ ⊙ f↓ ] (Cns⇒ σ c)
-
-  postulate
-
-    Shp-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁}
-      → {X : 𝕆Fam Δ ℓ₂} (σ : Γ ⇒ Δ)
-      → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {f : Frm Γ 𝑜} {c : Cns Γ f 𝑝} 
-      → {f↓ : Frm↓ (X [ σ ]ty) f}
-      → (c↓ : Cns↓ (X [ σ ]ty) f↓ c) (p : Pos 𝑝)
-      → [ σ ⊙ Shp↓ (X [ σ ]ty) c↓ p ] ↦ Shp↓ X [ σ ⊙ c↓ ]c p 
-    {-# REWRITE Shp-⊙ #-}
-
-    η-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁}
-      → {X : 𝕆Fam Δ ℓ₂} (σ : Γ ⇒ Δ)
-      → {𝑜 : 𝒪 n} {f : Frm Γ 𝑜}
-      → (f↓ : Frm↓ (X [ σ ]ty) f)
-      → [ σ ⊙ η↓ (X [ σ ]ty) f↓ ]c ↦ η↓ X [ σ ⊙ f↓ ]
-    {-# REWRITE η-⊙ #-}
-
-    μ-⊙ : ∀ {n ℓ₀ ℓ₁ ℓ₂} {Γ : 𝕆Type n ℓ₀} {Δ : 𝕆Type n ℓ₁}
-      → {X : 𝕆Fam Δ ℓ₂} (σ : Γ ⇒ Δ)
-      → {𝑜 : 𝒪 n} {𝑝 : 𝒫 𝑜} {f : Frm Γ 𝑜} {c : Cns Γ f 𝑝} 
-      → {f↓ : Frm↓ (X [ σ ]ty) f} (c↓ : Cns↓ (X [ σ ]ty) f↓ c)
-      → {𝑞 : (p : Pos 𝑝) → 𝒫 (Typ 𝑝 p)}
-      → {d : (p : Pos 𝑝) → Cns Γ (Shp Γ c p) (𝑞 p)}
-      → (d↓ :  (p : Pos 𝑝) → Cns↓ (X [ σ ]ty) (Shp↓ (X [ σ ]ty) c↓ p) (d p))
-      → [ σ ⊙ μ↓ (X [ σ ]ty) c↓ d↓ ]c ↦ μ↓ X [ σ ⊙ c↓ ]c (λ p → [ σ ⊙ d↓ p ]c)
-    {-# REWRITE μ-⊙ #-}
-
-  _[_]ty {zero} X σ = tt*
-  _[_]ty {suc n} (Xₙ , Xₛₙ) (σₙ , σₛₙ) =
-    Xₙ [ σₙ ]ty , λ {𝑜} {f} f↓ γ → Xₛₙ [ σₙ ⊙ f↓ ] (σₛₙ γ)
-
-  [_⊙_] σ {●} f↓ = tt*
-  [_⊙_] (σₙ , σₛₙ) {𝑜 ∣ 𝑝} {f = f , x , c , y} (f↓ , x↓ , c↓ , y↓) =
-    [ σₙ ⊙ f↓ ] , x↓ , [ σₙ ⊙ c↓ ]c , y↓
-
-  [_⊙_]c σ {●} c↓ = tt*
-  [_⊙_]c (σₙ , σₛₙ) {𝑜 ∣ ._} {𝑝 = lfₒ} {c = lf x} (lf↓ x↓) = lf↓ x↓ 
-  [_⊙_]c (σₙ , σₛₙ) {𝑜 ∣ ._} {𝑝 = ndₒ 𝑝 𝑞 𝑟} {c = nd x c y d z ψ} (nd↓ x↓ c↓ y↓ d↓ z↓ ψ↓) =
-    nd↓ x↓ [ σₙ ⊙ c↓ ]c y↓ (λ p → [ σₙ ⊙ d↓ p ]c) z↓ (λ p → [ (σₙ , σₛₙ) ⊙ (ψ↓ p) ]c) 
-
-  --
-  --  Infinite Dimensional Maps
-  --
-
-  record [_⇒_↓_] {n ℓ} {X Y : 𝕆Type n ℓ} (X∞ : 𝕆Type∞ X) (Y∞ : 𝕆Type∞ Y)
-      (α : X ⇒ Y)  : Type ℓ where
-    coinductive
-    field
-      Fill⇒ : {o : 𝒪 n} {f : Frm X o} → Fill X∞ f → Fill Y∞ (Frm⇒ α f)
-      Hom⇒ : [ Hom X∞ ⇒ Hom Y∞ ↓ α , Fill⇒ ]
-
-  open [_⇒_↓_] public
-  
-  --  Pulling back an extension along a substitution
-  Pb∞ : ∀ {n ℓ} {X : 𝕆Type n ℓ} {Y : 𝕆Type n ℓ}
-    → (σ : X ⇒ Y) → 𝕆Type∞ Y → 𝕆Type∞ X 
-  Fill (Pb∞ {X = X} {Y} σ Y∞) {𝑜} f = Fill Y∞ (Frm⇒ σ f)
-  Hom (Pb∞ {X = X} {Y} σ Y∞) =
-    Pb∞ {X = (X , λ {𝑜} f → Fill Y∞ (Frm⇒ σ f))}
-          {Y = (Y , Fill Y∞)} (σ , λ x → x) (Hom Y∞)
-  
-  --  Pushing forward and extension along a substitution
-  Pf∞ : ∀ {n ℓ} {X : 𝕆Type n ℓ} {Y : 𝕆Type n ℓ}
-    → (σ : X ⇒ Y) → 𝕆Type∞ X → 𝕆Type∞ Y
-  Fill (Pf∞ {X = X} {Y} σ X∞) {o} f =
-    Σ[ f' ∈ fiber (Frm⇒ σ) f ] Fill X∞ (fst f')
-  Hom (Pf∞ {X = X} {Y} σ X∞) = Pf∞ {X = (X , Fill X∞)} {Y = (Y ,
-       (λ {o} f → Σ-syntax (fiber (Frm⇒ σ) f) (λ f' → Fill X∞ (fst f'))))}
-       (σ , λ {𝑜} {f} x → (f , refl) , x) (Hom X∞)
-
+  Pos⇐ {zero} s σ σ' p = tt*
+  Pos⇐ {suc n} (nd src tgt flr brs) (σₙ , σₛₙ) σ' nd-here = nd-here
+  Pos⇐ {suc n} (nd src tgt flr brs) (σₙ , σₛₙ) σ' (nd-there p q) =
+    let p' = Pos⇐ src σₙ (λ q → σₛₙ (src ⊚ q)) p
+        q' = Pos⇐ (br (brs ⊛ p')) (σₙ , σₛₙ) (λ q → σ' (nd-there p' q)) q
+    in nd-there p' q'
 
