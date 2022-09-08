@@ -122,6 +122,33 @@ module Lib.CategoryOfTypes.Lemmas where
                             in Dec↓-≡ Y Q (br (Brs ⊛ p')) (D ⊛ p) (br↓ (brs ⊛↓ p')) (δ₀ ⊛↓ p) (δ₁ ⊛↓ p)
                               (λ q → ϕ (nd-there p' q))) i
 
+  Dec↓-≡-β : ∀ {n ℓ} 
+    → {X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
+    → (Y : {F : Frm (𝕆U n ℓ)} → X F → Type (ℓ-suc ℓ))
+    → {P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ}
+    → (Q : {F : Frm (𝕆U n ℓ)} {C : X F} → Y C → {f : Frm↓ F} → P C f → Type ℓ)
+    → {F : Frm (𝕆U n ℓ)} (S : Src X F) (D : Dec {X = 𝕆U n ℓ} Y S)
+    → {f : Frm↓ F} (s : Src↓ P S f)
+    → (δ₀ δ₁ : Dec↓ Y Q S D s)
+    → (ϕ : (p : Pos X S) → δ₀ ⊛↓ p ≡ δ₁ ⊛↓ p)
+    → (p : Pos X S) → ϕ p ≡ λ i → (Dec↓-≡ Y Q S D s δ₀ δ₁ ϕ i) ⊛↓ p  
+  Dec↓-≡-β {zero} Y Q S D s δ₀ δ₁ ϕ p = refl
+  Dec↓-≡-β {suc n} Y Q (nd S T C Brs) (_ , D) (nd↓ src tgt flr brs) (q₀ , δ₀) (q₁ , δ₁) ϕ nd-here = refl
+  Dec↓-≡-β {suc n} {ℓ} {X} Y {P} Q (nd S T C Brs) (_ , D) (nd↓ src tgt flr brs) (q₀ , δ₀) (q₁ , δ₁) ϕ (nd-there p q) =
+    Dec↓-≡-β Y Q (br (Brs ⊛ p)) (D ⊛ ν-pos S (λ p₁ → (S ⊚ p₁) , (Brs ⊛ p₁)) p) (br↓ (brs ⊛↓ p))
+        (δ₀ ⊛↓ ν-pos S (λ p₁ → (S ⊚ p₁) , (Brs ⊛ p₁)) p)
+        (δ₁ ⊛↓ ν-pos S (λ p₁ → (S ⊚ p₁) , (Brs ⊛ p₁)) p)
+        (λ q₂ → ϕ (nd-there p q₂)) q ∙
+    (λ i j → Dec↓-≡-β {n = n} {X = λ F → Σ (CellFib F) (Branch X)}
+                     (λ CB → Dec {X = 𝕆U n ℓ , CellFib} Y (br (snd CB)))
+                     {P = λ pr f → Σ (fst pr f) (Branch↓ X P (snd pr))}
+                     (λ {F} {CB} D' {f} cb → Dec↓ Y Q (br (snd CB)) D' (br↓ (snd cb)))
+                     (ν {Q = λ F → Σ (CellFib F) (Branch X)} S (λ p → S ⊚ p , Brs ⊛ p)) D
+                     (ν↓ {Y = λ F → Σ (CellFib F) (Branch X)} src (λ p → src ⊚↓ p , brs ⊛↓ p)) δ₀ δ₁
+                     (λ p → let p' = ν-lift S (λ q → (S ⊚ q) , (Brs ⊛ q)) p
+                            in Dec↓-≡ Y Q (br (Brs ⊛ p')) (D ⊛ p) (br↓ (brs ⊛↓ p')) (δ₀ ⊛↓ p) (δ₁ ⊛↓ p)
+                              (λ q → ϕ (nd-there p' q))) (ν-pos S (λ p₁ → (S ⊚ p₁) , (Brs ⊛ p₁)) p) i j ⊛↓ q)
+
   branch-lem : ∀ {n ℓ} 
     → (X : (F : Frm (𝕆U (suc n) ℓ)) → Type (ℓ-suc ℓ))
     → (P : {F : Frm (𝕆U (suc n) ℓ)} → X F → (f : Frm↓ F) → Type ℓ)
@@ -180,5 +207,4 @@ module Lib.CategoryOfTypes.Lemmas where
   --     (ϕ a₀ (transport (λ i → B a₀) b₀)   ≡[ i ]⟨ ϕ a₀ (transportRefl b₀ i) ⟩
   --      ϕ a₀ b₀                            ≡[ i ]⟨ transportRefl (ϕ a₀ b₀) (~ i) ⟩
   --      transport (λ i → C a₀) (ϕ a₀ b₀)   ∎) 
-
 

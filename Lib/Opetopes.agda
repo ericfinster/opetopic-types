@@ -6,6 +6,7 @@ open import Cubical.Data.Nat
 open import Cubical.Data.Sigma
 
 open import Core.OpetopicType
+open import Core.OpetopicMap 
 open import Lib.Terminal
 
 module Lib.Opetopes where
@@ -38,3 +39,9 @@ module Lib.Opetopes where
   2-globe : 𝒪 2
   2-globe = arr , lf tt* , tt* 
 
+  --
+  --  The Shape of a Frame
+  --
+
+  Shape : ∀ {n ℓ} {X : 𝕆Type n ℓ} → Frm X → 𝒪 n
+  Shape {X = X} f = Frm⇒ (⇒𝕋 X) f 

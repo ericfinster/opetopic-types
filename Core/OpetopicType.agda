@@ -317,6 +317,17 @@ module Core.OpetopicType where
     {-# REWRITE μ-assoc #-}
 
   --
+  --  Bind form of monad
+  --
+
+  bind : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+    → (P Q : Frm X → Type ℓ)
+    → (f : Frm X) (s : Src P f)
+    → (ϕ : (p : Pos P s) → Src Q (Typ P s p))
+    → Src Q f
+  bind P Q f s ϕ = μ Q (ν s ϕ) 
+
+  --
   --  Definitions of opeotpic types and frames
   --
 

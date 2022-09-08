@@ -26,6 +26,13 @@ module Lib.Structures where
       Hom⇒ : Map (σ , Fill⇒) (Hom X) (Hom Y)
   open Map public
 
+  _⊙∞_ : ∀ {n ℓ} {Xₙ Yₙ Zₙ : 𝕆Type n ℓ} {σₙ : Xₙ ⇒ Yₙ} {τₙ : Yₙ ⇒ Zₙ}
+    → {X : 𝕆Type∞ Xₙ} {Y : 𝕆Type∞ Yₙ} {Z : 𝕆Type∞ Zₙ}
+    → Map τₙ Y Z → Map σₙ X Y 
+    → Map (τₙ ⊙ σₙ) X Z
+  Fill⇒ (_⊙∞_ {n} {σₙ = σₙ} {τₙ} τ σ) x = Fill⇒ τ (Fill⇒ σ x)
+  Hom⇒ (_⊙∞_ {n} {σₙ = σₙ} {τₙ} τ σ) = Hom⇒ τ ⊙∞ Hom⇒ σ
+
   horn-filler : ∀ {n ℓ} {Xₙ : 𝕆Type n ℓ} {Xₛₙ : Frm Xₙ → Type ℓ} (Xₛₛₙ : Frm (Xₙ , Xₛₙ) → Type ℓ) {f : Frm Xₙ} → Src Xₛₙ f → Type ℓ
   horn-filler {n} {ℓ} {Xₙ} {Xₛₙ} Xₛₛₙ {f} s = Σ[ tgt ∈ Xₛₙ f ] Xₛₛₙ (f , s , tgt)
 

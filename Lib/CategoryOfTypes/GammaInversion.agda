@@ -28,9 +28,8 @@ module Lib.CategoryOfTypes.GammaInversion where
       → USrc↓ S f
     γ↓-cnpy (lf T) Brs {t = t} ρ = ηU↓ T t
     γ↓-cnpy (nd {F} S T C LBrs) Brs (nd↓ src tgt flr brs) =
-      μ↓ {X = CellFib} (λ C → C) {F = F} {S = ν {X = 𝕆U n ℓ} S (λ p → lvs (LBrs ⊛ p))}
-        (ν↓ {Y = Src CellFib} {Q = Src↓ (λ C → C)} {F = F} {S = S} {ϕ = λ p → lvs (LBrs ⊛ p)} src
-          λ p → γ↓-cnpy (br (LBrs ⊛ p)) (λ q → Brs (canopy-pos X LBrs p q)) (br↓ (brs ⊛↓ p)))
+      bind↓ (λ C → C) (λ C → C) S (λ p → lvs (LBrs ⊛ p))
+        src (λ p → γ↓-cnpy (br (LBrs ⊛ p)) (λ q → Brs (canopy-pos X LBrs p q)) (br↓ (brs ⊛↓ p))) 
 
     γ↓-base : {F : Frm (𝕆U n ℓ)} {S : Src CellFib F} {T : CellFib F}
        → (Upd : Pd X (F , S , T))
@@ -39,13 +38,12 @@ module Lib.CategoryOfTypes.GammaInversion where
        → (ρ : Pd↓ X P (γ X Upd Brs) (f , s , t))
        → Pd↓ X P Upd (f , γ↓-cnpy Upd Brs ρ  , t)
     γ↓-base (lf T) Brs {t = t} ρ = lf↓ t
-    γ↓-base (nd {F} S T C LBrs) Brs (nd↓ {frm} src tgt flr brs) = nd↓ src tgt flr brs'
-
-      where brs' : Dec↓ (Branch X) (Branch↓ X P) S LBrs src
-            brs' = λ-dec↓ {Y = Branch X} (Branch↓ X P) {F = F} {S = S} LBrs {s = src} λ p →
+    γ↓-base (nd {F} S T C LBrs) Brs (nd↓ {frm} src tgt flr brs) =
+      nd↓ src tgt flr
+        (λ-dec↓ {Y = Branch X} (Branch↓ X P) {F = F} {S = S} LBrs {s = src} λ p →
               [ γ↓-cnpy (br (LBrs ⊛ p)) (λ q → Brs (canopy-pos X LBrs p q)) (br↓ (brs ⊛↓ p))
               , γ↓-base (br (LBrs ⊛ p)) (λ q → Brs (canopy-pos X LBrs p q)) (br↓ (brs ⊛↓ p))
-              ]↓
+              ]↓)
 
     γ↓-dec' : {F : Frm (𝕆U n ℓ)} {S : Src CellFib F} {T : CellFib F}
        → (Upd : Pd X (F , S , T))
@@ -56,13 +54,9 @@ module Lib.CategoryOfTypes.GammaInversion where
     γ↓-dec' (lf T) Brs {s = s} {t = t} ρ =
       η-pos-elim T (λ p → Branch↓ X P (Brs p) t) [ s , ρ ]↓
     γ↓-dec' (nd {F} S T C LBrs) Brs (nd↓ {frm} src tgt flr brs) pq =
-      γ↓-dec' (br (LBrs ⊛ p)) (λ q → Brs (canopy-pos X LBrs p q)) (br↓ (brs ⊛↓ p)) q
-
-      where p : Pos CellFib S
-            p = canopy-fst X LBrs pq
-
-            q : Pos CellFib (lvs (LBrs ⊛ p))
-            q = canopy-snd X LBrs pq
+      let p = canopy-fst X LBrs pq
+          q = canopy-snd X LBrs pq
+      in γ↓-dec' (br (LBrs ⊛ p)) (λ q → Brs (canopy-pos X LBrs p q)) (br↓ (brs ⊛↓ p)) q
 
     γ↓-dec : {F : Frm (𝕆U n ℓ)} {S : Src CellFib F} {T : CellFib F}
        → (Upd : Pd X (F , S , T))
@@ -77,16 +71,12 @@ module Lib.CategoryOfTypes.GammaInversion where
        → (Brs : (p : UPos S) → Branch X (S ⊚ p))
        → {f : Frm↓ F} {s : USrc↓ (canopyU' S Brs) f} {t : T f}
        → (ρ : Pd↓ X P (γ X Upd Brs) (f , s , t))
-       → μ↓ {X = CellFib} (λ C → C) {F = F} {S = ν {f = F} S (λ p → lvs (Brs p))}
-            (ν↓ {F = F} {S = S} {ϕ = λ p → lvs (Brs p)} {f = f} (γ↓-cnpy Upd Brs ρ) (λ p → lvs↓ (γ↓-dec Upd Brs ρ ⊛↓ p))) ≡ s
+       → bind↓ (λ C → C) (λ C → C) S (λ p → lvs (Brs p))
+           (γ↓-cnpy Upd Brs ρ) (λ p → lvs↓ (γ↓-dec Upd Brs ρ ⊛↓ p)) ≡ s
     γ↓-coh (lf T) Brs {s = s} {t = t} ρ = refl
-    γ↓-coh (nd {F} S T C LBrs) Brs (nd↓ {frm} src tgt flr brs) i = 
-      μ↓ {X = CellFib} (λ C → C) {F = F}
-        {S = ν {X = 𝕆U n ℓ} {f = F} S (λ p → μ {X = 𝕆U n ℓ} CellFib
-                  {f = Typ {n} {ℓ-suc ℓ} {𝕆U n ℓ} (CellFib {n} {ℓ}) {F} S p} (ν {n} {ℓ-suc ℓ} {𝕆U n ℓ} {CellFib {n} {ℓ}}
-                  {Src {n} {ℓ-suc ℓ} {𝕆U n ℓ} (CellFib {n} {ℓ})}
-                  {Typ {n} {ℓ-suc ℓ} {𝕆U n ℓ} (CellFib {n} {ℓ}) {F} S p}
-                  (lvs (LBrs ⊛ p)) (λ q → lvs (Brs (canopy-pos X LBrs p q)))))}
-        (ν↓ src (λ p → γ↓-coh (br (LBrs ⊛ p)) (λ q → Brs (canopy-pos X LBrs p q)) (br↓ (brs ⊛↓ p)) i))
-
-
+    γ↓-coh (nd {F} S T C LBrs) Brs (nd↓ {frm} src tgt flr brs) i =  
+      bind↓ (λ C → C) (λ C → C)
+        S (λ p → bind (λ F₁ → Frm↓ F₁ → Type ℓ) (λ F₁ → Frm↓ F₁ → Type ℓ) (Typ (λ F₁ → Frm↓ F₁ → Type ℓ) S p)
+                   (lvs (LBrs ⊛ p)) (λ q → lvs (Brs (canopy-pos X LBrs p q))))
+        src (λ p → γ↓-coh (br (LBrs ⊛ p)) (λ q → Brs (canopy-pos X LBrs p q)) (br↓ (brs ⊛↓ p)) i)
+    

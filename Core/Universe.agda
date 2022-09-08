@@ -284,6 +284,15 @@ module Core.Universe where
     {-# REWRITE μ↓-assoc #-}
 
 
+  bind↓ : ∀ {n ℓ} 
+    → {X Y : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
+    → (P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ)
+    → (Q : {F : Frm (𝕆U n ℓ)} → Y F → (f : Frm↓ F) → Type ℓ)
+    → {F : Frm (𝕆U n ℓ)} (S : Src X F) (ϕ : (p : Pos X S) → Src (λ F₁ → Y F₁) (Typ X S p))
+    → {f : Frm↓ F} (s : Src↓ P S f) (ψ : (p : Pos X S) → Src↓ Q (ϕ p) (Typ↓ P s p))
+    → Src↓ Q (bind X Y F S ϕ) f
+  bind↓ P Q S ϕ s ψ = μ↓ Q (ν↓ s ψ) 
+
   module _ {n ℓ}
     (X : (F : Frm (𝕆U (suc n) ℓ)) → Type (ℓ-suc ℓ))
     (P : {F : Frm (𝕆U (suc n) ℓ)} → X F → (f : Frm↓ F) → Type ℓ) where
@@ -325,10 +334,22 @@ module Core.Universe where
       → (pd : Pd↓ Upd (f , s , t))
       → (brs : (p : Pos {X = 𝕆U n ℓ} CellFib S) → Branch↓ (Brs p) (s ⊚↓ p))
       → Pd↓ (γ X Upd Brs) (f , μ↓ (λ C → C) (ν↓ s (λ p → lvs↓ (brs p))) , t)
+
+    γ↓-brs : {F : Frm (𝕆U n ℓ)} {S : Src CellFib F} (LBrs : Dec {X = 𝕆U n ℓ} {P = CellFib} (Branch X) S)
+      → (Brs : (p : Pos CellFib (canopy X {s = S} LBrs)) → Branch X (canopy X LBrs ⊚ p))
+      → {frm : Frm↓ F} {src : Src↓ (λ C → C) S frm} (lbrs : Dec↓ (Branch X) Branch↓ S LBrs src)
+      → (brs : (p : Pos CellFib (canopy X {s = S} LBrs)) → Branch↓ (Brs p) (lvs↓ (lbrs ⊛↓ canopy-fst X LBrs p) ⊚↓ canopy-snd X LBrs p))
+      → (p : Pos CellFib S) → Branch↓ (γ-brs X LBrs Brs p) (src ⊚↓ p)
+    γ↓-brs LBrs Brs lbrs brs p = 
+      [ bind↓ (λ C → C) (λ C → C)
+          (lvs (LBrs ⊛ p)) (λ q → lvs (Brs (canopy-pos X LBrs p q)))
+          (lvs↓ (lbrs ⊛↓ p)) (λ q → lvs↓ (brs (canopy-pos X LBrs p q))) 
+      , γ↓ (br↓ (lbrs ⊛↓ p)) (λ q → brs (canopy-pos X LBrs p q)) ]↓
+
     γ↓ {Upd = lf C} (lf↓ x) brs = br↓ (brs (η-pos CellFib C))
-    γ↓ {Upd = nd S T C LBrs} {Brs} (nd↓ src tgt flr lbrs) brs =
-      nd↓ src tgt flr (λ-dec↓ Branch↓ (λ-dec (Branch X) S (γ-brs X LBrs Brs)) λ p → 
-        [ _ , γ↓ (br↓ (lbrs ⊛↓ p)) (λ q → brs (canopy-pos X LBrs p q)) ]↓)
+    γ↓ {Upd = nd S T C LBrs} {Brs} (nd↓ src tgt flr lbrs) brs = 
+      nd↓ src tgt flr (λ-dec↓ Branch↓ (λ-dec (Branch X) S (γ-brs X LBrs Brs))
+                        (γ↓-brs LBrs Brs lbrs brs))
 
   Src↓ {zero} P S F = P S tt*
   Src↓ {suc n} {X = X} P S F = Pd↓ X P S F 

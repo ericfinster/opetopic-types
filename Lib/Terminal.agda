@@ -6,6 +6,7 @@ open import Cubical.Data.Nat
 open import Cubical.Data.Sigma
 
 open import Core.OpetopicType
+open import Core.OpetopicMap 
 open import Lib.Structures
 
 module Lib.Terminal where
@@ -26,4 +27,6 @@ module Lib.Terminal where
   is-n-trunc.hLevel is-0-trunc-𝕋Ext f = tt* , λ _ → refl
   is-n-trunc.is-trunc-ext is-0-trunc-𝕋Ext = is-0-trunc-𝕋Ext
 
-
+  ⇒𝕋 : ∀ {n ℓ} → (X : 𝕆Type n ℓ) → X ⇒ 𝕋 {ℓ-zero} n
+  ⇒𝕋 {zero} X = tt*
+  ⇒𝕋 {suc n} (X , P) = ⇒𝕋 X , λ _ → tt*
