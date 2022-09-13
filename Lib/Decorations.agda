@@ -49,58 +49,29 @@ module Lib.Decorations where
   --  Equivalence of families induces and equivalence on Src's
   --
 
-  Src-emap-to : ∀ {n ℓ} {X : 𝕆Type n ℓ} 
-    → (P Q : Frm X → Type ℓ)
-    → (ϕ : {f : Frm X} → P f ≃ Q f)
-    → {f : Frm X} 
-    → Src P f → Src Q f
-  Src-emap-to P Q ϕ {f} s = ν {Q = Q} {f} s (λ p → fst (ϕ {_}) (s ⊚ p))
-
-  Src-emap-from : ∀ {n ℓ} {X : 𝕆Type n ℓ} 
-    → (P Q : Frm X → Type ℓ)
-    → (ϕ : {f : Frm X} → P f ≃ Q f)
-    → {f : Frm X} 
-    → Src Q f → Src P f 
-  Src-emap-from P Q ϕ {f} s = ν {Q = P} {f} s (λ p → invEq (ϕ {_}) (s ⊚ p))
-
-  Src-emap-sec : ∀ {n ℓ} {X : 𝕆Type n ℓ} 
-    → (P Q : Frm X → Type ℓ)
-    → (ϕ : {f : Frm X} → P f ≃ Q f)
-    → {f : Frm X} (s : Src Q f)
-    → Src-emap-to P Q ϕ (Src-emap-from P Q ϕ s) ≡ s
-  Src-emap-sec P Q ϕ {f} s i = ν {Q = Q} {f} s (λ p → secEq (ϕ {_}) (s ⊚ p) i)
-
-  Src-emap-ret : ∀ {n ℓ} {X : 𝕆Type n ℓ} 
-    → (P Q : Frm X → Type ℓ)
-    → (ϕ : {f : Frm X} → P f ≃ Q f)
-    → {f : Frm X} (s : Src P f)
-    → Src-emap-from P Q ϕ (Src-emap-to P Q ϕ s) ≡ s
-  Src-emap-ret P Q ϕ {f} s i = ν {Q = P} {f} s (λ p → retEq (ϕ {_}) (s ⊚ p) i)
-
   Src-emap : ∀ {n ℓ} {X : 𝕆Type n ℓ} 
     → {P Q : Frm X → Type ℓ}
     → (ϕ : {f : Frm X} → P f ≃ Q f)
     → {f : Frm X} → Src P f ≃ Src Q f
-  Src-emap {P = P} {Q} ϕ = isoToEquiv
-    (iso (Src-emap-to P Q ϕ)
-         (Src-emap-from P Q ϕ)
-         (Src-emap-sec P Q ϕ)
-         (Src-emap-ret P Q ϕ)) 
+  Src-emap {P = P} {Q} ϕ {f} = isoToEquiv
+    (iso (λ s → ν {Q = Q} {f} s (λ p → fst (ϕ {_}) (s ⊚ p)))
+         (λ s → ν {Q = P} {f} s (λ p → invEq (ϕ {_}) (s ⊚ p)))
+         (λ s i → ν {Q = Q} {f} s (λ p → secEq (ϕ {_}) (s ⊚ p) i))
+         (λ s i → ν {Q = P} {f} s (λ p → retEq (ϕ {_}) (s ⊚ p) i)))
 
   --
-  --  Dependent version of previous
+  --  Src↓ version of previous
   --
-
-  -- postulate
   
-  --   Src↓-emap-to : ∀ {n ℓ} 
-  --     → {P Q : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
-  --     → (U : {F : Frm (𝕆U n ℓ)} → P F → Frm↓ F → Type ℓ)
-  --     → (V : {F : Frm (𝕆U n ℓ)} → Q F → Frm↓ F → Type ℓ)
-  --     → (ϕ : {F : Frm (𝕆U n ℓ)} → P F ≃ Q F)
-  --     → {F : Frm (𝕆U n ℓ)} (S : Src P F)
-  --     → (f : Frm↓ F)
-  --     → Src↓ U S f → Src↓ V (Src-emap-to {P = P} {Q} ϕ S) f
+  -- Src↓-emap : ∀ {n ℓ} 
+  --   → {P Q : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
+  --   → (U : {F : Frm (𝕆U n ℓ)} → P F → Frm↓ F → Type ℓ)
+  --   → (V : {F : Frm (𝕆U n ℓ)} → Q F → Frm↓ F → Type ℓ)
+  --   → (ϕ : {F : Frm (𝕆U n ℓ)} → P F ≃ Q F)
+  --   → {F : Frm (𝕆U n ℓ)} (S : Src P F)
+  --   → (f : Frm↓ F)
+  --   → Src↓ U S f ≃ Src↓ V (fst (Src-emap {P = P} {Q} ϕ) S) f
+  -- Src↓-emap = {!!} 
 
   --
   --  Src and Dec is equivalent to a Src with Σ's

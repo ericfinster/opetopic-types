@@ -144,12 +144,14 @@ module Lib.CategoryOfTypes.CompositeFibrant where
     isOfHLevelRespectEquiv 0 (src-over-lf-equiv T cnpy)
       ((η↓-equiv T f) .snd .equiv-proof cnpy) 
 
-  ucomp-is-fib-rel {suc n} (nd {F} S T C Brs) ϕ f cnpy = 
+  ucomp-is-fib-rel {suc n} {ℓ} (nd {F} S T C Brs) ϕ f cnpy = 
     isOfHLevelRespectEquiv 0 (invEquiv lemma)
       (μ↓-equiv {X = CellFib} (λ C → C) {F = F}
         (ν {f = F} S (λ p → lvs (Brs ⊛ p))) f .snd .equiv-proof cnpy) 
 
-    where lemma = (Σ[ t ∈ T f ] Src↓ (λ C → C) (nd S T C Brs) (f , cnpy , t))
+    where module D = Dec↓ΣEquiv {n} {ℓ} CellFib (Branch CellFib) (λ C → C) (Branch↓ CellFib (λ C → C)) {F} f
+
+          lemma = (Σ[ t ∈ T f ] Src↓ (λ C → C) (nd S T C Brs) (f , cnpy , t))
 
                     ≃⟨ src-over-nd-equiv F S T C Brs f cnpy ⟩
 
@@ -168,22 +170,26 @@ module Lib.CategoryOfTypes.CompositeFibrant where
                      (λ p → lvs (Brs ⊛ p)) s
                      (λ p → lvs↓ (brs ⊛↓ p)) ≡ cnpy)
 
-                    ≃⟨ {!!} ⟩
+                    ≃⟨ invEquiv Σ-assoc-≃ ⟩
 
-                  -- Now we bring the data inside .... (probably this can be done smarter
-                  -- so that the cancellation becomes obvious) 
-                  (Σ[ s ∈ Src↓ (λ (C , Br) f → Σ[ c ∈ C f ] Branch↓ CellFib (λ C → C) Br c)
-                               (ν {Q = λ F → Σ[ C ∈ CellFib F ] Branch CellFib C} {f = F} S (λ p → S ⊚ p , Brs ⊛ p)) f ] 
-                   bind↓ (λ (C , Br) f → Σ[ c ∈ C f ] Branch↓ CellFib (λ C → C) Br c) (λ C → C) {F = F} 
-                     (ν {Q = λ F → Σ[ C ∈ CellFib F ] Branch CellFib C} {f = F} S (λ p → S ⊚ p , Brs ⊛ p))
-                       (λ p → lvs (snd ((ν {f = F} S (λ p → S ⊚ p , Brs ⊛ p)) ⊚ p)))
+                  (Σ[ sb ∈ (Σ[ s ∈ Src↓ (λ C → C) S f ] (Dec↓ (Branch CellFib) (Branch↓ CellFib (λ C → C)) {F = F} S Brs s)) ] 
+                   bind↓ (λ C → C) (λ C → C) {F = F}
+                     S (λ p → lvs (Brs ⊛ p))
+                     (fst sb) (λ p → lvs↓ (snd sb ⊛↓ p))
+                     ≡ cnpy)
+
+                    ≃⟨ Σ-cong-equiv-fst (D.eqv S Brs) ⟩
+
+                  -- D.ΣUV              =   λ (C , Br) f → Σ[ c ∈ C f ] Branch↓ CellFib (λ C → C) Br c
+                  -- D.D.to (S , Brs)   =   ν {Q = λ F → Σ[ C ∈ CellFib F ] Branch CellFib C} {f = F} S (λ p → S ⊚ p , Brs ⊛ p)
+                  (Σ[ s ∈ Src↓ D.ΣUV (D.D.to (S , Brs)) f ] 
+                                                        
+                   bind↓ D.ΣUV (λ C → C) {F = F}
+                     (D.D.to (S , Brs)) (λ p → lvs (snd ((D.D.to (S , Brs)) ⊚ p))) 
                      s (λ p → lvs↓ (snd (s ⊚↓ p)))
                      ≡ cnpy)
 
                     ≃⟨ {!!} ⟩
 
-                  -- And now somehow the inductive hypothesis should let us cancel the additional
-                  -- data.  But I'm not exactly sure where this leaves us ...
-
-                  (Σ[ σ  ∈ Src↓ (Src↓ (λ C → C)) (ν {f = F} S (λ p → lvs (Brs ⊛ p))) f ]
+                  (Σ[ σ ∈ Src↓ (Src↓ (λ C → C)) (ν {f = F} S (λ p → lvs (Brs ⊛ p))) f ]
                       μ↓ (λ C → C) {F = F} {S = ν {f = F} S (λ p → lvs (Brs ⊛ p))} σ ≡ cnpy)        ■
