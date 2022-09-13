@@ -106,66 +106,60 @@ module Lib.Decorations where
   --  Src and Dec is equivalent to a Src with Σ's
   --
 
-  Dec-Σ-equiv-to : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → (P : Frm X → Type ℓ)
-    → (Q : {f : Frm X} → P f → Type ℓ)
-    → {f : Frm X} (sd : Σ[ s ∈ Src P f ] (Dec Q {f} s))
-    → Src (λ f → Σ (P f) (Q {f})) f
-  Dec-Σ-equiv-to P Q (s , d) = ν {Q = λ f → Σ (P f) Q} s (λ p → s ⊚ p , d ⊛ p)
+  module DecΣEquiv {n ℓ}
+    {X : 𝕆Type n ℓ}
+    (P : Frm X → Type ℓ)
+    (Q : {f : Frm X} → P f → Type ℓ) where
 
-  Dec-Σ-equiv-from : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → (P : Frm X → Type ℓ)
-    → (Q : {f : Frm X} → P f → Type ℓ)
-    → {f : Frm X} (ss : Src (λ f → Σ (P f) (Q {f})) f)
-    → Σ[ s ∈ Src P f ] (Dec Q {f} s)
-  Dec-Σ-equiv-from P Q {f} ss =
-    let s = ν {Q = P} ss (λ p → fst (ss ⊚ p))
-    in (s , λ-dec Q {f} s (λ p → snd (ss ⊚ ν-lift ss (λ p → fst (ss ⊚ p)) p)))
+    ΣPQ : Frm X → Type ℓ
+    ΣPQ f = Σ (P f) (Q {f})
 
-  Dec-Σ-equiv-sec : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → (P : Frm X → Type ℓ)
-    → (Q : {f : Frm X} → P f → Type ℓ)
-    → {f : Frm X} (ss : Src (λ f → Σ (P f) (Q {f})) f)
-    → Dec-Σ-equiv-to P Q (Dec-Σ-equiv-from P Q ss) ≡ ss
-  Dec-Σ-equiv-sec P Q ss = refl 
+    to : {f : Frm X} → Σ[ s ∈ Src P f ] (Dec Q {f} s) → Src ΣPQ f
+    to (s , d) = ν {Q = ΣPQ} s (λ p → s ⊚ p , d ⊛ p) 
 
-  Dec-Σ-equiv-ret : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → (P : Frm X → Type ℓ)
-    → (Q : {f : Frm X} → P f → Type ℓ)
-    → {f : Frm X} (sd : Σ[ s ∈ Src P f ] (Dec Q {f} s))
-    → Dec-Σ-equiv-from P Q (Dec-Σ-equiv-to P Q sd) ≡ sd
-  Dec-Σ-equiv-ret P Q {f} (s , d) = refl
+    from : {f : Frm X} → Src ΣPQ f → Σ[ s ∈ Src P f ] (Dec Q {f} s)
+    from {f} ss = let s = ν {Q = P} ss (λ p → fst (ss ⊚ p))
+                  in (s , λ-dec Q {f} s (λ p → snd (ss ⊚ ν-lift ss (λ p → fst (ss ⊚ p)) p)))
 
-  Dec-Σ-equiv : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → {P : Frm X → Type ℓ}
-    → (Q : {f : Frm X} → P f → Type ℓ)
-    → {f : Frm X} 
-    → (Σ[ s ∈ Src P f ] (Dec Q {f} s))
-    ≃ Src (λ f → Σ (P f) (Q {f})) f
-  Dec-Σ-equiv {P = P} Q {f} = isoToEquiv
-    (iso (Dec-Σ-equiv-to P Q)
-         (Dec-Σ-equiv-from P Q)
-         (Dec-Σ-equiv-sec P Q)
-         (Dec-Σ-equiv-ret P Q)) 
-
-  --
-  --  A Decoration gives a source tree decorated in Σ-types
-  --
+    eqv : {f : Frm X} → (Σ[ s ∈ Src P f ] (Dec Q {f} s)) ≃ Src ΣPQ f
+    eqv {f} = isoToEquiv (iso to from (λ ss → refl {x = ss}) λ sd → refl {x = sd}) 
 
   --
   --  Dependent Verison of Dec-Σ-equiv
   --
-  
-  -- postulate
-  
-  --   Dec↓-Σ-equiv : ∀ {n ℓ} 
-  --     → {X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
-  --     → (Y : {F : Frm (𝕆U n ℓ)} → X F → Type (ℓ-suc ℓ))
-  --     → {P : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ}
-  --     → (Q : {F : Frm (𝕆U n ℓ)} {C : X F} → Y C → {f : Frm↓ F} → P C f → Type ℓ)
-  --     → {F : Frm (𝕆U n ℓ)} (S : Src X F) (D : Dec {X = 𝕆U n ℓ} Y S)
-  --     → {f : Frm↓ F}
-  --     → (Σ[ s ∈ Src↓ P S f ] (Dec↓ Y Q S D s))
-  --     ≃ Src↓ {!!} {!!} {!!}
 
+  module Dec↓ΣEquiv {n ℓ} 
+    (P : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
+    (Q : {F : Frm (𝕆U n ℓ)} → P F → Type (ℓ-suc ℓ))
+    (U : {F : Frm (𝕆U n ℓ)} → P F → (f : Frm↓ F) → Type ℓ)
+    (V : {F : Frm (𝕆U n ℓ)} {C : P F} → Q C → {f : Frm↓ F} → U C f → Type ℓ)
+    {F : Frm (𝕆U n ℓ)}  (f : Frm↓ F) where
 
+    module D = DecΣEquiv {X = 𝕆U n ℓ} P Q
+
+    ΣUV : {F : Frm (𝕆U n ℓ)} → Σ (P F) Q → Frm↓ F → Type ℓ 
+    ΣUV {F} (x , y) f' = Σ (U x f') (V y)
+    
+    to : (S : Src P F) (D : Dec {X = 𝕆U n ℓ} Q S)
+      → Σ[ s ∈ Src↓ U S f ] (Dec↓ Q V S D s)
+      → Src↓ ΣUV (D.to (S , D)) f
+    to S D (s , d) = ν↓ {Q = ΣUV} {F} {S} {λ p → S ⊚ p , D ⊛ p} s
+                           (λ p → s ⊚↓ p , d ⊛↓ p)
+
+    from : (s : Src D.ΣPQ F)
+      → (ss : Src↓ ΣUV s f)
+      → Σ[ s↓ ∈ Src↓ U (D.from s .fst) f ] (Dec↓ Q V (D.from s .fst) (D.from s .snd) s↓)
+    from s ss = let s↓ = ν↓ {Q = U} {F} {s} {λ p → fst (s ⊚ p)} {f} ss (λ p → fst (ss ⊚↓ p))
+                in s↓ , λ-dec↓ {X = P} {Q} {U} V {F} {D.from s .fst} (D.from s .snd) {f} {s↓}
+                         (λ p → snd (ss ⊚↓ ν-lift s (λ q → fst (s ⊚ q)) p))
+
+    sec' : (s : Src D.ΣPQ F)
+      → (ss : Src↓ ΣUV s f)
+      → (to (D.from s .fst) (D.from s .snd) (from s ss)) ≡ ss
+    sec' s ss = refl 
+
+    eqv : (S : Src P F) (D : Dec {X = 𝕆U n ℓ} Q S)
+      → (Σ[ s ∈ Src↓ U S f ] (Dec↓ Q V S D s))
+      ≃ Src↓ ΣUV (D.to (S , D)) f
+    eqv S D = isoToEquiv (iso (to S D) (from (D.to (S , D)))
+                (sec' (D.to (S , D))) (λ sd → refl {x = sd})) 
