@@ -149,7 +149,26 @@ module Lib.CategoryOfTypes.CompositeFibrant where
       (μ↓-equiv {X = CellFib} (λ C → C) {F = F}
         (ν {f = F} S (λ p → lvs (Brs ⊛ p))) f .snd .equiv-proof cnpy) 
 
-    where module D = Dec↓ΣEquiv {n} {ℓ} CellFib (Branch CellFib) (λ C → C) (Branch↓ CellFib (λ C → C)) {F} f
+    where module D = Dec↓ΣEquiv {n} {ℓ} CellFib (Branch CellFib) (λ C → C) (Branch↓ CellFib (λ C → C))
+
+          claim : Src↓ D.ΣUV (D.D.to (S , Brs)) f ≃ Src↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) (D.D.to (S , Brs)) f
+          claim = Src↓-emap D.D.ΣPQ D.ΣUV (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) (D.D.to (S , Brs))
+                            (λ p f → D.ΣUV (D.D.to (S , Brs) ⊚ p) f
+                            
+                                       ≃⟨ isoToEquiv (iso (λ (c , br) → lvs↓ br , c , br↓ br)
+                                                          (λ (l , c , b) → c , [ l , b ]↓)
+                                                          (λ cbr → refl {x = cbr})
+                                                          λ lcb → refl {x = lcb}) ⟩
+                                       
+                                     Σ[ s ∈ (Src↓ (λ C → C) (lvs (Brs ⊛ ν-lift S (λ q → (S ⊚ q) , (Brs ⊛ q)) p)) f) ]
+                                     Σ[ c ∈ (S ⊚ ν-lift S (λ q → (S ⊚ q) , (Brs ⊛ q)) p) f ]
+                                     USrc↓ (br (Brs ⊛ ν-lift S (λ q → (S ⊚ q) , (Brs ⊛ q)) p)) (f , s , c) 
+                                     
+                                       ≃⟨ Σ-contractSnd (λ s →
+                                             ucomp-is-fib-rel (br (Brs ⊛ ν-lift S (λ q → (S ⊚ q) , (Brs ⊛ q)) p))
+                                               (λ q → ϕ (nd-there (ν-lift S (λ q → (S ⊚ q) , (Brs ⊛ q)) p) q)) f s) ⟩
+                                               
+                                     Src↓ (λ C → C) (lvs (Brs ⊛ ν-lift S (λ q → (S ⊚ q) , (Brs ⊛ q)) p)) f ■) f
 
           lemma = (Σ[ t ∈ T f ] Src↓ (λ C → C) (nd S T C Brs) (f , cnpy , t))
 
@@ -189,7 +208,18 @@ module Lib.CategoryOfTypes.CompositeFibrant where
                      s (λ p → lvs↓ (snd (s ⊚↓ p)))
                      ≡ cnpy)
 
+                    ≃⟨ Σ-cong-equiv-fst claim ⟩ 
+
+                  (Σ[ s ∈ Src↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) (D.D.to (S , Brs)) f ] 
+                                                        
+                   -- bind↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) (λ C → C) {F = F}
+                   --   (D.D.to (S , Brs)) (λ p → lvs (snd ((D.D.to (S , Brs)) ⊚ p))) 
+                   --   s (λ p → (s ⊚↓ p))
+                     bind↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) (λ C → C) {F = F}
+                       (D.D.to (S , Brs)) (λ p → lvs (snd ((D.D.to (S , Brs)) ⊚ p)))
+                       {!!} {!!} ≡ cnpy)
+
                     ≃⟨ {!!} ⟩
 
                   (Σ[ σ ∈ Src↓ (Src↓ (λ C → C)) (ν {f = F} S (λ p → lvs (Brs ⊛ p))) f ]
-                      μ↓ (λ C → C) {F = F} {S = ν {f = F} S (λ p → lvs (Brs ⊛ p))} σ ≡ cnpy)        ■
+                      μ↓ (λ C → C) {F = F} {S = ν {f = F} S (λ p → lvs (Brs ⊛ p))} σ ≡ cnpy) ■
