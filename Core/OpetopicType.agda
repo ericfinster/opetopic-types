@@ -276,6 +276,38 @@ module Core.OpetopicType where
       → ν {Q = R} (ν s ϕ) ψ ↦ ν s (λ p → ψ (ν-pos s ϕ p))
     {-# REWRITE ν-ν #-} 
 
+    ν-pos-id : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+      → (P : Frm X → Type ℓ)
+      → {f : Frm X} (s : Src P f) (p : Pos P s)
+      → ν-pos {Q = P} s (_⊚_ s) p ↦ p
+    {-# REWRITE ν-pos-id #-}
+
+    ν-lift-id : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+      → (P : Frm X → Type ℓ)
+      → {f : Frm X} (s : Src P f) (p : Pos P s)
+      → ν-lift {Q = P} s (_⊚_ s) p ↦ p 
+    {-# REWRITE ν-lift-id #-}
+
+    ν-pos-comp : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+      → (P Q R : Frm X → Type ℓ)
+      → {f : Frm X} (s : Src P f)
+      → (ϕ : (p : Pos P s) → Q (Typ P s p))
+      → (ψ : (p : Pos Q (ν s ϕ)) → R (Typ Q (ν s ϕ) p))
+      → (p : Pos P s)
+      → ν-pos {Q = R} (ν {Q = Q} s ϕ) ψ (ν-pos s ϕ p) ↦
+        ν-pos {Q = R} s (λ p → ψ (ν-pos s ϕ p)) p 
+    {-# REWRITE ν-pos-comp #-}
+
+    ν-lift-comp : ∀ {n ℓ} {X : 𝕆Type n ℓ}
+      → (P Q R : Frm X → Type ℓ)
+      → {f : Frm X} (s : Src P f)
+      → (ϕ : (p : Pos P s) → Q (Typ P s p))
+      → (ψ : (p : Pos Q (ν s ϕ)) → R (Typ Q (ν s ϕ) p))
+      → (p : Pos R (ν {Q = R} (ν s ϕ) ψ))
+      → ν-lift {Q = Q} s ϕ (ν-lift (ν s ϕ) ψ p) ↦
+        ν-lift {Q = R} s (λ p → ψ (ν-pos s ϕ p)) p 
+    {-# REWRITE ν-lift-comp #-}
+
     -- 
     -- Naturality Laws
     --

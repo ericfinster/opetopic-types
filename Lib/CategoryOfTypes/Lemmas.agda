@@ -1,4 +1,4 @@
-{-# OPTIONS --no-positivity-check --no-termination-check #-}
+{-# OPTIONS --no-termination-check #-}
 --
 --  Universe.agda - The opetopic type of opetopic types
 --
