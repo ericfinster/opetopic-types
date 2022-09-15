@@ -135,6 +135,7 @@ module Lib.CategoryOfTypes.CompositeFibrant where
   --  Main theorem
   --
 
+  {-# TERMINATING #-}
   ucomp-is-fib-rel : ∀ {n ℓ} {F : Frm (𝕆U n ℓ)} (S : Src CellFib F)
     → (ϕ : (p : Pos {X = 𝕆U n ℓ} CellFib S) → is-fib-rel (S ⊚ p))
     → is-fib-rel (USrc↓ {F = F} S)
@@ -151,6 +152,10 @@ module Lib.CategoryOfTypes.CompositeFibrant where
 
     where module D = Dec↓ΣEquiv {n} {ℓ} CellFib (Branch CellFib) (λ C → C) (Branch↓ CellFib (λ C → C))
 
+          ih : (p : Pos D.D.ΣPQ (D.D.to (S , Brs))) → is-fib-rel (USrc↓ (br (Brs ⊛ ν-lift S (λ q → (S ⊚ q) , (Brs ⊛ q)) p)))
+          ih p = ucomp-is-fib-rel (br (Brs ⊛ ν-lift S (λ q → (S ⊚ q) , (Brs ⊛ q)) p))
+                                               (λ q → ϕ (nd-there (ν-lift S (λ q → (S ⊚ q) , (Brs ⊛ q)) p) q))
+                                               
           claim : Src↓ D.ΣUV (D.D.to (S , Brs)) f ≃ Src↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) (D.D.to (S , Brs)) f
           claim = Src↓-emap D.D.ΣPQ D.ΣUV (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) (D.D.to (S , Brs))
                             (λ p f → D.ΣUV (D.D.to (S , Brs) ⊚ p) f
@@ -164,9 +169,7 @@ module Lib.CategoryOfTypes.CompositeFibrant where
                                      Σ[ c ∈ (S ⊚ ν-lift S (λ q → (S ⊚ q) , (Brs ⊛ q)) p) f ]
                                      USrc↓ (br (Brs ⊛ ν-lift S (λ q → (S ⊚ q) , (Brs ⊛ q)) p)) (f , s , c) 
                                      
-                                       ≃⟨ Σ-contractSnd (λ s →
-                                             ucomp-is-fib-rel (br (Brs ⊛ ν-lift S (λ q → (S ⊚ q) , (Brs ⊛ q)) p))
-                                               (λ q → ϕ (nd-there (ν-lift S (λ q → (S ⊚ q) , (Brs ⊛ q)) p) q)) f s) ⟩
+                                       ≃⟨ Σ-contractSnd (λ s → ih p f s) ⟩ 
                                                
                                      Src↓ (λ C → C) (lvs (Brs ⊛ ν-lift S (λ q → (S ⊚ q) , (Brs ⊛ q)) p)) f ■) f
 
@@ -208,18 +211,61 @@ module Lib.CategoryOfTypes.CompositeFibrant where
                      s (λ p → lvs↓ (snd (s ⊚↓ p)))
                      ≡ cnpy)
 
-                    ≃⟨ Σ-cong-equiv-fst claim ⟩ 
+                    ≃⟨ invEquiv (Σ-cong-equiv-fst {A = Src↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) (D.D.to (S , Brs)) f }
+                                         {A' = Src↓ D.ΣUV (D.D.to (S , Brs)) f}
+                                         {B = λ s → bind↓ D.ΣUV (λ C → C) {F = F}
+                                           (D.D.to (S , Brs)) (λ p → lvs (snd ((D.D.to (S , Brs)) ⊚ p))) 
+                                           s (λ p → lvs↓ (snd (s ⊚↓ p)))
+                                           ≡ cnpy} (invEquiv (claim))) ⟩ 
 
-                  (Σ[ s ∈ Src↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) (D.D.to (S , Brs)) f ] 
+                  (Σ[ s ∈ Src↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) (ν {f = F} S (λ p → S ⊚ p , Brs ⊛ p)) f ] 
                                                         
-                   -- bind↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) (λ C → C) {F = F}
-                   --   (D.D.to (S , Brs)) (λ p → lvs (snd ((D.D.to (S , Brs)) ⊚ p))) 
-                   --   s (λ p → (s ⊚↓ p))
-                     bind↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) (λ C → C) {F = F}
-                       (D.D.to (S , Brs)) (λ p → lvs (snd ((D.D.to (S , Brs)) ⊚ p)))
-                       {!!} {!!} ≡ cnpy)
+                   let s' = ν↓ {Q = D.ΣUV} {S = D.D.to (S , Brs)} {ϕ = λ p → D.D.to (S , Brs) ⊚ p}
+                               s (λ p → ih p (Typ↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) s p) (s ⊚↓ p) .fst .fst ,
+                                         [ s ⊚↓ p , ih p (Typ↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) s p) (s ⊚↓ p) .fst .snd ]↓)
+                       s'' = ν↓ {F = F} {S = D.D.to (S , Brs)} {ϕ = λ p → lvs (snd ((D.D.to (S , Brs)) ⊚ p))} {f = f} s' (λ p → lvs↓ (snd (s' ⊚↓ p)))
 
-                    ≃⟨ {!!} ⟩
+                       t = ν↓ {Q = Src↓ (λ C → C)} {F} {ν {f = F} S (λ p → (S ⊚ p) , (Brs ⊛ p))} {f = f} s (λ p → s ⊚↓ p)
+                       -- t' = ν↓ {Q = Src↓ (λ C → C)} {F} {ν {f = F} S (λ p → (S ⊚ p) , (Brs ⊛ p))} {f = f} s 
+                       --        (λ p → lvs↓ (snd (ν↓ s (λ p → ih p (Typ↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) s p) (s ⊚↓ p) .fst .fst ,
+                       --                   [ s ⊚↓ p , ih p (Typ↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) s p) (s ⊚↓ p) .fst .snd ]↓) ⊚↓ p)))
+                                         
+                       need : ν↓ {f = f} (ν↓ {f = f} s (λ p → ih p (Typ↓ (λ pr → Src↓ (λ C₁ → C₁) (lvs (snd pr))) s p) (s ⊚↓ p) .fst .fst ,
+                                   [ s ⊚↓ p , ih p (Typ↓ (λ pr → Src↓ (λ C₁ → C₁) (lvs (snd pr))) s p) (s ⊚↓ p) .fst .snd ]↓))
+                                 (λ p → lvs↓ (snd (ν↓ s (λ p₁ → ih p₁ (Typ↓ (λ pr → Src↓ (λ C₁ → C₁) (lvs (snd pr))) s p₁) (s ⊚↓ p₁) .fst .fst ,
+                                                   [ s ⊚↓ p₁ ,  ih p₁ (Typ↓ (λ pr → Src↓ (λ C₁ → C₁) (lvs (snd pr))) s p₁) (s ⊚↓ p₁) .fst .snd ]↓) ⊚↓ p)))
+                               ≡ 
+                              ν↓ {Q = Src↓ (λ C → C)} {F} {ν {f = F} S (λ p → (S ⊚ p) , (Brs ⊛ p))} {f = f} s
+                                   (λ p → lvs↓ (snd (ν↓ s (λ p₁ → ih p₁ (Typ↓ (λ pr → Src↓ (λ C₁ → C₁) (lvs (snd pr))) s p₁) (s ⊚↓ p₁) .fst .fst ,
+                                                     [ s ⊚↓ p₁ ,  ih p₁ (Typ↓ (λ pr → Src↓ (λ C₁ → C₁) (lvs (snd pr))) s p₁) (s ⊚↓ p₁) .fst .snd ]↓) ⊚↓ p)))
 
-                  (Σ[ σ ∈ Src↓ (Src↓ (λ C → C)) (ν {f = F} S (λ p → lvs (Brs ⊛ p))) f ]
-                      μ↓ (λ C → C) {F = F} {S = ν {f = F} S (λ p → lvs (Brs ⊛ p))} σ ≡ cnpy) ■
+                       need = ν↓-comp-id {R = D.ΣUV} {F} {D.D.to (S , Brs)} {ϕ' = λ p → D.D.to (S , Brs) ⊚ p} {f = f} s
+                                 (λ p → ih p (Typ↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) s p) (s ⊚↓ p) .fst .fst ,
+                                         [ s ⊚↓ p , ih p (Typ↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) s p) (s ⊚↓ p) .fst .snd ]↓)
+                                   (λ p → lvs↓ (snd (ν↓ s (λ p → ih p (Typ↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) s p) (s ⊚↓ p) .fst .fst ,
+                                         [ s ⊚↓ p , ih p (Typ↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) s p) (s ⊚↓ p) .fst .snd ]↓) ⊚↓ p)))
+
+                   in μ↓ (λ C → C) {F = F} {S = ν {f = F} S (λ p → lvs (Brs ⊛ p))} s''
+                        ≡ cnpy)
+
+                    ≃⟨ {!!} ⟩ 
+
+                  -- → ν↓ {Q = R} (ν↓ {Q = Q} s ψ) ψ' ↦ ν↓ {Q = R} s (λ p → ψ' (ν-pos S ϕ p))
+
+                  (Σ[ s ∈ Src↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) (ν {f = F} S (λ p → S ⊚ p , Brs ⊛ p)) f ] 
+                                                        
+                     μ↓ (λ C → C) {F = F} {S = ν {f = F} S (λ p → lvs (Brs ⊛ p))}
+                         (ν↓ {Q = Src↓ (λ C → C)} {F} {ν {f = F} S (λ p → (S ⊚ p) , (Brs ⊛ p))} {f = f}
+                            s (λ p → s ⊚↓ p)) ≡ cnpy)
+
+                    ≃⟨ Σ-cong-equiv-fst {A = Src↓ (λ (C , Br) → Src↓ (λ C → C) (lvs Br)) (ν {f = F} S (λ p → S ⊚ p , Brs ⊛ p)) f}
+                                         {A' = Src↓ (Src↓ (λ C → C)) (ν {f = F} S (λ p → lvs (Brs ⊛ p))) f}
+                                         {B = λ s → μ↓ (λ C → C) {F = F} {S = ν {f = F} S (λ p → lvs (Brs ⊛ p))} s ≡ cnpy}
+                                         (Src↓-base-map D.D.ΣPQ (Src CellFib) (λ x → lvs (snd x)) (Src↓ (λ C → C))
+                                           {F} (ν {f = F} S (λ p → S ⊚ p , Brs ⊛ p)) f) ⟩ 
+
+
+                  (Σ[ s ∈ Src↓ (Src↓ (λ C → C)) (ν {f = F} S (λ p → lvs (Brs ⊛ p))) f ]
+                      μ↓ (λ C → C) {F = F} {S = ν {f = F} S (λ p → lvs (Brs ⊛ p))} s ≡ cnpy) ■
+
+

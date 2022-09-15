@@ -12,6 +12,43 @@ open import Core.Universe
 
 module Lib.Decorations where
 
+  -- These additional rewrites are necessary because of the problem
+  -- of reducing over the identity.  Not sure why this doesn't work ...
+  -- postulate
+
+  postulate
+  
+    Typ↓-ν↓-id : ∀ {n ℓ} 
+      → {X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
+      → {P Q : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ}
+      → {F : Frm (𝕆U n ℓ)} {S : Src X F}
+      → {f : Frm↓ F} (s : Src↓ P S f)
+      → (ψ : (p : Pos X S) → Q (S ⊚ p) (Typ↓ P s p))
+      → (p : Pos X S)
+      → Typ↓ Q (ν↓ s ψ) p ↦ Typ↓ P s p
+    {-# REWRITE Typ↓-ν↓-id #-}
+
+    ⊚↓-ν↓-id : ∀ {n ℓ} 
+      → {X : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
+      → {P Q : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ}
+      → {F : Frm (𝕆U n ℓ)} {S : Src X F}
+      → {f : Frm↓ F} (s : Src↓ P S f)
+      → (ψ : (p : Pos X S) → Q (S ⊚ p) (Typ↓ P s p))
+      → (p : Pos X S)
+      → ν↓ {Q = Q} s ψ ⊚↓ p ↦ ψ p
+    {-# REWRITE ⊚↓-ν↓-id #-}      
+
+    ν↓-comp-id : ∀ {n ℓ} 
+      → {X Z : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ)}
+      → {P Q : {F : Frm (𝕆U n ℓ)} → X F → (f : Frm↓ F) → Type ℓ}
+      → {R : {F : Frm (𝕆U n ℓ)} → Z F → (f : Frm↓ F) → Type ℓ}
+      → {F : Frm (𝕆U n ℓ)} {S : Src X F}
+      → {ϕ' : (p : Pos X S) → Z (Typ X S p)}
+      → {f : Frm↓ F} (s : Src↓ P S f)
+      → (ψ : (p : Pos X S) → Q (S ⊚ p) (Typ↓ P s p))
+      → (ψ' : (p : Pos X S) → R (ϕ' p) (Typ↓ Q (ν↓ s ψ) p))
+      → ν↓ {Q = R} (ν↓ {Q = Q} s ψ) ψ' ≡ ν↓ {Q = R} s ψ'
+
   --
   --  Decorations are equivalent to functions
   --
@@ -86,39 +123,73 @@ module Lib.Decorations where
     ν↓ {Q = U} {F} {S} {λ p → S ⊚ p} s
       (λ p → invEq (ϕ p (Typ↓ V s p)) (s ⊚↓ p))  
 
-  {-# TERMINATING #-}
-  Src↓-emap-sec : ∀ {n ℓ} 
-    → (P : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
-    → (U V : {F : Frm (𝕆U n ℓ)} → P F → Frm↓ F → Type ℓ)
-    → {F : Frm (𝕆U n ℓ)} (S : Src P F)
-    → (ϕ : (p : Pos P S) (f : Frm↓ (Typ P S p)) → U (S ⊚ p) f ≃ V (S ⊚ p) f)
-    → (f : Frm↓ F) (s : Src↓ V S f)
-    → Src↓-emap-to P U V S ϕ f (Src↓-emap-from P U V S ϕ f s) ≡ s
-  Src↓-emap-sec {zero} P U V S ϕ f s = secEq (ϕ tt* tt*) s 
-  Src↓-emap-sec {suc n} P U V (lf C) ϕ ._ (lf↓ c) = refl 
-  Src↓-emap-sec {suc n} P U V (nd {F} S T C Brs) ϕ ._ (nd↓ {frm} src tgt flr brs) i = 
-    nd↓ src tgt (secEq (ϕ nd-here (frm , src , tgt)) flr i)
-      (λ-dec↓ {Y = Branch P} (Branch↓ P V) {F = F} {S} Brs {frm} {src}
-        (λ p → [ lvs↓ (brs ⊛↓ p)
-               , Src↓-emap-sec P U V (br (Brs ⊛ p)) (λ q → ϕ (nd-there p q)) _ (br↓ (brs ⊛↓ p)) i
-               ]↓))
+  postulate
+  
+    Src↓-emap-sec' : ∀ {n ℓ} 
+      → (P : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
+      → (U V : {F : Frm (𝕆U n ℓ)} → P F → Frm↓ F → Type ℓ)
+      → {F : Frm (𝕆U n ℓ)} (S : Src P F)
+      → (ϕ : (p : Pos P S) (f : Frm↓ (Typ P S p)) → U (S ⊚ p) f ≃ V (S ⊚ p) f)
+      → (f : Frm↓ F) (s : Src↓ V S f)
+      → Src↓-emap-to P U V S ϕ f (Src↓-emap-from P U V S ϕ f s) ≡ s
+    -- Src↓-emap-sec' P U V {F} S ϕ f s = {!!}
+      -- ν↓ {Q = V} {F} {S} {λ p → S ⊚ p} s 
+      --   (λ p → secEq (ϕ p (Typ↓ V s p)) (s ⊚↓ p) i) 
 
-  {-# TERMINATING #-}
-  Src↓-emap-ret : ∀ {n ℓ} 
-    → (P : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
-    → (U V : {F : Frm (𝕆U n ℓ)} → P F → Frm↓ F → Type ℓ)
-    → {F : Frm (𝕆U n ℓ)} (S : Src P F)
-    → (ϕ : (p : Pos P S) (f : Frm↓ (Typ P S p)) → U (S ⊚ p) f ≃ V (S ⊚ p) f)
-    → (f : Frm↓ F) (s : Src↓ U S f)
-    → Src↓-emap-from P U V S ϕ f (Src↓-emap-to P U V S ϕ f s) ≡ s
-  Src↓-emap-ret {zero} P U V S ϕ f s = retEq (ϕ tt* tt*) s 
-  Src↓-emap-ret {suc n} P U V (lf C) ϕ ._ (lf↓ c) = refl 
-  Src↓-emap-ret {suc n} P U V (nd {F} S T C Brs) ϕ ._ (nd↓ {frm} src tgt flr brs) i = 
-    nd↓ src tgt (retEq (ϕ nd-here (frm , src , tgt)) flr i)
-      (λ-dec↓ {Y = Branch P} (Branch↓ P U) {F = F} {S} Brs {frm} {src}
-        (λ p → [ lvs↓ (brs ⊛↓ p)
-               , Src↓-emap-ret P U V (br (Brs ⊛ p)) (λ q → ϕ (nd-there p q)) _ (br↓ (brs ⊛↓ p)) i
-               ]↓))
+      -- where want : Src↓ V S f
+      --       want = ν↓ {Q = V} {F} {S} {λ p → S ⊚ p} s (λ p → fst (ϕ p (Typ↓ V s p)) (invEq (ϕ p (Typ↓ V s p)) (s ⊚↓ p)))
+
+      --       have : Src↓ V S f
+      --       have = Src↓-emap-to P U V S ϕ f (Src↓-emap-from P U V S ϕ f s)
+
+      --       claim : have ≡ want
+      --       claim = {!ν↓-comp-≡ P P P V U V!}
+
+    Src↓-emap-ret' : ∀ {n ℓ} 
+      → (P : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
+      → (U V : {F : Frm (𝕆U n ℓ)} → P F → Frm↓ F → Type ℓ)
+      → {F : Frm (𝕆U n ℓ)} (S : Src P F)
+      → (ϕ : (p : Pos P S) (f : Frm↓ (Typ P S p)) → U (S ⊚ p) f ≃ V (S ⊚ p) f)
+      → (f : Frm↓ F) (s : Src↓ U S f)
+      → Src↓-emap-from P U V S ϕ f (Src↓-emap-to P U V S ϕ f s) ≡ s
+    -- Src↓-emap-ret' P U V {F} S ϕ f s = {!!} 
+      -- ν↓ {Q = U} {F} {S} {λ p → S ⊚ p} s 
+      --   (λ p → retEq (ϕ p (Typ↓ U s p)) (s ⊚↓ p) i) 
+
+
+  -- {-# TERMINATING #-}
+  -- Src↓-emap-sec : ∀ {n ℓ} 
+  --   → (P : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
+  --   → (U V : {F : Frm (𝕆U n ℓ)} → P F → Frm↓ F → Type ℓ)
+  --   → {F : Frm (𝕆U n ℓ)} (S : Src P F)
+  --   → (ϕ : (p : Pos P S) (f : Frm↓ (Typ P S p)) → U (S ⊚ p) f ≃ V (S ⊚ p) f)
+  --   → (f : Frm↓ F) (s : Src↓ V S f)
+  --   → Src↓-emap-to P U V S ϕ f (Src↓-emap-from P U V S ϕ f s) ≡ s
+  -- Src↓-emap-sec {zero} P U V S ϕ f s = secEq (ϕ tt* tt*) s 
+  -- Src↓-emap-sec {suc n} P U V (lf C) ϕ ._ (lf↓ c) = refl 
+  -- Src↓-emap-sec {suc n} P U V (nd {F} S T C Brs) ϕ ._ (nd↓ {frm} src tgt flr brs) i = 
+  --   nd↓ src tgt (secEq (ϕ nd-here (frm , src , tgt)) flr i)
+  --     (λ-dec↓ {Y = Branch P} (Branch↓ P V) {F = F} {S} Brs {frm} {src}
+  --       (λ p → [ lvs↓ (brs ⊛↓ p)
+  --              , Src↓-emap-sec P U V (br (Brs ⊛ p)) (λ q → ϕ (nd-there p q)) _ (br↓ (brs ⊛↓ p)) i
+  --              ]↓))
+
+  -- {-# TERMINATING #-}
+  -- Src↓-emap-ret : ∀ {n ℓ} 
+  --   → (P : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
+  --   → (U V : {F : Frm (𝕆U n ℓ)} → P F → Frm↓ F → Type ℓ)
+  --   → {F : Frm (𝕆U n ℓ)} (S : Src P F)
+  --   → (ϕ : (p : Pos P S) (f : Frm↓ (Typ P S p)) → U (S ⊚ p) f ≃ V (S ⊚ p) f)
+  --   → (f : Frm↓ F) (s : Src↓ U S f)
+  --   → Src↓-emap-from P U V S ϕ f (Src↓-emap-to P U V S ϕ f s) ≡ s
+  -- Src↓-emap-ret {zero} P U V S ϕ f s = retEq (ϕ tt* tt*) s 
+  -- Src↓-emap-ret {suc n} P U V (lf C) ϕ ._ (lf↓ c) = refl 
+  -- Src↓-emap-ret {suc n} P U V (nd {F} S T C Brs) ϕ ._ (nd↓ {frm} src tgt flr brs) i = 
+  --   nd↓ src tgt (retEq (ϕ nd-here (frm , src , tgt)) flr i)
+  --     (λ-dec↓ {Y = Branch P} (Branch↓ P U) {F = F} {S} Brs {frm} {src}
+  --       (λ p → [ lvs↓ (brs ⊛↓ p)
+  --              , Src↓-emap-ret P U V (br (Brs ⊛ p)) (λ q → ϕ (nd-there p q)) _ (br↓ (brs ⊛↓ p)) i
+  --              ]↓))
 
   Src↓-emap : ∀ {n ℓ} 
     → (P : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
@@ -129,8 +200,55 @@ module Lib.Decorations where
   Src↓-emap P U V {F} S ϕ f = isoToEquiv
     (iso (Src↓-emap-to P U V S ϕ f)
          (Src↓-emap-from P U V S ϕ f)
-         (Src↓-emap-sec P U V S ϕ f)
-         (Src↓-emap-ret P U V S ϕ f)) 
+         (Src↓-emap-sec' P U V S ϕ f)
+         (Src↓-emap-ret' P U V S ϕ f)) 
+
+
+  Src↓-base-map-to : ∀ {n ℓ} 
+    → (P Q : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
+    → (ϕ : {F : Frm (𝕆U n ℓ)} → P F → Q F)
+    → (U : {F : Frm (𝕆U n ℓ)} → Q F → Frm↓ F → Type ℓ)
+    → {F : Frm (𝕆U n ℓ)} (S : Src P F)
+    → (f : Frm↓ F) → Src↓ (λ p → U (ϕ p)) S f → Src↓ U (ν {Q = Q} S (λ p → ϕ (S ⊚ p))) f
+  Src↓-base-map-to P Q ϕ U {F} S f s =
+    ν↓ {Q = U} {F} {S} {λ p → ϕ (S ⊚ p)} {f} s (λ p → s ⊚↓ p)
+    
+  postulate
+  
+    Src↓-base-map-from : ∀ {n ℓ} 
+      → (P Q : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
+      → (ϕ : {F : Frm (𝕆U n ℓ)} → P F → Q F)
+      → (U : {F : Frm (𝕆U n ℓ)} → Q F → Frm↓ F → Type ℓ)
+      → {F : Frm (𝕆U n ℓ)} (S : Src P F)
+      → (f : Frm↓ F) → Src↓ U (ν {Q = Q} S (λ p → ϕ (S ⊚ p))) f → Src↓ (λ p → U (ϕ p)) S f
+
+    Src↓-base-map-sec : ∀ {n ℓ} 
+      → (P Q : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
+      → (ϕ : {F : Frm (𝕆U n ℓ)} → P F → Q F)
+      → (U : {F : Frm (𝕆U n ℓ)} → Q F → Frm↓ F → Type ℓ)
+      → {F : Frm (𝕆U n ℓ)} (S : Src P F)
+      → (f : Frm↓ F) (s : Src↓ U (ν {Q = Q} S (λ p → ϕ (S ⊚ p))) f)
+      → Src↓-base-map-to P Q ϕ U S f (Src↓-base-map-from P Q ϕ U S f s) ≡ s
+
+    Src↓-base-map-ret : ∀ {n ℓ} 
+      → (P Q : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
+      → (ϕ : {F : Frm (𝕆U n ℓ)} → P F → Q F)
+      → (U : {F : Frm (𝕆U n ℓ)} → Q F → Frm↓ F → Type ℓ)
+      → {F : Frm (𝕆U n ℓ)} (S : Src P F)
+      → (f : Frm↓ F) (s : Src↓ (λ p → U (ϕ p)) S f)
+      → Src↓-base-map-from P Q ϕ U S f (Src↓-base-map-to P Q ϕ U S f s) ≡ s 
+
+  Src↓-base-map : ∀ {n ℓ} 
+    → (P Q : (F : Frm (𝕆U n ℓ)) → Type (ℓ-suc ℓ))
+    → (ϕ : {F : Frm (𝕆U n ℓ)} → P F → Q F)
+    → (U : {F : Frm (𝕆U n ℓ)} → Q F → Frm↓ F → Type ℓ)
+    → {F : Frm (𝕆U n ℓ)} (S : Src P F)
+    → (f : Frm↓ F) → Src↓ (λ p → U (ϕ p)) S f ≃ Src↓ U (ν {Q = Q} S (λ p → ϕ (S ⊚ p))) f 
+  Src↓-base-map P Q ϕ U S f = isoToEquiv
+    (iso (Src↓-base-map-to P Q ϕ U S f)
+         (Src↓-base-map-from P Q ϕ U S f)
+         (Src↓-base-map-sec P Q ϕ U S f)
+         (Src↓-base-map-ret P Q ϕ U S f)) 
 
   --
   --  Src and Dec is equivalent to a Src with Σ's
