@@ -3,13 +3,6 @@
 --  OpetopicType.agda - Opetopic Types
 --
 
-open import Cubical.Foundations.Everything
-open import Cubical.Data.Sigma
-open import Cubical.Data.Empty
-open import Cubical.Data.Unit
-open import Cubical.Data.Nat 
-open import Cubical.Data.Sum
-
 open import Core.Prelude
 
 module Core.OpetopicType where
@@ -18,594 +11,607 @@ module Core.OpetopicType where
   --  Opetopic Types
   --
 
-  𝕆Type : ℕ → (ℓ : Level) → Type (ℓ-suc ℓ)
-  
-  Frm : ∀ {n ℓ} → 𝕆Type n ℓ → Type ℓ
+  𝕆Type : (n : ℕ) (ℓ : Level)
+    → Type (ℓ-suc ℓ)
 
-  Src : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → (P : Frm X → Type ℓ)
-    → Frm X → Type ℓ
+  Frm : (n : ℕ) (ℓ : Level)
+    → 𝕆Type n ℓ → Type ℓ 
 
-  Pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → (P : Frm X → Type ℓ)
-    → {f : Frm X} (s : Src P f)
+  Pd : (n : ℕ) (ℓ : Level)
+    → (X : 𝕆Type n ℓ)
+    → (P : Frm n ℓ X → Type ℓ)
+    → Frm n ℓ X → Type ℓ
+
+  Pos : (n : ℕ) (ℓ : Level)
+    → (X : 𝕆Type n ℓ)
+    → (P : Frm n ℓ X → Type ℓ)
+    → (f : Frm n ℓ X) (ρ : Pd n ℓ X P f)
     → Type ℓ 
 
-  Typ : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → (P : Frm X → Type ℓ)
-    → {f : Frm X} (s : Src P f)
-    → (p : Pos P s) → Frm X 
+  Typ : (n : ℕ) (ℓ : Level)
+    → (X : 𝕆Type n ℓ)
+    → (P : Frm n ℓ X → Type ℓ)
+    → (f : Frm n ℓ X) (ρ : Pd n ℓ X P f)
+    → (p : Pos n ℓ X P f ρ) → Frm n ℓ X 
 
-  _⊚_ : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → {P : Frm X → Type ℓ}
-    → {f : Frm X} (s : Src P f)
-    → (p : Pos P s)
-    → P (Typ P s p)
-
-  --
-  --  Decorations
-  --
-  
-  Dec : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → {P : Frm X → Type ℓ}
-    → (Q : {f : Frm X} → P f → Type ℓ)
-    → {f : Frm X} (s : Src P f)
-    → Type ℓ 
-
-  _⊛_ : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → {P : Frm X → Type ℓ}
-    → {Q : {f : Frm X} → P f → Type ℓ}
-    → {f : Frm X} {s : Src P f} (δ : Dec Q s)
-    → (p : Pos P s) → Q (s ⊚ p) 
-
-  λ-dec : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → {P : Frm X → Type ℓ}
-    → (Q : {f : Frm X} → P f → Type ℓ)
-    → {f : Frm X} (s : Src P f) 
-    → (δ : (p : Pos P s) → Q (s ⊚ p))
-    → Dec Q s 
-
-  --
-  --  Monadic Structure
-  --
-
-  ν : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → {P Q : Frm X → Type ℓ}
-    → {f : Frm X} (s : Src P f)
-    → (ϕ : (p : Pos P s) → Q (Typ P s p))
-    → Src Q f
-
-  η : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → (P : Frm X → Type ℓ)
-    → {f : Frm X} (x : P f)
-    → Src P f 
-
-  
-  μ : ∀ {n ℓ} {X : 𝕆Type n ℓ} 
-    → (P : Frm X → Type ℓ)
-    → {f : Frm X} (s : Src (Src P) f) → Src P f 
-
-  --
-  --  Position Intro 
-  --
-
-  ν-pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → {P Q : Frm X → Type ℓ}
-    → {f : Frm X} (s : Src P f)
-    → (ϕ : (p : Pos P s) → Q (Typ P s p))
-    → Pos P s → Pos Q (ν s ϕ)
-
-  η-pos : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → (P : Frm X → Type ℓ)
-    → {f : Frm X} (x : P f)
-    → Pos P (η P x)
-
-  μ-pos : ∀ {n ℓ} {X : 𝕆Type n ℓ} 
-    → (P : Frm X → Type ℓ)
-    → {f : Frm X} (s : Src (Src P) f)
-    → (p : Pos (Src P) s)
-    → (q : Pos P (s ⊚ p))
-    → Pos P (μ P s)
-
-  --
-  --  Position Elim
-  --
-
-  ν-lift : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → {P Q : Frm X → Type ℓ}
-    → {f : Frm X} (s : Src P f)
-    → (ϕ : (p : Pos P s) → Q (Typ P s p))
-    → Pos Q (ν s ϕ) → Pos P s
-
-  η-pos-elim : ∀ {n ℓ ℓ'} {X : 𝕆Type n ℓ}
-    → {P : Frm X → Type ℓ}
-    → {f : Frm X} (x : P f)
-    → (Q : Pos P (η P x) → Type ℓ')
-    → (q : Q (η-pos P x))
-    → (p : Pos P (η P x)) → Q p
-
-  μ-fst : ∀ {n ℓ} {X : 𝕆Type n ℓ} 
-    → (P : Frm X → Type ℓ)
-    → {f : Frm X} (s : Src (Src P) f)
-    → (p : Pos P (μ P s))
-    → Pos (Src P) s
-
-  μ-snd : ∀ {n ℓ} {X : 𝕆Type n ℓ} 
-    → (P : Frm X → Type ℓ)
-    → {f : Frm X} (s : Src (Src P) f)
-    → (p : Pos P (μ P s))
-    → Pos P (s ⊚ μ-fst P s p)
+  Ihb : (n : ℕ) (ℓ : Level)
+    → (X : 𝕆Type n ℓ)
+    → (P : Frm n ℓ X → Type ℓ)
+    → (f : Frm n ℓ X) (ρ : Pd n ℓ X P f)
+    → (p : Pos n ℓ X P f ρ)
+    → P (Typ n ℓ X P f ρ p)
 
   postulate
   
     --
-    --  Decoration Computation
+    --  Monadic Structure
     --
-    
-    λ-dec-β : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → {P : Frm X → Type ℓ}
-      → (Q : {f : Frm X} → P f → Type ℓ)
-      → {f : Frm X} (s : Src P f) 
-      → (δ : (p : Pos P s) → Q (s ⊚ p))
-      → (p : Pos P s)
-      → λ-dec Q s δ ⊛ p ↦ δ p
-    {-# REWRITE λ-dec-β #-} 
 
-    λ-dec-η : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → {P : Frm X → Type ℓ}
-      → (Q : {f : Frm X} → P f → Type ℓ)
-      → {f : Frm X} (s : Src P f) 
-      → (δ : Dec Q s)
-      → λ-dec Q s (λ p → δ ⊛ p) ↦ δ
-    {-# REWRITE λ-dec-η #-} 
+    ν : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P Q : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X P f)
+      → (ϕ : (p : Pos n ℓ X P f ρ) → Q (Typ n ℓ X P f ρ p))
+      → Pd n ℓ X Q f
+
+    η : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (x : P f)
+      → Pd n ℓ X P f 
+
+    μ : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X (Pd n ℓ X P) f)
+      → Pd n ℓ X P f 
+
+    --
+    --  Position Intro 
+    --
+
+    ν-pos : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P Q : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X P f)
+      → (ϕ : (p : Pos n ℓ X P f ρ) → Q (Typ n ℓ X P f ρ p))
+      → Pos n ℓ X P f ρ → Pos n ℓ X Q f (ν n ℓ X P Q f ρ ϕ)
+
+    η-pos : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (x : P f)
+      → Pos n ℓ X P f (η n ℓ X P f x)
+
+    μ-pos : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X (Pd n ℓ X P) f)
+      → (p : Pos n ℓ X (Pd n ℓ X P) f ρ)
+      → (q : Pos n ℓ X P (Typ n ℓ X (Pd n ℓ X P) f ρ p)
+                         (Ihb n ℓ X (Pd n ℓ X P) f ρ p))
+      → Pos n ℓ X P f (μ n ℓ X P f ρ)
+
+    --
+    --  Position Elim
+    --
+
+    ν-lift : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P Q : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X P f)
+      → (ϕ : (p : Pos n ℓ X P f ρ) → Q (Typ n ℓ X P f ρ p))
+      → Pos n ℓ X Q f (ν n ℓ X P Q f ρ ϕ) → Pos n ℓ X P f ρ
+
+    η-pos-elim : (n : ℕ) (ℓ ℓ' : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (x : P f)
+      → (Q : Pos n ℓ X P f (η n ℓ X P f x) → Type ℓ')
+      → (q : Q (η-pos n ℓ X P f x))
+      → (p : Pos n ℓ X P f (η n ℓ X P f x)) → Q p
+
+    μ-fst : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X (Pd n ℓ X P) f)
+      → (p : Pos n ℓ X P f (μ n ℓ X P f ρ))
+      → Pos n ℓ X (Pd n ℓ X P) f ρ
+
+    μ-snd : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X (Pd n ℓ X P) f)
+      → (p : Pos n ℓ X P f (μ n ℓ X P f ρ))
+      → Pos n ℓ X P (Typ n ℓ X (Pd n ℓ X P) f ρ (μ-fst n ℓ X P f ρ p))
+                    (Ihb n ℓ X (Pd n ℓ X P) f ρ (μ-fst n ℓ X P f ρ p))
 
     --
     --  Position Computation
     --
 
-    η-pos-elim-β : ∀ {n ℓ ℓ'} {X : 𝕆Type n ℓ}
-      → {P : Frm X → Type ℓ}
-      → {f : Frm X} (x : P f)
-      → (Q : Pos P (η P x) → Type ℓ')
-      → (q : Q (η-pos P x))
-      → η-pos-elim x Q q (η-pos P x) ↦ q
+    η-pos-elim-β : (n : ℕ) (ℓ ℓ' : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (x : P f)
+      → (Q : Pos n ℓ X P f (η n ℓ X P f x) → Type ℓ')
+      → (q : Q (η-pos n ℓ X P f x))
+      → η-pos-elim n ℓ ℓ' X P f x Q q (η-pos n ℓ X P f x) ↦ q
     {-# REWRITE η-pos-elim-β #-}
 
-    ν-lift-β : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → {P Q : Frm X → Type ℓ}
-      → {f : Frm X} (s : Src P f)
-      → (ϕ : (p : Pos P s) → Q (Typ P s p))
-      → (p : Pos P s)
-      → ν-lift {Q = Q} s ϕ (ν-pos s ϕ p) ↦ p
+    ν-lift-β : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P Q : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X P f)
+      → (ϕ : (p : Pos n ℓ X P f ρ) → Q (Typ n ℓ X P f ρ p))
+      → (p : Pos n ℓ X P f ρ)
+      → ν-lift n ℓ X P Q f ρ ϕ (ν-pos n ℓ X P Q f ρ ϕ p) ↦ p
     {-# REWRITE ν-lift-β #-} 
 
-    ν-lift-η : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → {P Q : Frm X → Type ℓ}
-      → {f : Frm X} (s : Src P f)
-      → (ϕ : (p : Pos P s) → Q (Typ P s p))
-      → (p : Pos Q (ν s ϕ))
-      → ν-pos {Q = Q} s ϕ (ν-lift s ϕ p) ↦ p
+    ν-lift-η : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P Q : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X P f)
+      → (ϕ : (p : Pos n ℓ X P f ρ) → Q (Typ n ℓ X P f ρ p))
+      → (p : Pos n ℓ X Q f (ν n ℓ X P Q f ρ ϕ))
+      → ν-pos n ℓ X P Q f ρ ϕ (ν-lift n ℓ X P Q f ρ ϕ p) ↦ p
     {-# REWRITE ν-lift-η #-} 
 
-    μ-fst-β : ∀ {n ℓ} {X : 𝕆Type n ℓ} 
-      → (P : Frm X → Type ℓ)
-      → {f : Frm X} (s : Src (Src P) f)
-      → (p : Pos (Src P) s)
-      → (q : Pos P (s ⊚ p))
-      → μ-fst P s (μ-pos P s p q) ↦ p
+    μ-fst-β : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X (Pd n ℓ X P) f)
+      → (p : Pos n ℓ X (Pd n ℓ X P) f ρ)
+      → (q : Pos n ℓ X P (Typ n ℓ X (Pd n ℓ X P) f ρ p)
+                         (Ihb n ℓ X (Pd n ℓ X P) f ρ p))
+      → μ-fst n ℓ X P f ρ (μ-pos n ℓ X P f ρ p q) ↦ p
     {-# REWRITE μ-fst-β #-}
 
-    μ-snd-β : ∀ {n ℓ} {X : 𝕆Type n ℓ} 
-      → (P : Frm X → Type ℓ)
-      → {f : Frm X} (s : Src (Src P) f)
-      → (p : Pos (Src P) s)
-      → (q : Pos P (s ⊚ p))
-      → μ-snd P s (μ-pos P s p q) ↦ q
+    μ-snd-β : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X (Pd n ℓ X P) f)
+      → (p : Pos n ℓ X (Pd n ℓ X P) f ρ)
+      → (q : Pos n ℓ X P (Typ n ℓ X (Pd n ℓ X P) f ρ p)
+                         (Ihb n ℓ X (Pd n ℓ X P) f ρ p))
+      → μ-snd n ℓ X P f ρ (μ-pos n ℓ X P f ρ p q) ↦ q
     {-# REWRITE μ-snd-β #-}
 
-    μ-pos-η : ∀ {n ℓ} {X : 𝕆Type n ℓ} 
-      → (P : Frm X → Type ℓ)
-      → {f : Frm X} (s : Src (Src P) f)
-      → (p : Pos P (μ P s))
-      → μ-pos P s (μ-fst P s p) (μ-snd P s p) ↦ p
+    μ-pos-η : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X (Pd n ℓ X P) f)
+      → (p : Pos n ℓ X P f (μ n ℓ X P f ρ))
+      → μ-pos n ℓ X P f ρ (μ-fst n ℓ X P f ρ p)
+                          (μ-snd n ℓ X P f ρ p) ↦ p
     {-# REWRITE μ-pos-η #-}
 
     --
     --  Typing and Inhabitants
     --
 
-    Typ-ν : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → {P Q : Frm X → Type ℓ}
-      → {f : Frm X} (s : Src P f)
-      → (ϕ : (p : Pos P s) → Q (Typ P s p))
-      → (p : Pos Q (ν s ϕ))
-      → Typ Q (ν s ϕ) p ↦ Typ P s (ν-lift s ϕ p)
+    Typ-ν : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P Q : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X P f)
+      → (ϕ : (p : Pos n ℓ X P f ρ) → Q (Typ n ℓ X P f ρ p))
+      → (p : Pos n ℓ X Q f (ν n ℓ X P Q f ρ ϕ))
+      → Typ n ℓ X Q f (ν n ℓ X P Q f ρ ϕ) p ↦
+        Typ n ℓ X P f ρ (ν-lift n ℓ X P Q f ρ ϕ p)
     {-# REWRITE Typ-ν #-}
 
-    ⊚-ν : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → {P Q : Frm X → Type ℓ}
-      → {f : Frm X} (s : Src P f)
-      → (ϕ : (p : Pos P s) → Q (Typ P s p))
-      → (p : Pos Q (ν s ϕ))
-      → ν s ϕ ⊚ p ↦ ϕ (ν-lift s ϕ p)
-    {-# REWRITE ⊚-ν #-}
+    Ihb-ν : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P Q : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X P f)
+      → (ϕ : (p : Pos n ℓ X P f ρ) → Q (Typ n ℓ X P f ρ p))
+      → (p : Pos n ℓ X Q f (ν n ℓ X P Q f ρ ϕ))
+      → Ihb n ℓ X Q f (ν n ℓ X P Q f ρ ϕ) p ↦ ϕ (ν-lift n ℓ X P Q f ρ ϕ p)
+    {-# REWRITE Ihb-ν #-}
 
-    Typ-η : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → {P : Frm X → Type ℓ}
-      → {f : Frm X} (x : P f)
-      → (p : Pos P (η P x))
-      → Typ P (η P x) p ↦ f
+    Typ-η : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (x : P f)
+      → (p : Pos n ℓ X P f (η n ℓ  X P f x))
+      → Typ n ℓ X P f (η n ℓ X P f x) p ↦ f
     {-# REWRITE Typ-η #-}
 
-    ⊚-η : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → {P : Frm X → Type ℓ}
-      → {f : Frm X} (x : P f)
-      → (p : Pos P (η P x))
-      → η P x ⊚ p ↦ x
-    {-# REWRITE ⊚-η #-}
+    Ihb-η : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (x : P f)
+      → (p : Pos n ℓ X P f (η n ℓ X P f x))
+      → Ihb n ℓ X P f (η n ℓ X P f x) p ↦ x
+    {-# REWRITE Ihb-η #-}
 
-    Typ-μ : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → (P : Frm X → Type ℓ)
-      → {f : Frm X} (s : Src (Src P) f)
-      → (p : Pos P (μ P s))
-      → Typ P (μ P s) p ↦ Typ P (s ⊚ μ-fst P s p) (μ-snd P s p)
+    Typ-μ : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X (Pd n ℓ X P) f)
+      → (p : Pos n ℓ X P f (μ n ℓ X P f ρ))
+      → Typ n ℓ X P f (μ n ℓ X P f ρ) p ↦
+        Typ n ℓ X P (Typ n ℓ X (Pd n ℓ X P) f ρ (μ-fst n ℓ X P f ρ p))
+                (Ihb n ℓ X (Pd n ℓ X P) f ρ (μ-fst n ℓ X P f ρ p)) (μ-snd n ℓ X P f ρ p) 
     {-# REWRITE Typ-μ #-}
 
-    ⊚-μ : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → (P : Frm X → Type ℓ)
-      → {f : Frm X} (s : Src (Src P) f)
-      → (p : Pos P (μ P s))
-      → μ P s ⊚ p ↦ (s ⊚ (μ-fst P s p)) ⊚ (μ-snd P s p)
-    {-# REWRITE ⊚-μ #-}
+    Ihb-μ : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X (Pd n ℓ X P) f)
+      → (p : Pos n ℓ X P f (μ n ℓ X P f ρ))
+      → Ihb n ℓ X P f (μ n ℓ X P f ρ) p ↦
+        Ihb n ℓ X P (Typ n ℓ X (Pd n ℓ X P) f ρ (μ-fst n ℓ X P f ρ p))
+                  (Ihb n ℓ X (Pd n ℓ X P) f ρ (μ-fst n ℓ X P f ρ p)) (μ-snd n ℓ X P f ρ p) 
+    {-# REWRITE Ihb-μ #-}
 
     --
     --  Functoriality of ν 
     --
 
-    ν-id : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → (P : Frm X → Type ℓ)
-      → {f : Frm X} (s : Src P f)
-      → ν {Q = P} s (_⊚_ s) ↦ s
+    ν-id : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X P f)
+      → ν n ℓ X P P f ρ (Ihb n ℓ X P f ρ) ↦ ρ
     {-# REWRITE ν-id #-}
     
-    ν-ν : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → (P Q R : Frm X → Type ℓ)
-      → {f : Frm X} (s : Src P f)
-      → (ϕ : (p : Pos P s) → Q (Typ P s p))
-      → (ψ : (p : Pos Q (ν s ϕ)) → R (Typ Q (ν s ϕ) p))
-      → ν {Q = R} (ν s ϕ) ψ ↦ ν s (λ p → ψ (ν-pos s ϕ p))
+    ν-ν : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P Q R : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X P f)
+      → (ϕ : (p : Pos n ℓ X P f ρ) → Q (Typ n ℓ X P f ρ p))
+      → (ψ : (p : Pos n ℓ X Q f (ν n ℓ X P Q f ρ ϕ))
+               → R (Typ n ℓ X Q f (ν n ℓ X P Q f ρ ϕ) p))
+      → ν n ℓ X Q R f (ν n ℓ X P Q f ρ ϕ) ψ ↦
+        ν n ℓ X P R f ρ (λ p → ψ (ν-pos n ℓ X P Q f ρ ϕ p))
     {-# REWRITE ν-ν #-} 
-
-    ν-pos-id : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → (P : Frm X → Type ℓ)
-      → {f : Frm X} (s : Src P f) (p : Pos P s)
-      → ν-pos {Q = P} s (_⊚_ s) p ↦ p
-    {-# REWRITE ν-pos-id #-}
-
-    ν-lift-id : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → (P : Frm X → Type ℓ)
-      → {f : Frm X} (s : Src P f) (p : Pos P s)
-      → ν-lift {Q = P} s (_⊚_ s) p ↦ p 
-    {-# REWRITE ν-lift-id #-}
-
-    ν-pos-comp : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → (P Q R : Frm X → Type ℓ)
-      → {f : Frm X} (s : Src P f)
-      → (ϕ : (p : Pos P s) → Q (Typ P s p))
-      → (ψ : (p : Pos Q (ν s ϕ)) → R (Typ Q (ν s ϕ) p))
-      → (p : Pos P s)
-      → ν-pos {Q = R} (ν {Q = Q} s ϕ) ψ (ν-pos s ϕ p) ↦
-        ν-pos {Q = R} s (λ p → ψ (ν-pos s ϕ p)) p 
-    {-# REWRITE ν-pos-comp #-}
-
-    ν-lift-comp : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → (P Q R : Frm X → Type ℓ)
-      → {f : Frm X} (s : Src P f)
-      → (ϕ : (p : Pos P s) → Q (Typ P s p))
-      → (ψ : (p : Pos Q (ν s ϕ)) → R (Typ Q (ν s ϕ) p))
-      → (p : Pos R (ν {Q = R} (ν s ϕ) ψ))
-      → ν-lift {Q = Q} s ϕ (ν-lift (ν s ϕ) ψ p) ↦
-        ν-lift {Q = R} s (λ p → ψ (ν-pos s ϕ p)) p 
-    {-# REWRITE ν-lift-comp #-}
 
     -- 
     -- Naturality Laws
     --
       
-    ν-η : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → (P Q : Frm X → Type ℓ)
-      → {f : Frm X} (x : P f)
-      → (ϕ : (p : Pos P (η P x)) → Q f)
-      → ν (η P x) ϕ ↦ η Q (ϕ (η-pos P x))
+    ν-η : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P Q : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (x : P f)
+      → (ϕ : (p : Pos n ℓ X P f (η n ℓ X P f x)) → Q f)
+      → ν n ℓ X P Q f (η n ℓ X P f x) ϕ ↦
+        η n ℓ X Q f (ϕ (η-pos n ℓ X P f x)) 
     {-# REWRITE ν-η #-}
 
-    ν-μ : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-      → (P Q : Frm X → Type ℓ)
-      → {f : Frm X} (s : Src (Src P) f)
-      → (ϕ : (p : Pos P (μ P s)) → Q (Typ P (μ P s) p))
-      → ν (μ P s) ϕ ↦ μ Q (ν s (λ p → ν (s ⊚ p) (λ q → ϕ (μ-pos P s p q))))
+    ν-μ : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P Q : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X (Pd n ℓ X P) f)
+      → (ϕ : (p : Pos n ℓ X P f (μ n ℓ X P f ρ))
+           → Q (Typ n ℓ X P f (μ n ℓ X P f ρ) p))
+      → ν n ℓ X P Q f (μ n ℓ X P f ρ) ϕ ↦
+        μ n ℓ X Q f (ν n ℓ X (Pd n ℓ X P) (Pd n ℓ X Q) f ρ
+          (λ p → ν n ℓ X P Q (Typ n ℓ X (Pd n ℓ X P) f ρ p)
+                         (Ihb n ℓ X (Pd n ℓ X P) f ρ p)
+            (λ q → ϕ (μ-pos n ℓ X P f ρ p q)))) 
     {-# REWRITE ν-μ #-}
 
     --
     -- Monad Laws
     --
 
-    μ-unit-l : ∀ {n ℓ} (X : 𝕆Type n ℓ)
-      → (P : Frm X → Type ℓ)
-      → (f : Frm X) (s : Src P f)
-      → μ P (η (Src P) s) ↦ s 
+    μ-unit-l : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X P f)
+      → μ n ℓ X P f (η n ℓ X (Pd n ℓ X P) f ρ) ↦ ρ
     {-# REWRITE μ-unit-l #-}
 
-    μ-unit-r : ∀ {n ℓ} (X : 𝕆Type n ℓ)
-      → (P : Frm X → Type ℓ)
-      → (f : Frm X) (s : Src P f)
-      → μ P (ν s (λ p → η P (s ⊚ p))) ↦ s
+    μ-unit-r : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X P f)
+      → μ n ℓ X P f (ν n ℓ X P (Pd n ℓ X P) f ρ
+          (λ p → η n ℓ X P (Typ n ℓ X P f ρ p) (Ihb n ℓ X P f ρ p))) ↦ ρ
     {-# REWRITE μ-unit-r #-}
 
-    μ-assoc : ∀ {n ℓ} (X : 𝕆Type n ℓ)
-      → (P : Frm X → Type ℓ)
-      → (f : Frm X) (s : Src (Src (Src P)) f)
-      → μ P (μ (Src P) s) ↦ μ P (ν s (λ p → μ P (s ⊚ p))) 
+    μ-assoc : (n : ℕ) (ℓ : Level)
+      → (X : 𝕆Type n ℓ)
+      → (P : Frm n ℓ X → Type ℓ)
+      → (f : Frm n ℓ X) (ρ : Pd n ℓ X (Pd n ℓ X (Pd n ℓ X P)) f)
+      → μ n ℓ X P f (μ n ℓ X (Pd n ℓ X P) f ρ) ↦
+        μ n ℓ X P f (ν n ℓ X (Pd n ℓ X (Pd n ℓ X P)) (Pd n ℓ X P) f ρ
+          (λ p → μ n ℓ X P (Typ n ℓ X (Pd n ℓ X (Pd n ℓ X P)) f ρ p)
+                       (Ihb n ℓ X (Pd n ℓ X (Pd n ℓ X P)) f ρ p))) 
     {-# REWRITE μ-assoc #-}
 
+    --
+    -- Position Compatibilities
+    --
+
+    -- In fact, I now realize that there are really a lot of these
+    -- that you are missing: for every equation involving μ, η and ν,
+    -- there needs to be a corresponding equation for both the intro
+    -- and the elim of their positions.
+
+    --   ν-pos-id : (n : ℕ) (ℓ : Level)
+    --     → (X : 𝕆Type n ℓ)
+    --     → (P : Frm n ℓ X → Type ℓ)
+    --     → (f : Frm n ℓ X) (s : Pd n ℓ X P f) (p : Pos n ℓ X P s)
+    --     → ν-pos {Q = P} s (_⊚_ s) p ↦ p
+    --   {-# REWRITE ν-pos-id #-}
+
+    --   ν-lift-id : (n : ℕ) (ℓ : Level)
+    --     → (X : 𝕆Type n ℓ)
+    --     → (P : Frm n ℓ X → Type ℓ)
+    --     → (f : Frm n ℓ X) (s : Pd n ℓ X P f) (p : Pos n ℓ X P s)
+    --     → ν-lift {Q = P} s (_⊚_ s) p ↦ p 
+    --   {-# REWRITE ν-lift-id #-}
+
+    --   ν-pos-comp : (n : ℕ) (ℓ : Level)
+    --     → (X : 𝕆Type n ℓ)
+    --     → (P Q R : Frm n ℓ X → Type ℓ)
+    --     → (f : Frm n ℓ X) (s : Pd n ℓ X P f)
+    --     → (ϕ : (p : Pos n ℓ X P s) → Q (Typ n ℓ X P f s p))
+    --     → (ψ : (p : Pos Q (ν X P Q f s ϕ)) → R (Typ Q (ν X P Q f s ϕ) p))
+    --     → (p : Pos n ℓ X P s)
+    --     → ν-pos {Q = R} (ν {Q = Q} s ϕ) ψ (ν-pos s ϕ p) ↦
+    --       ν-pos {Q = R} s (λ p → ψ (ν-pos s ϕ p)) p 
+    --   {-# REWRITE ν-pos-comp #-}
+
+    --   ν-lift-comp : (n : ℕ) (ℓ : Level)
+    --     → (X : 𝕆Type n ℓ)
+    --     → (P Q R : Frm n ℓ X → Type ℓ)
+    --     → (f : Frm n ℓ X) (s : Pd n ℓ X P f)
+    --     → (ϕ : (p : Pos n ℓ X P s) → Q (Typ n ℓ X P f s p))
+    --     → (ψ : (p : Pos Q (ν X P Q f s ϕ)) → R (Typ Q (ν X P Q f s ϕ) p))
+    --     → (p : Pos R (ν {Q = R} (ν X P Q f s ϕ) ψ))
+    --     → ν-lift {Q = Q} s ϕ (ν-lift (ν X P Q f s ϕ) ψ p) ↦
+    --       ν-lift {Q = R} s (λ p → ψ (ν-pos s ϕ p)) p 
+    --   {-# REWRITE ν-lift-comp #-}
+
   --
-  --  Bind form of monad
+  --  Convenience map and bind functions 
   --
 
-  bind : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → (P Q : Frm X → Type ℓ)
-    → (f : Frm X) (s : Src P f)
-    → (ϕ : (p : Pos P s) → Src Q (Typ P s p))
-    → Src Q f
-  bind P Q f s ϕ = μ Q (ν s ϕ) 
+  ν-map : (n : ℕ) (ℓ : Level)
+    → (X : 𝕆Type n ℓ)
+    → (P Q : Frm n ℓ X → Type ℓ)
+    → (ϕ : {f : Frm n ℓ X} → P f → Q f)
+    → (f : Frm n ℓ X) → Pd n ℓ X P f → Pd n ℓ X Q f
+  ν-map n ℓ X P Q ϕ f s =
+    ν n ℓ X P Q f s
+      (λ p → ϕ (Ihb n ℓ X P f s p))
+
+  ν-bind : (n : ℕ) (ℓ : Level)
+    → (X : 𝕆Type n ℓ)
+    → (P Q : Frm n ℓ X → Type ℓ)
+    → (ϕ : {f : Frm n ℓ X} → P f → Pd n ℓ X Q f)
+    → (f : Frm n ℓ X) → Pd n ℓ X P f → Pd n ℓ X Q f
+  ν-bind n ℓ X P Q ϕ f s =
+    μ n ℓ X Q f (ν n ℓ X P (Pd n ℓ X Q) f s
+                  (λ p → ϕ (Ihb n ℓ X P f s p)))
 
   --
   --  Definitions of opeotpic types and frames
   --
 
-  𝕆Type zero ℓ = Lift Unit
+  𝕆Type zero ℓ = 𝟙 (ℓ-suc ℓ)
   𝕆Type (suc n) ℓ =
     Σ[ X ∈ 𝕆Type n ℓ ]
-    ((f : Frm X) → Type ℓ)
+    ((f : Frm n ℓ X) → Type ℓ)
 
-  Frm {zero} X = Lift Unit
-  Frm {suc n} (X , P) = 
-    Σ[ f ∈ Frm X ]
-    Σ[ src ∈ Src P f ] 
+  Frm zero ℓ X = 𝟙 ℓ
+  Frm (suc n) ℓ (X , P) = 
+    Σ[ f ∈ Frm n ℓ X ]
+    Σ[ src ∈ Pd n ℓ X P f ] 
     P f
 
   --
   --  Pasting Diagrams and their Positions 
   --
 
-  module _ {n ℓ} {X : 𝕆Type n ℓ} {P : Frm X → Type ℓ} (U : Frm (X , P) → Type ℓ) where
+  module _ (n : ℕ) (ℓ : Level)
+    (X : 𝕆Type n ℓ)
+    (P : Frm n ℓ X → Type ℓ)
+    (U : Frm (suc n) ℓ (X , P) → Type ℓ) where
 
-    data Pd : Frm (X , P) → Type ℓ
+    data Tr : Frm (suc n) ℓ (X , P) → Type ℓ
 
-    record Branch {f : Frm X} (stm : P f) : Type ℓ where
-      inductive
-      eta-equality
-      constructor [_,_]
-      field
-        lvs : Src P f
-        br : Pd (f , lvs , stm)
+    Branch : Frm n ℓ X → Type ℓ
+    Branch f = Σ[ t ∈ P f ]
+               Σ[ s ∈ Pd n ℓ X P f ]
+               Tr (f , s , t)
 
-    open Branch public
+    data Tr where
 
-    -- Note: this could be more general as P is not used ...
-    canopy : {f : Frm X} {s : Src P f}
-      → Dec Branch s → Src P f
-    canopy {s = s} δ = μ P (ν s (λ p → lvs (δ ⊛ p)))
+      lf : (frm : Frm n ℓ X) (tgt : P frm)
+         → Tr (frm , η n ℓ X P frm tgt , tgt) 
 
-    canopy-pos : {f : Frm X} {s : Src P f}
-      → (brs : Dec Branch s)
-      → (p : Pos P s) (q : Pos P (lvs (brs ⊛ p)))
-      → Pos P (canopy brs) 
-    canopy-pos {s = s} brs p q =
-      μ-pos P (ν s (λ q → lvs (brs ⊛ q)))
-        (ν-pos s (λ q → lvs (brs ⊛ q)) p) q
+      nd : (frm : Frm n ℓ X) (tgt : P frm)
+         → (brs : Pd n ℓ X Branch frm)
+         → (flr : U (frm , ν-map n ℓ X Branch P fst frm brs , tgt)) 
+         → Tr (frm , ν-bind n ℓ X Branch P (λ b → fst (snd b)) frm brs , tgt)
 
-    canopy-fst : {f : Frm X} {s : Src P f}
-      → (brs : Dec Branch s) (p : Pos P (canopy brs))
-      → Pos P s 
-    canopy-fst {s = s} brs p =
-      ν-lift s (λ p → lvs (brs ⊛ p))
-        (μ-fst P (ν s (λ p → lvs (brs ⊛ p))) p)  
+    data TrPos : (f : Frm (suc n) ℓ (X , P)) → Tr f → Type ℓ where
 
-    canopy-snd : {f : Frm X} {s : Src P f}
-      → (brs : Dec Branch s) (p : Pos P (canopy brs))
-      → Pos P (lvs (brs ⊛ canopy-fst brs p))
-    canopy-snd {s = s} brs p = μ-snd P (ν s (λ p → lvs (brs ⊛ p))) p
+      nd-here : {frm : Frm n ℓ X} {tgt : P frm}
+        → {brs : Pd n ℓ X Branch frm}
+        → {flr : U (frm , ν-map n ℓ X Branch P fst frm brs , tgt)}
+        → TrPos (frm , ν-bind n ℓ X Branch P (λ b → fst (snd b)) frm brs , tgt)
+                (nd frm tgt brs flr)
 
-    data Pd where
+      nd-there : {frm : Frm n ℓ X} {tgt : P frm}
+        → {brs : Pd n ℓ X Branch frm}
+        → {flr : U (frm , ν-map n ℓ X Branch P fst frm brs , tgt)}
+        → (p : Pos n ℓ X Branch frm brs)
+        → (q : TrPos (Typ n ℓ X Branch frm brs p ,
+                       fst (Ihb n ℓ X Branch frm brs p .snd) ,
+                       fst (Ihb n ℓ X Branch frm brs p))
+                      (Ihb n ℓ X Branch frm brs p .snd .snd))
+        → TrPos (frm , ν-bind n ℓ X Branch P (λ b → fst (snd b)) frm brs , tgt)
+                (nd frm tgt brs flr)
 
-      lf : {f : Frm X} (tgt : P f)
-         → Pd (f , η P tgt , tgt) 
+  --   γ : {frm : Frm n ℓ X} {src : Pd n ℓ X P frm} {tgt : P frm}
+  --     → (pd : PdTr (frm , src , tgt ))
+  --     → (brs : (p : Pos n ℓ X P f src) → Branch (src ⊚ p))
+  --     → PdTr (frm , μ P (ν src λ p → lvs (brs p)) , tgt)
 
-      nd : {f : Frm X} (src : Src P f) (tgt : P f) 
-         → (flr : U (f , src , tgt))
-         → (brs : Dec Branch src)
-         → Pd (f , μ P (ν src (λ p → lvs (brs ⊛ p))) , tgt)
+  --   γ-brs : {frm : Frm n ℓ X} {src : Pd n ℓ X P frm} (lbrs : Dec Branch src)
+  --     → (brs : (p : Pos n ℓ X P (canopy lbrs)) → Branch (canopy lbrs ⊚ p))
+  --     → (p : Pos n ℓ X P f src) → Branch (src ⊚ p)
+  --   γ-brs lbrs brs p = [ μ P (ν (lvs (lbrs ⊛ p)) (λ q → lvs (brs (canopy-pos lbrs p q))))
+  --                      , γ (br (lbrs ⊛ p)) (λ q → brs (canopy-pos lbrs p q))
+  --                      ]
 
+  --   γ (lf tgt) brs = br (brs (η-pos P tgt))
+  --   γ (nd src tgt flr lbrs) brs =
+  --     nd src tgt flr (λ-dec Branch src (γ-brs lbrs brs))
 
-    data PdPos : {f : Frm (X , P)} → Pd f → Type ℓ where
+  --   γ-inl : {frm : Frm n ℓ X} {src : Pd n ℓ X P frm} {tgt : P frm}
+  --     → (pd : PdTr (frm , src , tgt ))
+  --     → (brs : (p : Pos n ℓ X P f src) → Branch (src ⊚ p))
+  --     → (p : TrPos pd) → TrPos (γ pd brs)
+  --   γ-inl (nd src tgt flr lbrs) brs nd-here = nd-here
+  --   γ-inl (nd src tgt flr lbrs) brs (nd-there p q) =
+  --     nd-there p (γ-inl (br (lbrs ⊛ p)) (λ q → brs (canopy-pos lbrs p q)) q) 
 
-      nd-here : {f : Frm X} {src : Src P f} {tgt : P f}
-         → {flr : U (f , src , tgt)}
-         → {brs : Dec Branch src}
-         → PdPos (nd src tgt flr brs)
+  --   γ-inr : {frm : Frm n ℓ X} {src : Pd n ℓ X P frm} {tgt : P frm}
+  --     → (pd : PdTr (frm , src , tgt ))
+  --     → (brs : (p : Pos n ℓ X P f src) → Branch (src ⊚ p))
+  --     → (p : Pos n ℓ X P f src) (q : TrPos (br (brs p)))
+  --     → TrPos (γ pd brs)
+  --   γ-inr (lf tgt) brs p q = 
+  --     η-pos-elim tgt (λ p → TrPos (br (brs p)) → TrPos (br (brs (η-pos P tgt)))) (λ x → x) p q
+  --   γ-inr (nd src tgt flr lbrs) brs pq r = 
+  --     let p = canopy-fst lbrs pq
+  --         q = canopy-snd lbrs pq
+  --     in nd-there p (γ-inr (br (lbrs ⊛ p)) (λ q → brs (canopy-pos lbrs p q)) q r)
 
-      nd-there : {f : Frm X} {src : Src P f} {tgt : P f}
-         → {flr : U (f , src , tgt)}
-         → {brs : Dec Branch src}
-         → (p : Pos P src) (q : PdPos (br (brs ⊛ p)))
-         → PdPos (nd src tgt flr brs)
-
-    γ : {frm : Frm X} {src : Src P frm} {tgt : P frm}
-      → (pd : Pd (frm , src , tgt ))
-      → (brs : (p : Pos P src) → Branch (src ⊚ p))
-      → Pd (frm , μ P (ν src λ p → lvs (brs p)) , tgt)
-
-    γ-brs : {frm : Frm X} {src : Src P frm} (lbrs : Dec Branch src)
-      → (brs : (p : Pos P (canopy lbrs)) → Branch (canopy lbrs ⊚ p))
-      → (p : Pos P src) → Branch (src ⊚ p)
-    γ-brs lbrs brs p = [ μ P (ν (lvs (lbrs ⊛ p)) (λ q → lvs (brs (canopy-pos lbrs p q))))
-                       , γ (br (lbrs ⊛ p)) (λ q → brs (canopy-pos lbrs p q))
-                       ]
-
-    γ (lf tgt) brs = br (brs (η-pos P tgt))
-    γ (nd src tgt flr lbrs) brs =
-      nd src tgt flr (λ-dec Branch src (γ-brs lbrs brs))
-
-    γ-inl : {frm : Frm X} {src : Src P frm} {tgt : P frm}
-      → (pd : Pd (frm , src , tgt ))
-      → (brs : (p : Pos P src) → Branch (src ⊚ p))
-      → (p : PdPos pd) → PdPos (γ pd brs)
-    γ-inl (nd src tgt flr lbrs) brs nd-here = nd-here
-    γ-inl (nd src tgt flr lbrs) brs (nd-there p q) =
-      nd-there p (γ-inl (br (lbrs ⊛ p)) (λ q → brs (canopy-pos lbrs p q)) q) 
-
-    γ-inr : {frm : Frm X} {src : Src P frm} {tgt : P frm}
-      → (pd : Pd (frm , src , tgt ))
-      → (brs : (p : Pos P src) → Branch (src ⊚ p))
-      → (p : Pos P src) (q : PdPos (br (brs p)))
-      → PdPos (γ pd brs)
-    γ-inr (lf tgt) brs p q = 
-      η-pos-elim tgt (λ p → PdPos (br (brs p)) → PdPos (br (brs (η-pos P tgt)))) (λ x → x) p q
-    γ-inr (nd src tgt flr lbrs) brs pq r = 
-      let p = canopy-fst lbrs pq
-          q = canopy-snd lbrs pq
-      in nd-there p (γ-inr (br (lbrs ⊛ p)) (λ q → brs (canopy-pos lbrs p q)) q r)
-
-    γ-pos-elim : {frm : Frm X} {src : Src P frm} {tgt : P frm}
-      → (pd : Pd (frm , src , tgt ))
-      → (brs : (p : Pos P src) → Branch (src ⊚ p))
-      → ∀ {ℓ'} (B : PdPos (γ pd brs) → Type ℓ')
-      → (inl* : (p : PdPos pd) → B (γ-inl pd brs p))
-      → (inr* : (p : Pos P src) (q : PdPos (br (brs p))) → B (γ-inr pd brs p q))
-      → (p : PdPos (γ pd brs)) → B p
-    γ-pos-elim (lf tgt) brs B inl* inr* p = inr* (η-pos P tgt) p
-    γ-pos-elim (nd src tgt flr lbrs) brs B inl* inr* nd-here = inl* nd-here
-    γ-pos-elim (nd src tgt flr lbrs) brs B inl* inr* (nd-there u v) = 
-      γ-pos-elim (br (lbrs ⊛ u)) (λ q → brs (canopy-pos lbrs u q))
-         (λ v' → B (nd-there u v')) (λ q → inl* (nd-there u q))
-         (λ q → inr* (canopy-pos lbrs u q)) v
+  --   γ-pos-elim : {frm : Frm n ℓ X} {src : Pd n ℓ X P frm} {tgt : P frm}
+  --     → (pd : PdTr (frm , src , tgt ))
+  --     → (brs : (p : Pos n ℓ X P f src) → Branch (src ⊚ p))
+  --     → ∀ {ℓ'} (B : TrPos (γ pd brs) → Type ℓ')
+  --     → (inl* : (p : TrPos pd) → B (γ-inl pd brs p))
+  --     → (inr* : (p : Pos n ℓ X P f src) (q : TrPos (br (brs p))) → B (γ-inr pd brs p q))
+  --     → (p : TrPos (γ pd brs)) → B p
+  --   γ-pos-elim (lf tgt) brs B inl* inr* p = inr* (η-pos P tgt) p
+  --   γ-pos-elim (nd src tgt flr lbrs) brs B inl* inr* nd-here = inl* nd-here
+  --   γ-pos-elim (nd src tgt flr lbrs) brs B inl* inr* (nd-there u v) = 
+  --     γ-pos-elim (br (lbrs ⊛ u)) (λ q → brs (canopy-pos lbrs u q))
+  --        (λ v' → B (nd-there u v')) (λ q → inl* (nd-there u q))
+  --        (λ q → inr* (canopy-pos lbrs u q)) v
     
-    postulate
+  --   postulate
 
-      γ-pos-elim-inl-β : {frm : Frm X} {src : Src P frm} {tgt : P frm}
-        → (pd : Pd (frm , src , tgt ))
-        → (brs : (p : Pos P src) → Branch (src ⊚ p))
-        → ∀ {ℓ'} (B : PdPos (γ pd brs) → Type ℓ')
-        → (inl* : (p : PdPos pd) → B (γ-inl pd brs p))
-        → (inr* : (p : Pos P src) (q : PdPos (br (brs p))) → B (γ-inr pd brs p q))
-        → (p : PdPos pd)
-        → γ-pos-elim pd brs B inl* inr* (γ-inl pd brs p) ↦ inl* p
-      {-# REWRITE γ-pos-elim-inl-β #-}
+  --     γ-pos-elim-inl-β : {frm : Frm n ℓ X} {src : Pd n ℓ X P frm} {tgt : P frm}
+  --       → (pd : PdTr (frm , src , tgt ))
+  --       → (brs : (p : Pos n ℓ X P f src) → Branch (src ⊚ p))
+  --       → ∀ {ℓ'} (B : TrPos (γ pd brs) → Type ℓ')
+  --       → (inl* : (p : TrPos pd) → B (γ-inl pd brs p))
+  --       → (inr* : (p : Pos n ℓ X P f src) (q : TrPos (br (brs p))) → B (γ-inr pd brs p q))
+  --       → (p : TrPos pd)
+  --       → γ-pos-elim pd brs B inl* inr* (γ-inl pd brs p) ↦ inl* p
+  --     {-# REWRITE γ-pos-elim-inl-β #-}
         
-      γ-pos-elim-inr-β : {frm : Frm X} {src : Src P frm} {tgt : P frm}
-        → (pd : Pd (frm , src , tgt ))
-        → (brs : (p : Pos P src) → Branch (src ⊚ p))
-        → ∀ {ℓ'} (B : PdPos (γ pd brs) → Type ℓ')
-        → (inl* : (p : PdPos pd) → B (γ-inl pd brs p))
-        → (inr* : (p : Pos P src) (q : PdPos (br (brs p))) → B (γ-inr pd brs p q))
-        → (p : Pos P src) (q : PdPos (br (brs p)))
-        → γ-pos-elim pd brs B inl* inr* (γ-inr pd brs p q) ↦ inr* p q
-      {-# REWRITE γ-pos-elim-inr-β #-}
+  --     γ-pos-elim-inr-β : {frm : Frm n ℓ X} {src : Pd n ℓ X P frm} {tgt : P frm}
+  --       → (pd : PdTr (frm , src , tgt ))
+  --       → (brs : (p : Pos n ℓ X P f src) → Branch (src ⊚ p))
+  --       → ∀ {ℓ'} (B : TrPos (γ pd brs) → Type ℓ')
+  --       → (inl* : (p : TrPos pd) → B (γ-inl pd brs p))
+  --       → (inr* : (p : Pos n ℓ X P f src) (q : TrPos (br (brs p))) → B (γ-inr pd brs p q))
+  --       → (p : Pos n ℓ X P f src) (q : TrPos (br (brs p)))
+  --       → γ-pos-elim pd brs B inl* inr* (γ-inr pd brs p q) ↦ inr* p q
+  --     {-# REWRITE γ-pos-elim-inr-β #-}
 
-  Src {zero} P _ = P tt*
-  Src {suc n} U = Pd U
+  Pd zero ℓ X P f = P ●
+  Pd (suc n) ℓ (X , P) U = Tr n ℓ X P U
 
-  Pos {zero} P s = Lift Unit
-  Pos {suc n} U pd = PdPos U pd 
-
-  Typ {zero} P s p = tt*
-  Typ {suc n} U (nd src tgt flr brs) nd-here = _ , src , tgt
-  Typ {suc n} U (nd src tgt flr brs) (nd-there p q) = Typ U (br (brs ⊛ p)) q
-
-  _⊚_ {zero} s p = s
-  _⊚_ {suc n} {P = U} (nd src tgt flr brs) nd-here = flr
-  _⊚_ {suc n} {P = U} (nd src tgt flr brs) (nd-there p q) = _⊚_ {P = U} (br (brs ⊛ p)) q
-
-  Dec {zero} Q s = Q s
-  Dec {suc n} Q (lf tgt) = Unit*
-  Dec {suc n} {X = X , P} {U} Q (nd src tgt flr brs) =
-    Q flr × Dec {P = λ f → Σ (P f) (Branch U)} (λ pb → Dec {X = X , P} Q (br (snd pb)))
-      (ν {Q = λ f → Σ (P f) (Branch U)} src (λ p → src ⊚ p , brs ⊛ p))
-
-  _⊛_ {zero} {s = s} δ p = δ
-  _⊛_ {suc n} {s = nd src tgt flr brs} (q , _) nd-here = q
-  _⊛_ {suc n} {s = nd src tgt flr brs} (_ , δ) (nd-there p q) = 
-    (δ ⊛ (ν-pos src (λ p₁ → (src ⊚ p₁) , (brs ⊛ p₁)) p)) ⊛ q 
-
-  λ-dec {zero} Q s δ = δ tt*
-  λ-dec {suc n} Q (lf tgt) δ = tt*
-  λ-dec {suc n} {X = X , P} {U} Q (nd src tgt flr brs) δ = 
-    δ nd-here , (λ-dec {X = X} {P = λ f → Σ (P f) (Branch U)} (λ pb → Dec {X = X , P} Q (br (snd pb)))
-      (ν {Q = λ f → Σ (P f) (Branch U)} src (λ p → (src ⊚ p) , (brs ⊛ p)))
-      (λ p → λ-dec {X = X , P} {U} Q (br (brs ⊛ ν-lift src (λ p₁ → (src ⊚ p₁) , (brs ⊛ p₁)) p))
-              λ q → δ (nd-there (ν-lift src (λ p₁ → (src ⊚ p₁) , (brs ⊛ p₁)) p) q)))
-
-  ν {zero} s ϕ = ϕ tt*
-  ν {suc n} (lf tgt) ϕ = lf tgt
-  ν {suc n} {X = X , P} (nd src tgt flr brs) ϕ =
-    nd src tgt (ϕ nd-here) (λ-dec (Branch _) src λ p →
-      [ lvs (brs ⊛ p) , (ν {suc n} (br (brs ⊛ p)) (λ q → ϕ (nd-there p q))) ])
-
-  ν-pos {zero} s ϕ p = tt*
-  ν-pos {suc n} (nd src tgt flr brs) ϕ nd-here = nd-here
-  ν-pos {suc n} (nd src tgt flr brs) ϕ (nd-there p q) =
-    nd-there p (ν-pos (br (brs ⊛ p)) (λ q → ϕ (nd-there p q)) q)
-
-  ν-lift {zero} s ϕ p = tt*
-  ν-lift {suc n} (nd src tgt flr brs) ϕ nd-here = nd-here
-  ν-lift {suc n} (nd src tgt flr brs) ϕ (nd-there p q) =
-    nd-there p (ν-lift (br (brs ⊛ p)) (λ q → ϕ (nd-there p q)) q)
-
-  η-dec : ∀ {n ℓ} {X : 𝕆Type n ℓ}
-    → {P : Frm X → Type ℓ}
-    → (U : Frm (X , P) → Type ℓ)
-    → {f : Frm X} (s : Src P f)
-    → Dec {X = X} (Branch U) s
-  η-dec {X = X} {P} U s =
-    λ-dec {X = X} {P} (Branch U) s
-      (λ p → [ η P (s ⊚ p) , lf (s ⊚ p) ])
-
-  η {zero} P x = x
-  η {suc n} {X = X , P} U {f = _ , src , tgt} x =
-    nd src tgt x (η-dec U src)
-
-  η-pos {zero} P x = tt*
-  η-pos {suc n} {X = X , P} U {f = _ , src , tgt} x = nd-here
-
-  η-pos-elim {zero} x Q q p = q
-  η-pos-elim {suc n} x Q q nd-here = q
+  Pos zero ℓ X P f ρ = 𝟙 ℓ
+  Pos (suc n) ℓ (X , P) U = TrPos n ℓ X P U
   
-  μ-brs : ∀ {n ℓ} {X : 𝕆Type n ℓ} {P : Frm X → Type ℓ}
-    → (U : Frm (X , P) → Type ℓ)
-    → {f : Frm X} {src : Src P f}
-    → (brs : Dec {P = P} (Branch (Pd U)) src)
-    → (p : Pos P src) → Branch U (src ⊚ p)
-  μ-brs U brs p = [ lvs (brs ⊛ p) , μ U (br (brs ⊛ p)) ] 
-
-  μ {zero} P s = s
-  μ {suc n} U (lf tgt) = lf tgt
-  μ {suc n} U (nd src tgt flr brs) =
-    γ U flr (μ-brs U brs) 
-
-  μ-pos {zero} P s p q = tt*
-  μ-pos {suc n} U (nd src tgt flr brs) nd-here r =
-    γ-inl U flr (μ-brs U brs) r
-  μ-pos {suc n} U (nd src tgt flr brs) (nd-there p q) r =
-    γ-inr U flr (μ-brs U brs) p (μ-pos U (br (brs ⊛ p)) q r)
+  Typ zero ℓ X P f ρ p = ●
+  Typ (suc n) ℓ (X , P) U ._ (nd frm tgt brs flr) nd-here =
+    frm , ν-map n ℓ X (Branch n ℓ X P U) P fst frm brs , tgt 
+  Typ (suc n) ℓ (X , P) U ._ (nd frm tgt brs flr) (nd-there p q) = 
+    Typ (suc n) ℓ (X , P) U
+      (Typ n ℓ X (Branch n ℓ X P U) frm brs p ,
+        fst (Ihb n ℓ X (Branch n ℓ X P U) frm brs p .snd) ,
+        fst (Ihb n ℓ X (Branch n ℓ X P U) frm brs p))
+      (Ihb n ℓ X (Branch n ℓ X P U) frm brs p .snd .snd) q
   
-  μ-fst {zero} P s p = tt*
-  μ-fst {suc n} U (nd src tgt flr brs) =
-    γ-pos-elim U flr (μ-brs U brs) _ (λ _ → nd-here)
-      (λ p q → nd-there p (μ-fst U (br (brs ⊛ p)) q))
+  Ihb zero ℓ X P f ρ p = ρ
+  Ihb (suc n) ℓ (X , P) U ._ (nd frm tgt brs flr) nd-here = flr
+  Ihb (suc n) ℓ (X , P) U ._ (nd frm tgt brs flr) (nd-there p q) = 
+    Ihb (suc n) ℓ (X , P) U
+      (Typ n ℓ X (Branch n ℓ X P U) frm brs p ,
+        fst (Ihb n ℓ X (Branch n ℓ X P U) frm brs p .snd) ,
+        fst (Ihb n ℓ X (Branch n ℓ X P U) frm brs p))
+      (Ihb n ℓ X (Branch n ℓ X P U) frm brs p .snd .snd) q
+
+  --
+  --  TODO: redo
+  --
+
+  -- ν {zero} s ϕ = ϕ tt*
+  -- ν {suc n} (lf tgt) ϕ = lf tgt
+  -- ν {suc n} {X = X , P} (nd src tgt flr brs) ϕ =
+  --   nd src tgt (ϕ nd-here) (λ-dec (Branch _) src λ p →
+  --     [ lvs (brs ⊛ p) , (ν {suc n} (br (brs ⊛ p)) (λ q → ϕ (nd-there p q))) ])
+
+  -- ν-pos {zero} s ϕ p = tt*
+  -- ν-pos {suc n} (nd src tgt flr brs) ϕ nd-here = nd-here
+  -- ν-pos {suc n} (nd src tgt flr brs) ϕ (nd-there p q) =
+  --   nd-there p (ν-pos (br (brs ⊛ p)) (λ q → ϕ (nd-there p q)) q)
+
+  -- ν-lift {zero} s ϕ p = tt*
+  -- ν-lift {suc n} (nd src tgt flr brs) ϕ nd-here = nd-here
+  -- ν-lift {suc n} (nd src tgt flr brs) ϕ (nd-there p q) =
+  --   nd-there p (ν-lift (br (brs ⊛ p)) (λ q → ϕ (nd-there p q)) q)
+
+  -- η-dec : (n : ℕ) (ℓ : Level)
+      -- → (X : 𝕆Type n ℓ)
+  --   → (P : Frm n ℓ X → Type ℓ)
+  --   → (U : Frm (X , P) → Type ℓ)
+  --   → (f : Frm n ℓ X) (s : Pd n ℓ X P f)
+  --   → Dec {X = X} (Branch U) s
+  -- η-dec {X = X} {P} U s =
+  --   λ-dec {X = X} {P} (Branch U) s
+  --     (λ p → [ η P (s ⊚ p) , lf (s ⊚ p) ])
+
+  -- η {zero} P x = x
+  -- η {suc n} {X = X , P} U {f = _ , src , tgt} x =
+  --   nd src tgt x (η-dec U src)
+
+  -- η-pos {zero} P x = tt*
+  -- η-pos {suc n} {X = X , P} U {f = _ , src , tgt} x = nd-here
+
+  -- η-pos-elim {zero} x Q q p = q
+  -- η-pos-elim {suc n} x Q q nd-here = q
   
-  μ-snd {zero} P s p = tt*
-  μ-snd {suc n} U (nd src tgt flr brs) = 
-    γ-pos-elim U flr (μ-brs U brs) _ (λ p → p)
-      (λ p q → μ-snd U (br (brs ⊛ p)) q)
+  -- μ-brs : (n : ℕ) (ℓ : Level)
+      -- → (X : 𝕆Type n ℓ) (P : Frm n ℓ X → Type ℓ)
+  --   → (U : Frm (X , P) → Type ℓ)
+  --   → (f : Frm n ℓ X) {src : Pd n ℓ X P f}
+  --   → (brs : Dec {P = P} (Branch (PdTr U)) src)
+  --   → (p : Pos n ℓ X P f src) → Branch U (src ⊚ p)
+  -- μ-brs U brs p = [ lvs (brs ⊛ p) , μ U (br (brs ⊛ p)) ] 
+
+  -- μ {zero} P s = s
+  -- μ {suc n} U (lf tgt) = lf tgt
+  -- μ {suc n} U (nd src tgt flr brs) =
+  --   γ U flr (μ-brs U brs) 
+
+  -- μ-pos {zero} P s p q = tt*
+  -- μ-pos {suc n} U (nd src tgt flr brs) nd-here r =
+  --   γ-inl U flr (μ-brs U brs) r
+  -- μ-pos {suc n} U (nd src tgt flr brs) (nd-there p q) r =
+  --   γ-inr U flr (μ-brs U brs) p (μ-pos U (br (brs ⊛ p)) q r)
+
+  -- μ-fst {zero} P s p = tt*
+  -- μ-fst {suc n} U (nd src tgt flr brs) =
+  --   γ-pos-elim U flr (μ-brs U brs) _ (λ _ → nd-here)
+  --     (λ p q → nd-there p (μ-fst U (br (brs ⊛ p)) q))
+
+  -- μ-snd {zero} P s p = tt*
+  -- μ-snd {suc n} U (nd src tgt flr brs) = 
+  --   γ-pos-elim U flr (μ-brs U brs) _ (λ p → p)
+  --     (λ p q → μ-snd U (br (brs ⊛ p)) q)
       
