@@ -48,17 +48,11 @@ Shows how to retrieve constructors and so on.
 
 Shows how to match on definitions
 
+**** Eta expansion of functions occurs [[file:~/Code/agda/Agda-2.6.3/src/full/Agda/TypeChecking/Conversion.hs::equalFun :: (MonadConversion m) => Sort -> Term -> Term -> Term -> m ()][here]]
+
+The handler for eta-expanding functions 
+
 ** Things To Do
 
 *** TODO Builtins should depend on --opetopic-types
-
-*** Local Signature which needs adding
-
-**** TODO Branch
-**** TODO Tr
-**** TODO TrPos
-**** TODO Gamma
-**** TODO GammaInl
-**** TODO GammaInr
-**** TODO GammaElim
 

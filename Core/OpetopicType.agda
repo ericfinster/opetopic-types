@@ -649,7 +649,6 @@ module Core.OpetopicType where
                (branch-frm n ℓ X P (Tr n ℓ X P U) frm brs p')                                       
                (branch-tr n ℓ X P (Tr n ℓ X P U) frm brs p'))
 
-
   -- γ n ℓ X P U frm .(η n ℓ X P frm tgt) tgt (lf .frm .tgt) brs =
   --   brs (η-pos n ℓ X P frm tgt) .snd
   -- γ n ℓ X P U frm .(canopy n ℓ X P U frm lbrs) tgt (nd .frm .tgt lbrs flr) brs =
@@ -695,7 +694,7 @@ module Core.OpetopicType where
   --                      (Ihb n ℓ X (Pd n ℓ X P) f s p))
   --   → Pos n ℓ X P f (μ n ℓ X P f s)
   μ-pos zero ℓ X P f s p q = ●
-  μ-pos (suc n) ℓ (X , P) U ._ (nd frm tgt brs flr) nd-here r = {!!}
+  μ-pos (suc n) ℓ (X , P) U ._ (nd frm tgt brs flr) nd-here r = {!γ-inl n ℓ X P U!}
   μ-pos (suc n) ℓ (X , P) U ._ (nd frm tgt brs flr) (nd-there p q) r = {!!}
   
   -- μ-pos {zero} P s p q = tt*
