@@ -1,4 +1,4 @@
-{-# OPTIONS --opetopic-types #-}
+{-# OPTIONS --opetopic-types --no-positivity-check #-}
 --
 --  OpetopicType.agda - Opetopic Types
 --
@@ -31,17 +31,21 @@ module Core.NativeOpetopicType where
 
   {-# BUILTIN SRC Cns #-}
 
-  postulate
+  Pos : (ℓ : Level) (n : ℕ)
+    → (X : 𝕆Type ℓ n)
+    → (i : Frm ℓ n X) (c : Cns ℓ n X i)
+    → Type ℓ
 
-    Pos : (ℓ : Level) (n : ℕ)
-      → (X : 𝕆Type ℓ n)
-      → (i : Frm ℓ n X) (c : Cns ℓ n X i)
-      → Type ℓ
-      
-    Typ : (ℓ : Level) (n : ℕ)
-      → (X : 𝕆Type ℓ n)
-      → (i : Frm ℓ n X) (c : Cns ℓ n X i)
-      → (p : Pos ℓ n X i c) → Frm ℓ n X 
+  {-# BUILTIN POS Pos #-}
+
+  Typ : (ℓ : Level) (n : ℕ)
+    → (X : 𝕆Type ℓ n)
+    → (i : Frm ℓ n X) (c : Cns ℓ n X i)
+    → (p : Pos ℓ n X i c) → Frm ℓ n X 
+
+  {-# BUILTIN TYP Typ #-}
+
+  postulate
 
     --
     --  Monadic Structure
@@ -97,8 +101,6 @@ module Core.NativeOpetopicType where
   --  Native Bindings 
   --
   
-  {-# BUILTIN POS Pos #-}
-  {-# BUILTIN TYP Typ #-}
   {-# BUILTIN UNT η #-}
   {-# BUILTIN SUBST μ #-}
   {-# BUILTIN UNTPOS η-pos #-}
@@ -268,28 +270,6 @@ module Core.NativeOpetopicType where
         in μ-snd ℓ n X (Typ ℓ n X i c p) (δ p) (λ q → ϵ (μ-pos ℓ n X i c δ p q)) qr
     {-# REWRITE μ-snd-assoc #-} 
   
-    --
-    --  Decorations 
-    --
-
-    Dec : (ℓ : Level) (n : ℕ) (X : 𝕆Type ℓ n)
-      → (f : Frm ℓ n X) (c : Cns ℓ n X f)
-      → (P : Pos ℓ n X f c → Type ℓ)
-      → Type ℓ 
-
-    lam : (ℓ : Level) (n : ℕ) (X : 𝕆Type ℓ n)
-      → (i : Frm ℓ n X) (c : Cns ℓ n X i)
-      → (P : Pos ℓ n X i c → Type ℓ)
-      → (δ : (p : Pos ℓ n X i c) → P p)
-      → Dec ℓ n X i c P 
-
-    app : (ℓ : Level) (n : ℕ) (X : 𝕆Type ℓ n)
-      → (i : Frm ℓ n X) (c : Cns ℓ n X i)
-      → (P : Pos ℓ n X i c → Type ℓ)
-      → Dec ℓ n X i c P 
-      → (p : Pos ℓ n X i c) → P p
-
-
   --
   --  Implementations 
   --
@@ -299,39 +279,14 @@ module Core.NativeOpetopicType where
     Σ[ X ∈ 𝕆Type ℓ n ]
     (Frm ℓ n X → Type ℓ)
 
-  _≺_ : ∀ {ℓ n X f} (c : Cns ℓ n X f)
-    → (P : Frm ℓ n X → Type ℓ) → Type ℓ
-  _≺_ {ℓ} {n} {X} {f} c P =
-    Dec ℓ n X f c (λ p  → P (Typ ℓ n X f c p)) 
-
-  lam≺ : ∀ {ℓ n X f c}
-    → (P : Frm ℓ n X → Type ℓ) 
-    → (δ : (p : Pos ℓ n X f c) → P (Typ ℓ n X f c p))
-    → c ≺ P 
-  lam≺ {ℓ} {n} {X} {f} {c} P δ =
-    lam ℓ n X f c (λ p → P (Typ ℓ n X f c p)) δ 
-
-  ≺[_↓_⊙_] : ∀ {ℓ n X f c}
-    → (P : Frm ℓ n X → Type ℓ) → c ≺ P 
-    → (p : Pos ℓ n X f c)
-    → P (Typ ℓ n X f c p)
-  ≺[_↓_⊙_] {ℓ} {n} {X} {f} {c} P δ p =
-    app ℓ n X f c (λ p → P (Typ ℓ n X f c p)) δ p 
-    
-  syntax lam≺ P (λ p → x) = λ≺[ p ⇒ x ∈ P ]
-
   Src : (ℓ : Level) (n : ℕ) 
     → (X : 𝕆Type ℓ n)
     → (P : Frm ℓ n X → Type ℓ)
     → Frm ℓ n X → Type ℓ
-  Src ℓ n X P f = Σ[ c ∈ Cns ℓ n X f ] (c ≺ P)
+  Src ℓ n X P f =
+    Σ[ c ∈ Cns ℓ n X f ]
+    ((p : Pos ℓ n X f c) → P (Typ ℓ n X f c p))
 
-  ηs : ∀ {ℓ n X}
-    → (P : Frm ℓ n X → Type ℓ)
-    → (f : Frm ℓ n X) (t : P f)
-    → Src ℓ n X P f
-  ηs {ℓ} {n} {X} P f t = η ℓ n X f , λ≺[ _ ⇒ t ∈ P ]
-  
   Frm ℓ zero X = 𝟙 ℓ 
   Frm ℓ (suc n) (X , P) =
     Σ[ f ∈ Frm ℓ n X ]
@@ -343,32 +298,70 @@ module Core.NativeOpetopicType where
     → (f : Frm ℓ n X)
     → Src ℓ n X P f → Type ℓ
   Forest {ℓ} {n} {X} P f (c , δ) =
-    Dec ℓ n X f c (λ p →
-      Σ[ d ∈ Cns ℓ n X (Typ ℓ n X f c p) ]
-      Σ[ ϵ ∈ d ≺ P ]
-      Cns ℓ (suc n) (X , P) (Typ ℓ n X f c p , ≺[ P ↓ δ ⊙ p ] , d , ϵ))
+    (p : Pos ℓ n X f c) → 
+      Σ[ s ∈ Src ℓ n X P (Typ ℓ n X f c p) ]
+      Cns ℓ (suc n) (X , P) (Typ ℓ n X f c p , δ p , s)
+
+  ηs : ∀ {ℓ n X}
+    → (P : Frm ℓ n X → Type ℓ)
+    → (f : Frm ℓ n X) (t : P f)
+    → Src ℓ n X P f
+  ηs {ℓ} {n} {X} P f t =
+    η ℓ n X f , λ _ → t 
 
   μs : ∀ {ℓ n X}
     → (P : Frm ℓ n X → Type ℓ)
-    → (f : Frm ℓ n X) (s : Src ℓ n X P f)
-    → Forest P f s → Src ℓ n X P f
-  μs {ℓ} {n} {X} P f (c , δ) φ =
-    μ ℓ n X f c (λ p → app ℓ n X f c _ φ p .fst) ,
-    λ≺[ q ⇒ {!app ℓ n X f c _ φ (μ-fst ℓ n X f c (λ p → app ℓ n X f c _ φ p .fst) q) .snd .fst!} ∈ P ]
+    → (f : Frm ℓ n X) (c : Cns ℓ n X f)
+    → (ψ : (p : Pos ℓ n X f c) → Src ℓ n X P (Typ ℓ n X f c p))
+    → Src ℓ n X P f
+  μs {ℓ} {n} {X} P f c ψ =
+    μ ℓ n X f c (λ p → fst (ψ p)) ,
+    (λ p → snd (ψ (μ-fst ℓ n X f c (λ p → fst (ψ p)) p))
+                  (μ-snd ℓ n X f c (λ p → fst (ψ p)) p))
 
-  data Web (ℓ : Level) (n : ℕ) (X : 𝕆Type ℓ n)
-           (P : Frm ℓ n X → Type ℓ)
-           : Frm ℓ (suc n) (X , P) → Type ℓ where
+  data Web (ℓ : Level) (n : ℕ) 
+      (X : 𝕆Type ℓ n)
+      (P : Frm ℓ n X → Type ℓ)
+    : Frm ℓ (suc n) (X , P) → Type ℓ where
 
     lf : (f : Frm ℓ n X) (t : P f)
        → Web ℓ n X P (f , t , ηs P f t)
 
     nd : (f : Frm ℓ n X) (t : P f) 
        → (s : Src ℓ n X P f) (φ : Forest P f s)
-       → Web ℓ n X P (f , t , μs P f s φ)
+       → Web ℓ n X P (f , t , μs P f (fst s) (λ p → fst (φ p)))
 
   Cns ℓ zero X f = 𝟙 ℓ
   Cns ℓ (suc n) (X , P) f = Web ℓ n X P f
 
+  data WebPos (ℓ : Level) (n : ℕ) 
+      (X : 𝕆Type ℓ n)
+      (P : Frm ℓ n X → Type ℓ)
+    : (f : Frm ℓ (suc n) (X , P)) → Web ℓ n X P f → Type ℓ where
 
-    
+    nd-here : (f : Frm ℓ n X) (t : P f) 
+      → (s : Src ℓ n X P f) (φ : Forest P f s)
+      → WebPos ℓ n X P (f , t , μs P f (fst s) (λ p → fst (φ p))) (nd f t s φ)
+
+    nd-there : (f : Frm ℓ n X) (t : P f) 
+      → (s : Src ℓ n X P f) (φ : Forest P f s)
+      → (p : Pos ℓ n X f (fst s))
+      → (q : WebPos ℓ n X P (Typ ℓ n X f (fst s) p , snd s p , fst (φ p)) (snd (φ p)))
+      → WebPos ℓ n X P (f , t , μs P f (fst s) (λ p → fst (φ p))) (nd f t s φ)
+      
+  Pos ℓ zero X f c = 𝟙 ℓ
+  Pos ℓ (suc n) (X , P) f c = WebPos ℓ n X P f c
+
+  Typ ℓ zero X f c p = ●
+  Typ ℓ (suc n) (X , P) ._ ._ (nd-here f t s φ) = f , t , s
+  Typ ℓ (suc n) (X , P) ._ ._ (nd-there f t s φ p q) =
+    Typ ℓ (suc n) (X , P) (Typ ℓ n X f (fst s) p , snd s p , fst (φ p)) (snd (φ p)) q
+
+  graft : (ℓ : Level) (n : ℕ) 
+    → (X : 𝕆Type ℓ n) (P : Frm ℓ n X → Type ℓ)
+    → (f : Frm ℓ n X) (t : P f) (s : Src ℓ n X P f)
+    → (ω : Web ℓ n X P (f , t , s)) (φ : Forest P f s)
+    → Web ℓ n X P (f , t , μs P f (fst s) (λ p → fst (φ p)))
+  graft ℓ n X P .f .t ._ (lf f t) φ = snd (φ (η-pos ℓ n X f))
+  graft ℓ n X P .f .t ._ (nd f t s φ) φ' = {!!} 
+    -- nd f t s (λ p → {!!} , graft ℓ n X P (Typ ℓ n X f (fst s) p) (snd s p) (fst (φ p)) (snd (φ p)) (λ q → {!!} , (snd (φ' (μ-pos ℓ n X f (fst s) (λ p → fst (fst (φ p))) p q)))))
