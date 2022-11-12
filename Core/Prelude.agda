@@ -53,4 +53,17 @@ module Core.Prelude where
   record 𝟙 (ℓ : Level) : Type ℓ where
     instance constructor ● 
 
+  --
+  --  Useful functions
+  --
 
+  infixr 40 _∘_ 
+
+  _∘_ : ∀ {ℓ₀ ℓ₁ ℓ₂} {A : Type ℓ₀} {B : Type ℓ₁} {C : Type ℓ₂}
+    → (f : B → C) (g : A → B) → A → C
+  (f ∘ g) x = f (g x) 
+    
+  cst : ∀ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'}
+    → B → A → B
+  cst b _ = b
+  
