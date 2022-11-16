@@ -7,50 +7,46 @@ module Native.Opetopes where
   --
   --  Polynomial Signature
   --
-  
+
   𝕆 : (n : ℕ) → Type
   {-# BUILTIN OP 𝕆 #-}
-  
-  ℙ : (n : ℕ) (ο : 𝕆 n) → Type
-  {-# BUILTIN PD ℙ #-}
 
-  Pos : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο) → Type
+  ℙ : {n : ℕ} (ο : 𝕆 n) → Type
+  {-# BUILTIN PD ℙ #-}
+  
+  Pos : {n : ℕ} {ο : 𝕆 n} (ρ : ℙ ο) → Type
   {-# BUILTIN POS Pos #-}
   
-  Typ : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο) (p : Pos n ο ρ) → 𝕆 n 
+  Typ : {n : ℕ} {ο : 𝕆 n} (ρ : ℙ ο) (p : Pos ρ) → 𝕆 n
   {-# BUILTIN TYP Typ #-}
 
-  --
-  --  Monadic Signature 
-  --
-  
-  ηₒ : (n : ℕ) (ο : 𝕆 n) → ℙ n ο
+  ηₒ : {n : ℕ} (ο : 𝕆 n) → ℙ ο
   {-# BUILTIN UNT ηₒ #-}
-
-  η-posₒ : (n : ℕ) (ο : 𝕆 n) → Pos n ο (ηₒ n ο)
+    
+  η-posₒ : {n : ℕ} (ο : 𝕆 n) → Pos (ηₒ ο)
   {-# BUILTIN UNTPOS η-posₒ #-}
 
-  μₒ : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο)
-    → (δ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p))
-    → ℙ n ο
+  μₒ : {n : ℕ} {ο : 𝕆 n} (ρ : ℙ ο)
+    → (δ : (p : Pos ρ) → ℙ (Typ ρ p))
+    → ℙ ο
   {-# BUILTIN SUBST μₒ #-}
 
-  pairₒ : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο)
-    → (δ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p))
-    → (p : Pos n ο ρ) (q : Pos n (Typ n ο ρ p) (δ p))
-    → Pos n ο (μₒ n ο ρ δ)
+  pairₒ : {n : ℕ} {ο : 𝕆 n} (ρ : ℙ ο)
+    → (δ : (p : Pos ρ) → ℙ (Typ ρ p))
+    → (p : Pos ρ) (q : Pos (δ p))
+    → Pos (μₒ ρ δ)
   {-# BUILTIN SUBSTPOS pairₒ #-}
 
-  fstₒ : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο)
-    → (δ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p))
-    → (p : Pos n ο (μₒ n ο ρ δ))
-    → Pos n ο ρ
+  fstₒ : {n : ℕ} {ο : 𝕆 n} (ρ : ℙ ο)
+    → (δ : (p : Pos ρ) → ℙ (Typ ρ p))
+    → (p : Pos (μₒ ρ δ))
+    → Pos ρ
   {-# BUILTIN SUBSTFST fstₒ #-}
 
-  sndₒ : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο)
-    → (δ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p))
-    → (p : Pos n ο (μₒ n ο ρ δ))
-    → Pos n (Typ n ο ρ (fstₒ n ο ρ δ p)) (δ (fstₒ n ο ρ δ p))
+  sndₒ : {n : ℕ} {ο : 𝕆 n} (ρ : ℙ ο)
+    → (δ : (p : Pos ρ) → ℙ (Typ ρ p))
+    → (p : Pos (μₒ ρ δ))
+    → Pos (δ (fstₒ ρ δ p))
   {-# BUILTIN SUBSTSND sndₒ #-}
 
   --
@@ -63,28 +59,26 @@ module Native.Opetopes where
     --  Position Equations
     --
 
-    Typ-η : (n : ℕ) (ο : 𝕆 n) (p : Pos n ο (ηₒ n ο))
-      → Typ n ο (ηₒ n ο) p ↦ ο 
+    Typ-η : (n : ℕ) (ο : 𝕆 n) (p : Pos (ηₒ ο))
+      → Typ (ηₒ ο) p ↦ ο 
     {-# REWRITE Typ-η #-}
 
-    Typ-μₒ : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο)
-      → (δ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p))
-      → (p : Pos n ο (μₒ n ο ρ δ))
-      → Typ n ο (μₒ n ο ρ δ) p ↦
-        Typ n (Typ n ο ρ (fstₒ n ο ρ δ p)) (δ (fstₒ n ο ρ δ p))
-              (sndₒ n ο ρ δ p) 
+    Typ-μₒ : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ ο)
+      → (δ : (p : Pos ρ) → ℙ (Typ ρ p))
+      → (p : Pos (μₒ ρ δ))
+      → Typ (μₒ ρ δ) p ↦ Typ (δ (fstₒ ρ δ p)) (sndₒ ρ δ p) 
     {-# REWRITE Typ-μₒ #-} 
 
-    fstₒ-β : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο)
-      → (δ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p))
-      → (p : Pos n ο ρ) (q : Pos n (Typ n ο ρ p) (δ p))
-      → fstₒ n ο ρ δ (pairₒ n ο ρ δ p q) ↦ p
+    fstₒ-β : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ ο)
+      → (δ : (p : Pos ρ) → ℙ (Typ ρ p))
+      → (p : Pos ρ) (q : Pos (δ p))
+      → fstₒ ρ δ (pairₒ ρ δ p q) ↦ p
     {-# REWRITE fstₒ-β #-}
 
-    sndₒ-β : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο)
-      → (δ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p))
-      → (p : Pos n ο ρ) (q : Pos n (Typ n ο ρ p) (δ p))
-      → sndₒ n ο ρ δ (pairₒ n ο ρ δ p q) ↦ q
+    sndₒ-β : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ ο)
+      → (δ : (p : Pos ρ) → ℙ (Typ ρ p))
+      → (p : Pos ρ) (q : Pos (δ p))
+      → sndₒ ρ δ (pairₒ ρ δ p q) ↦ q
     {-# REWRITE sndₒ-β #-}
 
     --
@@ -93,188 +87,167 @@ module Native.Opetopes where
 
     -- TODO - missing elim compatibilities 
 
-    μ-unit-r : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο)
-      → μₒ n ο ρ (λ p → ηₒ n (Typ n ο ρ p)) ↦ ρ
+    μ-unit-r : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ ο)
+      → μₒ ρ (λ p → ηₒ (Typ ρ p)) ↦ ρ
     {-# REWRITE μ-unit-r #-}
 
     μ-unit-ℓ : (n : ℕ) (ο : 𝕆 n)
-      → (δ : (p : Pos n ο (ηₒ n ο)) → ℙ n ο)
-      → μₒ n ο (ηₒ n ο) δ ↦ δ (η-posₒ n ο) 
+      → (δ : (p : Pos (ηₒ ο)) → ℙ ο)
+      → μₒ (ηₒ ο) δ ↦ δ (η-posₒ ο) 
     {-# REWRITE μ-unit-ℓ #-}
 
-    μ-assoc : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο)
-      → (δ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p))
-      → (ϵ : (p : Pos n ο (μₒ n ο ρ δ)) → ℙ n (Typ n ο (μₒ n ο ρ δ) p))
-      → μₒ n ο (μₒ n ο ρ δ) ϵ ↦
-        μₒ n ο ρ (λ p → μₒ n (Typ n ο ρ p) (δ p)
-                   (λ q → ϵ (pairₒ n ο ρ δ p q)))
+    μ-assoc : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ ο)
+      → (δ : (p : Pos ρ) → ℙ (Typ ρ p))
+      → (ϵ : (p : Pos (μₒ ρ δ)) → ℙ (Typ (μₒ ρ δ) p))
+      → μₒ (μₒ ρ δ) ϵ ↦ μₒ ρ (λ p → μₒ (δ p) (λ q → ϵ (pairₒ ρ δ p q)))
     {-# REWRITE μ-assoc #-}
+
 
   --
   --  Implementations 
   --
 
   𝕆 zero = 𝟙 ℓ-zero
-  𝕆 (suc n) = Σ[ ο ∈ 𝕆 n ] ℙ n ο
+  𝕆 (suc n) = Σ[ ο ∈ 𝕆 n ] ℙ ο
 
-  data Tr (n : ℕ) : 𝕆 (suc n) → Type where
+  data Tr {n : ℕ} : 𝕆 (suc n) → Type where
 
-    lfₒ : (ο : 𝕆 n) → Tr n (ο , ηₒ n ο) 
+    lfₒ : (ο : 𝕆 n) → Tr (ο , ηₒ ο) 
 
-    ndₒ : (ο : 𝕆 n) (ρ : ℙ n ο)
-      → (δ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p))
-      → (ϵ : (p : Pos n ο ρ) → Tr n (Typ n ο ρ p , δ p))
-      → Tr n (ο , μₒ n ο ρ δ)
+    ndₒ : {ο : 𝕆 n} (ρ : ℙ ο)
+      → (δ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
+      → Tr (ο , μₒ ρ (λ p → fst (δ p)))
 
-  data TrPos (n : ℕ) : (ο : 𝕆 (suc n)) → Tr n ο → Type where
+  data TrPos {n : ℕ} : {ο : 𝕆 (suc n)} → Tr ο → Type where
 
-    nd-hereₒ : {ο : 𝕆 n} {ρ : ℙ n ο}
-      → {δ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p)}
-      → {ϵ : (p : Pos n ο ρ) → Tr n (Typ n ο ρ p , δ p)}
-      → TrPos n (ο , μₒ n ο ρ δ) (ndₒ ο ρ δ ϵ)
+    nd-hereₒ : {ο : 𝕆 n} {ρ : ℙ ο}
+      → {δ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs)}
+      → TrPos (ndₒ ρ δ)
 
-    nd-thereₒ : {ο : 𝕆 n} {ρ : ℙ n ο}
-      → {δ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p)}
-      → {ϵ : (p : Pos n ο ρ) → Tr n (Typ n ο ρ p , δ p)}
-      → (p : Pos n ο ρ) (q : TrPos n (Typ n ο ρ p , δ p) (ϵ p))
-      → TrPos n (ο , μₒ n ο ρ δ) (ndₒ ο ρ δ ϵ)
+    nd-thereₒ : {ο : 𝕆 n} {ρ : ℙ ο}
+      → {δ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs)}
+      → (p : Pos ρ) (q : TrPos (snd (δ p)))
+      → TrPos (ndₒ ρ δ)
 
-  ℙ zero ο = 𝟙 ℓ-zero
-  ℙ (suc n) ο = Tr n ο
+  ℙ {zero} ο = 𝟙 ℓ-zero
+  ℙ {suc n} ο = Tr ο
   
-  Pos zero ο ρ = 𝟙 ℓ-zero
-  Pos (suc n) ο ρ = TrPos n ο ρ
+  Pos {zero} ρ = 𝟙 ℓ-zero
+  Pos {suc n} ρ = TrPos ρ
   
-  Typ zero ο ρ p = ●
-  Typ (suc n) .(ο , μₒ n ο ρ δ) (ndₒ ο ρ δ ϵ) nd-hereₒ = ο , ρ
-  Typ (suc n) .(ο , μₒ n ο ρ δ) (ndₒ ο ρ δ ϵ) (nd-thereₒ p q) =
-    Typ (suc n) (Typ n ο ρ p , δ p) (ϵ p) q
+  Typ {zero} ρ p = ●
+  Typ {suc n} ._ (nd-hereₒ {ο} {ρ})  = ο , ρ
+  Typ {suc n} ._ (nd-thereₒ {δ = δ} p q) = Typ (snd (δ p)) q
 
   --
   --  Unit 
   --
   
-  ηₒ zero ο = ●
-  ηₒ (suc n) (ο , ρ) =
-    ndₒ ο ρ (λ p → ηₒ n (Typ n ο ρ p))
-            (λ p → lfₒ (Typ n ο ρ p))
+  ηₒ {zero} ο = ●
+  ηₒ {suc n} (ο , ρ) = ndₒ ρ (λ p → ηₒ (Typ ρ p) , lfₒ (Typ ρ p))
   
-  η-posₒ zero ο = ●
-  η-posₒ (suc n) (ο , ρ) = nd-hereₒ
-
+  η-posₒ {zero} ο = ●
+  η-posₒ {suc n} (ο , ρ) = nd-hereₒ
+  
   --
   --  Grafting 
   --
   
-  γₒ : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο) (τ : Tr n (ο , ρ))
-    → (ϕ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p))
-    → (ψ : (p : Pos n ο ρ) → Tr n (Typ n ο ρ p , ϕ p))
-    → Tr n (ο , μₒ n ο ρ ϕ)
-  γₒ n ο .(ηₒ n ο) (lfₒ .ο) ϕ ψ = ψ (η-posₒ n ο)
-  γₒ n ο .(μₒ n ο ρ δ) (ndₒ .ο ρ δ ϵ) ϕ ψ =
-    let ϕ' p q = ϕ (pairₒ n ο ρ δ p q)
-        ψ' p q = ψ (pairₒ n ο ρ δ p q)
-        δ' p = μₒ n (Typ n ο ρ p) (δ p) (ϕ' p)
-        ϵ' p = γₒ n (Typ n ο ρ p) (δ p) (ϵ p) (ϕ' p) (ψ' p)
-    in ndₒ ο ρ δ' ϵ'
+  γₒ : {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : Tr (ο , ρ))
+    → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
+    → Tr (ο , μₒ ρ (λ p → fst (ϕ p)))
+  γₒ (lfₒ o) ϕ = snd (ϕ (η-posₒ o))
+  γₒ (ndₒ ρ δ) ϕ =
+    let ϕ' p q = ϕ (pairₒ ρ (λ r → fst (δ r)) p q)
+    in ndₒ ρ (λ p → μₒ (fst (δ p)) (λ q → fst (ϕ' p q)) ,
+                    γₒ (snd (δ p)) (ϕ' p))
 
-  inlₒ : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο) (τ : Tr n (ο , ρ))
-    → (ϕ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p))
-    → (ψ : (p : Pos n ο ρ) → Tr n (Typ n ο ρ p , ϕ p))
-    → (p : TrPos n (ο , ρ) τ)
-    → TrPos n (ο , μₒ n ο ρ ϕ) (γₒ n ο ρ τ ϕ ψ)
-  inlₒ n ο .(μₒ n ο ρ δ) (ndₒ ο ρ δ ϵ) ϕ ψ nd-hereₒ = nd-hereₒ
-  inlₒ n ο .(μₒ n ο ρ δ) (ndₒ ο ρ δ ϵ) ϕ ψ (nd-thereₒ p q) =
-    let ϕ' p q = ϕ (pairₒ n ο ρ δ p q)
-        ψ' p q = ψ (pairₒ n ο ρ δ p q)
-    in nd-thereₒ p (inlₒ n (Typ n ο ρ p) (δ p) (ϵ p) (ϕ' p) (ψ' p) q)
+  inlₒ : {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : Tr (ο , ρ))
+    → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
+    → (p : TrPos τ) → TrPos (γₒ τ ϕ)
+  inlₒ (ndₒ ρ δ) ϕ nd-hereₒ = nd-hereₒ
+  inlₒ (ndₒ ρ δ) ϕ (nd-thereₒ p q) =
+    let ϕ' p q = ϕ (pairₒ ρ (λ r → fst (δ r)) p q)
+    in nd-thereₒ p (inlₒ (snd (δ p)) (ϕ' p) q)
 
-  inrₒ : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο) (τ : Tr n (ο , ρ))
-    → (ϕ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p))
-    → (ψ : (p : Pos n ο ρ) → Tr n (Typ n ο ρ p , ϕ p))
-    → (p : Pos n ο ρ) (q : TrPos n (Typ n ο ρ p , ϕ p) (ψ p))
-    → TrPos n (ο , μₒ n ο ρ ϕ) (γₒ n ο ρ τ ϕ ψ)
-  inrₒ n ο .(ηₒ n ο) (lfₒ .ο) ϕ ψ p q = q
-  inrₒ n ο .(μₒ n ο ρ δ) (ndₒ .ο ρ δ ϵ) ϕ ψ pq r =
-    let ϕ' p q = ϕ (pairₒ n ο ρ δ p q)
-        ψ' p q = ψ (pairₒ n ο ρ δ p q)
-        p = fstₒ n ο ρ δ pq
-        q = sndₒ n ο ρ δ pq 
-    in nd-thereₒ p (inrₒ n (Typ n ο ρ p) (δ p) (ϵ p) (ϕ' p) (ψ' p) q r)
+  inrₒ : {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : Tr (ο , ρ))
+    → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
+    → (p : Pos ρ) (q : TrPos (snd (ϕ p))) → TrPos (γₒ τ ϕ)
+  inrₒ (lfₒ ο) ϕ p q = q
+  inrₒ (ndₒ ρ δ) ϕ pq r = 
+    let ϕ' p q = ϕ (pairₒ ρ (λ r → fst (δ r)) p q)
+        p = fstₒ ρ (λ r → fst (δ r)) pq
+        q = sndₒ ρ (λ r → fst (δ r)) pq 
+    in nd-thereₒ p (inrₒ (snd (δ p)) (ϕ' p) q r)
 
-  caseₒ : ∀ {ℓ} (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο) (τ : Tr n (ο , ρ))
-    → (ϕ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p))
-    → (ψ : (p : Pos n ο ρ) → Tr n (Typ n ο ρ p , ϕ p))
-    → (P : TrPos n (ο , μₒ n ο ρ ϕ) (γₒ n ο ρ τ ϕ ψ) → Type ℓ)
-    → (inl* : (p : TrPos n (ο , ρ) τ) → P (inlₒ n ο ρ τ ϕ ψ p))
-    → (inr* : (p : Pos n ο ρ) (q : TrPos n (Typ n ο ρ p , ϕ p) (ψ p)) → P (inrₒ n ο ρ τ ϕ ψ p q))
-    → (p : TrPos n (ο , μₒ n ο ρ ϕ) (γₒ n ο ρ τ ϕ ψ)) → P p
-  caseₒ n ο .(ηₒ n ο) (lfₒ .ο) ϕ ψ P inl* inr* p = inr* (η-posₒ n ο) p
-  caseₒ n ο .(μₒ n ο ρ δ) (ndₒ .ο ρ δ ϵ) ϕ ψ P inl* inr* nd-hereₒ = inl* nd-hereₒ
-  caseₒ n ο .(μₒ n ο ρ δ) (ndₒ .ο ρ δ ϵ) ϕ ψ P inl* inr* (nd-thereₒ u v) =
-    let ϕ' p q = ϕ (pairₒ n ο ρ δ p q)
-        ψ' p q = ψ (pairₒ n ο ρ δ p q)
-    in caseₒ n (Typ n ο ρ u) (δ u) (ϵ u) (ϕ' u) (ψ' u)
-          (λ q → P (nd-thereₒ u q))
-          (λ q → inl* (nd-thereₒ u q))
-          (λ p q → inr* (pairₒ n ο ρ δ u p) q) v
+  caseₒ : ∀ {ℓ} {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : Tr (ο , ρ))
+    → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
+    → (P : TrPos (γₒ τ ϕ) → Type ℓ)
+    → (inl* : (p : TrPos τ) → P (inlₒ τ ϕ p))
+    → (inr* : (p : Pos ρ) (q : TrPos (snd (ϕ p))) → P (inrₒ τ ϕ p q))
+    → (p : TrPos (γₒ τ ϕ)) → P p
+  caseₒ (lfₒ ο) ϕ P inl* inr* p = inr* (η-posₒ ο) p
+  caseₒ (ndₒ ρ δ) ϕ P inl* inr* nd-hereₒ = inl* nd-hereₒ
+  caseₒ (ndₒ ρ δ) ϕ P inl* inr* (nd-thereₒ u v) = 
+    let ϕ' p q = ϕ (pairₒ ρ (λ r → fst (δ r)) p q)
+    in caseₒ (snd (δ u)) (ϕ' u) (λ q → P (nd-thereₒ u q))
+         (λ q → inl* (nd-thereₒ u q))
+         (λ p q → inr* (pairₒ ρ (λ r → fst (δ r)) u p) q) v
 
   postulate
 
-    case-inl-β : ∀ {ℓ} (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο) (τ : Tr n (ο , ρ))
-      → (ϕ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p))
-      → (ψ : (p : Pos n ο ρ) → Tr n (Typ n ο ρ p , ϕ p))
-      → (P : TrPos n (ο , μₒ n ο ρ ϕ) (γₒ n ο ρ τ ϕ ψ) → Type ℓ)
-      → (inl* : (p : TrPos n (ο , ρ) τ) → P (inlₒ n ο ρ τ ϕ ψ p))
-      → (inr* : (p : Pos n ο ρ) (q : TrPos n (Typ n ο ρ p , ϕ p) (ψ p)) → P (inrₒ n ο ρ τ ϕ ψ p q))
-      → (p : TrPos n (ο , ρ) τ)
-      → caseₒ n ο ρ τ ϕ ψ P inl* inr* (inlₒ n ο ρ τ ϕ ψ p) ↦ inl* p
+    case-inl-β : ∀ {ℓ} {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : Tr (ο , ρ))
+      → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
+      → (P : TrPos (γₒ τ ϕ) → Type ℓ)
+      → (inl* : (p : TrPos τ) → P (inlₒ τ ϕ p))
+      → (inr* : (p : Pos ρ) (q : TrPos (snd (ϕ p))) → P (inrₒ τ ϕ p q))
+      → (p : TrPos τ)
+      → caseₒ τ ϕ P inl* inr* (inlₒ τ ϕ p) ↦ inl* p
     {-# REWRITE case-inl-β #-}
 
-    case-inr-β : ∀ {ℓ} (n : ℕ) (ο : 𝕆 n) (ρ : ℙ n ο) (τ : Tr n (ο , ρ))
-      → (ϕ : (p : Pos n ο ρ) → ℙ n (Typ n ο ρ p))
-      → (ψ : (p : Pos n ο ρ) → Tr n (Typ n ο ρ p , ϕ p))
-      → (P : TrPos n (ο , μₒ n ο ρ ϕ) (γₒ n ο ρ τ ϕ ψ) → Type ℓ)
-      → (inl* : (p : TrPos n (ο , ρ) τ) → P (inlₒ n ο ρ τ ϕ ψ p))
-      → (inr* : (p : Pos n ο ρ) (q : TrPos n (Typ n ο ρ p , ϕ p) (ψ p)) → P (inrₒ n ο ρ τ ϕ ψ p q))
-      → (p : Pos n ο ρ) (q : TrPos n (Typ n ο ρ p , ϕ p) (ψ p))     
-      → caseₒ n ο ρ τ ϕ ψ P inl* inr* (inrₒ n ο ρ τ ϕ ψ p q) ↦ inr* p q
+    case-inr-β : ∀ {ℓ} {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : Tr (ο , ρ))
+      → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
+      → (P : TrPos (γₒ τ ϕ) → Type ℓ)
+      → (inl* : (p : TrPos τ) → P (inlₒ τ ϕ p))
+      → (inr* : (p : Pos ρ) (q : TrPos (snd (ϕ p))) → P (inrₒ τ ϕ p q))
+      → (p : Pos ρ) (q : TrPos (snd (ϕ p))) 
+      → caseₒ τ ϕ P inl* inr* (inrₒ τ ϕ p q) ↦ inr* p q 
     {-# REWRITE case-inr-β #-}
 
+
   --
-  --  Substitution
+  --  Substitution 
   --
 
-  μₒ zero ο ρ δ = ●
-  μₒ (suc n) .(ο , ηₒ n ο) (lfₒ ο) δ = lfₒ ο
-  μₒ (suc n) .(ο , μₒ n ο ρ δ) (ndₒ ο ρ δ ϵ) ϕ =
+  μₒ {zero} ρ ϕ = ●
+  μₒ {suc n} (lfₒ ο) ϕ = lfₒ ο
+  μₒ {suc n} (ndₒ ρ δ) ϕ =
     let ϕ' p q = ϕ (nd-thereₒ p q)
-        ih p = μₒ (suc n) (Typ n ο ρ p , δ p) (ϵ p) (ϕ' p)
-    in γₒ n ο ρ (ϕ nd-hereₒ) δ ih 
+        ih p = fst (δ p) , μₒ (snd (δ p)) (ϕ' p)
+    in γₒ (ϕ nd-hereₒ) ih
+  
+  pairₒ {zero} ρ ϕ p q = ●
+  pairₒ {suc n} (ndₒ ρ δ) ϕ nd-hereₒ r = 
+    let ϕ' p q = ϕ (nd-thereₒ p q)
+        ih p = fst (δ p) , μₒ (snd (δ p)) (ϕ' p)
+    in inlₒ (ϕ nd-hereₒ) ih r 
+  pairₒ {suc n} (ndₒ ρ δ) ϕ (nd-thereₒ p q) r = 
+    let ϕ' p q = ϕ (nd-thereₒ p q)
+        ih p = fst (δ p) , μₒ (snd (δ p)) (ϕ' p)
+    in inrₒ (ϕ nd-hereₒ) ih p (pairₒ (snd (δ p)) (ϕ' p) q r) 
 
-  pairₒ zero ο ρ δ p q = ●
-  pairₒ (suc n) .(ο , μₒ n ο ρ δ) (ndₒ ο ρ δ ϵ) ϕ nd-hereₒ q =
+  fstₒ {zero} ρ ϕ pq = ●
+  fstₒ {suc n} (ndₒ ρ δ) ϕ pq = 
     let ϕ' p q = ϕ (nd-thereₒ p q)
-        ih p = μₒ (suc n) (Typ n ο ρ p , δ p) (ϵ p) (ϕ' p)
-    in inlₒ n ο ρ (ϕ nd-hereₒ) δ ih q
-  pairₒ (suc n) .(ο , μₒ n ο ρ δ) (ndₒ ο ρ δ ϵ) ϕ (nd-thereₒ p q) r = 
-    let ϕ' p q = ϕ (nd-thereₒ p q)
-        ih p = μₒ (suc n) (Typ n ο ρ p , δ p) (ϵ p) (ϕ' p)
-    in inrₒ n ο ρ (ϕ nd-hereₒ) δ ih p (pairₒ (suc n) (Typ n ο ρ p , δ p) (ϵ p) (ϕ' p) q r) 
+        ih p = fst (δ p) , μₒ (snd (δ p)) (ϕ' p)
+    in caseₒ (ϕ nd-hereₒ) ih (λ _ → TrPos (ndₒ ρ δ))
+          (λ _ → nd-hereₒ)
+          (λ p q → nd-thereₒ p (fstₒ (snd (δ p)) (ϕ' p) q)) pq
 
-  fstₒ zero ο ρ δ p = ●
-  fstₒ (suc n) .(ο , μₒ n ο ρ δ) (ndₒ ο ρ δ ϵ) ϕ = 
+  sndₒ {zero} ρ ϕ pq = ●
+  sndₒ {suc n} (ndₒ ρ δ) ϕ pq = 
     let ϕ' p q = ϕ (nd-thereₒ p q)
-        ih p = μₒ (suc n) (Typ n ο ρ p , δ p) (ϵ p) (ϕ' p)
-    in caseₒ n ο ρ (ϕ nd-hereₒ) δ ih
-         (λ p → TrPos n (ο , μₒ n ο ρ δ) (ndₒ ο ρ δ ϵ))
-         (λ p → nd-hereₒ)
-         (λ p q → nd-thereₒ p (fstₒ (suc n) (Typ n ο ρ p , δ p) (ϵ p) (ϕ' p) q))
-    
-  sndₒ zero ο ρ δ p = ●
-  sndₒ (suc n) .(ο , μₒ n ο ρ δ) (ndₒ ο ρ δ ϵ) ϕ = 
-    let ϕ' p q = ϕ (nd-thereₒ p q)
-        ih p = μₒ (suc n) (Typ n ο ρ p , δ p) (ϵ p) (ϕ' p)
-    in caseₒ n ο ρ (ϕ nd-hereₒ) δ ih _
+        ih p = fst (δ p) , μₒ (snd (δ p)) (ϕ' p)
+    in caseₒ (ϕ nd-hereₒ) ih (λ p → TrPos (ϕ (fstₒ (ndₒ ρ δ) ϕ p)))
          (λ p → p)
-         (λ p q → sndₒ (suc n) (Typ n ο ρ p , δ p) (ϵ p) (ϕ' p) q)
+         (λ p q → sndₒ (snd (δ p)) (ϕ' p) q) pq
