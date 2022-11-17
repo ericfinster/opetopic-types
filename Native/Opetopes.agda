@@ -85,24 +85,89 @@ module Native.Opetopes where
     --  Monadic Equations
     --
 
-    -- TODO - missing elim compatibilities 
-
+    -- right unit 
     μₒ-unit-r : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ ο)
       → μₒ ρ (λ p → ηₒ (Typ ρ p)) ↦ ρ
     {-# REWRITE μₒ-unit-r #-}
 
-    μₒ-unit-ℓ : (n : ℕ) (ο : 𝕆 n)
+    fstₒ-unit-r : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ ο)
+      → (p : Pos ρ)
+      → fstₒ ρ (λ p → ηₒ (Typ ρ p)) p ↦ p
+    {-# REWRITE fstₒ-unit-r #-}
+
+    -- I think this one is unnecessary because of η-laws
+    sndₒ-unit-r : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ ο)
+      → (p : Pos ρ)
+      → sndₒ ρ (λ p → ηₒ (Typ ρ p)) p ↦ η-posₒ (Typ ρ p)
+    {-# REWRITE sndₒ-unit-r #-}
+    
+    pairₒ-unit-r : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ ο)
+      → (p : Pos ρ) (q : Pos (ηₒ (Typ ρ p)))
+      → pairₒ ρ (λ p → ηₒ (Typ ρ p)) p q ↦ p
+    {-# REWRITE pairₒ-unit-r #-}
+
+    -- left unit 
+    μₒ-unit-l : (n : ℕ) (ο : 𝕆 n)
       → (δ : (p : Pos (ηₒ ο)) → ℙ ο)
       → μₒ (ηₒ ο) δ ↦ δ (η-posₒ ο) 
-    {-# REWRITE μₒ-unit-ℓ #-}
+    {-# REWRITE μₒ-unit-l #-}
 
+    fstₒ-unit-l : (n : ℕ) (ο : 𝕆 n)
+      → (δ : (p : Pos (ηₒ ο)) → ℙ ο)
+      → (p : Pos (δ (η-posₒ ο)))
+      → fstₒ (ηₒ ο) δ p ↦ η-posₒ ο
+    {-# REWRITE fstₒ-unit-l #-}
+    
+    sndₒ-unit-l : (n : ℕ) (ο : 𝕆 n)
+      → (δ : (p : Pos (ηₒ ο)) → ℙ ο)
+      → (p : Pos (δ (η-posₒ ο)))
+      → sndₒ (ηₒ ο) δ p ↦ p
+    {-# REWRITE sndₒ-unit-l #-}
+
+    pairₒ-unit-l : (n : ℕ) (ο : 𝕆 n)
+      → (δ : (p : Pos (ηₒ ο)) → ℙ ο)
+      → (p : Pos (ηₒ ο)) (q : Pos (δ p))
+      → pairₒ (ηₒ ο) δ p q ↦ q
+    {-# REWRITE pairₒ-unit-l #-}
+  
+    -- associativity
     μₒ-assoc : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ ο)
       → (δ : (p : Pos ρ) → ℙ (Typ ρ p))
       → (ϵ : (p : Pos (μₒ ρ δ)) → ℙ (Typ (μₒ ρ δ) p))
       → μₒ (μₒ ρ δ) ϵ ↦ μₒ ρ (λ p → μₒ (δ p) (λ q → ϵ (pairₒ ρ δ p q)))
     {-# REWRITE μₒ-assoc #-}
 
+    fstₒ-assoc : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ ο)
+      → (δ : (p : Pos ρ) → ℙ (Typ ρ p))
+      → (ϵ : (p : Pos (μₒ ρ δ)) → ℙ (Typ (μₒ ρ δ) p))
+      → (pqr : Pos (μₒ (μₒ ρ δ) ϵ))
+      → fstₒ (μₒ ρ δ) ϵ pqr ↦
+          let p' = fstₒ ρ (λ p → μₒ (δ p) (λ q → ϵ (pairₒ ρ δ p q))) pqr
+              q' = sndₒ ρ (λ p → μₒ (δ p) (λ q → ϵ (pairₒ ρ δ p q))) pqr
+          in pairₒ ρ δ p' (fstₒ (δ p') (λ q' → ϵ (pairₒ ρ δ p' q')) q')
+    {-# REWRITE fstₒ-assoc #-}
 
+    sndₒ-assoc : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ ο)
+      → (δ : (p : Pos ρ) → ℙ (Typ ρ p))
+      → (ϵ : (p : Pos (μₒ ρ δ)) → ℙ (Typ (μₒ ρ δ) p))
+      → (pqr : Pos (μₒ (μₒ ρ δ) ϵ))
+      → sndₒ (μₒ ρ δ) ϵ pqr ↦ 
+          let p' = fstₒ ρ (λ p → μₒ (δ p) (λ q → ϵ (pairₒ ρ δ p q))) pqr
+              q' = sndₒ ρ (λ p → μₒ (δ p) (λ q → ϵ (pairₒ ρ δ p q))) pqr
+          in sndₒ (δ p') (λ q' → ϵ (pairₒ ρ δ p' q')) q'
+    {-# REWRITE sndₒ-assoc #-}
+
+    pairₒ-assoc : (n : ℕ) (ο : 𝕆 n) (ρ : ℙ ο)
+      → (δ : (p : Pos ρ) → ℙ (Typ ρ p))
+      → (ϵ : (p : Pos (μₒ ρ δ)) → ℙ (Typ (μₒ ρ δ) p))
+      → (pq : Pos (μₒ ρ δ)) (r : Pos (ϵ pq))
+      → pairₒ (μₒ ρ δ) ϵ pq r ↦
+          let p = fstₒ ρ δ pq
+              q = sndₒ ρ δ pq 
+          in pairₒ ρ (λ p → μₒ (δ p) (λ q → ϵ (pairₒ ρ δ p q))) p
+               (pairₒ (δ p) (λ q → ϵ (pairₒ ρ δ p q)) q r) 
+    {-# REWRITE pairₒ-assoc #-}
+    
   --
   --  Implementations 
   --

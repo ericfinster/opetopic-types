@@ -22,16 +22,15 @@ module Native.OpetopicType where
     → {ρ : ℙ ο} (s : Web X f ρ)
     → (p : Pos ρ) → Frm X (Typ ρ p)
 
+  --
+  --  Monadic Structure
+  --
+
+  η : ∀ {ℓ n} (X : 𝕆Type ℓ n) 
+    → {ο : 𝕆 n} (f : Frm X ο)
+    → Web X f (ηₒ ο) 
 
   postulate
-  
-    --
-    --  Monadic Structure
-    --
-
-    η : ∀ {ℓ n} (X : 𝕆Type ℓ n) 
-      → {ο : 𝕆 n} (f : Frm X ο)
-      → Web X f (ηₒ ο) 
 
     μ : ∀ {ℓ n} (X : 𝕆Type ℓ n)
       → {ο : 𝕆 n} {f : Frm X ο}
@@ -112,9 +111,9 @@ module Native.OpetopicType where
 
   ret : ∀ {ℓ n} (X : 𝕆Type ℓ n)
     → (P : Idx X → Type ℓ)
-    → (i : Idx X) → P i → Src X P i
-  ret {n = n} X P (ο , f) x =
-    ⟪ ηₒ ο , η X f , (λ _ → x) ⟫
+    → {i : Idx X} → P i → Src X P i
+  ret {n = n} X P {ο , f} x =
+    ⟪ ηₒ ο , η X f , cst x ⟫
     
   join : ∀ {ℓ n} (X : 𝕆Type ℓ n)
     → (P : Idx X → Type ℓ)
@@ -164,12 +163,12 @@ module Native.OpetopicType where
 
   data Pd {ℓ n} (X : 𝕆Type ℓ n)
       (P : Idx X → Type ℓ)
-    : (i : Idx X) (s : Src X P i) → P i
+    : (i : Idx X) (s : Src X P i) (x : P i)
     → Tr (fst i , pd s) → Type ℓ where
 
-    lf : (i : Idx X) (x : P i)
-       →  Pd X P i (ret X P i x) x
-         (lfₒ (fst i))  
+    lf : {i : Idx X} (x : P i)
+       →  Pd X P i (ret X P x) x
+            (lfₒ (fst i))  
 
     nd : {i : Idx X} (x : P i)
        → (s : Src X (FramedPd X P) i)
@@ -184,5 +183,26 @@ module Native.OpetopicType where
   Shp {n = suc n} (X , P) (nd x σ) here = _ , web σ , (λ p → stm (dec σ p)) , x
   Shp {n = suc n} (X , P) (nd x σ) (there p q) = Shp (X , P) (trnk (dec σ p)) q
 
-  -- η = {!!} 
+
+  η {n = zero} X f = ●
+  η {n = suc n} (X , P) {ο , ρ} (f , ω , δ , x) = nd x ⟪ ρ , ω , ufpd ⟫  
+
+    where ufpd : (p : Pos ρ) → FramedPd X P (Typ ρ p , Shp X ω p) 
+          ufpd p = ⟦ ret X P (δ p) , δ p , lfₒ (Typ ρ p) , lf (δ p) ⟧
+
+  -- γₒ : {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : Tr (ο , ρ))
+  --   → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
+  --   → Tr (ο , μₒ ρ (λ p → fst (ϕ p)))
+
+
+  -- γ : ∀ {ℓ n} (X : 𝕆Type ℓ n)
+  --   → (P : Idx X → Type ℓ)
+  --   → (i : Idx X) (ω : Src X P i)
+  
+  -- μ : ∀ {ℓ n} (X : 𝕆Type ℓ n)
+  --   → {ο : 𝕆 n} {f : Frm X ο}
+  --   → {ρ : ℙ ο} (s : Web X f ρ)
+  --   → {δ : (p : Pos ρ) → ℙ (Typ ρ p)}
+  --   → (ϵ : (p : Pos ρ) → Web X (Shp X s p) (δ p))
+  --   → Web X f (μₒ ρ δ)
   -- μ = {!!} 
