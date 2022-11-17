@@ -97,10 +97,10 @@ module Native.OpetopicType where
     (i : Idx X) : Type ℓ where
     inductive 
     eta-equality
-    constructor ⟪_,_,_⟫ 
+    constructor ⟪_,_⟫ 
     field
 
-      pd : ℙ (fst i)
+      {pd} : ℙ (fst i)
       web : Web X (snd i) pd
       dec : (p : Pos pd) → P (Typ pd p , Shp X web p)
 
@@ -110,16 +110,15 @@ module Native.OpetopicType where
     → (P : Idx X → Type ℓ)
     → {i : Idx X} → P i → Src X P i
   ret {n = n} X P {ο , f} x =
-    ⟪ ηₒ ο , η X f , cst x ⟫
+    ⟪ η X f , cst x ⟫
     
   join : ∀ {ℓ n} (X : 𝕆Type ℓ n)
     → (P : Idx X → Type ℓ)
     → {i : Idx X} → Src X (Src X P) i → Src X P i
-  join X P ⟪ ρ , ω , δ ⟫  =
-    ⟪ μₒ ρ (λ p → pd (δ p))
-    , μ X ω (λ p → web (δ p)) 
-    , (λ p → dec (δ (fstₒ ρ (λ p → pd (δ p)) p))
-                 (sndₒ ρ (λ p → pd (δ p)) p)) 
+  join X P s  =
+    ⟪ μ X (web s) (λ p → web (dec s p)) 
+    , (λ p → dec (dec s (fstₒ (pd s) (λ p → pd (dec s p)) p))
+                 (sndₒ (pd s) (λ p → pd (dec s p)) p)) 
     ⟫ 
 
   --
@@ -138,70 +137,56 @@ module Native.OpetopicType where
     Σ[ δ ∈ ((p : Pos ρ) → P (Typ ρ p , Shp X s p)) ] 
     P (ο , f)
 
-  record FramedPd {ℓ n} (X : 𝕆Type ℓ n)
+  record CappedPd {ℓ n} (X : 𝕆Type ℓ n)
     (P : Idx X → Type ℓ)
-    (i : Idx X) : Type ℓ where
+    {i : Idx X} (t : P i) : Type ℓ where
     inductive 
-    constructor ⟦_,_,_,_⟧
+    constructor ⟦_⟧
     field
 
-      lvs : Src X P i
-      stm : P i
-      tr : Tr (fst i , pd lvs)
-      trnk : Web (X , P) (snd i , web lvs , dec lvs , stm) tr 
+      {lvs} : Src X P i
+      {tr} : Tr (fst i , pd lvs)
+      trnk : Web (X , P) (snd i , web lvs , dec lvs , t) tr 
 
-  open FramedPd
-  
-  canopy : ∀ {ℓ n} (X : 𝕆Type ℓ n)
-    → (P : Idx X → Type ℓ)
-    → {i : Idx X} → Src X (FramedPd X P) i → Src X P i
-  canopy {n = n} X P ⟪ ρ , ω , δ ⟫  =
-    join X P ⟪ ρ , ω , (λ p → lvs (δ p)) ⟫ 
+  open CappedPd
 
   data Pd {ℓ n} (X : 𝕆Type ℓ n)
       (P : Idx X → Type ℓ)
     : (i : Idx X) (s : Src X P i) (x : P i)
     → Tr (fst i , pd s) → Type ℓ where
 
-    lf : {i : Idx X} (x : P i)
-       →  Pd X P i (ret X P x) x
+    lf : {i : Idx X} (t : P i)
+       →  Pd X P i (ret X P t) t
             (lfₒ (fst i))  
 
-    nd : {i : Idx X} (x : P i)
-       → (s : Src X (FramedPd X P) i)
-       → Pd X P i (canopy X P s) x
-           (ndₒ (pd s) (λ p → pd (lvs (dec s p)) , tr (dec s p)))
+    nd : {i : Idx X} (t : P i) (s : Src X P i)
+       → (δ : (p : Pos (pd s)) → CappedPd X P (dec s p))
+       → Pd X P i (join X P ⟪ web s , (λ p → lvs (δ p)) ⟫) t
+           (ndₒ (pd s) (λ p → pd (lvs (δ p)) , tr (δ p)))
 
   Web {ℓ} {n = zero} X f ρ = 𝟙 ℓ
-  Web {ℓ} {n = suc n} (X , P) {ο , ρ} (f , ω , δ , x) τ = 
-    Pd X P (ο , f) ⟪ ρ , ω , δ ⟫  x τ
+  Web {ℓ} {n = suc n} (X , P) {ο , ρ} (f , ω , δ , t) τ = 
+    Pd X P (ο , f) ⟪ ω , δ ⟫ t τ
 
   Shp {n = zero} X ω p = ●
-  Shp {n = suc n} (X , P) (nd x σ) here = _ , web σ , (λ p → stm (dec σ p)) , x
-  Shp {n = suc n} (X , P) (nd x σ) (there p q) = Shp (X , P) (trnk (dec σ p)) q
+  Shp {n = suc n} (X , P) (nd t s δ) here = _ , web s , dec s , t
+  Shp {n = suc n} (X , P) (nd t s δ) (there p q) = Shp (X , P) (trnk (δ p)) q
 
   η {n = zero} X f = ●
-  η {n = suc n} (X , P) {ο , ρ} (f , ω , δ , x) = nd x ⟪ ρ , ω , ufpd ⟫  
-
-    where ufpd : (p : Pos ρ) → FramedPd X P (Typ ρ p , Shp X ω p) 
-          ufpd p = ⟦ ret X P (δ p) , δ p , lfₒ (Typ ρ p) , lf (δ p) ⟧
+  η {n = suc n} (X , P) (f , ω , δ , t) =
+    nd t ⟪ ω , δ ⟫ (λ p → ⟦ lf (δ p) ⟧)
 
   γ : ∀ {ℓ n} (X : 𝕆Type ℓ n)
     → (P : Idx X → Type ℓ)
     → {i : Idx X} {s : Src X P i} {t : P i}
     → {τ : Tr (fst i , pd s)}
     → (m : Pd X P i s t τ)
-    → (n : (p : Pos (pd s)) → Σ[ lvs ∈ Src X P (Typ (pd s) p , Shp X (web s) p) ]
-                              Σ[ σ ∈ Tr (Typ (pd s) p , pd lvs) ] 
-                              Pd X P (Typ (pd s) p , Shp X (web s) p) lvs (dec s p) σ)
-    → Pd X P i (join X P ⟪ pd s , web s , (λ p → fst (n p)) ⟫) t (γₒ τ (λ p → pd (fst (n p)) , (fst (snd (n p)))))
-  γ X P (lf t) n = n (η-posₒ _) .snd .snd
-  γ X P (nd t s) n =
-    nd t ⟪ pd s , _ , (λ p → ⟦ _ , _ , _ , γ X P (trnk (dec s p))
-      (λ q → let pq = pairₒ (pd s) (λ r → pd (lvs (dec s r))) p q
-             in n pq) ⟧) ⟫
+    → (ϕ : (p : Pos (pd s)) → CappedPd X P (dec s p))
+    → Pd X P i (join X P ⟪ web s , (λ p → lvs (ϕ p)) ⟫) t (γₒ τ (λ p → pd (lvs (ϕ p)) , (tr (ϕ p))))
+  γ X P (lf t) ϕ = trnk (ϕ (η-posₒ _))
+  γ X P (nd t s δ) ϕ = nd t s (λ p → ⟦ γ X P (trnk (δ p)) (λ q → ϕ (pairₒ (pd s) (λ r → pd (lvs (δ r))) p q)) ⟧) 
 
   μ {n = zero} X s ϵ = ●
   μ {n = suc n} (X , P) (lf t) ϵ = lf t
-  μ {n = suc n} (X , P) (nd t s) ϵ =
-    γ X P (ϵ here) (λ p → _ , _ , μ (X , P) (trnk (dec s p)) (λ q → ϵ (there p q)))
+  μ {n = suc n} (X , P) (nd t s δ) ϵ =
+    γ X P (ϵ here) (λ p → ⟦ μ (X , P) (trnk (δ p)) (λ q → ϵ (there p q)) ⟧)
