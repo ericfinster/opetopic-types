@@ -140,7 +140,8 @@ module Native.OpetopicType where
   record CappedPd {ℓ n} (X : 𝕆Type ℓ n)
     (P : Idx X → Type ℓ)
     {i : Idx X} (t : P i) : Type ℓ where
-    inductive 
+    inductive
+    eta-equality
     constructor ⟦_⟧
     field
 
@@ -148,7 +149,7 @@ module Native.OpetopicType where
       {tr} : Tr (fst i , pd lvs)
       trnk : Web (X , P) (snd i , web lvs , dec lvs , t) tr 
 
-  open CappedPd
+  open CappedPd public
 
   data Pd {ℓ n} (X : 𝕆Type ℓ n)
       (P : Idx X → Type ℓ)
@@ -162,7 +163,7 @@ module Native.OpetopicType where
     nd : {i : Idx X} (t : P i) (s : Src X P i)
        → (δ : (p : Pos (pd s)) → CappedPd X P (dec s p))
        → Pd X P i (join X P ⟪ web s , (λ p → lvs (δ p)) ⟫) t
-           (ndₒ (pd s) (λ p → pd (lvs (δ p)) , tr (δ p)))
+           (ndₒ (pd s) (λ p → ⟨ tr (δ p) ⟩))
 
   Web {ℓ} {n = zero} X f ρ = 𝟙 ℓ
   Web {ℓ} {n = suc n} (X , P) {ο , ρ} (f , ω , δ , t) τ = 
@@ -182,7 +183,7 @@ module Native.OpetopicType where
     → {τ : Tr (fst i , pd s)}
     → (m : Pd X P i s t τ)
     → (ϕ : (p : Pos (pd s)) → CappedPd X P (dec s p))
-    → Pd X P i (join X P ⟪ web s , (λ p → lvs (ϕ p)) ⟫) t (γₒ τ (λ p → pd (lvs (ϕ p)) , (tr (ϕ p))))
+    → Pd X P i (join X P ⟪ web s , (λ p → lvs (ϕ p)) ⟫) t (γₒ τ (λ p → ⟨ tr (ϕ p) ⟩))
   γ X P (lf t) ϕ = trnk (ϕ (η-posₒ _))
   γ X P (nd t s δ) ϕ = nd t s (λ p → ⟦ γ X P (trnk (δ p)) (λ q → ϕ (pairₒ (pd s) (λ r → pd (lvs (δ r))) p q)) ⟧) 
 

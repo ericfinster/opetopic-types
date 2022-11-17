@@ -24,7 +24,7 @@ module Native.Examples where
   nd-dec here* there* (there p q) = there* p q
 
   --
-  --  Examples 
+  --  Some simple opetopes 
   --
   
   obj : 𝕆 0

@@ -176,6 +176,7 @@ module Native.Opetopes where
   𝕆 (suc n) = Σ[ ο ∈ 𝕆 n ] ℙ ο
 
   record Branch {n} (ο : 𝕆 n) : Type where
+    eta-equality
     constructor ⟨_⟩  
     field
       {top} : ℙ ο
