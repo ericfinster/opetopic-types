@@ -30,14 +30,12 @@ module Native.OpetopicType where
     → {ο : 𝕆 n} (f : Frm X ο)
     → Web X f (ηₒ ο) 
 
-  postulate
-
-    μ : ∀ {ℓ n} (X : 𝕆Type ℓ n)
-      → {ο : 𝕆 n} {f : Frm X ο}
-      → {ρ : ℙ ο} (s : Web X f ρ)
-      → {δ : (p : Pos ρ) → ℙ (Typ ρ p)}
-      → (ϵ : (p : Pos ρ) → Web X (Shp X s p) (δ p))
-      → Web X f (μₒ ρ δ)
+  μ : ∀ {ℓ n} (X : 𝕆Type ℓ n)
+    → {ο : 𝕆 n} {f : Frm X ο}
+    → {ρ : ℙ ο} (s : Web X f ρ)
+    → {δ : (p : Pos ρ) → ℙ (Typ ρ p)}
+    → (ϵ : (p : Pos ρ) → Web X (Shp X s p) (δ p))
+    → Web X f (μₒ ρ δ)
 
   --
   --  Equations
@@ -63,7 +61,6 @@ module Native.OpetopicType where
     --
     --  Monadic Laws
     --
-
     
     μ-unit-r : ∀ {ℓ n} (X : 𝕆Type ℓ n)
       → {ο : 𝕆 n} {f : Frm X ο}
@@ -183,26 +180,28 @@ module Native.OpetopicType where
   Shp {n = suc n} (X , P) (nd x σ) here = _ , web σ , (λ p → stm (dec σ p)) , x
   Shp {n = suc n} (X , P) (nd x σ) (there p q) = Shp (X , P) (trnk (dec σ p)) q
 
-
   η {n = zero} X f = ●
   η {n = suc n} (X , P) {ο , ρ} (f , ω , δ , x) = nd x ⟪ ρ , ω , ufpd ⟫  
 
     where ufpd : (p : Pos ρ) → FramedPd X P (Typ ρ p , Shp X ω p) 
           ufpd p = ⟦ ret X P (δ p) , δ p , lfₒ (Typ ρ p) , lf (δ p) ⟧
 
-  -- γₒ : {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : Tr (ο , ρ))
-  --   → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
-  --   → Tr (ο , μₒ ρ (λ p → fst (ϕ p)))
+  γ : ∀ {ℓ n} (X : 𝕆Type ℓ n)
+    → (P : Idx X → Type ℓ)
+    → {i : Idx X} {s : Src X P i} {t : P i}
+    → {τ : Tr (fst i , pd s)}
+    → (m : Pd X P i s t τ)
+    → (n : (p : Pos (pd s)) → Σ[ lvs ∈ Src X P (Typ (pd s) p , Shp X (web s) p) ]
+                              Σ[ σ ∈ Tr (Typ (pd s) p , pd lvs) ] 
+                              Pd X P (Typ (pd s) p , Shp X (web s) p) lvs (dec s p) σ)
+    → Pd X P i (join X P ⟪ pd s , web s , (λ p → fst (n p)) ⟫) t (γₒ τ (λ p → pd (fst (n p)) , (fst (snd (n p)))))
+  γ X P (lf t) n = n (η-posₒ _) .snd .snd
+  γ X P (nd t s) n =
+    nd t ⟪ pd s , _ , (λ p → ⟦ _ , _ , _ , γ X P (trnk (dec s p))
+      (λ q → let pq = pairₒ (pd s) (λ r → pd (lvs (dec s r))) p q
+             in n pq) ⟧) ⟫
 
-
-  -- γ : ∀ {ℓ n} (X : 𝕆Type ℓ n)
-  --   → (P : Idx X → Type ℓ)
-  --   → (i : Idx X) (ω : Src X P i)
-  
-  -- μ : ∀ {ℓ n} (X : 𝕆Type ℓ n)
-  --   → {ο : 𝕆 n} {f : Frm X ο}
-  --   → {ρ : ℙ ο} (s : Web X f ρ)
-  --   → {δ : (p : Pos ρ) → ℙ (Typ ρ p)}
-  --   → (ϵ : (p : Pos ρ) → Web X (Shp X s p) (δ p))
-  --   → Web X f (μₒ ρ δ)
-  -- μ = {!!} 
+  μ {n = zero} X s ϵ = ●
+  μ {n = suc n} (X , P) (lf t) ϵ = lf t
+  μ {n = suc n} (X , P) (nd t s) ϵ =
+    γ X P (ϵ here) (λ p → _ , _ , μ (X , P) (trnk (dec s p)) (λ q → ϵ (there p q)))
