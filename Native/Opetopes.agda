@@ -175,23 +175,31 @@ module Native.Opetopes where
   𝕆 zero = 𝟙 ℓ-zero
   𝕆 (suc n) = Σ[ ο ∈ 𝕆 n ] ℙ ο
 
+  record Branch {n} (ο : 𝕆 n) : Type where
+    constructor ⟨_⟩  
+    field
+      {top} : ℙ ο
+      br : ℙ (ο , top) 
+
+  open Branch public
+  
   data Tr {n : ℕ} : 𝕆 (suc n) → Type where
 
     lfₒ : (ο : 𝕆 n) → Tr (ο , ηₒ ο) 
 
     ndₒ : {ο : 𝕆 n} (ρ : ℙ ο)
-      → (δ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
-      → Tr (ο , μₒ ρ (λ p → fst (δ p)))
+      → (δ : (p : Pos ρ) → Branch (Typ ρ p))
+      → Tr (ο , μₒ ρ (λ p → top (δ p)))
 
   data TrPos {n : ℕ} : {ο : 𝕆 (suc n)} → Tr ο → Type where
 
     here : {ο : 𝕆 n} {ρ : ℙ ο}
-      → {δ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs)}
+      → {δ : (p : Pos ρ) → Branch (Typ ρ p)}
       → TrPos (ndₒ ρ δ)
 
     there : {ο : 𝕆 n} {ρ : ℙ ο}
-      → {δ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs)}
-      → (p : Pos ρ) (q : TrPos (snd (δ p)))
+      → {δ : (p : Pos ρ) → Branch (Typ ρ p)}
+      → (p : Pos ρ) (q : Pos (br (δ p)))
       → TrPos (ndₒ ρ δ)
 
   ℙ {zero} ο = 𝟙 ℓ-zero
@@ -202,14 +210,14 @@ module Native.Opetopes where
   
   Typ {zero} ρ p = ●
   Typ {suc n} ._ (here {ο} {ρ})  = ο , ρ
-  Typ {suc n} ._ (there {δ = δ} p q) = Typ (snd (δ p)) q
+  Typ {suc n} ._ (there {δ = δ} p q) = Typ (br (δ p)) q
 
   --
   --  Unit 
   --
   
   ηₒ {zero} ο = ●
-  ηₒ {suc n} (ο , ρ) = ndₒ ρ (λ p → ηₒ (Typ ρ p) , lfₒ (Typ ρ p))
+  ηₒ {suc n} (ο , ρ) = ndₒ ρ (λ p → ⟨ lfₒ (Typ ρ p) ⟩)
   
   η-posₒ {zero} ο = ●
   η-posₒ {suc n} (ο , ρ) = here
@@ -219,63 +227,62 @@ module Native.Opetopes where
   --
   
   γₒ : {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : Tr (ο , ρ))
-    → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
-    → Tr (ο , μₒ ρ (λ p → fst (ϕ p)))
-  γₒ (lfₒ o) ϕ = snd (ϕ (η-posₒ o))
+    → (ϕ : (p : Pos ρ) → Branch (Typ ρ p))
+    → Tr (ο , μₒ ρ (λ p → top (ϕ p)))
+  γₒ (lfₒ o) ϕ = br (ϕ (η-posₒ o))
   γₒ (ndₒ ρ δ) ϕ =
-    let ϕ' p q = ϕ (pairₒ ρ (λ r → fst (δ r)) p q)
-    in ndₒ ρ (λ p → μₒ (fst (δ p)) (λ q → fst (ϕ' p q)) ,
-                    γₒ (snd (δ p)) (ϕ' p))
+    let ϕ' p q = ϕ (pairₒ ρ (λ r → top (δ r)) p q)
+    in ndₒ ρ (λ p → ⟨ γₒ (br (δ p)) (ϕ' p) ⟩)
 
   inlₒ : {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : Tr (ο , ρ))
-    → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
+    → (ϕ : (p : Pos ρ) → Branch (Typ ρ p))
     → (p : TrPos τ) → TrPos (γₒ τ ϕ)
   inlₒ (ndₒ ρ δ) ϕ here = here
   inlₒ (ndₒ ρ δ) ϕ (there p q) =
-    let ϕ' p q = ϕ (pairₒ ρ (λ r → fst (δ r)) p q)
-    in there p (inlₒ (snd (δ p)) (ϕ' p) q)
+    let ϕ' p q = ϕ (pairₒ ρ (λ r → top (δ r)) p q)
+    in there p (inlₒ (br (δ p)) (ϕ' p) q)
 
   inrₒ : {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : Tr (ο , ρ))
-    → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
-    → (p : Pos ρ) (q : TrPos (snd (ϕ p))) → TrPos (γₒ τ ϕ)
+    → (ϕ : (p : Pos ρ) → Branch (Typ ρ p))
+    → (p : Pos ρ) (q : TrPos (br (ϕ p))) → TrPos (γₒ τ ϕ)
   inrₒ (lfₒ ο) ϕ p q = q
   inrₒ (ndₒ ρ δ) ϕ pq r = 
-    let ϕ' p q = ϕ (pairₒ ρ (λ r → fst (δ r)) p q)
-        p = fstₒ ρ (λ r → fst (δ r)) pq
-        q = sndₒ ρ (λ r → fst (δ r)) pq 
-    in there p (inrₒ (snd (δ p)) (ϕ' p) q r)
+    let ϕ' p q = ϕ (pairₒ ρ (λ r → top (δ r)) p q)
+        p = fstₒ ρ (λ r → top (δ r)) pq
+        q = sndₒ ρ (λ r → top (δ r)) pq 
+    in there p (inrₒ (br (δ p)) (ϕ' p) q r)
 
   caseₒ : ∀ {ℓ} {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : Tr (ο , ρ))
-    → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
+    → (ϕ : (p : Pos ρ) → Branch (Typ ρ p))
     → (P : TrPos (γₒ τ ϕ) → Type ℓ)
     → (inl* : (p : TrPos τ) → P (inlₒ τ ϕ p))
-    → (inr* : (p : Pos ρ) (q : TrPos (snd (ϕ p))) → P (inrₒ τ ϕ p q))
+    → (inr* : (p : Pos ρ) (q : TrPos (br (ϕ p))) → P (inrₒ τ ϕ p q))
     → (p : TrPos (γₒ τ ϕ)) → P p
   caseₒ (lfₒ ο) ϕ P inl* inr* p = inr* (η-posₒ ο) p
   caseₒ (ndₒ ρ δ) ϕ P inl* inr* here = inl* here
   caseₒ (ndₒ ρ δ) ϕ P inl* inr* (there u v) = 
-    let ϕ' p q = ϕ (pairₒ ρ (λ r → fst (δ r)) p q)
-    in caseₒ (snd (δ u)) (ϕ' u) (λ q → P (there u q))
+    let ϕ' p q = ϕ (pairₒ ρ (λ r → top (δ r)) p q)
+    in caseₒ (br (δ u)) (ϕ' u) (λ q → P (there u q))
          (λ q → inl* (there u q))
-         (λ p q → inr* (pairₒ ρ (λ r → fst (δ r)) u p) q) v
+         (λ p q → inr* (pairₒ ρ (λ r → top (δ r)) u p) q) v
 
   postulate
 
     case-inl-β : ∀ {ℓ} {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : Tr (ο , ρ))
-      → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
+      → (ϕ : (p : Pos ρ) → Branch (Typ ρ p))
       → (P : TrPos (γₒ τ ϕ) → Type ℓ)
       → (inl* : (p : TrPos τ) → P (inlₒ τ ϕ p))
-      → (inr* : (p : Pos ρ) (q : TrPos (snd (ϕ p))) → P (inrₒ τ ϕ p q))
+      → (inr* : (p : Pos ρ) (q : TrPos (br (ϕ p))) → P (inrₒ τ ϕ p q))
       → (p : TrPos τ)
       → caseₒ τ ϕ P inl* inr* (inlₒ τ ϕ p) ↦ inl* p
     {-# REWRITE case-inl-β #-}
 
     case-inr-β : ∀ {ℓ} {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : Tr (ο , ρ))
-      → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] Tr (Typ ρ p , lvs))
+      → (ϕ : (p : Pos ρ) → Branch (Typ ρ p))
       → (P : TrPos (γₒ τ ϕ) → Type ℓ)
       → (inl* : (p : TrPos τ) → P (inlₒ τ ϕ p))
-      → (inr* : (p : Pos ρ) (q : TrPos (snd (ϕ p))) → P (inrₒ τ ϕ p q))
-      → (p : Pos ρ) (q : TrPos (snd (ϕ p))) 
+      → (inr* : (p : Pos ρ) (q : TrPos (br (ϕ p))) → P (inrₒ τ ϕ p q))
+      → (p : Pos ρ) (q : TrPos (br (ϕ p))) 
       → caseₒ τ ϕ P inl* inr* (inrₒ τ ϕ p q) ↦ inr* p q 
     {-# REWRITE case-inr-β #-}
 
@@ -288,32 +295,32 @@ module Native.Opetopes where
   μₒ {suc n} (lfₒ ο) ϕ = lfₒ ο
   μₒ {suc n} (ndₒ ρ δ) ϕ =
     let ϕ' p q = ϕ (there p q)
-        ih p = fst (δ p) , μₒ (snd (δ p)) (ϕ' p)
-    in γₒ (ϕ here) ih
+        ih p = ⟨ μₒ (br (δ p)) (ϕ' p) ⟩ 
+    in γₒ (ϕ here) ih 
   
   pairₒ {zero} ρ ϕ p q = ●
   pairₒ {suc n} (ndₒ ρ δ) ϕ here r = 
     let ϕ' p q = ϕ (there p q)
-        ih p = fst (δ p) , μₒ (snd (δ p)) (ϕ' p)
+        ih p = ⟨ μₒ (br (δ p)) (ϕ' p) ⟩ 
     in inlₒ (ϕ here) ih r 
   pairₒ {suc n} (ndₒ ρ δ) ϕ (there p q) r = 
     let ϕ' p q = ϕ (there p q)
-        ih p = fst (δ p) , μₒ (snd (δ p)) (ϕ' p)
-    in inrₒ (ϕ here) ih p (pairₒ (snd (δ p)) (ϕ' p) q r) 
+        ih p = ⟨ μₒ (br (δ p)) (ϕ' p) ⟩ 
+    in inrₒ (ϕ here) ih p (pairₒ (br (δ p)) (ϕ' p) q r) 
 
   fstₒ {zero} ρ ϕ pq = ●
   fstₒ {suc n} (ndₒ ρ δ) ϕ pq = 
     let ϕ' p q = ϕ (there p q)
-        ih p = fst (δ p) , μₒ (snd (δ p)) (ϕ' p)
+        ih p = ⟨ μₒ (br (δ p)) (ϕ' p) ⟩ 
     in caseₒ (ϕ here) ih (λ _ → TrPos (ndₒ ρ δ))
           (λ _ → here)
-          (λ p q → there p (fstₒ (snd (δ p)) (ϕ' p) q)) pq
+          (λ p q → there p (fstₒ (br (δ p)) (ϕ' p) q)) pq
 
   sndₒ {zero} ρ ϕ pq = ●
   sndₒ {suc n} (ndₒ ρ δ) ϕ pq = 
     let ϕ' p q = ϕ (there p q)
-        ih p = fst (δ p) , μₒ (snd (δ p)) (ϕ' p)
+        ih p = ⟨ μₒ (br (δ p)) (ϕ' p) ⟩ 
     in caseₒ (ϕ here) ih (λ p → TrPos (ϕ (fstₒ (ndₒ ρ δ) ϕ p)))
          (λ p → p)
-         (λ p q → sndₒ (snd (δ p)) (ϕ' p) q) pq
+         (λ p q → sndₒ (br (δ p)) (ϕ' p) q) pq
 
