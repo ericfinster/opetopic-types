@@ -1,4 +1,4 @@
-{-# OPTIONS --no-positivity-check #-}
+{-# OPTIONS --no-positivity-check --no-termination-check #-}
 
 open import Core.Prelude
 

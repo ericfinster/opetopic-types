@@ -1,3 +1,5 @@
+{-# OPTIONS --no-termination-check #-}
+
 open import Core.Prelude
 open import Native.Opetopes
 open import Native.OpetopicType

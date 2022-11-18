@@ -1,3 +1,5 @@
+{-# OPTIONS --no-termination-check #-}
+
 open import Core.Prelude
 open import Native.Opetopes
 
@@ -104,7 +106,7 @@ module Native.OpetopicType where
       web : Web X (snd i) pd
       dec : (p : Pos pd) → P (Typ pd p , Shp X web p)
 
-  open Src 
+  open Src public
 
   ret : ∀ {ℓ n} (X : 𝕆Type ℓ n)
     → (P : Idx X → Type ℓ)
