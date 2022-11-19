@@ -26,6 +26,7 @@ module Native.Term where
       → Shp X (TermWeb X t ρ) p ↦ TermFrm X t (Typ ρ p)
     {-# REWRITE Term-Shp #-}
 
+
     Term-η : ∀ {ℓ n} (X : 𝕆Type ℓ n)
       → (t : 𝕆Term X) (ο : 𝕆 n)
       → TermWeb X t (ηₒ ο) ↦ η X (TermFrm X t ο)
@@ -51,3 +52,18 @@ module Native.Term where
   TermWeb {n = suc n} (X , P) (s , t) (ndₒ {ο} ρ δ) =
     nd (t ο) ⟪ TermWeb X s ρ , (λ p → t (Typ ρ p)) ⟫
              (λ p → ⟦ TermWeb (X , P) (s , t) (br (δ p)) ⟧)
+
+
+  postulate
+  
+    -- Yeah, we have to address the unfolding issue with these
+    -- rewrites.  It seems we have to have a fully inductive
+    -- signature in order to avoid reducing opetopes and opetopic
+    -- types in higher dimensions....
+    Term-Shp-succ : ∀ {ℓ n} (X : 𝕆Type ℓ n)
+      → (P : Idx X → Type ℓ)
+      → (s : 𝕆Term X) (t : (ο : 𝕆 n) → P (ο , TermFrm X s ο))
+      → {ο : 𝕆 n} (ρ : ℙ ο) (τ : Tr (ο , ρ))
+      → (p : TrPos τ)
+      → Shp (X , P) (TermWeb (X , P) (s , t) τ) p ↦ TermFrm (X , P) (s , t) (Typ τ p)
+    {-# REWRITE Term-Shp-succ #-}

@@ -35,34 +35,34 @@ module Native.Fibrancy where
   Obj {n = zero} (X₋₁ , X₀) = X₀ (● , ●)
   Obj {n = suc n} (Xₙ , Xₛₙ) = Obj Xₙ
 
-  fib-to-term : ∀ {ℓ n} (X : 𝕆Type ℓ (suc n))
-    → is-fibrant X 
-    → Obj X → 𝕆Term X 
-  fib-to-term {n = zero} X is-fib x = ● , cst x
-  fib-to-term {n = suc n} ((X , P) , Q) (is-fib , is-fib-rel) x =
-    fib-to-term (X , P) is-fib x , λ (ο , ρ) → need ο ρ 
+  -- fib-to-term : ∀ {ℓ n} (X : 𝕆Type ℓ (suc n))
+  --   → is-fibrant X 
+  --   → Obj X → 𝕆Term X 
+  -- fib-to-term {n = zero} X is-fib x = ● , cst x
+  -- fib-to-term {n = suc n} ((X , P) , Q) (is-fib , is-fib-rel) x =
+  --   fib-to-term (X , P) is-fib x , λ (ο , ρ) → need ο ρ 
 
-    where ϕ : 𝕆Term X
-          ϕ = fst (fib-to-term (X , P) is-fib x)
+  --   where ϕ : 𝕆Term X
+  --         ϕ = fst (fib-to-term (X , P) is-fib x)
 
-          ψ : (ο : 𝕆 n) → P (ο , TermFrm X ϕ ο)
-          ψ = snd (fib-to-term (X , P) is-fib x)
+  --         ψ : (ο : 𝕆 n) → P (ο , TermFrm X ϕ ο)
+  --         ψ = snd (fib-to-term (X , P) is-fib x)
 
-          need : (ο : 𝕆 n) (ρ : ℙ ο) → Q ((ο , ρ) , TermFrm X ϕ ο , TermWeb X ϕ ρ , (λ p → ψ (Typ ρ p)) , ψ ο)
-          need ο ρ = {!!}
+  --         need : (ο : 𝕆 n) (ρ : ℙ ο) → Q ((ο , ρ) , TermFrm X ϕ ο , TermWeb X ϕ ρ , (λ p → ψ (Typ ρ p)) , ψ ο)
+  --         need ο ρ = {!!}
           
-          from-fib-rel : (ο : 𝕆 n) (ρ : ℙ ο) → isContr (Σ[ t ∈ P (ο , TermFrm X ϕ ο) ]
-                                                        Q (as-frm ((ο , TermFrm X ϕ ο) ,
-                                                          ⟪ TermWeb X ϕ ρ , (λ p → ψ (Typ ρ p)) ⟫ , t)))
-          from-fib-rel ο ρ = is-fib-rel (ο , TermFrm X ϕ ο) ⟪ TermWeb X ϕ ρ , (λ p → ψ (Typ ρ p)) ⟫ 
+  --         from-fib-rel : (ο : 𝕆 n) (ρ : ℙ ο) → isContr (Σ[ t ∈ P (ο , TermFrm X ϕ ο) ]
+  --                                                       Q (as-frm ((ο , TermFrm X ϕ ο) ,
+  --                                                         ⟪ TermWeb X ϕ ρ , (λ p → ψ (Typ ρ p)) ⟫ , t)))
+  --         from-fib-rel ο ρ = is-fib-rel (ο , TermFrm X ϕ ο) ⟪ TermWeb X ϕ ρ , (λ p → ψ (Typ ρ p)) ⟫ 
 
-          ψ' : (ο : 𝕆 n) (ρ : ℙ ο) → P (ο , TermFrm X ϕ ο)
-          ψ' ο ρ = from-fib-rel ο ρ .fst .fst  
+  --         ψ' : (ο : 𝕆 n) (ρ : ℙ ο) → P (ο , TermFrm X ϕ ο)
+  --         ψ' ο ρ = from-fib-rel ο ρ .fst .fst  
 
-          have : (ο : 𝕆 n) (ρ : ℙ ο) → Q ((ο , ρ) , TermFrm X ϕ ο , TermWeb X ϕ ρ , (λ p → ψ (Typ ρ p)) , ψ' ο ρ)
-          have ο ρ = from-fib-rel ο ρ .fst .snd
+  --         have : (ο : 𝕆 n) (ρ : ℙ ο) → Q ((ο , ρ) , TermFrm X ϕ ο , TermWeb X ϕ ρ , (λ p → ψ (Typ ρ p)) , ψ' ο ρ)
+  --         have ο ρ = from-fib-rel ο ρ .fst .snd
 
-          done-if : (ο : 𝕆 n) (ρ : ℙ ο) → ψ ο ≡ ψ' ο ρ
-          done-if ο ρ = {!!} 
+  --         done-if : (ο : 𝕆 n) (ρ : ℙ ο) → ψ ο ≡ ψ' ο ρ
+  --         done-if ο ρ = {!!} 
 
   
