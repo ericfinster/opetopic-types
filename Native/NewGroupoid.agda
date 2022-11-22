@@ -14,7 +14,8 @@ module Native.NewGroupoid where
 
   GrpTerm : ∀ {ℓ} (X : Type ℓ) (x : X)
     → (n : ℕ) → 𝕆Term (Grp X n)
-    
+
+  {-# NO_POSITIVITY_CHECK #-}
   data GrpCell {ℓ n} (X : Type ℓ) : Idx (Grp X n) → Type ℓ where
 
     reflₒ : (x : X) (ο : 𝕆 n) → GrpCell X (ο , TermFrm (Grp X n) (GrpTerm X x n) ο)
@@ -44,23 +45,16 @@ module Native.NewGroupoid where
 
   canon-web : ∀ {n} (X : Type) (x : X) {ο : 𝕆 n} (ρ : ℙ ο) → Web (Grp X n) (canon-frm X x ο) ρ
   canon-web {n} X x ρ = TermWeb (Grp X n) (GrpTerm X x n) ρ 
-  
-  -- claim : ∀ {ℓ n} (X : Type ℓ)
-  --   → {ο : 𝕆 n} {ρ : ℙ ο} {τ : Tr (ο , ρ)}
-  --   → {f : Frm (Grp X n) ο} {s : Web (Grp X n) f ρ}
-  --   → {δ : (p : Pos ρ) → GrpCell X (Typ ρ p , Shp (Grp X n) s p)}
-  --   → {c : GrpCell X (ο , f)}
-  --   → (ω : Web (Grp X (suc n)) (f , s , δ , c) τ)
-  --   → (ϵ : (p : Pos τ) → GrpCell X (Typ τ p , Shp (Grp X (suc n)) ω p))
 
-  -- is-fibrant-rel : ∀ {ℓ n} (X : 𝕆Type ℓ n)
-  --   → (P : Idx X → Type ℓ)
-  --   → (Q : Idx (X , P) → Type ℓ)
-  --   → Type ℓ
-  -- is-fibrant-rel X P Q = 
-  --   (i : Idx X) (s : Src X P i)
-  --   → isContr (Σ[ t ∈ P i ] Q (as-frm (i , s , t)))
+  canon-dec : ∀ {n} (X : Type) (x : X) {ο : 𝕆 n} (ρ : ℙ ο)
+    → (p : Pos ρ) → GrpCell X (Typ ρ p , canon-frm X x (Typ ρ p))
+  canon-dec X x ρ p = reflₒ x (Typ ρ p) 
 
+  canon-dec' : ∀ {n} (X : Type) 
+    → (x : X) {ο : 𝕆 n} {ρ : ℙ ο} (τ : ℙ (ο ∣ ρ))
+    → (p : Pos τ) → GrpCell {n = suc n} X (Typ τ p , Shp (Grp X n ∥ GrpCell X) (canon-web X x τ) p)
+  canon-dec' X x (ndₒ ρ δ) here = reflₒ x (_ ∣ ρ)
+  canon-dec' X x (ndₒ ρ δ) (there p q) = canon-dec' X x (br (δ p)) q
 
   --
   --  First, some lemmas about the uniqueness of cells
@@ -99,9 +93,9 @@ module Native.NewGroupoid where
     → fib X ρ τ (canon-frm X x ο) (reflₒ x ο)
   canon-fib {n = n} X x ρ τ = 
     canon-web X x ρ ,
-    (λ p → reflₒ x (Typ ρ p)) ,
+    canon-dec X x ρ ,
     canon-web X x τ ,
-    (λ p → reflₒ x (Typ τ p))
+    canon-dec' X x τ
   
   -- -- normalize : ∀ {ℓ n} (X : Type ℓ)
   -- --   → {ο : 𝕆 n} {ρ : ℙ ο} {τ : Tr (ο , ρ)}

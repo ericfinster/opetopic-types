@@ -41,7 +41,7 @@ module Native.NewTerm where
     □ : 𝕆Term ■
 
     _▸_ : {n : ℕ} {X : 𝕆Type ℓ n}
-      → {P : Idx X → Type}
+      → {P : Idx X → Type ℓ}
       → (t : 𝕆Term X)
       → (s : (ο : 𝕆 n) → P (ο , TermFrm X t ο))
       → 𝕆Term (X ∥ P)
