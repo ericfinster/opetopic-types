@@ -122,7 +122,7 @@ module Native.InductiveOpetopicType where
   {-# NO_POSITIVITY_CHECK #-}
   data 𝕆Type ℓ where
   
-    ■ : 𝕆Type ℓ 0
+    ○ : 𝕆Type ℓ 0
     
     _∥_ : {n : ℕ} (X : 𝕆Type ℓ n)
       → (P : Idx X → Type ℓ)
@@ -131,7 +131,7 @@ module Native.InductiveOpetopicType where
   {-# NO_UNIVERSE_CHECK #-}
   data Frm {ℓ} where
 
-    ▣ : Frm ■ objₒ
+    ● : Frm ○ objₒ
 
     _►⟦_∣_⟧ : {n : ℕ} {X : 𝕆Type ℓ n}
       → {P : Idx X → Type ℓ}
@@ -152,7 +152,7 @@ module Native.InductiveOpetopicType where
   {-# NO_UNIVERSE_CHECK #-}
   data Web {ℓ} where
 
-    arr : Web ■ ▣ arrₒ
+    arr : Web ○ ● arrₒ
 
     lf : {n : ℕ} {X : 𝕆Type ℓ n}
        → {P : Idx X → Type ℓ}
@@ -166,11 +166,11 @@ module Native.InductiveOpetopicType where
        → Web (X ∥ P) (f ►⟦ t ∣ join X P (s .fst , s .snd .fst , λ p → δ p .fst) ⟧)
                      (ndₒ (s .fst) (λ p → _ , δ p .snd .fst )) 
 
-  Shp ■ arr this = ▣
+  Shp ○ arr this = ●
   Shp (X ∥ P) (nd t s δ) here = _ ►⟦ t ∣ s ⟧
   Shp (X ∥ P) (nd t s δ) (there p q) = Shp (X ∥ P) (δ p .snd .snd) q
 
-  η ■ ▣ = arr
+  η ○ ● = arr
   η (X ∥ P) (f ►⟦ t ∣ s ⟧) = 
     nd t s (λ p → _ , _ , lf (s .snd .snd p))
 
@@ -186,7 +186,7 @@ module Native.InductiveOpetopicType where
   γ X P (nd t s δ) ϕ = 
     nd t s (λ p → _ , _ , γ X P (δ p .snd .snd) (λ q → ϕ (pairₒ (s . fst) (λ r → δ r .fst .fst) p q)))
 
-  μ ■ arr ϕ = arr
+  μ ○ arr ϕ = arr
   μ (X ∥ P) (lf tgt) ϕ = lf tgt
   μ (X ∥ P) (nd tgt src δ) ϕ = 
     γ X P (ϕ here) (λ p → _ , _ , μ (X ∥ P) (δ p .snd .snd) (λ q → ϕ (there p q)))
