@@ -1,5 +1,3 @@
-{-# OPTIONS --no-termination-check #-}
-
 open import Core.Prelude
 open import Native.Opetopes
 
@@ -9,15 +7,14 @@ module Native.OpetopicType where
   --  Signature 
   --
   
-  𝕆Type : (ℓ : Level) (n : ℕ)
-    → Type (ℓ-suc ℓ)
+  data 𝕆Type (ℓ : Level) : (n : ℕ) → Type (ℓ-suc ℓ)
 
-  Frm : ∀ {ℓ n} (X : 𝕆Type ℓ n)
-    → 𝕆 n → Type ℓ
+  data Frm {ℓ} : {n : ℕ} (X : 𝕆Type ℓ n)
+    → 𝕆 n → Type ℓ 
 
-  Web : ∀ {ℓ n} (X : 𝕆Type ℓ n)
+  data Web {ℓ} : {n : ℕ} (X : 𝕆Type ℓ n)
     → {ο : 𝕆 n} (f : Frm X ο)
-    → (ρ : ℙ ο) → Type ℓ
+    → (ρ : ℙ ο) → Type ℓ 
 
   Shp : ∀ {ℓ n} (X : 𝕆Type ℓ n)
     → {ο : 𝕆 n} {f : Frm X ο}
@@ -91,105 +88,106 @@ module Native.OpetopicType where
   --  Decorated versions
   --
 
-  Idx : ∀ {ℓ n} → 𝕆Type ℓ n → Type ℓ
+  Idx : ∀ {ℓ n} → 𝕆Type ℓ n → Type ℓ 
   Idx {n = n} X = Σ[ ο ∈ 𝕆 n ] Frm X ο 
 
-  record Src {ℓ n} (X : 𝕆Type ℓ n)
-    (P : Idx X → Type ℓ)
-    (i : Idx X) : Type ℓ where
-    inductive 
-    eta-equality
-    constructor ⟪_,_⟫ 
-    field
-
-      {pd} : ℙ (fst i)
-      web : Web X (snd i) pd
-      dec : (p : Pos pd) → P (Typ pd p , Shp X web p)
-
-  open Src public
+  Src : ∀ {ℓ n} (X : 𝕆Type ℓ n)
+    → (P : Idx X → Type ℓ)
+    → (i : Idx X) → Type ℓ
+  Src X P (ο , f) =
+    Σ[ ρ ∈ ℙ ο ] 
+    Σ[ ω ∈ Web X f ρ ]
+    ((p : Pos ρ) → P (Typ ρ p , Shp X ω p))
 
   ret : ∀ {ℓ n} (X : 𝕆Type ℓ n)
     → (P : Idx X → Type ℓ)
     → {i : Idx X} → P i → Src X P i
   ret {n = n} X P {ο , f} x =
-    ⟪ η X f , cst x ⟫
+    _ , η X f , cst x 
     
   join : ∀ {ℓ n} (X : 𝕆Type ℓ n)
     → (P : Idx X → Type ℓ)
     → {i : Idx X} → Src X (Src X P) i → Src X P i
-  join X P s  =
-    ⟪ μ X (web s) (λ p → web (dec s p)) 
-    , (λ p → dec (dec s (fstₒ (pd s) (λ p → pd (dec s p)) p))
-                 (sndₒ (pd s) (λ p → pd (dec s p)) p)) 
-    ⟫ 
-
+  join X P (ρ , ω , δ)  =
+    _ , μ X ω (λ p → δ p .snd .fst) ,
+    λ pq → let p = fstₒ ρ (λ p → δ p .fst) pq
+               q = sndₒ ρ (λ p → δ p .fst) pq
+           in δ p .snd .snd q
+           
   --
-  --  Implementation 
+  --  Implementation
   --
+
+  {-# NO_UNIVERSE_CHECK #-}
+  {-# NO_POSITIVITY_CHECK #-}
+  data 𝕆Type ℓ where
   
-  𝕆Type ℓ zero = 𝟙 (ℓ-suc ℓ)
-  𝕆Type ℓ (suc n) =
-    Σ[ X ∈ 𝕆Type ℓ n ]
-    (Idx X → Type ℓ)
-  
-  Frm {ℓ} {n = zero} X ο = 𝟙 ℓ
-  Frm {ℓ} {n = suc n} (X , P) (ο , ρ) = 
-    Σ[ f ∈ Frm X ο ]
-    Σ[ s ∈ Web X f ρ ]
-    Σ[ δ ∈ ((p : Pos ρ) → P (Typ ρ p , Shp X s p)) ] 
-    P (ο , f)
+    ○ : 𝕆Type ℓ 0
+    
+    _∥_ : {n : ℕ} (X : 𝕆Type ℓ n)
+      → (P : Idx X → Type ℓ)
+      → 𝕆Type ℓ (suc n)
 
-  record CappedPd {ℓ n} (X : 𝕆Type ℓ n)
-    (P : Idx X → Type ℓ)
-    {i : Idx X} (t : P i) : Type ℓ where
-    inductive
-    eta-equality
-    constructor ⟦_⟧
-    field
+  {-# NO_UNIVERSE_CHECK #-}
+  data Frm {ℓ} where
 
-      {lvs} : Src X P i
-      {tr} : Tr (fst i , pd lvs)
-      trnk : Web (X , P) (snd i , web lvs , dec lvs , t) tr 
+    ● : Frm ○ objₒ
 
-  open CappedPd public
+    _►⟦_∣_⟧ : {n : ℕ} {X : 𝕆Type ℓ n}
+      → {P : Idx X → Type ℓ}
+      → {ο : 𝕆 n} (f : Frm X ο)
+      → (t : P (ο , f))
+      → (s : Src X P (ο , f))
+      → Frm (X ∥ P) (ο ∣ s .fst) 
 
-  data Pd {ℓ n} (X : 𝕆Type ℓ n)
-      (P : Idx X → Type ℓ)
-    : (i : Idx X) (s : Src X P i) (x : P i)
-    → Tr (fst i , pd s) → Type ℓ where
+  Branch : ∀ {ℓ n} (X : 𝕆Type ℓ n)
+    → (P : Idx X → Type ℓ)
+    → {i : Idx X} (tgt : P i)
+    → Type ℓ
+  Branch X P {ο , f} t =     
+    Σ[ s ∈ Src X P (ο , f) ]
+    Σ[ tr ∈ ℙ (ο ∣ s .fst) ]
+    Web (X ∥ P) (f ►⟦ t ∣ s ⟧) tr 
 
-    lf : {i : Idx X} (t : P i)
-       →  Pd X P i (ret X P t) t
-            (lfₒ (fst i))  
+  {-# NO_UNIVERSE_CHECK #-}
+  data Web {ℓ} where
 
-    nd : {i : Idx X} (t : P i) (s : Src X P i)
-       → (δ : (p : Pos (pd s)) → CappedPd X P (dec s p))
-       → Pd X P i (join X P ⟪ web s , (λ p → lvs (δ p)) ⟫) t
-           (ndₒ (pd s) (λ p → ⟨ tr (δ p) ⟩))
+    arr : Web ○ ● arrₒ
 
-  Web {ℓ} {n = zero} X f ρ = 𝟙 ℓ
-  Web {ℓ} {n = suc n} (X , P) {ο , ρ} (f , ω , δ , t) τ = 
-    Pd X P (ο , f) ⟪ ω , δ ⟫ t τ
+    lf : {n : ℕ} {X : 𝕆Type ℓ n}
+       → {P : Idx X → Type ℓ}
+       → {ο : 𝕆 n} {f : Frm X ο} (t : P (ο , f))
+       → Web (X ∥ P) (f ►⟦ t ∣ ret X P t ⟧) (lfₒ ο) 
 
-  Shp {n = zero} X ω p = ●
-  Shp {n = suc n} (X , P) (nd t s δ) here = _ , web s , dec s , t
-  Shp {n = suc n} (X , P) (nd t s δ) (there p q) = Shp (X , P) (trnk (δ p)) q
+    nd : {n : ℕ} {X : 𝕆Type ℓ n}
+       → {P : Idx X → Type ℓ}
+       → {ο : 𝕆 n} {f : Frm X ο} (t : P (ο , f)) (s : Src X P (ο , f))
+       → (δ : (p : Pos (s .fst)) → Branch X P (s .snd .snd p))
+       → Web (X ∥ P) (f ►⟦ t ∣ join X P (s .fst , s .snd .fst , λ p → δ p .fst) ⟧)
+                     (ndₒ (s .fst) (λ p → _ , δ p .snd .fst )) 
 
-  η {n = zero} X f = ●
-  η {n = suc n} (X , P) (f , ω , δ , t) =
-    nd t ⟪ ω , δ ⟫ (λ p → ⟦ lf (δ p) ⟧)
+  Shp ○ arr this = ●
+  Shp (X ∥ P) (nd t s δ) here = _ ►⟦ t ∣ s ⟧
+  Shp (X ∥ P) (nd t s δ) (there p q) = Shp (X ∥ P) (δ p .snd .snd) q
+
+  η ○ ● = arr
+  η (X ∥ P) (f ►⟦ t ∣ s ⟧) = 
+    nd t s (λ p → _ , _ , lf (s .snd .snd p))
 
   γ : ∀ {ℓ n} (X : 𝕆Type ℓ n)
     → (P : Idx X → Type ℓ)
-    → {i : Idx X} {s : Src X P i} {t : P i}
-    → {τ : Tr (fst i , pd s)}
-    → (m : Pd X P i s t τ)
-    → (ϕ : (p : Pos (pd s)) → CappedPd X P (dec s p))
-    → Pd X P i (join X P ⟪ web s , (λ p → lvs (ϕ p)) ⟫) t (γₒ τ (λ p → ⟨ tr (ϕ p) ⟩))
-  γ X P (lf t) ϕ = trnk (ϕ (η-posₒ _))
-  γ X P (nd t s δ) ϕ = nd t s (λ p → ⟦ γ X P (trnk (δ p)) (λ q → ϕ (pairₒ (pd s) (λ r → pd (lvs (δ r))) p q)) ⟧) 
+    → {ο : 𝕆 n} {f : Frm X ο} {t : P (ο , f)} {s : Src X P (ο , f)}
+    → {τ : ℙ (ο ∣ s .fst)}
+    → (ω : Web (X ∥ P) (f ►⟦ t ∣ s ⟧) τ)
+    → (ϕ : (p : Pos (s .fst)) → Branch X P (s .snd .snd p))
+    → Web (X ∥ P) (f ►⟦ t ∣ join X P (s .fst , s .snd .fst , λ p → ϕ p .fst) ⟧)
+        (γₒ τ (λ p → _ , ϕ p .snd .fst ))
+  γ X P (lf t) ϕ = ϕ (η-posₒ _) .snd .snd 
+  γ X P (nd t s δ) ϕ = 
+    nd t s (λ p → _ , _ , γ X P (δ p .snd .snd) (λ q → ϕ (pairₒ (s . fst) (λ r → δ r .fst .fst) p q)))
 
-  μ {n = zero} X s ϵ = ●
-  μ {n = suc n} (X , P) (lf t) ϵ = lf t
-  μ {n = suc n} (X , P) (nd t s δ) ϵ =
-    γ X P (ϵ here) (λ p → ⟦ μ (X , P) (trnk (δ p)) (λ q → ϵ (there p q)) ⟧)
+  μ ○ arr ϕ = arr
+  μ (X ∥ P) (lf tgt) ϕ = lf tgt
+  μ (X ∥ P) (nd tgt src δ) ϕ = 
+    γ X P (ϕ here) (λ p → _ , _ , μ (X ∥ P) (δ p .snd .snd) (λ q → ϕ (there p q)))
+
