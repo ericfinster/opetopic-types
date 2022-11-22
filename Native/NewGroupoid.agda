@@ -30,8 +30,8 @@ module Native.NewGroupoid where
   --  The eliminator for cells
   --
   
-  cell-elim : ∀ {n} {X : Type}
-    → (P : {i : Idx (Grp X n)} → GrpCell X i → Type)
+  cell-elim : ∀ {ℓ ℓ' n} {X : Type ℓ}
+    → (P : {i : Idx (Grp X n)} → GrpCell X i → Type ℓ')
     → (r : (x : X) (ο : 𝕆 n) → P (reflₒ x ο))
     → {i : Idx (Grp X n)} (c : GrpCell X i) → P c
   cell-elim P r (reflₒ x ο) = r x ο
@@ -40,75 +40,74 @@ module Native.NewGroupoid where
   --  Shorthand for our canonical frames and webs
   --
   
-  canon-frm : ∀ {n} (X : Type) (x : X) (ο : 𝕆 n) → Frm (Grp X n) ο
-  canon-frm {n} X x ο = TermFrm (Grp X n) (GrpTerm X x n) ο
+  canon-frm : ∀ {ℓ n} (X : Type ℓ) (x : X) (ο : 𝕆 n) → Frm (Grp X n) ο
+  canon-frm {n = n} X x ο = TermFrm (Grp X n) (GrpTerm X x n) ο
 
-  canon-web : ∀ {n} (X : Type) (x : X) {ο : 𝕆 n} (ρ : ℙ ο) → Web (Grp X n) (canon-frm X x ο) ρ
-  canon-web {n} X x ρ = TermWeb (Grp X n) (GrpTerm X x n) ρ 
+  canon-web : ∀ {ℓ n} (X : Type ℓ) (x : X) {ο : 𝕆 n} (ρ : ℙ ο) → Web (Grp X n) (canon-frm X x ο) ρ
+  canon-web {n = n} X x ρ = TermWeb (Grp X n) (GrpTerm X x n) ρ 
 
-  canon-dec : ∀ {n} (X : Type) (x : X) {ο : 𝕆 n} (ρ : ℙ ο)
+  canon-dec : ∀ {ℓ n} (X : Type ℓ) (x : X) {ο : 𝕆 n} (ρ : ℙ ο)
     → (p : Pos ρ) → GrpCell X (Typ ρ p , canon-frm X x (Typ ρ p))
   canon-dec X x ρ p = reflₒ x (Typ ρ p) 
 
-  canon-dec' : ∀ {n} (X : Type) 
+  canon-dec-suc : ∀ {ℓ n} (X : Type ℓ) 
     → (x : X) {ο : 𝕆 n} {ρ : ℙ ο} (τ : ℙ (ο ∣ ρ))
     → (p : Pos τ) → GrpCell {n = suc n} X (Typ τ p , Shp (Grp X n ∥ GrpCell X) (canon-web X x τ) p)
-  canon-dec' X x (ndₒ ρ δ) here = reflₒ x (_ ∣ ρ)
-  canon-dec' X x (ndₒ ρ δ) (there p q) = canon-dec' X x (br (δ p)) q
+  canon-dec-suc X x (ndₒ ρ δ) here = reflₒ x (_ ∣ ρ)
+  canon-dec-suc X x (ndₒ ρ δ) (there p q) = canon-dec-suc X x (br (δ p)) q
 
   --
   --  First, some lemmas about the uniqueness of cells
   -- 
 
-  underlying : ∀ {n} (X : Type)
+  underlying : ∀ {ℓ n} (X : Type ℓ)
     → {i : Idx (Grp X n)}
     → GrpCell X i → X
   underlying X (reflₒ x ο) = x
 
-  cell-determines-frame : ∀ {n} (X : Type)
+  cell-determines-frame : ∀ {ℓ n} (X : Type ℓ)
     → {ο : 𝕆 n} {f : Frm (Grp X n) ο}
     → (c : GrpCell X (ο , f))
     → f ≡ TermFrm (Grp X n) (GrpTerm X (underlying X c) n) ο
   cell-determines-frame X (reflₒ x ο) = refl
 
-  cell-is-refl : ∀ {n} (X : Type)
+  cell-is-refl : ∀ {ℓ n} (X : Type ℓ)
     → {ο : 𝕆 n} {f : Frm (Grp X n) ο}
     → (c : GrpCell X (ο , f))
     → (λ j → GrpCell X (ο , cell-determines-frame X c j))
       [ c ≡ reflₒ (underlying X c) ο ]
   cell-is-refl X (reflₒ x ο) = refl
   
-  fib : ∀ {n} (X : Type)
+  fib : ∀ {ℓ n} (X : Type ℓ)
     → {ο : 𝕆 n} (ρ : ℙ ο) (τ : ℙ (ο ∣ ρ))
     → (f : Frm (Grp X n) ο) (c : GrpCell X (ο , f))
-    → Type 
+    → Type ℓ
   fib {n = n} X ρ τ f c =
     Σ[ s ∈ Web (Grp X n) f ρ ]
     Σ[ δ ∈ ((p : Pos ρ) → GrpCell X (Typ ρ p , Shp (Grp X n) s p)) ]
     Σ[ ω ∈ Web (Grp X (suc n)) (f ►[ c , ⟪ s , δ ⟫ ]) τ ]
     ((p : Pos τ) → GrpCell X (Typ τ p , Shp (Grp X (suc n)) ω p))
 
-  canon-fib : ∀ {n} (X : Type) (x : X)
+  canon-fib : ∀ {ℓ n} (X : Type ℓ) (x : X)
     → {ο : 𝕆 n} (ρ : ℙ ο) (τ : ℙ (ο ∣ ρ))
     → fib X ρ τ (canon-frm X x ο) (reflₒ x ο)
   canon-fib {n = n} X x ρ τ = 
     canon-web X x ρ ,
     canon-dec X x ρ ,
     canon-web X x τ ,
-    canon-dec' X x τ
+    canon-dec-suc X x τ
   
-  -- -- normalize : ∀ {ℓ n} (X : Type ℓ)
-  -- --   → {ο : 𝕆 n} {ρ : ℙ ο} {τ : Tr (ο , ρ)}
-  -- --   → {f : Frm (Grp X n) ο} {s : Web (Grp X n) f ρ}
-  -- --   → {δ : (p : Pos ρ) → GrpCell X (Typ ρ p , Shp (Grp X n) s p)}
-  -- --   → {c : GrpCell X (ο , f)}
-  -- --   → (ω : Web (Grp X (suc n)) (f , s , δ , c) τ)
-  -- --   → (ϵ : (p : Pos τ) → GrpCell X (Typ τ p , Shp (Grp X (suc n)) ω p))
-  -- --   → (λ j → fib X ρ τ (cell-determines-frame X c j) (cell-is-refl X c j))
-  -- --      [ (s , δ , ω , ϵ) ≡ canon-fib X (underlying X c) ρ τ ]
-  -- -- normalize {n = n} X (lf t) ϵ = {! !}
-  -- -- normalize {n = n} X (nd t s δ) ϵ with ϵ here 
-  -- -- normalize {n = n} X (nd ._ ._ δ) ϵ | reflₒ x (ο , ρ) = ? 
+  normalize : ∀ {ℓ n} (X : Type ℓ)
+    → {ο : 𝕆 n} {ρ : ℙ ο} {τ : ℙ (ο ∣ ρ)}
+    → {f : Frm (Grp X n) ο} {s : Web (Grp X n) f ρ}
+    → {δ : (p : Pos ρ) → GrpCell X (Typ ρ p , Shp (Grp X n) s p)}
+    → {c : GrpCell X (ο , f)}
+    → (ω : Web (Grp X (suc n)) (f ►[ c , ⟪ s , δ ⟫ ]) τ)
+    → (ϵ : (p : Pos τ) → GrpCell X (Typ τ p , Shp (Grp X (suc n)) ω p))
+    → (λ j → fib X ρ τ (cell-determines-frame X c j) (cell-is-refl X c j))
+       [ (s , δ , ω , ϵ) ≡ canon-fib X (underlying X c) ρ τ ]
+  normalize X (lf {i = ο , f} tgt) ϵ = {!!} 
+  normalize X (nd tgt src δ) ϵ = {!!}
 
   -- claim : ∀ {ℓ n} (X : Type ℓ)
   --   → {ο : 𝕆 n} {ρ : ℙ ο} {τ : Tr (ο , ρ)}
@@ -133,11 +132,22 @@ module Native.NewGroupoid where
   --         ih p = claim X (trnk (δ p)) (λ q → ϵ (there p q)) 
   -- claim {n = n} X (lf (reflₒ x ο)) ϵ = refl
 
+  normalize-coh : ∀ {ℓ n} (X : Type ℓ) (x : X)
+    → {ο : 𝕆 n} {ρ : ℙ ο} (τ : ℙ (ο ∣ ρ))
+    → normalize X (canon-web X x τ) (canon-dec-suc X x τ) ≡ refl
+  normalize-coh X x τ = {!!} 
+
+  --
+  --  So the question is whether we can finish the claim with
+  --  these two statements, as I think they should be provable.
+  --
   -- target : ∀ {ℓ n} (X : Type ℓ)
   --   → {i : Idx (Grp X n)}
   --   → Src (Grp X n) (GrpCell X) i → X
-  -- target {n = zero} X s = underlying X (dec s ●)
-  -- target {n = suc n} X {(ο , ρ) , (f , ω , δ , t)} s = underlying X t
+  -- target {n = zero} X {● , ▣} ⟪ ω , δ ⟫ = {!!}
+  -- target {n = suc n} X ⟪ ω , δ ⟫ = {!!}
+  -- target {n = zero} X s = underlying X (dec s ?)
+  -- target {n = suc n} X {(ο ∣ ρ) , f ►[ t , ⟪ ω , δ ⟫} s = underlying X t
 
   -- src-is-canonical : ∀ {ℓ n} (X : Type ℓ)
   --   → (i : Idx (Grp X n))

@@ -165,7 +165,7 @@ module Native.InductiveOpetopes where
           in pairₒ ρ (λ p → μₒ (δ p) (λ q → ϵ (pairₒ ρ δ p q))) p
                (pairₒ (δ p) (λ q → ϵ (pairₒ ρ δ p q)) q r) 
     {-# REWRITE pairₒ-assoc #-}
-    
+
   --
   --  Implementations 
   --
@@ -173,49 +173,52 @@ module Native.InductiveOpetopes where
   {-# NO_POSITIVITY_CHECK #-}
   data 𝕆 where
   
-    ● : 𝕆 0
+    objₒ : 𝕆 0
     
     _∣_ : {n : ℕ} → (ο : 𝕆 n) (ρ : ℙ ο) → 𝕆 (suc n) 
 
+  Tr : ∀ {n} → 𝕆 n → Type
+  Tr ο = Σ[ lvs ∈ ℙ ο ] (ℙ (ο ∣ lvs))
+
   data ℙ where
   
-    objₒ : ℙ ●
+    arrₒ : ℙ objₒ
     
     lfₒ : {n : ℕ} → (ο : 𝕆 n) → ℙ (ο ∣ ηₒ ο)
     
     ndₒ : {n : ℕ} {ο : 𝕆 n} (ρ : ℙ ο)
-      → (δ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] (ℙ (Typ ρ p ∣ lvs)))
+      → (δ : (p : Pos ρ) → Tr (Typ ρ p))
       → ℙ (ο ∣ μₒ ρ (λ p → δ p .fst))
       
 
   data Pos where
 
-    this : Pos objₒ
+    this : Pos arrₒ
 
     here : {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο}
-      → {δ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] (ℙ (Typ ρ p ∣ lvs))}
+      → {δ : (p : Pos ρ) → Tr (Typ ρ p)}
       → Pos (ndₒ ρ δ)
 
     there : {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο}
-      → {δ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] (ℙ (Typ ρ p ∣ lvs))}
+      → {δ : (p : Pos ρ) → Tr (Typ ρ p)}
       → (p : Pos ρ) (q : Pos (δ p .snd))
       → Pos (ndₒ ρ δ)
 
-  Typ objₒ this = ●
+  Typ arrₒ this = objₒ
   Typ (ndₒ ρ δ) here = _ ∣ ρ
   Typ (ndₒ ρ δ) (there p q) = Typ (δ p .snd) q
 
-  obj-pos : (ρ : ℙ ●) → Pos ρ
-  obj-pos objₒ = this
+  arr-pos : (ρ : ℙ objₒ) → Pos ρ
+  arr-pos arrₒ = this
 
   --
   --  Unit 
   --
 
-  ηₒ ● = objₒ
+  ηₒ objₒ = arrₒ
   ηₒ (ο ∣ ρ) = ndₒ ρ (λ p → _ , lfₒ (Typ ρ p))
 
-  η-posₒ ● = this
+  η-posₒ objₒ = this
   η-posₒ (ο ∣ ρ) = here
   
   --
@@ -223,7 +226,7 @@ module Native.InductiveOpetopes where
   --
   
   γₒ : {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : ℙ (ο ∣ ρ))
-    → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] (ℙ (Typ ρ p ∣ lvs)))
+    → (ϕ : (p : Pos ρ) → Tr (Typ ρ p))
     → ℙ (ο ∣ μₒ ρ (λ p → ϕ p .fst))
   γₒ (lfₒ o) ϕ = ϕ (η-posₒ o) .snd
   γₒ (ndₒ ρ δ) ϕ =
@@ -231,7 +234,7 @@ module Native.InductiveOpetopes where
     in ndₒ ρ (λ p → _ , γₒ (δ p .snd) (ϕ' p))
 
   inlₒ : {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : ℙ (ο ∣ ρ))
-    → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] (ℙ (Typ ρ p ∣ lvs)))
+    → (ϕ : (p : Pos ρ) → Tr (Typ ρ p))
     → (p : Pos τ) → Pos (γₒ τ ϕ)
   inlₒ (ndₒ ρ δ) ϕ here = here
   inlₒ (ndₒ ρ δ) ϕ (there p q) =
@@ -239,7 +242,7 @@ module Native.InductiveOpetopes where
     in there p (inlₒ (δ p .snd) (ϕ' p) q)
 
   inrₒ : {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : ℙ (ο ∣ ρ))
-    → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] (ℙ (Typ ρ p ∣ lvs)))
+    → (ϕ : (p : Pos ρ) → Tr (Typ ρ p))
     → (p : Pos ρ) (q : Pos (ϕ p .snd)) → Pos (γₒ τ ϕ)
   inrₒ (lfₒ ο) ϕ p q = q
   inrₒ (ndₒ ρ δ) ϕ pq r = 
@@ -249,7 +252,7 @@ module Native.InductiveOpetopes where
     in there p (inrₒ (δ p .snd) (ϕ' p) q r)
 
   caseₒ : ∀ {ℓ} {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : ℙ (ο ∣ ρ))
-    → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] (ℙ (Typ ρ p ∣ lvs)))
+    → (ϕ : (p : Pos ρ) → Tr (Typ ρ p))
     → (P : Pos (γₒ τ ϕ) → Type ℓ)
     → (inl* : (p : Pos τ) → P (inlₒ τ ϕ p))
     → (inr* : (p : Pos ρ) (q : Pos (ϕ p .snd)) → P (inrₒ τ ϕ p q))
@@ -265,7 +268,7 @@ module Native.InductiveOpetopes where
   postulate
 
     case-inl-β : ∀ {ℓ} {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : ℙ (ο ∣ ρ))
-      → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] (ℙ (Typ ρ p ∣ lvs)))
+      → (ϕ : (p : Pos ρ) → Tr (Typ ρ p))
       → (P : Pos (γₒ τ ϕ) → Type ℓ)
       → (inl* : (p : Pos τ) → P (inlₒ τ ϕ p))
       → (inr* : (p : Pos ρ) (q : Pos (ϕ p .snd)) → P (inrₒ τ ϕ p q))
@@ -274,7 +277,7 @@ module Native.InductiveOpetopes where
     {-# REWRITE case-inl-β #-}
 
     case-inr-β : ∀ {ℓ} {n : ℕ} {ο : 𝕆 n} {ρ : ℙ ο} (τ : ℙ (ο ∣ ρ))
-      → (ϕ : (p : Pos ρ) → Σ[ lvs ∈ ℙ (Typ ρ p) ] (ℙ (Typ ρ p ∣ lvs)))
+      → (ϕ : (p : Pos ρ) → Tr (Typ ρ p))
       → (P : Pos (γₒ τ ϕ) → Type ℓ)
       → (inl* : (p : Pos τ) → P (inlₒ τ ϕ p))
       → (inr* : (p : Pos ρ) (q : Pos (ϕ p .snd)) → P (inrₒ τ ϕ p q))
@@ -287,14 +290,14 @@ module Native.InductiveOpetopes where
   --  Substitution 
   --
 
-  μₒ objₒ ϕ = objₒ
+  μₒ arrₒ ϕ = arrₒ
   μₒ (lfₒ ο) ϕ = lfₒ ο
   μₒ (ndₒ ρ δ) ϕ = 
     let ϕ' p q = ϕ (there p q)
         ih p = _ , μₒ (δ p .snd) (ϕ' p) 
     in γₒ (ϕ here) ih 
 
-  pairₒ objₒ ϕ this q = this
+  pairₒ arrₒ ϕ this q = this
   pairₒ (ndₒ ρ δ) ϕ here r = 
     let ϕ' p q = ϕ (there p q)
         ih p = _ , μₒ (δ p .snd) (ϕ' p) 
@@ -304,7 +307,7 @@ module Native.InductiveOpetopes where
         ih p = _ , μₒ (δ p .snd) (ϕ' p) 
     in inrₒ (ϕ here) ih p (pairₒ (δ p .snd) (ϕ' p) q r) 
 
-  fstₒ objₒ ϕ p = this
+  fstₒ arrₒ ϕ p = this
   fstₒ (ndₒ ρ δ) ϕ pq = 
     let ϕ' p q = ϕ (there p q)
         ih p = _ , μₒ (δ p .snd) (ϕ' p) 
@@ -312,7 +315,7 @@ module Native.InductiveOpetopes where
           (λ _ → here)
           (λ p q → there p (fstₒ (δ p .snd) (ϕ' p) q)) pq
   
-  sndₒ objₒ ϕ p = obj-pos (ϕ this)
+  sndₒ arrₒ ϕ p = arr-pos (ϕ this)
   sndₒ (ndₒ ρ δ) ϕ pq =  
     let ϕ' p q = ϕ (there p q)
         ih p = _ , μₒ (δ p .snd) (ϕ' p) 
