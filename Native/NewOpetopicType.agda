@@ -1,5 +1,3 @@
-{-# OPTIONS --no-positivity-check --no-termination-check #-}
-
 open import Core.Prelude
 open import Native.NewOpetopes
 
@@ -94,8 +92,8 @@ module Native.NewOpetopicType where
   Idx {n = n} X = Σ[ ο ∈ 𝕆 n ] Frm X ο 
 
   record Src {ℓ n} (X : 𝕆Type ℓ n)
-    (P : Idx X → Type)
-    (i : Idx X) : Type where
+    (P : Idx X → Type ℓ)
+    (i : Idx X) : Type ℓ where
     inductive 
     eta-equality
     constructor ⟪_,_⟫ 
@@ -108,13 +106,13 @@ module Native.NewOpetopicType where
   open Src public
 
   ret : ∀ {ℓ n} (X : 𝕆Type ℓ n)
-    → (P : Idx X → Type)
+    → (P : Idx X → Type ℓ)
     → {i : Idx X} → P i → Src X P i
   ret {n = n} X P {ο , f} x =
     ⟪ η X f , cst x ⟫
     
   join : ∀ {ℓ n} (X : 𝕆Type ℓ n)
-    → (P : Idx X → Type)
+    → (P : Idx X → Type ℓ)
     → {i : Idx X} → Src X (Src X P) i → Src X P i
   join X P s  =
     ⟪ μ X (web s) (λ p → web (dec s p)) 
@@ -127,12 +125,13 @@ module Native.NewOpetopicType where
   --
 
   {-# NO_UNIVERSE_CHECK #-}
+  {-# NO_POSITIVITY_CHECK #-}
   data 𝕆Type ℓ where
   
     ■ : 𝕆Type ℓ 0
     
     _∥_ : {n : ℕ} (X : 𝕆Type ℓ n)
-      → (P : Idx X → Type)
+      → (P : Idx X → Type ℓ)
       → 𝕆Type ℓ (suc n)
 
   {-# NO_UNIVERSE_CHECK #-}
@@ -141,15 +140,15 @@ module Native.NewOpetopicType where
     ▣ : Frm ■ ●
 
     _►[_,_] : {n : ℕ} {X : 𝕆Type ℓ n}
-      → {P : Idx X → Type}
+      → {P : Idx X → Type ℓ}
       → {ο : 𝕆 n} (f : Frm X ο)
       → (t : P (ο , f))
       → (s : Src X P (ο , f))
       → Frm (X ∥ P) (ο ∣ pd s) 
 
   record CappedPd {ℓ n} (X : 𝕆Type ℓ n)
-    (P : Idx X → Type)
-    {i : Idx X} (tgt : P i) : Type where
+    (P : Idx X → Type ℓ)
+    {i : Idx X} (tgt : P i) : Type ℓ where
     inductive
     eta-equality
     constructor ⟦_⟧
@@ -167,12 +166,12 @@ module Native.NewOpetopicType where
     obj : Web ■ ▣ objₒ
 
     lf : {n : ℕ} {X : 𝕆Type ℓ n}
-       → {P : Idx X → Type}
+       → {P : Idx X → Type ℓ}
        → {i : Idx X} (tgt : P i)
        → Web (X ∥ P) (snd i ►[ tgt , ret X P tgt ]) (lfₒ (fst i)) 
 
     nd : {n : ℕ} {X : 𝕆Type ℓ n}
-       → {P : Idx X → Type}
+       → {P : Idx X → Type ℓ}
        → {i : Idx X} (tgt : P i) (src : Src X P i)
        → (δ : (p : Pos (pd src)) → CappedPd X P (dec src p))
        → Web (X ∥ P) (snd i ►[ tgt , join X P ⟪ web src , (λ p → lvs (δ p)) ⟫ ]) 
@@ -187,7 +186,7 @@ module Native.NewOpetopicType where
     nd t s (λ p → ⟦ lf (dec s p) ⟧)
 
   γ : ∀ {ℓ n} (X : 𝕆Type ℓ n)
-    → (P : Idx X → Type )
+    → (P : Idx X → Type ℓ)
     → {i : Idx X} {s : Src X P i} {t : P i}
     → {τ : ℙ (fst i ∣ pd s)}
     → (ω : Web (X ∥ P) (snd i ►[ t , s ]) τ)

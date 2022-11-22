@@ -1,4 +1,4 @@
-{-# OPTIONS --no-positivity-check --cubical #-}
+{-# OPTIONS --cubical #-}
 
 open import Core.Prelude hiding (Σ-syntax)
 open import Native.NewOpetopes
@@ -10,12 +10,12 @@ open import Cubical.Foundations.Everything
 
 module Native.NewGroupoid where
 
-  Grp : Type → (n : ℕ) → 𝕆Type n
+  Grp : ∀ {ℓ} → Type ℓ → (n : ℕ) → 𝕆Type ℓ n
 
-  GrpTerm : (X : Type) (x : X)
+  GrpTerm : ∀ {ℓ} (X : Type ℓ) (x : X)
     → (n : ℕ) → 𝕆Term (Grp X n)
     
-  data GrpCell {n} (X : Type) : Idx (Grp X n) → Type where
+  data GrpCell {ℓ n} (X : Type ℓ) : Idx (Grp X n) → Type ℓ where
 
     reflₒ : (x : X) (ο : 𝕆 n) → GrpCell X (ο , TermFrm (Grp X n) (GrpTerm X x n) ο)
 
