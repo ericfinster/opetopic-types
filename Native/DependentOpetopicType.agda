@@ -92,6 +92,41 @@ module Native.DependentOpetopicType where
     {-# REWRITE μ↓-assoc #-}
 
   --
+  --  Decorated versions
+  --
+
+  Idx↓ : ∀ {ℓ ℓ↓ n} {X : 𝕆Type ℓ n} (X↓ : 𝕆Type↓ ℓ↓ X)
+    → Idx X → Type ℓ↓
+  Idx↓ {n = n} {X} X↓ (_ , f) = Frm↓ X↓ f
+
+  Src↓ : ∀ {ℓ ℓ↓ n} {X : 𝕆Type ℓ n} (X↓ : 𝕆Type↓ ℓ↓ X)
+    → {P : Idx X → Type ℓ}
+    → (P↓ : {i : Idx X} → P i →  Idx↓ X↓ i → Type ℓ↓)
+    → {i : Idx X} → Src X P i → Idx↓ X↓ i → Type ℓ↓
+  Src↓ X↓ P↓ {ο , f} (ρ , ω , δ) f↓  =
+    Σ[ ω↓ ∈ Web↓ X↓ f↓ ω  ]
+    ((p : Pos ρ) → P↓ (δ p) (Shp↓ X↓ ω↓ p))
+
+  ret↓ : ∀ {ℓ ℓ↓ n} {X : 𝕆Type ℓ n} (X↓ : 𝕆Type↓ ℓ↓ X)
+    → {P : Idx X → Type ℓ}
+    → (P↓ : {i : Idx X} → P i →  Idx↓ X↓ i → Type ℓ↓)
+    → {i : Idx X} {t : P i} {i↓ : Idx↓ X↓ i}
+    → P↓ t i↓ → Src↓ X↓ P↓ (ret X P t) i↓
+  ret↓ X↓ P↓ {ο , f} {t} {f↓} t↓ = η↓ X↓ f↓ , cst t↓ 
+
+  join↓ : ∀ {ℓ ℓ↓ n} {X : 𝕆Type ℓ n} (X↓ : 𝕆Type↓ ℓ↓ X)
+    → {P : Idx X → Type ℓ}
+    → (P↓ : {i : Idx X} → P i →  Idx↓ X↓ i → Type ℓ↓)
+    → {i : Idx X} {s : Src X (Src X P) i}
+    → {i↓ : Idx↓ X↓ i} (s↓ : Src↓ X↓ (Src↓ X↓ P↓) s i↓)
+    → Src↓ X↓ P↓ (join X P s) i↓ 
+  join↓ X↓ P↓ {s = ρ , ω , δ} (ω↓ , δ↓) =
+    μ↓ X↓ ω↓ (λ p → δ↓ p .fst) ,
+    (λ pq → let p = fstₒ ρ (λ p → δ p .fst) pq
+                q = sndₒ ρ (λ p → δ p .fst) pq
+             in δ↓ p .snd q)
+             
+  --
   --  Implementations
   --
   
