@@ -10,17 +10,6 @@ open import Cubical.Foundations.Everything
 
 module Native.Inversion.LfInversion where
 
-  𝕌Src : ∀ {ℓ n} (i : Idx (𝕌 ℓ n)) → Type (ℓ-suc ℓ)
-  𝕌Src {ℓ} {n} i = Src (𝕌 ℓ n) 𝕌-cell i 
-
-  𝕍Src : ∀ {ℓ n} {i : Idx (𝕌 ℓ n)} (S : 𝕌Src i) (f↓ : Idx↓ (𝕍 ℓ n) i) → Type ℓ
-  𝕍Src {ℓ} {n} S f↓ = Src↓ (𝕍 ℓ n) 𝕍-cell S f↓
-
-  𝕍ret : ∀ {ℓ n} {ο : 𝕆 n} {F : Frm (𝕌 ℓ n) ο}
-    → (T : 𝕌-cell (ο , F)) {f↓ : Frm↓ (𝕍 ℓ n) F} (t : T f↓)
-    → 𝕍Src (ret (𝕌 ℓ n) 𝕌-cell T) f↓
-  𝕍ret {ℓ} {n} T t↓ = ret↓ (𝕍 ℓ n) 𝕍-cell {t = T} t↓
-
   --
   --  Inverting Lf↓
   --
@@ -28,7 +17,7 @@ module Native.Inversion.LfInversion where
   module _ {ℓ n} {ο : 𝕆 n} (F : Frm (𝕌 ℓ n) ο) (T : 𝕌-cell (ο , F)) where
 
     lf-data : {f↓ : Frm↓ (𝕍 ℓ n) F} (s↓ : 𝕍Src (ret (𝕌 ℓ n) 𝕌-cell T) f↓) → Type ℓ
-    lf-data {f↓} s↓ = Σ[ t↓ ∈ T f↓ ] (ret↓ (𝕍 ℓ n) 𝕍-cell {t = T} t↓ ≡ s↓)
+    lf-data {f↓} s↓ = Σ[ t↓ ∈ T f↓ ] (𝕍ret T t↓ ≡ s↓)
 
     web-over : {f↓ : Frm↓ (𝕍 ℓ n) F} (s↓ : 𝕍Src (ret (𝕌 ℓ n) 𝕌-cell T) f↓) → Type ℓ
     web-over {f↓} s↓ = Σ[ t↓ ∈ T f↓ ] (Web↓ (𝕍 ℓ (suc n)) (f↓ ►⟦ t↓ ∣ s↓ ⟧↓) (lf T)) 
