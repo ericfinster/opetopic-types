@@ -16,7 +16,7 @@ module Native.OpetopicTerm where
     → (τ : 𝕆Term X X↓)
     → {ο : 𝕆 n} {f : Frm X ο}
     → {ρ : ℙ ο} (ω : Web X f ρ)
-    → Web↓ X↓ (Frm↑ τ f) ω
+    → Web↓ X↓ ω (Frm↑ τ f)
 
   postulate
 

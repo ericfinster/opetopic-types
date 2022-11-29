@@ -16,7 +16,7 @@ module Native.Weakening where
     → {ο : 𝕆 n} {ρ : ℙ ο}
     → {f : Frm X ο} {ω : Web X f ρ}
     → {f↓ : Frm↓ (Wk X Y) f}
-    → (ω↓ : Web↓ (Wk X Y) f↓ ω)
+    → (ω↓ : Web↓ (Wk X Y) ω f↓)
     → Web Y (πFrm X Y f↓) ρ 
 
   postulate
@@ -25,7 +25,7 @@ module Native.Weakening where
       → {ο : 𝕆 n} {ρ : ℙ ο}
       → {f : Frm X ο} {ω : Web X f ρ}
       → {f↓ : Frm↓ (Wk X Y) f}
-      → (ω↓ : Web↓ (Wk X Y) f↓ ω)
+      → (ω↓ : Web↓ (Wk X Y) ω f↓)
       → (p : Pos ρ)
       → Shp Y (πWeb X Y ω↓) p ↦ πFrm X Y (Shp↓ (Wk X Y) ω↓ p)
     {-# REWRITE Shp-πWeb #-} 
@@ -37,10 +37,10 @@ module Native.Weakening where
 
     πWeb-μ : ∀ {ℓ₀ ℓ₁ n} {X : 𝕆Type ℓ₀ n} (Y : 𝕆Type ℓ₁ n)
       → {ο : 𝕆 n} {f : Frm X ο} (f↓ : Frm↓ (Wk X Y) f)
-      → {ρ : ℙ ο} {ω : Web X f ρ} (ω↓ : Web↓ (Wk X Y) f↓ ω)
+      → {ρ : ℙ ο} {ω : Web X f ρ} (ω↓ : Web↓ (Wk X Y) ω f↓)
       → {δ : (p : Pos ρ) → ℙ (Typ ρ p)}
       → {ϵ : (p : Pos ρ) → Web X (Shp X ω p) (δ p)}
-      → (ϵ↓ : (p : Pos ρ) → Web↓ (Wk X Y) (Shp↓ (Wk X Y) ω↓ p) (ϵ p))
+      → (ϵ↓ : (p : Pos ρ) → Web↓ (Wk X Y) (ϵ p) (Shp↓ (Wk X Y) ω↓ p))
       → πWeb X Y (μ↓ (Wk X Y) ω↓ ϵ↓) ↦ μ Y (πWeb X Y ω↓) (λ p → πWeb X Y (ϵ↓ p))
     {-# REWRITE πWeb-μ #-}
 

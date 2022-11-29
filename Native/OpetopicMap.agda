@@ -45,8 +45,8 @@ module Native.OpetopicMap where
     → {ο : 𝕆 n} {f : Frm X ο}
     → {ρ : ℙ ο} (ω : Web X f ρ)
     → {f↓ : Frm↓ (Subst τ Y↓) f}
-    → Web↓ (Subst τ Y↓) f↓ ω
-    → Web↓ Y↓ (Frm← τ Y↓ f f↓) (Web⇒ τ ω)
+    → Web↓ (Subst τ Y↓) ω f↓
+    → Web↓ Y↓ (Web⇒ τ ω) (Frm← τ Y↓ f f↓)
 
   postulate
 
@@ -55,7 +55,7 @@ module Native.OpetopicMap where
       → {ο : 𝕆 n} {f : Frm X ο}
       → {ρ : ℙ ο} (ω : Web X f ρ)
       → {f↓ : Frm↓ (Subst τ Y↓) f}
-      → (ω↓ : Web↓ (Subst τ Y↓) f↓ ω)
+      → (ω↓ : Web↓ (Subst τ Y↓) ω f↓)
       → (p : Pos ρ)
       → Shp↓ Y↓ (Web← τ Y↓ ω ω↓) p ↦ Frm← τ Y↓ (Shp X ω p) (Shp↓ (Subst τ Y↓) ω↓ p)
     {-# REWRITE Shp↓-Web← #-}
@@ -74,8 +74,8 @@ module Native.OpetopicMap where
       → {δ : (p : Pos ρ) → ℙ (Typ ρ p)}
       → {ϵ : (p : Pos ρ) → Web X (Shp X ω p) (δ p)}
       → {f↓ : Frm↓ (Subst τ Y↓) f}
-      → (ω↓ : Web↓ (Subst τ Y↓) f↓ ω)
-      → (ϵ↓ : (p : Pos ρ) → Web↓ (Subst τ Y↓) (Shp↓ (Subst τ Y↓) ω↓ p) (ϵ p))
+      → (ω↓ : Web↓ (Subst τ Y↓) ω f↓)
+      → (ϵ↓ : (p : Pos ρ) → Web↓ (Subst τ Y↓) (ϵ p) (Shp↓ (Subst τ Y↓) ω↓ p))
       → Web← τ Y↓ (μ X ω ϵ) (μ↓ (Subst τ Y↓) ω↓ ϵ↓) ↦
           μ↓ Y↓ (Web← τ Y↓ ω ω↓ ) λ p → Web← τ Y↓ (ϵ p) (ϵ↓ p)
     {-# REWRITE Web←-μ #-} 
