@@ -45,8 +45,8 @@ module Native.Inversion.LfInversion where
     lf-data-section : {f↓ : Frm↓ X↓ f} (t↓ : P↓ t f↓) (s↓ : Src↓ X↓ P↓ (ret X P t) f↓)
       → (p : ret↓ X↓ P↓ t↓ == s↓)
       → lf-data-to t↓ s↓ (lf-data-from t↓ s↓ p) == p
-    lf-data-section {f↓} t↓ s↓ p = J (λ s↓' p' → lf-data-to t↓ s↓' (lf-data-from t↓ s↓' p') == p') idp p 
-
+    lf-data-section {f↓} t↓ s↓ p = J (λ s↓' p' → lf-data-to t↓ s↓' (lf-data-from t↓ s↓' p') == p') idp p
+    
     lf-data-retract : {f↓ : Frm↓ X↓ f} (t↓ : P↓ t f↓) (s↓ : Src↓ X↓ P↓ (ret X P t) f↓)
       → (ω : Web↓ (X↓ ∥↓ P↓) (lf t) (f↓ ►⟦ t↓ ∣ s↓ ⟧↓))
       → lf-data-from t↓ s↓ (lf-data-to t↓ s↓ ω) == ω
