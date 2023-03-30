@@ -170,6 +170,8 @@ module Native.Opetopes where
   --  Implementations 
   --
 
+  infixl 40 _∣_
+  
   {-# NO_POSITIVITY_CHECK #-}
   data 𝕆 where
   
